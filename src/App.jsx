@@ -1,0 +1,1079 @@
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { flushSync } from 'react-dom';
+import Editor from './components/Editor.jsx';
+import DialogueTuner from './components/DialogueTuner.jsx';
+import Navigator from './components/Navigator.jsx';
+import TitlePageModal from './components/TitlePageModal.jsx';
+import ImportModal from './components/ImportModal.jsx';
+import FormatDoctorModal from './components/FormatDoctorModal.jsx';
+import { applyFixes, auditScript } from './lib/formatDoctor.js';
+import TitlePageSheet from './components/TitlePageSheet.jsx';
+import PrintView from './components/PrintView.jsx';
+import BeatBoard from './components/BeatBoard.jsx';
+import Menu from './components/Menu.jsx';
+import { useHistory } from './hooks/useHistory.js';
+import HelpModal from './components/HelpModal.jsx';
+import ProjectsDrawer from './components/ProjectsDrawer.jsx';
+import ProjectBibleDrawer from './components/ProjectBibleDrawer.jsx';
+import { mergeDictionary } from './lib/structureDictionary.js';
+import { closeDock, dockFromPrefs, openDock, toggleDock } from './lib/dock.js';
+import { DEFAULT_BIBLE_TAB } from './lib/bible.js';
+import {
+  DICTIONARY_KEY, EMPTY_META, bootLibrary, clearJournal, projects, toDoc, writeJournal,
+} from './lib/projectStorage.js';
+import { STYLES, STYLE_INFO, reconcileMarks } from './lib/formatting.js';
+import {
+  ELEMENT_META,
+  analyzeScript,
+  buildItems,
+  flowHints,
+  formatEighths,
+  makeBlock,
+  paginate,
+} from './lib/screenplay.js';
+import { ELEMENT_SHORTCUTS } from './lib/shortcuts.js';
+import { parseFountain, toFountain } from './lib/fountain.js';
+import { parseFDX, toFDX } from './lib/fdx.js';
+import { beatsToFountain, beatsToMarkdown, sampleBeats } from './lib/beats.js';
+import { SAMPLE_SCRIPT } from './lib/sampleScript.js';
+import './App.css';
+
+// Scripts live in IndexedDB (lib/projectStorage.js); localStorage keeps only UI prefs.
+const PREFS_KEY = 'draftline:prefs:v1';
+const SAVE_DEBOUNCE_MS = 500;
+const ZOOM_STEPS = [0.75, 0.9, 1, 1.1, 1.25, 1.5, 1.75, 2];
+const VIEWS = [
+  { id: 'page', label: 'Page', title: 'Script only' },
+  { id: 'split', label: 'Split', title: 'Script + Beat Board side by side' },
+  { id: 'board', label: 'Board', title: 'Beat Board only' },
+];
+
+function sampleDoc() {
+  return {
+    meta: { ...EMPTY_META, ...SAMPLE_SCRIPT.meta },
+    blocks: SAMPLE_SCRIPT.blocks.map(([type, text, extra]) => makeBlock(type, text, extra)),
+    beats: sampleBeats(),
+  };
+}
+
+/** localStorage, or null where it's blocked (only prefs and the crash journal use it). */
+const LOCAL = (() => {
+  try {
+    return window.localStorage;
+  } catch {
+    return null;
+  }
+})();
+
+function readJSON(key) {
+  try {
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
+
+function writeJSON(key, value) {
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function slugify(s) {
+  return (s || 'untitled').trim().replace(/[^\w\- ]+/g, '').replace(/\s+/g, '-').toLowerCase() || 'untitled';
+}
+
+function download(filename, content, mime) {
+  const url = URL.createObjectURL(new Blob([content], { type: mime }));
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function timeLabel(ts) {
+  return ts ? new Date(ts).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : '';
+}
+
+/** Carries dual dialogue, margin notes and inline formatting over from a parsed element. */
+function blockExtras(b) {
+  const extra = {};
+  if (b.dual) extra.dual = true;
+  if (b.note != null && b.note !== '') extra.note = b.note;
+  if (b.marks) extra.marks = b.marks;
+  return Object.keys(extra).length ? extra : null;
+}
+
+// ---- Boot: open the project library before the editor mounts ----
+let bootPromise = null;
+/** Once per page load (StrictMode runs effects twice; migration must not). */
+function bootOnce() {
+  bootPromise ??= bootLibrary({ store: projects, storage: LOCAL, makeFirstDoc: sampleDoc });
+  return bootPromise;
+}
+
+export default function App() {
+  const [boot, setBoot] = useState(null);
+  const [error, setError] = useState(null);
+  useEffect(() => {
+    let live = true;
+    bootOnce().then((b) => live && setBoot(b), (e) => live && setError(e));
+    return () => {
+      live = false;
+    };
+  }, []);
+  if (error) {
+    return <div className="boot-screen" role="alert">DraftLine couldn’t open your scripts: {error.message}</div>;
+  }
+  if (!boot) return <div className="boot-screen" aria-busy="true">Opening your scripts…</div>;
+  return <Workspace boot={boot} />;
+}
+
+function bootMessage(boot) {
+  if (!boot.persistent) return 'This browser is blocking storage — nothing will be kept. Use Export to save files.';
+  if (boot.recovered) return 'Recovered changes from your last session';
+  if (boot.migrated) return 'Your script is now in Projects — open the library from its title';
+  return null;
+}
+
+/** The editor workspace for one project at a time; switching projects swaps its document. */
+function Workspace({ boot }) {
+  const [initialDoc] = useState(() => {
+    const d = toDoc(boot.project);
+    return { ...d, blocks: d.blocks.length ? d.blocks : [makeBlock('scene')] };
+  });
+  const [initialPrefs] = useState(() => readJSON(PREFS_KEY) || {});
+  const [projectId, setProjectId] = useState(boot.project.id);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+
+  const [meta, setMeta] = useState(initialDoc.meta);
+  const { present: blocks, set, undo, redo, reset, canUndo, canRedo } = useHistory(initialDoc.blocks, reconcileMarks);
+  const [beats, setBeats] = useState(initialDoc.beats);
+  const [characters, setCharacters] = useState(initialDoc.characters); // Project Bible
+  const [storyNotes, setStoryNotes] = useState(initialDoc.storyNotes);
+  const [storyDna, setStoryDna] = useState(initialDoc.storyDna);
+  const [dictOverrides, setDictOverrides] = useState(boot.dictionary || {}); // Structure Dictionary wording (all projects)
+
+  const [lineMap, setLineMap] = useState({});
+  const [activeId, setActiveId] = useState(null);
+  const [view, setView] = useState(VIEWS.some((v) => v.id === initialPrefs.view) ? initialPrefs.view : 'page');
+  // Right dock: the Dialogue Tuner or the Project Bible — one at a time (lib/dock.js).
+  const [dock, setDock] = useState(() => dockFromPrefs(initialPrefs));
+  const tunerOpen = dock === 'tuner';
+  const bibleOpen = dock === 'bible';
+  const [bibleTab, setBibleTab] = useState(DEFAULT_BIBLE_TAB); // Story DNA unless you pick another this session
+  const [navOpen, setNavOpen] = useState(initialPrefs.navOpen ?? true);
+  const [selectedChar, setSelectedChar] = useState(null);
+  const [hoverId, setHoverId] = useState(null);
+  const [zoom, setZoom] = useState(initialPrefs.zoom ?? 1);
+  const [actMode, setActMode] = useState(initialPrefs.actMode === 3 ? 3 : 4);
+  const [coverVisible, setCoverVisible] = useState(initialPrefs.coverVisible ?? false); // Page 0 above the script
+  const [scrollerWidth, setScrollerWidth] = useState(0);
+  const [focusMode, setFocusMode] = useState(false);
+  const [titleOpen, setTitleOpen] = useState(false);
+  const [importSeed, setImportSeed] = useState(null); // { text, name } while the Import modal is open
+  const [doctorOpen, setDoctorOpen] = useState(false);
+  const [fmtState, setFmtState] = useState({ b: false, i: false, u: false, s: false }); // toolbar B I U S
+  const [helpKind, setHelpKind] = useState(null); // 'shortcuts' | 'about' while that dialog is open
+  const [printing, setPrinting] = useState(false);
+  const [toast, setToast] = useState(() => bootMessage(boot));
+  const [saved, setSaved] = useState(() => ({
+    blocks: initialDoc.blocks,
+    meta: initialDoc.meta,
+    beats: initialDoc.beats,
+    characters: initialDoc.characters,
+    storyNotes: initialDoc.storyNotes,
+    storyDna: initialDoc.storyDna,
+    at: initialDoc.updatedAt,
+    ok: boot.persistent,
+  }));
+
+  const editorRef = useRef(null);
+  const fileInputRef = useRef(null);
+  const toastTimer = useRef(null);
+  const scrollerRO = useRef(null);
+
+  // ---- Derived layout ----
+  const items = useMemo(() => buildItems(blocks), [blocks]);
+  const layout = useMemo(() => paginate(items, lineMap), [items, lineMap]);
+  const analysis = useMemo(() => analyzeScript(blocks), [blocks]);
+  const activeBlock = blocks.find((b) => b.id === activeId) || null;
+  const activeInDual = items.some((it) => it.kind === 'dual' && it.blocks.some((b) => b.id === activeId));
+  // Focus mode is always the bare script page.
+  const showEditor = view !== 'board' || focusMode;
+  const showBoard = view !== 'page' && !focusMode;
+
+  // In Split view, shrink the page to fit its half (never zoom in past the user's zoom).
+  const fitZoom = scrollerWidth ? Math.floor((scrollerWidth / 816) * 100) / 100 : zoom;
+  const effectiveZoom = view === 'split' ? Math.max(0.5, Math.min(zoom, fitZoom)) : zoom;
+  const zoomPct = (z) => Math.round((Math.max(6, Math.round(16 * z)) / 16) * 100); // matches the editor's whole-pixel lines
+  const isFitted = zoomPct(effectiveZoom) !== zoomPct(zoom);
+
+  const scrollerRef = useCallback((el) => {
+    if (!el) return undefined;
+    scrollerRO.current = new ResizeObserver(([en]) => {
+      const w = Math.floor(en.contentRect.width); // width available to the page
+      if (w > 0) setScrollerWidth(w);
+    });
+    scrollerRO.current.observe(el);
+    return () => scrollerRO.current.disconnect();
+  }, []);
+
+  const scenes = useMemo(() => {
+    const idx = [];
+    items.forEach((it, k) => {
+      if (it.type === 'scene') idx.push(k);
+    });
+    return idx.map((k, n) => {
+      const pl = layout.place[k];
+      const nextPos = n + 1 < idx.length ? layout.place[idx[n + 1]].pos : layout.endPos;
+      let snippet = '';
+      for (let j = k + 1; j < items.length && items[j].type !== 'scene'; j++) {
+        if (items[j].type === 'action' && items[j].block.text.trim()) {
+          snippet = items[j].block.text.trim();
+          break;
+        }
+      }
+      return {
+        id: items[k].key,
+        number: analysis.sceneNumbers[items[k].key],
+        heading: items[k].block.text.trim(),
+        page: pl.page + 1,
+        length: formatEighths(Math.max(1, nextPos - pl.pos)),
+        snippet,
+      };
+    });
+  }, [items, layout, analysis]);
+
+  // Speakers in the script (for the Bible's "add from script" chips), most lines first.
+  const speakers = useMemo(() => analysis.characterList.map((c) => c.name), [analysis]);
+
+  // Scenes the Beat Board can turn into cards: numbered headings with text.
+  const boardScenes = useMemo(() => scenes.filter((s) => s.number && s.heading), [scenes]);
+
+  // ---- Toasts ----
+  const notify = useCallback((msg) => {
+    setToast(msg);
+    clearTimeout(toastTimer.current);
+    toastTimer.current = setTimeout(() => setToast(null), 2400);
+  }, []);
+  useEffect(() => {
+    if (!toast || toast !== bootMessage(boot)) return undefined;
+    const t = setTimeout(() => setToast(null), boot.persistent ? 3200 : 8000);
+    return () => clearTimeout(t);
+  }, [toast, boot]);
+
+  // Structure Dictionary: starter text with your own wording laid over it, kept for all projects.
+  const dictionary = useMemo(() => mergeDictionary(dictOverrides), [dictOverrides]);
+  const editDictionary = useCallback((id, override) => {
+    const next = { ...dictOverrides };
+    if (override) next[id] = override;
+    else delete next[id];
+    setDictOverrides(next);
+    projects.setSetting(DICTIONARY_KEY, next).catch(() => notify('Could not save the dictionary — browser storage is blocked'));
+  }, [dictOverrides, notify]);
+
+  // ---- Auto-save to the project library (IndexedDB), debounced ----
+  const dirty = saved.blocks !== blocks || saved.meta !== meta || saved.beats !== beats
+    || saved.characters !== characters || saved.storyNotes !== storyNotes || saved.storyDna !== storyDna;
+  const latest = useRef(null);
+  useLayoutEffect(() => {
+    latest.current = {
+      projectId, meta, blocks, beats, characters, storyNotes, storyDna, pages: layout.pageCount, scenes: analysis.sceneCount, dirty,
+    };
+  });
+
+  /** Save the open project now. Resolves with the stored record (or null on failure). */
+  const saveNow = useCallback(() => {
+    const s = latest.current;
+    const snap = {
+      meta: s.meta, blocks: s.blocks, beats: s.beats, characters: s.characters, storyNotes: s.storyNotes, storyDna: s.storyDna,
+    };
+    return projects.saveActiveProject({ id: s.projectId, ...snap, pages: s.pages, scenes: s.scenes })
+      .then(async (rec) => {
+        const ok = await projects.isPersistent();
+        clearJournal(LOCAL);
+        if (latest.current.projectId === s.projectId) setSaved({ ...snap, at: rec.updatedAt, ok });
+        return rec;
+      })
+      .catch(() => {
+        if (latest.current.projectId === s.projectId) setSaved((prev) => ({ ...prev, ok: false }));
+        return null;
+      });
+  }, []);
+
+  /** Save only if there are unsaved changes (before switching projects). */
+  const flushSave = useCallback(() => (latest.current.dirty ? saveNow() : Promise.resolve(null)), [saveNow]);
+
+  useEffect(() => {
+    if (!dirty) return undefined;
+    const t = setTimeout(saveNow, SAVE_DEBOUNCE_MS);
+    return () => clearTimeout(t);
+  }, [dirty, meta, blocks, beats, characters, storyNotes, storyDna, saveNow]);
+
+  // Tab hidden or closing inside the debounce window: start the save, and journal the state
+  // synchronously in case the browser kills the page before IndexedDB commits.
+  useEffect(() => {
+    const flush = () => {
+      const s = latest.current;
+      if (!s.dirty) return;
+      writeJournal(LOCAL, {
+        id: s.projectId, meta: s.meta, blocks: s.blocks, beats: s.beats, characters: s.characters, storyNotes: s.storyNotes, storyDna: s.storyDna,
+      });
+      saveNow();
+    };
+    const onVis = () => document.visibilityState === 'hidden' && flush();
+    window.addEventListener('pagehide', flush);
+    document.addEventListener('visibilitychange', onVis);
+    return () => {
+      window.removeEventListener('pagehide', flush);
+      document.removeEventListener('visibilitychange', onVis);
+    };
+  }, [saveNow]);
+
+  useEffect(() => {
+    document.title = `${meta.title.trim() || 'Untitled'} — DraftLine`;
+  }, [meta.title]);
+
+  useEffect(() => {
+    writeJSON(PREFS_KEY, { zoom, dock, tunerOpen, navOpen, view, actMode, coverVisible });
+  }, [zoom, dock, tunerOpen, navOpen, view, actMode, coverVisible]);
+
+  const saveLabel = !saved.ok ? 'Not saved — browser storage blocked or full' : dirty ? 'Saving…' : 'Saved locally';
+
+  // ---- Script mutations (shared by Editor and Tuner) ----
+  const commitBlocks = useCallback((next) => {
+    set(next.length ? next : [makeBlock('action')]);
+  }, [set]);
+
+  const updateBlockText = useCallback((id, text) => {
+    set((prev) => prev.map((b) => (b.id === id ? { ...b, text } : b)), `text:${id}`);
+  }, [set]);
+
+  /** Set (string) or remove (null) an element's margin note. */
+  const updateBlockNote = useCallback((id, note) => {
+    set((prev) => prev.map((b) => {
+      if (b.id !== id) return b;
+      if (note === null) {
+        const { note: _drop, ...rest } = b; // eslint-disable-line no-unused-vars
+        return rest;
+      }
+      return { ...b, note };
+    }), `note:${id}`);
+  }, [set]);
+
+  // ---- Format Doctor ----
+  const issues = useMemo(() => auditScript(blocks, { skipId: activeId }), [blocks, activeId]);
+  const noteCount = useMemo(() => blocks.filter((b) => b.note?.trim()).length, [blocks]);
+  const fixIssues = useCallback((list) => {
+    if (!list.length) return;
+    set(applyFixes(blocks, list));
+    notify(list.length === 1 ? 'Fixed · Ctrl+Z to undo' : `Fixed ${list.length} elements · Ctrl+Z to undo`);
+  }, [blocks, set, notify]);
+
+  const onMeasure = useCallback((changes) => {
+    setLineMap((prev) => {
+      let diff = false;
+      for (const k in changes) if (prev[k] !== changes[k]) diff = true;
+      return diff ? { ...prev, ...changes } : prev;
+    });
+  }, []);
+
+  // ---- File actions ----
+  const base = slugify(meta.title);
+  const exportFountain = () => {
+    download(`${base}.fountain`, toFountain({ meta, blocks }), 'text/plain;charset=utf-8');
+    notify('Exported .fountain');
+  };
+  const exportFDX = () => {
+    download(`${base}.fdx`, toFDX({ meta, blocks }), 'application/xml;charset=utf-8');
+    notify('Exported .fdx');
+  };
+  const exportOutline = useCallback((kind) => {
+    if (kind === 'md') {
+      download(`${base}-outline.md`, beatsToMarkdown(beats, meta.title, actMode), 'text/markdown;charset=utf-8');
+      notify('Exported outline .md');
+    } else {
+      download(`${base}-outline.fountain`, beatsToFountain(beats, meta.title, actMode), 'text/plain;charset=utf-8');
+      notify('Exported outline .fountain');
+    }
+  }, [base, beats, meta.title, actMode, notify]);
+
+  // ---- Projects ----
+  /** Show a stored project: script, title page, beats, Bible; fresh undo history; nothing unsaved. */
+  const applyProject = useCallback((rec) => {
+    const doc = toDoc(rec);
+    const m = { ...EMPTY_META, ...doc.meta };
+    const bl = doc.blocks.length ? doc.blocks : [makeBlock('scene')];
+    setMeta(m);
+    reset(bl);
+    setBeats(doc.beats);
+    setCharacters(doc.characters);
+    setStoryNotes(doc.storyNotes);
+    setStoryDna(doc.storyDna);
+    setLineMap({});
+    setSelectedChar(null);
+    setActiveId(null);
+    setProjectId(rec.id);
+    setSaved({
+      meta: m, blocks: bl, beats: doc.beats, characters: doc.characters, storyNotes: doc.storyNotes, storyDna: doc.storyDna,
+      at: rec.updatedAt, ok: true,
+    });
+    projects.setActiveProjectId(rec.id);
+  }, [reset]);
+
+  /** Save what's open, then switch to project `id`. */
+  const switchProject = useCallback(async (id) => {
+    if (id === latest.current.projectId) {
+      setDrawerOpen(false);
+      return;
+    }
+    await flushSave();
+    const rec = await projects.getProject(id);
+    if (!rec) {
+      notify('That script no longer exists');
+      return;
+    }
+    applyProject(rec);
+    setDrawerOpen(false);
+    notify(`Switched to “${rec.title?.trim() || 'Untitled'}”`);
+  }, [applyProject, flushSave, notify]);
+
+  /** Save what's open, store `doc` as a new project and open it. */
+  const openAsNewProject = useCallback(async (doc, message) => {
+    await flushSave();
+    const rec = await projects.saveActiveProject(doc);
+    applyProject(rec);
+    setDrawerOpen(false);
+    if (message) notify(message);
+    return rec;
+  }, [applyProject, flushSave, notify]);
+
+  const newScript = async (title = 'Untitled') => {
+    await openAsNewProject({ meta: { ...EMPTY_META, title }, blocks: [makeBlock('scene')], beats: [] }, `New script “${title}” · your other scripts are in Projects`);
+    if (view === 'board') setView('page');
+    requestAnimationFrame(() => document.querySelector('.sheet .el-input')?.focus());
+  };
+
+  const loadSample = () => openAsNewProject(sampleDoc(), 'Sample script added to your Projects');
+
+  /** Export any project — the open one from live state, others from the library. */
+  const exportProject = async (id, kind) => {
+    let doc = { meta, blocks };
+    if (id !== projectId) {
+      const rec = await projects.getProject(id);
+      if (!rec) return;
+      doc = toDoc(rec);
+    }
+    const name = slugify(doc.meta.title);
+    if (kind === 'fdx') download(`${name}.fdx`, toFDX(doc), 'application/xml;charset=utf-8');
+    else download(`${name}.fountain`, toFountain(doc), 'text/plain;charset=utf-8');
+    notify(`Exported ${name}.${kind}`);
+  };
+
+  const renameProject = async (id, title) => {
+    if (id === projectId) setMeta((m) => ({ ...m, title }));
+    else await projects.renameProject(id, title);
+  };
+
+  const duplicateProject = async (id) => {
+    if (id === projectId) await flushSave();
+    const copy = await projects.duplicateProject(id);
+    notify(`Duplicated as “${copy.title}”`);
+  };
+
+  const deleteProject = async (id, title) => {
+    if (!window.confirm(`Delete “${title}”? This removes the script and its beat cards from this browser and can’t be undone. Export it first if you might want it back.`)) return;
+    if (id === projectId) {
+      // Move to the most recently edited other script first, then delete.
+      const next = (await projects.getAllProjects()).find((p) => p.id !== id);
+      if (!next) return;
+      await flushSave();
+      applyProject(next);
+    }
+    try {
+      await projects.deleteProject(id);
+      notify(`Deleted “${title}”`);
+    } catch (e) {
+      notify(e.message);
+    }
+  };
+
+  const openFile = async (e) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    try {
+      const text = await file.text();
+      // Plain .txt scripts (Docs/Word exports) go through the importer so they can be previewed.
+      if (/\.(txt|text)$/i.test(file.name)) {
+        setImportSeed({ text, name: file.name });
+        return;
+      }
+      const parsed = /\.fdx$/i.test(file.name) ? parseFDX(text) : parseFountain(text);
+      if (!parsed.blocks.length) {
+        notify('No screenplay elements found in that file');
+        return;
+      }
+      await openAsNewProject({
+        meta: { ...EMPTY_META, ...parsed.meta, title: parsed.meta.title || file.name.replace(/\.[^.]+$/, '') },
+        blocks: parsed.blocks.map((b) => makeBlock(b.type, b.text, blockExtras(b))),
+        beats: [],
+      }, `Opened ${file.name} as a new project`);
+    } catch (err) {
+      notify(err.message || 'Could not open that file');
+    }
+  };
+
+  /** Load parsed text into the editor. Replacing is one undoable step (Ctrl+Z restores the old script). */
+  const importScript = ({ blocks: parsed, meta: detected, mode, stats }) => {
+    const incoming = parsed.map((b) => makeBlock(b.type, b.text, blockExtras(b)));
+    if (mode === 'append') set((prev) => [...prev, ...incoming]);
+    else set(incoming);
+    if (detected) {
+      setMeta((m) => ({
+        ...m,
+        title: detected.title || m.title,
+        credit: detected.credit || m.credit,
+        author: detected.author || m.author,
+        basedOn: detected.basedOn || m.basedOn,
+        draftVersion: detected.draftVersion || m.draftVersion,
+        draftDate: detected.draftDate || m.draftDate,
+        contact: detected.contact || m.contact,
+      }));
+    }
+    setImportSeed(null);
+    setSelectedChar(null);
+    setActiveId(null);
+    if (view === 'board') setView('page');
+    notify(`${mode === 'append' ? 'Appended' : 'Imported'} ${stats.scene} scenes · ${stats.dialogue} dialogue blocks · Ctrl+Z to undo`);
+  };
+
+  const printScript = () => {
+    flushSync(() => setPrinting(true));
+    window.print();
+  };
+
+  const zoomBy = (dir) => {
+    const i = ZOOM_STEPS.findIndex((z) => z >= zoom - 0.001);
+    setZoom(ZOOM_STEPS[Math.min(ZOOM_STEPS.length - 1, Math.max(0, (i < 0 ? 2 : i) + dir))]);
+  };
+
+  // ---- Title page as Page 0 ----
+  const showCover = useCallback(() => {
+    setCoverVisible(true);
+    setFocusMode(false);
+    if (view === 'board') setView('page');
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      document.querySelector('.cover-wrap')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }));
+  }, [view]);
+
+  const backToScript = useCallback(() => {
+    document.querySelector('.sheet')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    const first = document.querySelector('.sheet .el-input');
+    first?.focus({ preventScroll: true });
+  }, []);
+
+  const jumpTo = useCallback((id) => {
+    if (view === 'board') {
+      setView('split');
+      requestAnimationFrame(() => requestAnimationFrame(() => editorRef.current?.focusBlock(id)));
+    } else {
+      editorRef.current?.focusBlock(id);
+    }
+  }, [view]);
+
+  const cycleView = useCallback(() => {
+    setView((v) => VIEWS[(VIEWS.findIndex((x) => x.id === v) + 1) % VIEWS.length].id);
+  }, []);
+
+  // Print view is only mounted while printing (Print button or Ctrl+P).
+  useEffect(() => {
+    const before = () => flushSync(() => setPrinting(true));
+    const after = () => setPrinting(false);
+    window.addEventListener('beforeprint', before);
+    window.addEventListener('afterprint', after);
+    return () => {
+      window.removeEventListener('beforeprint', before);
+      window.removeEventListener('afterprint', after);
+    };
+  }, []);
+
+  // ---- Global shortcuts ----
+  useEffect(() => {
+    const onKey = (e) => {
+      const mod = e.ctrlKey || e.metaKey;
+      const t = e.target;
+      if (mod && e.key.toLowerCase() === 's') {
+        e.preventDefault();
+        saveNow().then((rec) => notify(rec ? 'Saved to Projects · use Export for files' : 'Could not save — browser storage is full or blocked'));
+      } else if (e.altKey && !mod && e.code === 'KeyI') {
+        e.preventDefault();
+        setDock((d) => toggleDock(d, 'bible'));
+      } else if (e.altKey && !mod && e.code === 'KeyP') {
+        e.preventDefault();
+        setDrawerOpen((o) => !o);
+      } else if (e.altKey && !mod && e.code === 'KeyT') {
+        e.preventDefault();
+        setDock((d) => toggleDock(d, 'tuner'));
+      } else if (e.altKey && !mod && e.code === 'KeyS') {
+        e.preventDefault();
+        setNavOpen((o) => !o);
+      } else if (mod && !e.altKey && e.code === 'Slash') {
+        e.preventDefault();
+        setHelpKind((k) => (k === 'shortcuts' ? null : 'shortcuts'));
+      } else if (e.altKey && !mod && e.code === 'KeyB') {
+        e.preventDefault();
+        cycleView();
+      } else if (e.key === 'Escape' && focusMode && !titleOpen && !importSeed && !doctorOpen) {
+        setFocusMode(false);
+      } else if (mod && !e.defaultPrevented && !titleOpen && !importSeed && !doctorOpen
+        && (e.key.toLowerCase() === 'z' || e.key.toLowerCase() === 'y')
+        // Script undo applies to the editor and Tuner, not to text fields on the board/toolbar.
+        && !['INPUT', 'SELECT'].includes(t.tagName) && !t.closest?.('.board')) {
+        e.preventDefault();
+        if (e.key.toLowerCase() === 'y' || e.shiftKey) redo(); else undo();
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [focusMode, titleOpen, importSeed, doctorOpen, notify, undo, redo, cycleView, saveNow]);
+
+  const hints = activeBlock ? flowHints(activeBlock.type) : null;
+  const currentSceneId = activeId ? analysis.sceneOfBlock[activeId] : null;
+  const currentPage = activeId ? layout.pageOfBlock[activeId] : null;
+  const navVisible = navOpen && !focusMode && showEditor;
+  const elementControlsEnabled = !!activeBlock && showEditor;
+
+  const exportItems = [
+    { heading: 'Screenplay' },
+    { label: 'Fountain', hint: '.fountain', onSelect: exportFountain },
+    { label: 'Final Draft', hint: '.fdx', onSelect: exportFDX },
+    { divider: true },
+    { heading: 'Beat outline' },
+    { label: 'Fountain outline', hint: '.fountain', onSelect: () => exportOutline('fountain') },
+    { label: 'Markdown', hint: '.md', onSelect: () => exportOutline('md') },
+  ];
+
+  return (
+    <>
+      <div
+        className={[
+          'app',
+          `view-${focusMode ? 'page' : view}`,
+          tunerOpen && !focusMode ? 'tuner-open' : '',
+          bibleOpen && !focusMode ? 'bible-open' : '',
+          navVisible ? 'nav-open' : '',
+          focusMode ? 'focus-mode' : '',
+        ].filter(Boolean).join(' ')}
+      >
+        <header className="bar">
+          {/* 1 · Identity & metadata */}
+          <div className="bar-group g-identity">
+            <button
+              className={`btn btn-icon${navVisible ? ' is-on-subtle' : ''}`}
+              onClick={() => setNavOpen((o) => !o)}
+              disabled={!showEditor}
+              title="Scenes (Alt+S)"
+              aria-label="Toggle scene list"
+              aria-pressed={navVisible}
+            >
+              <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
+                <rect x="1.5" y="2.5" width="13" height="11" rx="1.5" fill="none" stroke="currentColor" />
+                <line x1="6" y1="2.5" x2="6" y2="13.5" stroke="currentColor" />
+              </svg>
+            </button>
+            <button
+              type="button"
+              className={`brand${drawerOpen ? ' is-open' : ''}`}
+              onClick={() => setDrawerOpen((o) => !o)}
+              title="Switch Project (Alt+P)"
+              aria-label="Projects"
+              aria-expanded={drawerOpen}
+            >
+              <span className="brand-mark">D</span>
+              <span className="brand-name">DraftLine</span>
+            </button>
+            <div className="doc-meta">
+              <div className={`doc-switch${drawerOpen ? ' is-open' : ''}`}>
+                <input
+                  className="doc-title"
+                  style={{ width: `calc(${Math.max(6, meta.title.length)} * 0.6em + 14px)` }}
+                  value={meta.title}
+                  onChange={(e) => setMeta((m) => ({ ...m, title: e.target.value }))}
+                  placeholder="Untitled"
+                  aria-label="Script title"
+                />
+                <button
+                  type="button"
+                  className="doc-switch-btn"
+                  onClick={() => setDrawerOpen((o) => !o)}
+                  title="Switch Project (Alt+P)"
+                  aria-label="Switch Project"
+                  aria-expanded={drawerOpen}
+                >
+                  <svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path d="M1.5 3.5 5 7l3.5-3.5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                </button>
+              </div>
+              <span className="doc-by">by</span>
+              <input
+                className="doc-author"
+                style={{ width: `calc(${Math.max(6, meta.author.length)} * 0.58em + 14px)` }}
+                value={meta.author}
+                onChange={(e) => setMeta((m) => ({ ...m, author: e.target.value }))}
+                placeholder="Author"
+                aria-label="Author"
+              />
+            </div>
+          </div>
+
+          <span className="bar-sep" aria-hidden="true" />
+
+          {/* 2 · Document operations */}
+          <div className="bar-group">
+            <button className="btn" onClick={() => newScript()} title="Start a new script (your others stay in Projects)">New</button>
+            <button className="btn" onClick={() => fileInputRef.current?.click()} title="Open .fountain, .fdx or .txt">Open</button>
+            <button className="btn" onClick={() => setImportSeed({ text: '', name: '' })} title="Import a script from Google Docs, Word, a PDF or plain text">Import</button>
+            <button className="btn" onClick={() => setTitleOpen(true)}>
+              Title Page
+            </button>
+            <input ref={fileInputRef} type="file" accept=".fountain,.spmd,.txt,.fdx" hidden onChange={openFile} />
+          </div>
+
+          <span className="bar-sep" aria-hidden="true" />
+
+          {/* 3 · Active element & formatting */}
+          <div className="bar-group">
+            <select
+              className="type-select"
+              value={elementControlsEnabled ? activeBlock.type : ''}
+              disabled={!elementControlsEnabled}
+              onChange={(e) => editorRef.current?.setType(activeId, e.target.value)}
+              aria-label="Element type"
+              title={`Element type (Alt+1…${ELEMENT_SHORTCUTS.length})`}
+            >
+              {!elementControlsEnabled && <option value="">Element</option>}
+              {ELEMENT_SHORTCUTS.map((s) => (
+                <option key={s.type} value={s.type}>{`${s.label}  ·  ${s.combo}`}</option>
+              ))}
+            </select>
+            <div className="fmt-seg" role="group" aria-label="Text formatting">
+              {STYLES.map((k) => {
+                const on = fmtState[k] && elementControlsEnabled;
+                return (
+                  <button
+                    key={k}
+                    type="button"
+                    className={`fmt-btn fmt-${k}${on ? ' is-on' : ''}`}
+                    disabled={!elementControlsEnabled}
+                    onMouseDown={(e) => e.preventDefault()}
+                    onClick={() => editorRef.current?.format(k)}
+                    title={`${STYLE_INFO[k].label} (${STYLE_INFO[k].keys}) · Clear formatting: Ctrl+\\`}
+                    aria-label={STYLE_INFO[k].label}
+                    aria-pressed={on}
+                  >
+                    {k.toUpperCase()}
+                  </button>
+                );
+              })}
+            </div>
+            <button
+              className={`btn${activeInDual && elementControlsEnabled ? ' is-on-subtle' : ''}`}
+              disabled={!elementControlsEnabled}
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={() => editorRef.current?.toggleDual(activeId)}
+              title="Dual dialogue: pair this speech with the one next to it (Alt+D)"
+              aria-pressed={activeInDual}
+            >
+              Dual
+            </button>
+          </div>
+
+          <span className="bar-sep" aria-hidden="true" />
+
+          {/* 4 · Workspace views */}
+          <div className="seg" role="radiogroup" aria-label="Workspace view (Alt+B cycles)">
+            {VIEWS.map((v) => (
+              <button
+                key={v.id}
+                role="radio"
+                aria-checked={view === v.id}
+                className={`seg-btn${view === v.id ? ' is-on' : ''}`}
+                onClick={() => setView(v.id)}
+                title={`${v.title} · Alt+B cycles`}
+              >
+                {v.label}
+              </button>
+            ))}
+          </div>
+
+          {/* 5 · Output & side panels */}
+          <div className="bar-group bar-right">
+            <Menu label="Export" items={exportItems} align="right" title="Export screenplay or beat outline" />
+            <button className="btn" onClick={printScript} title="Print or save as PDF (Ctrl+P)">
+              <span className="lbl-long">Print / PDF</span><span className="lbl-short">Print</span>
+            </button>
+            <button className="btn" onClick={() => setFocusMode(true)} title="Hide everything but the page (Esc to exit)">Focus</button>
+            <button
+              className={`btn btn-accent${tunerOpen ? ' is-on' : ''}`}
+              onClick={() => setDock((d) => toggleDock(d, 'tuner'))}
+              title="Dialogue Tuner (Alt+T)"
+              aria-pressed={tunerOpen}
+            >
+              <span className="lbl-long">Dialogue Tuner</span><span className="lbl-short">Tuner</span>
+            </button>
+            <button
+              className={`btn btn-bible${bibleOpen ? ' is-on-subtle' : ''}`}
+              onClick={() => setDock((d) => toggleDock(d, 'bible'))}
+              title="Project Bible: character bios and story notes (Alt+I)"
+              aria-pressed={bibleOpen}
+            >
+              Bible
+            </button>
+            <Menu
+              label={<span className="kebab" aria-hidden="true">⋮</span>}
+              caret={false}
+              className="btn btn-kebab"
+              align="right"
+              title="More: sample script, shortcuts, about"
+              ariaLabel="More"
+              items={[
+                { label: 'Project Bible', hint: 'Alt+I', onSelect: () => setDock((d) => openDock(d, 'bible')) },
+                { divider: true },
+                { label: 'Load Sample Script', hint: 'The Last Ferry', onSelect: loadSample },
+                { divider: true },
+                { label: 'Keyboard Shortcuts', hint: 'Ctrl+/', onSelect: () => setHelpKind('shortcuts') },
+                { label: 'About DraftLine', onSelect: () => setHelpKind('about') },
+              ]}
+            />
+          </div>
+        </header>
+
+        <Navigator
+          open={navVisible}
+          scenes={scenes}
+          pageCount={layout.pageCount}
+          currentSceneId={currentSceneId}
+          onJump={jumpTo}
+          onClose={() => setNavOpen(false)}
+          coverVisible={coverVisible}
+          onShowCover={showCover}
+        />
+
+        <div className="workspace">
+          <main className="scroller" ref={scrollerRef} hidden={!showEditor}>
+            {coverVisible && (
+              <div
+                className="cover-wrap"
+                style={{ '--in': `${Math.max(6, Math.round(16 * effectiveZoom)) * 6}px` }}
+              >
+                <div className="cover-tools">
+                  <span className="cover-label">Page 0 · Title Page</span>
+                  <button className="cover-btn" onClick={() => setTitleOpen(true)}>Edit</button>
+                  <button className="cover-btn cover-primary" onClick={backToScript}>Back to Script ↓</button>
+                  <button
+                    className="cover-btn cover-close"
+                    onClick={() => setCoverVisible(false)}
+                    aria-label="Hide the title page"
+                    title="Hide the title page (it still prints)"
+                  >
+                    ×
+                  </button>
+                </div>
+                <TitlePageSheet meta={meta} className="cover-sheet" />
+              </div>
+            )}
+            <Editor
+              key={projectId}
+              ref={editorRef}
+              blocks={blocks}
+              items={items}
+              layout={layout}
+              sceneNumbers={analysis.sceneNumbers}
+              activeId={activeId}
+              highlightId={hoverId}
+              zoom={effectiveZoom}
+              hidden={!showEditor}
+              onCommit={commitBlocks}
+              onTextChange={updateBlockText}
+              onFormatState={setFmtState}
+              onNoteChange={updateBlockNote}
+              onUndo={undo}
+              onRedo={redo}
+              onActiveChange={setActiveId}
+              onMeasure={onMeasure}
+              onNotice={notify}
+            />
+          </main>
+          {showBoard && (
+            <BeatBoard
+              key={projectId}
+              beats={beats}
+              onChange={setBeats}
+              onExport={exportOutline}
+              compact={view === 'split'}
+              actMode={actMode}
+              onActModeChange={setActMode}
+              scenes={boardScenes}
+              pageCount={layout.pageCount}
+              onJump={jumpTo}
+            />
+          )}
+        </div>
+
+        <DialogueTuner
+          open={tunerOpen && !focusMode}
+          analysis={analysis}
+          pageOfBlock={layout.pageOfBlock}
+          selected={selectedChar}
+          onSelect={setSelectedChar}
+          onEditText={updateBlockText}
+          onJump={jumpTo}
+          onHover={setHoverId}
+          onClose={() => setDock((d) => closeDock(d, 'tuner'))}
+        />
+
+        <footer className="status">
+          <span className="status-type">{activeBlock && showEditor ? ELEMENT_META[activeBlock.type].label : VIEWS.find((v) => v.id === view).label}</span>
+          {hints && showEditor && (
+            <span className="status-hints">
+              <kbd>Enter</kbd> {hints.enter}
+              <kbd>Tab</kbd> {hints.tab}
+            </span>
+          )}
+          <button
+            className={`status-doctor${issues.length ? ' has-issues' : ''}`}
+            onClick={() => setDoctorOpen(true)}
+            title="Format Doctor: find mis-tagged sluglines, cues and dialogue"
+          >
+            <span className="doctor-dot" aria-hidden="true" />
+            Format Doctor{issues.length ? ` · ${issues.length}` : ''}
+          </button>
+          <span className="status-spacer" />
+          <span className={`status-save${dirty ? ' is-pending' : ''}${saved.ok ? '' : ' is-error'}`} title={saved.at ? `Last saved ${timeLabel(saved.at)}` : ''}>
+            <span className="save-dot" aria-hidden="true" />
+            {saveLabel}
+          </span>
+          <span>{analysis.sceneCount} scenes</span>
+          <span>{beats.length} beats</span>
+          {noteCount > 0 && <span title="Margin notes (never print)">{noteCount} {noteCount === 1 ? 'note' : 'notes'}</span>}
+          <span>{analysis.words.toLocaleString()} words</span>
+          <span title="54 lines per page">
+            {currentPage && showEditor ? `p. ${currentPage} of ${layout.pageCount}` : `${layout.pageCount} ${layout.pageCount === 1 ? 'page' : 'pages'}`}
+          </span>
+          <span className="status-history">
+            <button className="mini" onClick={undo} disabled={!canUndo} title="Undo script edit (Ctrl+Z)">↶</button>
+            <button className="mini" onClick={redo} disabled={!canRedo} title="Redo (Ctrl+Shift+Z)">↷</button>
+          </span>
+          <span className="status-zoom">
+            <button className="mini" onClick={() => zoomBy(-1)} aria-label="Zoom out">−</button>
+            <button
+              className="mini zoom-val"
+              onClick={() => setZoom(1)}
+              title={isFitted ? 'Fitted to the split pane · click to reset zoom' : 'Reset zoom'}
+            >
+              {zoomPct(effectiveZoom)}%{isFitted ? ' fit' : ''}
+            </button>
+            <button className="mini" onClick={() => zoomBy(1)} aria-label="Zoom in">+</button>
+          </span>
+        </footer>
+
+        {focusMode && (
+          <button className="focus-exit" onClick={() => setFocusMode(false)}>Exit focus · Esc</button>
+        )}
+        {toast && <div className="toast" role="status">{toast}</div>}
+
+        <ProjectBibleDrawer
+          key={`bible-${projectId}`}
+          open={bibleOpen && !focusMode}
+          onClose={() => setDock((d) => closeDock(d, 'bible'))}
+          tab={bibleTab}
+          onTabChange={setBibleTab}
+          projectTitle={meta.title}
+          characters={characters}
+          onCharactersChange={setCharacters}
+          storyNotes={storyNotes}
+          onStoryNotesChange={setStoryNotes}
+          speakers={speakers}
+          storyDna={storyDna}
+          onStoryDnaChange={setStoryDna}
+          dictionary={dictionary}
+          onDictionaryEdit={editDictionary}
+        />
+
+        <ProjectsDrawer
+          open={drawerOpen}
+          activeId={projectId}
+          live={{ title: meta.title, author: meta.author, pages: layout.pageCount, scenes: analysis.sceneCount, updatedAt: saved.at, dirty }}
+          loadProjects={projects.getAllProjects}
+          onClose={() => setDrawerOpen(false)}
+          onSwitch={switchProject}
+          onCreate={newScript}
+          onRename={renameProject}
+          onDuplicate={duplicateProject}
+          onExport={exportProject}
+          onDelete={deleteProject}
+        />
+
+        {helpKind && (
+          <HelpModal
+            kind={helpKind}
+            storage={{ ok: saved.ok, savedAt: saved.at, bytes: JSON.stringify({ meta, blocks, beats, characters, storyNotes, storyDna }).length, countProjects: () => projects.getAllProjects().then((l) => l.length) }}
+            onClose={() => setHelpKind(null)}
+          />
+        )}
+
+        {doctorOpen && (
+          <FormatDoctorModal
+            issues={issues}
+            pageOfBlock={layout.pageOfBlock}
+            onFix={(it) => fixIssues([it])}
+            onFixAll={() => fixIssues(issues)}
+            onShow={(id) => {
+              setDoctorOpen(false);
+              requestAnimationFrame(() => jumpTo(id));
+            }}
+            onClose={() => setDoctorOpen(false)}
+          />
+        )}
+        {importSeed && (
+          <ImportModal
+            initialText={importSeed.text}
+            initialName={importSeed.name}
+            currentBlockCount={blocks.length}
+            onImport={importScript}
+            onClose={() => setImportSeed(null)}
+          />
+        )}
+        {titleOpen && (
+          <TitlePageModal
+            meta={meta}
+            onClose={() => setTitleOpen(false)}
+            onSave={(next) => {
+              setMeta((m) => ({ ...m, ...next }));
+              setTitleOpen(false);
+              notify('Title page updated');
+            }}
+            onViewCover={(next) => {
+              setMeta((m) => ({ ...m, ...next }));
+              setTitleOpen(false);
+              showCover();
+            }}
+          />
+        )}
+      </div>
+
+      {printing && (
+        <PrintView meta={meta} items={items} layout={layout} sceneNumbers={analysis.sceneNumbers} />
+      )}
+    </>
+  );
+}

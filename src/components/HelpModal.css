@@ -1,0 +1,87 @@
+.hm-modal {
+  width: min(820px, calc(100vw - 32px));
+  max-height: min(760px, calc(100vh - 48px));
+  padding: 0;
+  border: 1px solid var(--line-soft);
+  border-radius: 12px;
+  background: var(--panel);
+  color: var(--text);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.5);
+}
+.hm-modal.hm-about { width: min(520px, calc(100vw - 32px)); }
+.hm-modal[open] { display: flex; flex-direction: column; }
+.hm-modal::backdrop { background: rgba(10, 10, 12, 0.6); backdrop-filter: blur(2px); }
+
+.hm-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 22px 14px;
+  border-bottom: 1px solid var(--line-soft);
+}
+.hm-head h2 { margin: 0; font-size: 17px; font-weight: 650; }
+
+.hm-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px 36px;
+  padding: 16px 22px 22px;
+  overflow: auto;
+}
+.hm-grid h3 {
+  margin: 10px 0 6px;
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.hm-grid dl { margin: 0; }
+.hm-row {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  padding: 5px 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--line-soft) 55%, transparent);
+  font-size: 13px;
+}
+.hm-row dt { flex: none; width: 118px; }
+.hm-row dd { margin: 0; color: var(--text); }
+.hm-keys { display: inline-flex; gap: 3px; }
+.hm-keys kbd {
+  min-width: 20px;
+  padding: 1px 6px;
+  border: 1px solid var(--line-soft);
+  border-bottom-width: 2px;
+  border-radius: 5px;
+  background: var(--field);
+  font: 600 11.5px/1.5 var(--ui-font);
+  text-align: center;
+}
+.hm-note { margin: 8px 0 0; font-size: 12px; color: var(--muted); line-height: 1.5; }
+
+.hm-about { padding: 18px 22px 22px; font-size: 13.5px; line-height: 1.55; overflow: auto; }
+.hm-about > p { margin: 12px 0 0; }
+.hm-brand { display: flex; align-items: center; gap: 12px; }
+.hm-brand .brand-mark { width: 40px; height: 40px; font-size: 22px; border-radius: 9px; }
+.hm-name { font-size: 18px; font-weight: 650; }
+.hm-version { font-size: 12.5px; color: var(--muted); }
+.hm-facts { margin: 16px 0 0; display: grid; gap: 6px; }
+.hm-facts > div { display: flex; gap: 12px; }
+.hm-facts dt { flex: none; width: 92px; color: var(--muted); }
+.hm-facts dd { margin: 0; }
+
+@media (max-width: 720px) {
+  .hm-grid { grid-template-columns: 1fr; }
+}
+
+.hm-link {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--accent);
+  font: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}

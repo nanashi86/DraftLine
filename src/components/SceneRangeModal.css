@@ -1,0 +1,60 @@
+.sr-modal {
+  width: min(580px, calc(100vw - 32px));
+  padding: 0;
+  border: 1px solid var(--line-soft);
+  border-radius: 12px;
+  background: var(--panel);
+  color: var(--text);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.5);
+}
+.sr-modal::backdrop { background: rgba(10, 10, 12, 0.6); backdrop-filter: blur(2px); }
+
+.sr-head { padding: 18px 22px 10px; }
+.sr-head h2 { margin: 0; font-size: 17px; font-weight: 650; }
+.sr-head p { margin: 6px 0 0; font-size: 12.5px; line-height: 1.5; color: var(--muted); }
+.sr-head code { padding: 0 4px; border-radius: 4px; background: var(--field); color: var(--text); font-size: 12px; }
+
+.sr-rows { display: grid; gap: 8px; padding: 6px 22px 4px; }
+.sr-row {
+  display: grid;
+  grid-template-columns: 170px minmax(0, 1fr) 128px;
+  align-items: center;
+  gap: 12px;
+}
+.sr-act { display: flex; flex-direction: column; line-height: 1.25; }
+.sr-act b { font-size: 13px; font-weight: 650; }
+.sr-act span { font-size: 11.5px; color: var(--muted); }
+.sr-row input {
+  min-width: 0;
+  padding: 7px 10px;
+  border: 1px solid var(--line-soft);
+  border-radius: 6px;
+  background: var(--field);
+  color: var(--text);
+  font: 13px/1.3 'Courier Prime', 'Courier New', monospace;
+  outline: none;
+}
+.sr-row input:focus { border-color: var(--accent); }
+.sr-info { font-size: 11.5px; color: var(--muted); text-align: right; }
+
+.sr-check {
+  margin: 12px 22px 0;
+  padding: 8px 12px;
+  border-radius: 7px;
+  background: color-mix(in srgb, #e0a458 14%, transparent);
+  color: #e8c08a;
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+.sr-check.is-ok { background: color-mix(in srgb, #6fae7d 14%, transparent); color: #9fd3aa; }
+
+.sr-foot { display: flex; align-items: center; gap: 8px; padding: 16px 22px 18px; }
+.sr-spacer { flex: 1; }
+.sr-reset { color: var(--muted); }
+.sr-foot .btn-primary { background: var(--accent); color: var(--on-accent); padding: 6px 16px; }
+.sr-foot .btn-primary:disabled { opacity: 0.4; }
+
+@media (max-width: 560px) {
+  .sr-row { grid-template-columns: 1fr; gap: 4px; }
+  .sr-info { text-align: left; }
+}

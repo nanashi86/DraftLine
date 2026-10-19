@@ -1,0 +1,59 @@
+:root {
+  --ui-font: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+
+  /* Chrome around the page */
+  --desk: #1b1c1f;
+  --bar: #222327;
+  --panel: #232428;
+  --card: #2a2b30;
+  --field: #2f3036;
+  --chip: #35363d;
+  --line-soft: #3a3b42;
+  --text: #e9e7e2;
+  --muted: #9a9890;
+  --accent: #c8553d;      /* typewriter-ribbon red */
+  --on-accent: #fff;
+
+  /* The page */
+  --paper: #fdfcf8;
+  --ink: #141414;
+  --caret: #c8553d;
+  --placeholder: #b9b4a8;
+  --selection: #f3d6cd;
+  --scene-no: #8b877d;
+  --active-rule: #e2b3a6;
+  --highlight: #fbe7a8;
+  --dual-tag: #8a4f40;
+  --dual-tag-bg: #f3e1db;
+  --fmt-ink: #1d5560;     /* format cues: a deep teal so they read apart from Action */
+  --fmt-tag: #1d5560;
+  --fmt-tag-bg: #dbeaea;
+  --paper-shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 10px 40px rgba(0, 0, 0, 0.35);
+
+  --bar-h: 52px;
+  --status-h: 30px;
+  --tuner-w: 400px;
+  --nav-w: 290px;
+
+  color-scheme: dark;
+  font-family: var(--ui-font);
+  font-size: 14px;
+  color: var(--text);
+  background: var(--desk);
+  -webkit-font-smoothing: antialiased;
+}
+
+*,
+*::before,
+*::after { box-sizing: border-box; }
+
+html,
+body,
+#root { height: 100%; margin: 0; }
+
+body { background: var(--desk); overflow: hidden; }
+
+button { font-family: inherit; }
+
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.el-input:focus-visible { outline: none; }

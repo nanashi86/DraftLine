@@ -1,0 +1,302 @@
+# DraftLine
+
+A fast, distraction-free screenwriting app built on open formats (Fountain, Final Draft XML).
+
+```bash
+npm install
+npm run dev
+```
+
+## Writing
+
+Each line is a screenplay element. The status bar always shows where Enter and Tab will take you.
+
+| In…           | Enter →        | Tab →                                   |
+|---------------|----------------|-----------------------------------------|
+| Scene Heading | Action         | Action                                  |
+| Action        | Action         | Character (new cue below)               |
+| Character     | Dialogue       | Transition (when empty)                 |
+| Dialogue      | Character      | Parenthetical (inserted at the caret)   |
+| Parenthetical | Dialogue       | Dialogue                                |
+| Transition    | Scene Heading  | Scene Heading                           |
+| Format Cue    | Action         | Action                                  |
+| Centered      | Action         | Action                                  |
+
+- **Enter on an empty** Character / Dialogue / Parenthetical / Transition turns it into Action.
+- **Shift+Tab** cycles the type backwards; **Alt+1…8** sets it directly.
+- **Shift+Enter** adds a line break inside Action or Dialogue.
+- **Backspace** or **Delete** on an empty element removes it. An empty first element is removed and the next one
+  moves up to line 1 of Page 1.
+- **Backspace** at the very start of an element with text merges it onto the end of the element above (which keeps
+  its own type). **Delete** at the very end pulls the element below up into it.
+
+### Format Cue
+
+A flush-left, all-caps, bold element (**Alt+2**, or the element dropdown) for directions that aren't story action:
+language cues (`IN CREOLE WITH ENGLISH SUBTITLES:`), sequence boundaries (`BEGIN FLASHBACK`, `END MONTAGE`),
+on-screen text (`SUPER:`, `TITLE:`) and audio/technical notes. On screen it's tinted teal with a **CUE** tag in the
+margin; it prints in plain black. `BEGIN …` cues never get stranded at the foot of a page, and `END …` cues stay with
+what they close. Exports as an all-caps Action line in Fountain (read back as a Format Cue when it matches one of the
+patterns above) and as a bold `General` paragraph in Final Draft (read back exactly).
+
+### Centered
+
+Centered text (**Alt+8**) — chiefly the closing **THE END**, set two lines below the last transition and kept on
+the same page as it. Fountain writes it as `> THE END <`; Final Draft as Action with `Alignment="Center"`. Both read
+back as Centered.
+
+### Inline formatting
+
+| Style | Keys | Fountain | Final Draft |
+|---|---|---|---|
+| **Bold** | Ctrl+B | `**text**` | `<Text Style="Bold">` |
+| *Italic* | Ctrl+I | `*text*` | `<Text Style="Italic">` |
+| Underline | Ctrl+U | `_text_` | `<Text Style="Underline">` |
+| ~~Strikethrough~~ | Ctrl+Shift+X | `~~text~~` | `<Text Style="Strikeout">` |
+| Clear formatting | Ctrl+\\ | | |
+
+(⌘ instead of Ctrl on a Mac.) Shortcuts and the **B | I | U | S** buttons work on the selection, or on the word at
+the cursor when nothing is selected; the buttons light up for the styles the selection has. Styles combine freely
+(`***bold italic***`, `_**bold underline**_` …). Typing right after (or before) a styled word never carries the
+style on; typing inside it does. Formatting follows the text as you edit, splits with Enter, joins with Backspace,
+and shows in the page, in print/PDF and in both exports; literal `*`, `_` and `~` are escaped in Fountain. Open and
+Import read it back, including Markdown and HTML (`<b>`/`<strong>`, `<i>`/`<em>`, `<u>`, `<s>`/`<strike>`/`<del>`).
+Title page fields accept the same Markdown emphasis on the cover, in print and in .fdx.
+
+### Margin notes
+
+- **Alt+N** adds a script note to the current element — a small yellow **NOTE** chip in the right margin; with text
+  selected it moves the selection into the note instead. Click the chip to read or edit it; **Esc** closes it.
+- The note editor opens beside the page (in the gutter) when there's room, otherwise just below or above the element —
+  never over the line it belongs to — and follows the page as you scroll.
+- Notes never count as lines, never change page breaks and never print.
+- They export as Fountain `[[notes]]` and Final Draft `<ScriptNote>`s, and are read back from both (and from Import).
+
+### Autocomplete
+
+- **Scene Headings** suggest `INT.` / `EXT.` / `INT./EXT.` (typed `INT/EXT`, `EXT./INT.`, `I/E` and their variants still work), then locations you've already used, then times of day.
+- **Character** cues suggest names already in the script as soon as you type a letter; type `(` for `(V.O.)`, `(O.S.)`, `(CONT'D)`.
+- **↑/↓** move through suggestions, **Tab** accepts, **Enter** accepts (and on a Character cue, drops you into Dialogue), **Esc** dismisses.
+
+### Pages
+
+The canvas is paginated live at 54 lines per page (1in margins, Courier 12pt) with numbers from page 2.
+Speeches never split from their Character cue, scene headings stay with what follows, transitions never start a page.
+
+### Dual dialogue
+
+Put the cursor in either of two back-to-back speeches and press **Alt+D** (or the **Dual** button). Press again to undo.
+Exports as `NAME ^` in Fountain and Final Draft's `<DualDialogue>` block in .fdx.
+
+### Shortcuts
+
+| Keys | Action |
+|---|---|
+| Ctrl+Z / Ctrl+Shift+Z | Undo / redo |
+| Alt+D | Dual dialogue |
+| Ctrl+B / Ctrl+I / Ctrl+U | Bold / italic / underline (selection or word at the cursor) |
+| Ctrl+Shift+X | Strikethrough |
+| Ctrl+\\ | Clear formatting |
+| Ctrl+/ | Keyboard shortcuts |
+| Alt+1 … Alt+8 | Scene Heading · Format Cue · Action · Character · Parenthetical · Dialogue · Transition · Centered |
+| Alt+N | Margin note (or move the selection into one) |
+| Alt+S | Scenes sidebar |
+| Alt+T | Dialogue Tuner |
+| Alt+B | Cycle Page → Split → Board |
+| Alt+P | Projects drawer |
+| Alt+I | Project Bible |
+| Ctrl+P | Print / save as PDF (title page first) |
+| Ctrl+S | Save now (it also autosaves continuously) |
+
+## Beat Board
+
+Three workspace views from the toolbar (or **Alt+B** to cycle): **Page** (script only), **Split** (script + board,
+the page auto-fits its half) and **Board** (full-width).
+
+- **4 Acts** (default): Act 1 Setup · Act 2A Escalation to Midpoint · Act 2B Fall & Crisis · Act 3 Climax & Resolution.
+- **3 Acts**: Act 1 Setup · Act 2 Confrontation · Act 3 Climax & Resolution. Act 2 shows the 2A cards, a **Midpoint** divider,
+  then the 2B cards. Dropping a card above the divider makes it 2A, below makes it 2B, so switching modes never
+  moves or loses a card. The choice is remembered.
+- **+ Add Beat** appends an index card: headline, synopsis / emotional beat, and a tag (Plot, Subplot, Character, Theme).
+- Drag a card by its grip (native HTML5 drag-and-drop, no libraries) to reorder or move between acts.
+  With the grip focused, **arrow keys** move the card too. Deleting a card offers **Undo** for a few seconds.
+- **Export Outline** downloads a Fountain outline (`# Act`, `## Beat`, `= synopsis`) or Markdown, using whichever
+  act structure is showing.
+- **Populate from Script** makes a card for every scene — titled "12. INT. HOTEL BALLROOM - NIGHT", with the first
+  sentence of the scene's action as its synopsis — and places it in an act column:
+  - **Auto-Distribute by Page Targets** uses the page each scene starts on, against targets proportional to the
+    script's length. 3 Acts: Act 1 ≤ 25% · Act 2 ≤ 75% · Act 3 the rest. 4 Acts: Act 1 ≤ 25% · 2A ≤ 50% · 2B ≤ 75% ·
+    Act 3 the rest. The menu shows the actual pages for the open script (a 96-page script: "pp. 1–24 · 25–72 · 73+").
+    A scene is never split — it belongs wholly to the act its first page falls in.
+  - **Assign by Scene Ranges…** asks for scene numbers per act (`1-12, 15`) — three inputs in 3-Act view, four in
+    4-Act view — starting from the page-target placement, and only applies once every scene is in exactly one act.
+
+  A scene card shows its scene and page (**Sc 12 · p. 34 ↗**); click it (or the card) to jump to that scene in the
+  editor. Populating again moves scene cards to their acts, adds cards for new scenes and keeps your edits and your
+  own cards. Every populate can be undone from the toast.
+- **Act 2 lane memory:** every card remembers whether it's 2A or 2B, so switching **3 Acts ↔ 4 Acts** never moves a
+  card — the Midpoint divider you set in the 3-Act view is exactly where 2A ends in the 4-Act view. Placing scenes in
+  the 3-Act view gives Act 2 scenes their lane from the 50% page.
+- Cards autosave with the script, in the project's record.
+
+## Dialogue Tuner
+
+Pick a character to read every line they speak, top to bottom, tagged with scene number and heading.
+Edit right in the panel: changes write straight to the script. "Go ↗" jumps to the line in the page.
+
+## Project Bible
+
+**Bible** in the toolbar (or **⋮ → Project Bible**, or **Alt+I**) opens the Bible in the right dock — the column the
+Dialogue Tuner uses. The dock holds one panel at a time: opening the Bible closes the Tuner and vice versa. On wide
+screens the script and Beat Board make room for it (nothing is covered); on narrow screens it overlays them, like the
+Tuner. Everything in it is saved inside the open project and switched with it in Projects. Three tabs, in this order —
+**Story DNA** opens first unless you've picked another tab this session:
+
+- **📖 Story DNA** — two views:
+  - **Story Blueprint**: a genre checklist (Drama, Thriller, Crime, Horror, Comedy, Action, Adventure, Romance,
+    Fantasy, Science Fiction, Western, Noire, Other — with a text box for Other), theme (revealed by the climax), Yes/No + notes for special plot technique,
+    foreshadowing and flashback, and eight question cards — Protagonist, Inciting Incident, Goal / Desire, Flaw,
+    Conflict / Debate (with the six conflict types), Rising Action, Climax, Falling Action. Each card's **i** shows the
+    term's dictionary definition; click it to open the entry. Saved with the project.
+  - **Structure Dictionary**: the 11 terms (the eight above plus Text / Subtext / Context, Foreshadowing and
+    Flashback), searchable. They ship with DraftLine's *starter* definitions — **Edit** any entry to paste your own
+    reference's wording (kept for all projects; **Reset** restores the starter).
+- **👤 Character Bios** (with a count) — a card per character: name, role / relationship, age (or timeline ages, e.g. "10 in 1986,
+  45 in 2021"), traits, and backstory / motivation. **+ Add Character**, filter by name, **A–Z** sort or ↑ ↓ to
+  reorder, and one-click chips for script speakers who don't have a bio yet. Deleting can be undone.
+- **📝 Story Notes** — Markdown sections (**Logline**, **Themes**, **Tone**, **Timeline**, **Pitch**, **Scratchpad**,
+  plus any you add below them). Notes from earlier versions are updated once on open — "Themes & Motifs" becomes
+  Themes, "Timeline & Lore" Timeline, "General Scratchpad" Scratchpad, missing presets are added and your own
+  sections follow — keeping every word, edited in place and shown formatted in Preview. **Import from Notes** pastes text from anywhere: append
+  to a section, replace it, or split it at `# headings` into matching or new sections (undoable).
+
+## Projects
+
+Every script lives in a local **project library** (IndexedDB in this browser — no size limit worth worrying about,
+nothing uploaded, works offline). Click the title's **▾** or the **D** logo (or press **Alt+P**) to open the
+**Projects** drawer:
+
+- Each card shows the title, author, page and scene counts and when it was last edited; the open script is marked
+  **Active**. Click a card to switch: your changes are saved first, then the script, title page, Scene Navigator,
+  Dialogue Tuner and Beat Board all switch over (undo history starts fresh for each script).
+- **+ New Script** asks for a title and opens a blank script. A card's **⋮** menu renames, duplicates
+  ("[Title] (Copy)"), exports (.fdx / .fountain — no need to open it first) or deletes it (after a confirmation;
+  you can't delete your only script).
+- **New**, **Open** and **⋮ → Load Sample Script** each add a new project instead of replacing the one you're in.
+  **Import** still works on the open script (Ctrl+Z undoes it).
+- On first run the script DraftLine kept in localStorage moves into the library as your first project; the old copy
+  is left in place untouched.
+
+## Files
+
+- **Open** reads `.fountain`, `.spmd` and `.fdx` (including title pages and dual dialogue); `.txt` files go to Import.
+- **Import** brings in scripts from Google Docs, Word, PDFs or any plain text: drop a `.txt` or paste, check the
+  live preview (each line tagged Scene Heading / Action / Character / Parenthetical / Dialogue / Transition, with
+  counts), then **Load into Editor** (replaces; Ctrl+Z undoes it) or **Append**. It adapts to one-paragraph-per-line
+  pastes, blank-line-separated text and indented PDF copies; strips page numbers, (MORE), CONTINUED and scene
+  numbers and act markers (`ACT 1`, `ACT TWO`, `ACT 1[b]`, `END OF ACT ONE`); rejoins speeches split by page breaks;
+  and lifts a "Written by" title page into the Title Page. Every slugline variant (`INT./EXT.`, `EXT./INT.`,
+  `INT/EXT`, `EXT/INT.`, `I/E`, …) becomes a Scene Heading, and so do secondary headings (`BACK TO THE CINEUS
+  RESIDENCE`, `LATER`, `MOMENTS LATER`, `RESUME …`, `CONTINUOUS`, `SAME`) and all-caps `FLASHBACK - PLACE - NIGHT`
+  lines; `FADE IN:` and capitalised lines ending in `TO:` are Transitions; `IN … WITH ENGLISH SUBTITLES:`,
+  `BEGIN …`, `END …`, `SUPER:`, `TITLE:` and `SUBTITLE:` lines are Format Cues (never character cues), split out of
+  the Action around them so each has a blank line before and after. A standalone `THE END` (or `FADE OUT. THE END`)
+  becomes a `FADE OUT.` transition plus a Centered `THE END`. A character cue is a short all-caps name on its own
+  line with only extensions such as `(V.O.)`, `(O.S.)`, `(CONT'D)`; a character introduction like
+  `FITO (10)--copper skin, bare feet…` (an age, dashes or sentence punctuation), or a name whose next line carries
+  on in lower case, stays Action. Hyphenated names (`JEAN-CLAUDE`) are still cues. `[[notes]]` become margin
+  notes, and bold / italic / underline / strikethrough from Markdown or HTML is kept.
+  Turn off **Auto-Detect Elements** to bring everything in as Action.
+- **Format Doctor** (status bar, with a count of open issues) audits the script for unclassified sluglines (Action
+  that starts with INT/EXT/I/E, or is all caps and ends in a time of day), secondary scene headings typed as Action
+  (`BACK TO …`, `LATER`, …), format cues typed as Action (`BEGIN FLASHBACK`, `IN … WITH ENGLISH SUBTITLES:`), stray
+  character cues (a short all-caps Action line directly above dialogue), orphaned dialogue (dialogue with no cue
+  above it), **false dialogue** — structural only: a speech line that is really a character introduction
+  (`FITO (10)--copper skin…`), or one under a "cue" that holds an age or a dash (`FITO (10)` / `--copper skin…`;
+  **Make Action** folds the two back into one Action paragraph). Monologues of any length and lines starting with
+  `--` under a valid cue are never flagged), **unspaced Super/Cue** (a
+  `SUPER:` / `SUBTITLE:` / `TITLE:` line run into an Action paragraph; the fix splits it out as a Format Cue), a
+  **misaligned script ending** (`THE END` as left-aligned Action or a Transition; **Center ‘THE END’**), act markers
+  and empty elements. Format Cues themselves are never flagged. Review each in a list,
+  **Show** it in the page, fix one with its button (e.g. **Convert to Scene Heading**) or **Fix All**; Ctrl+Z undoes.
+- **Export** writes `.fountain` and `.fdx`; **Print** gives a paginated PDF with the title page as page 0.
+  Page 1 is unnumbered; pages 2 onward carry a right-aligned "2.", "3." ….
+- **⋮** (far right of the toolbar): **Load Sample Script** (*The Last Ferry*), **Keyboard Shortcuts** (also Ctrl+/)
+  and **About DraftLine** (version, where your draft is saved, its size and last save).
+- **Title Page** edits title, **Credit / Subtitle** ("Written by", "Screenplay by", "Story by", … or anything you type),
+  author, "based on", **Draft Version** (suggests First / Second / Revised / Final / Shooting Draft), draft date and
+  contact/copyright, plus the title's typography: **Title Font** (38 Google Fonts — classic, serif, sans, display, script and handwritten; they load in the background and are used only on the title page),
+  **Title Size** (18–48pt) and **Bold**. The script itself always stays Courier Prime 12pt.
+- **View Full Cover** (in the Title Page dialog, or **Title Page** at the top of the Scenes list) shows the title page
+  at true 8.5×11 size as *Page 0* above Page 1; **Back to Script** jumps to Page 1. The same layout prints as the cover
+  and exports to .fountain (`Credit:`) and .fdx.
+- Every change autosaves to the project library within half a second (status bar shows "Saved locally"), and the
+  last open script reopens on reload. If the tab closes mid-save, the unsaved state is journaled and recovered on
+  the next start. **⋮ → About DraftLine** shows the library's size and lets you ask the browser to protect it from
+  automatic clean-up. Browser storage belongs to this browser on this computer — Export to keep real files.
+
+## Testing
+
+```bash
+npm test
+```
+
+Runs the suite in `tests/` with Node's built-in test runner (no extra dependencies): Fountain/FDX round-trips, dual
+dialogue, pagination rules, the plain-text importer's layouts, beat-board moves and act structures, autocomplete, and
+title page metadata (credit, draft version/date, typography), the title font list (every family loaded once by index.html, bold only where it exists, never applied to the Courier Prime script), slugline variants and act-marker stripping, Backspace /
+Delete behaviour, margin-note round-trips (Fountain, FDX, Import), the Format Doctor, secondary sluglines, inline
+formatting (toggling, clearing, cursor-boundary isolation, every combination of bold/italic/underline/strikethrough
+through Fountain, FDX and Import), page-number labels, the Format Cue element, the Project Bible (character CRUD, sorting and filtering, story-note sections, presets and
+import, Story DNA questions, migration and persistence, the Structure Dictionary and your edits to it), the Bible's tab order and badges, the genre checklist, right-dock exclusivity, the keyboard
+shortcut list, proportional page targets and Act 2 lane memory, margin-note placement (never over the script), Beat Board population (3-Act and 4-Act page targets and boundaries, scene-range input
+and validation, re-populating, 3 ↔ 4 Act folding), and the project library (create, list,
+switch, duplicate, rename, delete, migration from localStorage, crash-journal recovery, memory fallback) against an
+in-memory IndexedDB (`tests/helpers/fakeIndexedDB.js`). `tests/helpers/miniDom.js` is a
+tiny XML DOM so the Final Draft importer can be tested under Node too.
+
+## Layout
+
+```
+src/
+  App.jsx                  shell, toolbar, status bar, autosave, shortcuts
+  components/Editor.jsx    paginated block editor, keyboard flow, autocomplete, dual rows
+  components/Navigator.jsx scene sidebar
+  components/DialogueTuner.jsx
+  components/TitlePageModal.jsx
+  components/PrintView.jsx print-only paginated pages
+  components/TitlePageSheet.jsx  the title page in page units (canvas cover, print, modal preview)
+  components/BeatBoard.jsx 4-act index-card board with drag-and-drop, Populate from Script
+  components/SceneRangeModal.jsx  Assign by Scene Ranges dialog
+  components/Menu.jsx      small dropdown menu (Export, ⋮)
+  components/HelpModal.jsx Keyboard Shortcuts and About DraftLine
+  components/ProjectsDrawer.jsx  the project library drawer
+  components/ProjectBibleDrawer.jsx  Character Bios, Story Notes and Story DNA
+  components/StoryDna.jsx  Story Blueprint and Structure Dictionary
+  components/FormattedText.jsx  styled runs (editor overlay, print, title page)
+  components/ImportModal.jsx  paste / drop import with live preview
+  components/FormatDoctorModal.jsx  script audit list with Fix / Fix All
+  components/AutoTextarea.jsx
+  hooks/useHistory.js      undo/redo with typing coalescing
+  lib/screenplay.js        element model, flow rules, pagination, dual dialogue, analysis
+  lib/autocomplete.js      scene heading + character suggestions
+  lib/textScriptParser.js  plain-text → screenplay element heuristics (Import)
+  lib/beats.js             beat model, moves, outline exporters, populate / ranges / act folding
+  lib/titleFonts.js        title page font catalog
+  lib/measure.js           line-snapped textarea sizing
+  lib/editing.js           Backspace / Delete block operations
+  lib/sluglines.js         slugline, act-break and on-screen-text detection (shared)
+  lib/notes.js             [[note]] extraction and Fountain note output
+  lib/formatting.js        inline formatting: ranges, toggling, following edits, Markdown/HTML/FDX conversion
+  lib/projectStorage.js    IndexedDB project library, migration, crash journal
+  lib/bible.js             Project Bible model: characters, story notes, notes import, Markdown reader
+  lib/notePlacement.js     where a margin note's editor opens (never over the script)
+  lib/storyDna.js          Story DNA blueprint model
+  lib/structureDictionary.js  the 11 structure terms (starter wording) and your overrides
+  lib/shortcuts.js         every keyboard shortcut (feeds the Ctrl+/ dialog)
+  lib/dock.js              the right dock: Dialogue Tuner or Project Bible, one at a time
+  lib/formatDoctor.js      script audit + fixes
+  lib/fountain.js          Fountain import/export
+  lib/fdx.js               Final Draft XML import/export
+  lib/sampleScript.js      "The Last Ferry" sample
+tests/                     node --test suite
+```

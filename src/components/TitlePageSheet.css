@@ -1,0 +1,35 @@
+/* Title page in true page units: 8.5x11in, 1in margins (1.5in binding side), Courier 12pt. */
+.title-sheet {
+  --line: calc(var(--in) / 6);
+  position: relative;
+  width: calc(var(--in) * 8.5);
+  height: calc(var(--in) * 11);
+  box-sizing: border-box;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: 'Courier Prime', 'Courier New', Courier, monospace;
+  font-size: var(--line);
+  line-height: var(--line);
+  overflow: hidden;
+}
+
+.ts-center {
+  position: absolute;
+  top: calc(var(--in) * 3.5);
+  left: calc(var(--in) * 1.5);
+  right: var(--in);
+  text-align: center;
+}
+.ts-title { margin-bottom: calc(var(--line) * 4); overflow-wrap: break-word; }
+.ts-credit { margin-bottom: var(--line); }
+.ts-source { margin-top: calc(var(--line) * 3); }
+
+.ts-contact,
+.ts-draft {
+  position: absolute;
+  bottom: var(--in);
+  white-space: pre-line;
+  overflow-wrap: break-word;
+}
+.ts-contact { left: calc(var(--in) * 1.5); max-width: calc(var(--in) * 3.5); }
+.ts-draft { right: var(--in); max-width: calc(var(--in) * 2.75); text-align: right; }

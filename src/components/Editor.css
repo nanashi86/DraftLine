@@ -1,0 +1,322 @@
+/*
+  Screenplay canvas. Everything is expressed in --in (one inch at the current zoom) so
+  pages keep true proportions: 8.5x11in, 1in top/bottom, 1.5in left / 1in right margins,
+  Courier 12pt (= 1/6in: 10 characters per inch, 6 lines per inch).
+
+  Element geometry (.el-*) is shared with the print view.
+*/
+.sheet,
+.print-root {
+  --line: calc(var(--in) / 6);
+  font-family: 'Courier Prime', 'Courier New', Courier, monospace;
+  font-size: var(--line);
+  line-height: var(--line);
+  color: var(--ink);
+}
+
+.sheet {
+  --in: 96px;
+  --gap: 28px;
+  position: relative;
+  width: calc(var(--in) * 8.5);
+  margin: 0 auto;
+  padding: var(--in) var(--in) 0 calc(var(--in) * 1.5);
+  box-sizing: border-box;
+  cursor: text;
+}
+
+.page-card {
+  position: absolute;
+  left: 0;
+  width: calc(var(--in) * 8.5);
+  height: calc(var(--in) * 11);
+  background: var(--paper);
+  box-shadow: var(--paper-shadow);
+  border-radius: 1px;
+}
+
+.page-no {
+  position: absolute;
+  top: calc(var(--in) * 0.5);
+  right: var(--in);
+  color: var(--ink);
+  user-select: none;
+}
+
+/* ---- Elements ---- */
+.el {
+  position: relative;
+  z-index: 1;
+  width: calc(var(--in) * 6);
+}
+/* Each row lays out independently, so editing one line doesn't re-layout the rest. */
+.sheet > .el,
+.sheet > .dual-row { contain: layout style; }
+
+.el-input,
+.el-text {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  line-height: inherit;
+  letter-spacing: 0;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+}
+
+.el-input {
+  outline: none;
+  resize: none;
+  overflow: hidden;
+  caret-color: var(--caret);
+}
+.el-input::placeholder {
+  color: var(--placeholder);
+  text-transform: none;
+  font-style: italic;
+}
+.el-input::selection { background: var(--selection); }
+
+.el-scene :is(.el-input, .el-text) { text-transform: uppercase; font-weight: 700; }
+
+.el-character { margin-left: calc(var(--in) * 2.2); width: calc(var(--in) * 3.8); }
+.el-character :is(.el-input, .el-text) { text-transform: uppercase; }
+
+.el-parenthetical { margin-left: calc(var(--in) * 1.6); width: calc(var(--in) * 2.5); }
+
+.el-dialogue { margin-left: calc(var(--in) * 1); width: calc(var(--in) * 3.5); }
+
+.el-transition :is(.el-input, .el-text) { text-transform: uppercase; text-align: right; }
+
+/* Centered: Fountain's > text <, used for the closing THE END. */
+.el-centered :is(.el-input, .el-text) { text-align: center; }
+
+/* Format Cue: flush left at the Action margin, caps + bold. On screen it's tinted and tagged
+   so it reads apart from narrative Action; in print it's plain black. */
+.el-format_cue :is(.el-input, .el-text) { text-transform: uppercase; font-weight: 700; }
+.sheet .el-format_cue .el-input { color: var(--fmt-ink); }
+.sheet .el-format_cue::after {
+  content: 'CUE';
+  position: absolute;
+  top: calc((var(--line) - 13px) / 2);
+  right: calc(100% + var(--in) * 0.28);
+  padding: 0 4px;
+  border-radius: 3px;
+  background: var(--fmt-tag-bg);
+  color: var(--fmt-tag);
+  font: 650 9px/13px var(--ui-font);
+  letter-spacing: 0.08em;
+  user-select: none;
+  pointer-events: none;
+}
+
+/* ---- Inline formatting (bold, italic, underline, strikethrough) ----
+   A textarea can't style part of its text, so a formatted element draws a styled copy of
+   its text exactly over the textarea (same font, width and wrapping) and the textarea's
+   own glyphs go transparent. The textarea still owns the caret, selection and typing. */
+.el-fmt {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  user-select: none;
+}
+.has-fmt > .el-input,
+.has-fmt > .el-input::selection { color: transparent; }
+.sheet .el-format_cue .el-fmt { color: var(--fmt-ink); }
+.el-text span {
+  text-decoration-thickness: from-font;
+  text-underline-offset: 0.12em;
+}
+
+/* ---- Dual dialogue: two equal 3in columns ---- */
+.dual-row {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  width: calc(var(--in) * 6);
+}
+.dual-col { width: calc(var(--in) * 3); }
+.dual-col .el { width: calc(var(--in) * 2.7); margin-left: 0; }
+.dual-col .el-character :is(.el-input, .el-text) { text-align: center; }
+.dual-col .el-parenthetical { margin-left: calc(var(--in) * 0.35); width: calc(var(--in) * 2); }
+
+.dual-tag {
+  position: absolute;
+  top: 0;
+  right: calc(100% + var(--in) * 0.2);
+  padding: 1px 4px;
+  border-radius: 3px;
+  background: var(--dual-tag-bg);
+  color: var(--dual-tag);
+  font: 600 9px/1.4 var(--ui-font);
+  letter-spacing: 0.08em;
+  user-select: none;
+  pointer-events: none;
+}
+
+/* ---- Scene numbers in both margins ---- */
+.scene-no {
+  position: absolute;
+  top: 0;
+  font-weight: 700;
+  color: var(--scene-no);
+  user-select: none;
+  pointer-events: none;
+}
+.scene-no-left { right: calc(100% + var(--in) * 0.45); }
+.scene-no-right { left: calc(100% + var(--in) * 0.3); }
+
+/* ---- Focus + tuner highlight cues ---- */
+.sheet .el::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: calc(var(--in) * -0.2);
+  width: 2px;
+  border-radius: 2px;
+  background: transparent;
+  transition: background 120ms ease;
+}
+.sheet .el-character::before,
+.sheet .el-parenthetical::before,
+.sheet .el-dialogue::before { left: calc(var(--in) * -0.15); }
+.sheet .el.is-active::before { background: var(--active-rule); }
+.sheet .el.is-highlighted {
+  background: var(--highlight);
+  box-shadow: 0 0 0 4px var(--highlight);
+  border-radius: 2px;
+}
+
+/* ---- Autocomplete dropdown ---- */
+.ac {
+  position: absolute;
+  z-index: 10;
+  min-width: 220px;
+  max-width: 420px;
+  padding: 4px;
+  border: 1px solid var(--line-soft);
+  border-radius: 8px;
+  background: var(--panel);
+  color: var(--text);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+  font: 13px/1.3 var(--ui-font);
+  cursor: default;
+}
+.ac-item {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 6px 8px;
+  border-radius: 5px;
+}
+.ac-item.is-sel { background: var(--accent); color: var(--on-accent); }
+.ac-label {
+  font-family: 'Courier Prime', 'Courier New', monospace;
+  font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ac-kind { font-size: 11px; opacity: 0.65; }
+.ac-hint {
+  padding: 5px 8px 3px;
+  border-top: 1px solid var(--line-soft);
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 11px;
+}
+.ac-hint kbd { font: inherit; color: var(--text); }
+
+/* ---- Margin notes ----
+   Absolutely positioned so they never change an element's height (line counts and
+   pagination ignore them). --el-left is each element's indent from the left margin, so
+   every flag lines up in the right margin whatever the element type. */
+.el { --el-left: 0in; }
+.el-character { --el-left: calc(var(--in) * 2.2); }
+.el-parenthetical { --el-left: calc(var(--in) * 1.6); }
+.el-dialogue { --el-left: calc(var(--in) * 1); }
+
+.note-flag {
+  /* A compact chip in the right margin (like the CUE tag on the left): past the text
+     column and the scene number, inside the paper. Sized in page units so it scales. */
+  position: absolute;
+  top: calc((var(--line) - var(--in) * 0.14) / 2);
+  left: calc(var(--in) * 6.54 - var(--el-left));
+  z-index: 3;
+  height: calc(var(--in) * 0.14);
+  padding: 0 calc(var(--in) * 0.04);
+  border: 1px solid #e3c34a;
+  border-radius: 3px;
+  background: #fbe9a0;
+  color: #806409;
+  font: 700 calc(var(--in) * 0.09) / 1 var(--ui-font);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  user-select: none;
+}
+.note-flag:hover,
+.note-flag.is-open { background: #f7d95a; color: #5e4905; }
+.note-flag:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.dual-col .el .note-flag { left: calc(100% + var(--in) * 0.06); }
+.has-note.is-active .el-input { box-shadow: inset -2px 0 0 #f2d15c; }
+
+/* The editor floats in a portal (fixed to the window) beside the page — or above/below
+   the element when there's no gutter — so it never sits on the line it annotates. */
+.note-pop {
+  position: fixed;
+  z-index: 35;
+  width: 260px;
+  padding: 8px 10px 6px;
+  border: 1px solid #e3c34a;
+  border-radius: 6px;
+  background: #fff6cc;
+  color: #3d3207;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.32);
+  font: 13px/1.4 var(--ui-font);
+  text-align: left;
+  cursor: default;
+}
+.note-pop.is-measuring { opacity: 0; pointer-events: none; } /* still focusable while measured */
+.note-pop.is-gutter-right::before,
+.note-pop.is-gutter-left::before {
+  content: '';
+  position: absolute;
+  top: 9px;
+  width: 8px;
+  height: 8px;
+  border: 1px solid #e3c34a;
+  background: #fff6cc;
+  transform: rotate(45deg);
+}
+.note-pop.is-gutter-right::before { left: -5px; border-top: 0; border-right: 0; }
+.note-pop.is-gutter-left::before { right: -5px; border-bottom: 0; border-left: 0; }
+.note-pop header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; font-weight: 650; font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: #8a6d0c; }
+.note-del { padding: 1px 6px; border: 0; border-radius: 4px; background: transparent; color: #8a6d0c; font: 11px var(--ui-font); cursor: pointer; }
+.note-del:hover { background: rgba(0, 0, 0, 0.07); color: #b4471f; }
+.note-pop textarea {
+  display: block;
+  width: 100%;
+  min-height: 72px;
+  box-sizing: border-box;
+  padding: 6px 7px;
+  border: 1px solid #ecd682;
+  border-radius: 4px;
+  background: #fffbe6;
+  color: inherit;
+  font: 13px/1.45 var(--ui-font);
+  resize: vertical;
+  outline: none;
+}
+.note-pop textarea:focus { border-color: #d9b53a; }
+.note-pop footer { margin-top: 4px; font-size: 10.5px; color: #9a8540; }
+.focus-mode .note-flag { opacity: 0.5; }
