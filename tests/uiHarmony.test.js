@@ -121,7 +121,7 @@ describe('Characters drawer', () => {
   });
 });
 
-describe('Pills: one cool slate palette — genre, MISSING BIOS and Dialogue character pills', () => {
+describe('Pills: one neutral palette — genre, MISSING BIOS and Dialogue character pills', () => {
   const css = read('index.css');
   const rule = (sel) => css.match(new RegExp(`${sel.replace(/[.()]/g, '\\$&')} \\{([^}]*)\\}`))?.[1] ?? '';
   it('all three use the shared .pill — and none restyles it', () => {
@@ -133,19 +133,23 @@ describe('Pills: one cool slate palette — genre, MISSING BIOS and Dialogue cha
       assert.ok(!/\.(cast-chip|pb-chip|dna-pill)\b[^{\n]*\{[^}]*\b(color|background|border)\s*:/.test(css), `${f} leaves colours to .pill`);
     }
   });
-  it('slate 400 text and border on a faint slate fill; interface font, 11.5px, 500', () => {
+  it('neutral muted text and border on a faint white fill; interface font, 11.5px, 500 — no slate blues left', () => {
     const r = rule('.pill');
-    for (const d of ['color: #94a3b8', 'border: 1px solid rgba(148, 163, 184, 0.2)', 'background: rgba(148, 163, 184, 0.05)',
-      'font-family: var(--ui-font)', 'font-size: 11.5px', 'font-weight: 500']) assert.ok(r.includes(d), d);
+    for (const d of ['color: var(--text-muted, #9ca3af)', 'border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.12))',
+      'background: rgba(255, 255, 255, 0.04)', 'font-family: var(--ui-font)', 'font-size: 11.5px', 'font-weight: 500']) assert.ok(r.includes(d), d);
+    for (const f of ['index.css', 'components/DialogueTuner.css', 'components/ProjectBibleDrawer.css', 'components/CharactersDrawer.jsx']) {
+      assert.ok(!/#94a3b8|#64748b|#e2e8f0|148, 163, 184/i.test(read(f)), `${f} has no slate`);
+    }
   });
-  it('counts inside a pill are slate 500 at 0.8', () => {
-    assert.match(rule('.pill-count'), /color: #64748b; opacity: 0\.8;/);
+  it('counts inside a pill: 0.6 opacity, the pill’s own colour', () => {
+    assert.match(rule('.pill-count'), /opacity: 0\.6; color: inherit;/);
     assert.match(read('components/DialogueTuner.jsx'), /<span className="pill-count cast-count">\{c\.lines\}<\/span>/);
   });
-  it('hover: slate 200 text, 40 % slate border', () => {
-    assert.match(rule('.pill:hover:not(.is-on, .is-selected)'), /color: #e2e8f0; border: 1px solid rgba\(148, 163, 184, 0\.4\);/);
+  it('hover: normal text, 25 % white border, a touch more fill', () => {
+    assert.match(rule('.pill:hover:not(.is-on, .is-selected)'), /color: var\(--text-normal, #e5e7eb\); border: 1px solid rgba\(255, 255, 255, 0\.25\); background: rgba\(255, 255, 255, 0\.07\);/);
   });
   it('selected: accent fill, white text, transparent border', () => {
-    assert.match(css, /\.pill\.is-on,\s*\.pill\.is-selected \{ background: var\(--accent, #d9532f\); color: #ffffff; border: 1px solid transparent;/);
+    assert.match(css, /\.pill\.is-on,\s*\.pill\.is-selected \{ background: var\(--accent, #d9532f\); color: #ffffff;[^}]*border-color: transparent;/);
   });
 });
+
