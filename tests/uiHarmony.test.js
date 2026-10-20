@@ -120,3 +120,25 @@ describe('Characters drawer', () => {
     assert.match(read('App.jsx'), /onRenameCharacter=\{setRenameFrom\}/);
   });
 });
+
+describe('Dialogue character chips: muted like the other pills', () => {
+  const css = read('components/DialogueTuner.css');
+  const rule = (sel) => css.match(new RegExp(`${sel.replace(/[.()]/g, '\\$&')} \\{([^}]*)\\}`))?.[1] ?? '';
+  it('inactive: muted text, 500 weight, 11.5px, faint fill and border', () => {
+    const r = rule('.pill.cast-chip');
+    for (const d of ['color: var(--text-muted, #9ca3af)', 'font-weight: 500', 'font-size: 11.5px', 'background: rgba(255, 255, 255, 0.04)', 'border: 1px solid rgba(255, 255, 255, 0.12)']) {
+      assert.ok(r.includes(d), d);
+    }
+    assert.ok(!/\.cast-chip \{ color: var\(--text\); \}/.test(css), 'no bright-white override left');
+  });
+  it('the line count is subtle', () => {
+    assert.match(rule('.cast-count'), /opacity: 0\.6; font-weight: normal; margin-left: 4px;/);
+  });
+  it('hover brightens to 85 % white with a lighter border', () => {
+    assert.match(rule('.pill.cast-chip:hover:not(.is-selected)'), /color: rgba\(255, 255, 255, 0\.85\); border-color: rgba\(255, 255, 255, 0\.28\);/);
+  });
+  it('selected: solid accent, white 600 text, white count at 0.9', () => {
+    assert.match(rule('.pill.cast-chip.is-selected'), /background: var\(--accent, #d9532f\);[^]*color: #ffffff; font-weight: 600;/);
+    assert.match(rule('.pill.cast-chip.is-selected .cast-count'), /color: #ffffff; opacity: 0\.9;/);
+  });
+});
