@@ -47,7 +47,7 @@ export default function DialogueTuner({
                 title={selected === c.name ? `Showing ${c.name} in the script — click again (or Esc) to clear` : `Spotlight ${c.name}’s speeches in the script`}
               >
                 <span className="cast-name">{c.name}</span>
-                <span className="cast-count">{c.lines}</span>
+                <span className="pill-count cast-count">{c.lines}</span>
               </button>
             ))}
           </div>

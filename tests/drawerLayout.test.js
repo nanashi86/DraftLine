@@ -47,10 +47,10 @@ describe('Blueprint layout', () => {
   it('genre pills wrap with 6px gaps; refined pill; accent fill with white text when picked', () => {
     assert.match(pbCss, /\.dna-pills \{ display: flex; flex-wrap: wrap; gap: 6px; \}/);
     const pill = read('index.css').match(/\.pill \{[^}]*\}/)[0];
-    for (const d of ['padding: 4px 10px', 'font-size: 11.5px', 'border-radius: 12px', 'border: 1px solid rgba(255, 255, 255, 0.12)', 'background: rgba(255, 255, 255, 0.04)']) {
+    for (const d of ['padding: 4px 10px', 'font-size: 11.5px', 'border-radius: 12px', 'border: 1px solid rgba(148, 163, 184, 0.2)', 'background: rgba(148, 163, 184, 0.05)']) {
       assert.ok(pill.includes(d), d);
     }
-    assert.match(read('index.css'), /\.pill\.is-on,\s*\.pill\.is-selected \{[^}]*background: var\(--accent\); color: #fff;/);
+    assert.match(read('index.css'), /\.pill\.is-on,\s*\.pill\.is-selected \{ background: var\(--accent, #d9532f\); color: #ffffff;/);
     assert.match(read('components/StoryDna.jsx'), /className=\{`pill dna-pill/);
   });
   it('one header style for Genre, Theme and Plot Devices, with inline hints', () => {

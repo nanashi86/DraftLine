@@ -121,24 +121,31 @@ describe('Characters drawer', () => {
   });
 });
 
-describe('Dialogue character chips: muted like the other pills', () => {
-  const css = read('components/DialogueTuner.css');
+describe('Pills: one cool slate palette — genre, MISSING BIOS and Dialogue character pills', () => {
+  const css = read('index.css');
   const rule = (sel) => css.match(new RegExp(`${sel.replace(/[.()]/g, '\\$&')} \\{([^}]*)\\}`))?.[1] ?? '';
-  it('inactive: muted text, 500 weight, 11.5px, faint fill and border', () => {
-    const r = rule('.pill.cast-chip');
-    for (const d of ['color: var(--text-muted, #9ca3af)', 'font-weight: 500', 'font-size: 11.5px', 'background: rgba(255, 255, 255, 0.04)', 'border: 1px solid rgba(255, 255, 255, 0.12)']) {
-      assert.ok(r.includes(d), d);
+  it('all three use the shared .pill — and none restyles it', () => {
+    assert.match(read('components/StoryDna.jsx'), /className=\{`pill dna-pill/);
+    assert.match(read('components/CharactersDrawer.jsx'), /className="pill pb-chip"/);
+    assert.match(read('components/DialogueTuner.jsx'), /className=\{`pill cast-chip/);
+    for (const f of ['components/DialogueTuner.css', 'components/ProjectBibleDrawer.css']) {
+      const css = read(f).replace(/\/\*[\s\S]*?\*\//g, ''); // rules, not comments
+      assert.ok(!/\.(cast-chip|pb-chip|dna-pill)\b[^{\n]*\{[^}]*\b(color|background|border)\s*:/.test(css), `${f} leaves colours to .pill`);
     }
-    assert.ok(!/\.cast-chip \{ color: var\(--text\); \}/.test(css), 'no bright-white override left');
   });
-  it('the line count is subtle', () => {
-    assert.match(rule('.cast-count'), /opacity: 0\.6; font-weight: normal; margin-left: 4px;/);
+  it('slate 400 text and border on a faint slate fill; interface font, 11.5px, 500', () => {
+    const r = rule('.pill');
+    for (const d of ['color: #94a3b8', 'border: 1px solid rgba(148, 163, 184, 0.2)', 'background: rgba(148, 163, 184, 0.05)',
+      'font-family: var(--ui-font)', 'font-size: 11.5px', 'font-weight: 500']) assert.ok(r.includes(d), d);
   });
-  it('hover brightens to 85 % white with a lighter border', () => {
-    assert.match(rule('.pill.cast-chip:hover:not(.is-selected)'), /color: rgba\(255, 255, 255, 0\.85\); border-color: rgba\(255, 255, 255, 0\.28\);/);
+  it('counts inside a pill are slate 500 at 0.8', () => {
+    assert.match(rule('.pill-count'), /color: #64748b; opacity: 0\.8;/);
+    assert.match(read('components/DialogueTuner.jsx'), /<span className="pill-count cast-count">\{c\.lines\}<\/span>/);
   });
-  it('selected: solid accent, white 600 text, white count at 0.9', () => {
-    assert.match(rule('.pill.cast-chip.is-selected'), /background: var\(--accent, #d9532f\);[^]*color: #ffffff; font-weight: 600;/);
-    assert.match(rule('.pill.cast-chip.is-selected .cast-count'), /color: #ffffff; opacity: 0\.9;/);
+  it('hover: slate 200 text, 40 % slate border', () => {
+    assert.match(rule('.pill:hover:not(.is-on, .is-selected)'), /color: #e2e8f0; border: 1px solid rgba\(148, 163, 184, 0\.4\);/);
+  });
+  it('selected: accent fill, white text, transparent border', () => {
+    assert.match(css, /\.pill\.is-on,\s*\.pill\.is-selected \{ background: var\(--accent, #d9532f\); color: #ffffff; border: 1px solid transparent;/);
   });
 });
