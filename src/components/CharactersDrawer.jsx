@@ -24,6 +24,17 @@ function CharacterCard({ c, open, canMove, onToggle, onChange, onMove, onDelete,
           <span className="pb-char-name">{name || 'Unnamed character'}</span>
           <span className="pb-char-meta">{[c.role.trim(), c.age.trim()].filter(Boolean).join(' · ')}</span>
         </button>
+        {onRename && name && (
+          <button
+            type="button"
+            className="btn btn-outline pb-char-rename"
+            onClick={() => onRename(name)}
+            aria-label={`Rename ${name}`}
+            title={`Rename ${name} in cues, dialogue, action, the Beat Board and the Story Bible`}
+          >
+            Rename
+          </button>
+        )}
         {canMove && (
           <span className="pb-move">
             <button type="button" onClick={() => onMove(-1)} aria-label={`Move ${name || 'character'} up`} title="Move up">↑</button>
@@ -53,16 +64,6 @@ function CharacterCard({ c, open, canMove, onToggle, onChange, onMove, onDelete,
             </label>
           ))}
           <div className="pb-char-foot">
-            {onRename && name && (
-              <button
-                type="button"
-                className="btn pb-rename"
-                onClick={() => onRename(name)}
-                title={`Rename ${name} in cues, dialogue, action, the Beat Board and the Story Bible`}
-              >
-                Rename across script…
-              </button>
-            )}
             <button type="button" className="btn pb-danger" onClick={onDelete}>Delete character</button>
           </div>
         </div>
@@ -110,14 +111,16 @@ function CharacterBios({ characters, onChange, speakers, onUndoable, onRename })
       </div>
 
       {missing.length > 0 && (
-        <div className="pb-suggest">
-          <span>In the script without a bio:</span>
-          {missing.slice(0, 8).map((n) => (
-            <button key={n} type="button" className="pb-chip" onClick={() => add({ name: n })} title={`Add a bio for ${n}`}>
-              + {n}
-            </button>
-          ))}
-          {missing.length > 8 && <span className="pb-more">and {missing.length - 8} more</span>}
+        <div className="pb-suggest" role="group" aria-labelledby="pb-missing-bios">
+          <span className="micro-label" id="pb-missing-bios">Missing bios</span>
+          <div className="pb-suggest-pills">
+            {missing.slice(0, 8).map((n) => (
+              <button key={n} type="button" className="pill pb-chip" onClick={() => add({ name: n })} title={`Add a bio for ${n}`}>
+                + {n}
+              </button>
+            ))}
+            {missing.length > 8 && <span className="pb-more">and {missing.length - 8} more</span>}
+          </div>
         </div>
       )}
 

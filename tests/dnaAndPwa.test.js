@@ -105,16 +105,15 @@ describe('Plot Devices', () => {
     const d = normalizeStoryDna({ devices: [{ id: 'quest', on: true, notes: 'x' }, { id: 'nope' }, { id: 'quest' }] });
     assert.deepEqual(d.devices, [{ id: 'foreshadowing', on: false, notes: '' }, { id: 'flashback', on: false, notes: '' }, { id: 'quest', on: true, notes: 'x' }]);
   });
-  it('the Central Dramatic Question is a field of its own', () => {
-    assert.equal(emptyStoryDna().centralQuestion, '');
-    assert.equal(normalizeStoryDna({ centralQuestion: 'Will she go back?' }).centralQuestion, 'Will she go back?');
-    assert.match(read('src/components/StoryDna.jsx'), /placeholder="What core question does the climax answer\?"/);
+  it('there is no Central Dramatic Question field any more', () => {
+    assert.ok(!('centralQuestion' in emptyStoryDna()));
+    assert.ok(!('centralQuestion' in normalizeStoryDna({ centralQuestion: 'Will she go back?' })));
+    assert.ok(!/centralQuestion|Central Dramatic Question|What core question/.test(read('src/components/StoryDna.jsx')));
   });
-  it('renaming a character reaches device notes and the central question', () => {
-    const dna = { ...emptyStoryDna(), centralQuestion: 'Will Fito talk?', devices: [{ id: 'redHerring', on: true, notes: 'Fito’s bike' }] };
+  it('renaming a character reaches device notes', () => {
+    const dna = { ...emptyStoryDna(), devices: [{ id: 'redHerring', on: true, notes: 'Fito’s bike' }] };
     const { project } = renameCharacter({ blocks: [], beats: [], characters: [], storyDna: dna }, 'FITO', 'Marc');
-    assert.equal(project.storyDna.centralQuestion, 'Will Marc talk?');
-    assert.equal(project.storyDna.devices[0].notes, 'Marc’s bike');
+    assert.equal(project.storyDna.devices.find((d) => d.id === 'redHerring').notes, 'Marc’s bike');
   });
 });
 

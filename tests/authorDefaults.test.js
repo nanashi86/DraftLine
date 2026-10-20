@@ -36,9 +36,10 @@ describe('author & contact defaults', () => {
     assert.equal(storage.getItem(AUTHOR_KEY), 'E. Lemaire Jr.');
     assert.equal(storage.getItem(CONTACT_KEY), 'Agent: K. Moss\nkmoss@example.com');
     assert.deepEqual(authorDefaults(storage), { author: 'E. Lemaire Jr.', contact: 'Agent: K. Moss\nkmoss@example.com' });
-    // A cleared field is saved as cleared, and the next new project falls back to the default.
+    // A cleared author falls back to the default author — whose own contact applies: a contact saved
+    // without an author isn't anyone's, so it isn't carried over.
     rememberAuthorDefaults({ author: '', contact: 'Only contact' }, storage);
-    assert.deepEqual(authorDefaults(storage), { author: DEFAULT_AUTHOR, contact: 'Only contact' });
+    assert.deepEqual(authorDefaults(storage), { author: DEFAULT_AUTHOR, contact: CONTACT });
   });
 
   it('stay editable: an explicit author or contact — even an empty one — wins over the defaults', () => {

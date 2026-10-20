@@ -178,7 +178,7 @@ function Blueprint({ dna, onChange, dictionary, onOpenTerm }) {
                 <button
                   key={g}
                   type="button"
-                  className={`dna-pill${on ? ' is-on' : ''}`}
+                  className={`pill dna-pill${on ? ' is-on' : ''}`}
                   aria-pressed={on}
                   onClick={() => onChange(toggleGenre(dna, g, !on))}
                 >
@@ -201,14 +201,6 @@ function Blueprint({ dna, onChange, dictionary, onOpenTerm }) {
         <label className="pb-field">
           <span className="dna-label">Theme<span className="dna-hint">revealed by the climax</span></span>
           <input value={dna.theme} placeholder="What the story finally says" onChange={(e) => onChange(setField(dna, 'theme', e.target.value))} />
-        </label>
-        <label className="pb-field">
-          <span className="dna-label">Central Dramatic Question</span>
-          <input
-            value={dna.centralQuestion}
-            placeholder="What core question does the climax answer?"
-            onChange={(e) => onChange(setField(dna, 'centralQuestion', e.target.value))}
-          />
         </label>
         <PlotDevices dna={dna} onChange={onChange} dictionary={dictionary} onOpenTerm={onOpenTerm} />
       </div>

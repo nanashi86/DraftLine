@@ -13,46 +13,21 @@
   gap: 6px;
   padding: 8px 18px 12px;
 }
-.cast-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 5px 10px;
-  border: 1px solid var(--line-soft);
-  border-radius: 999px;
-  background: transparent;
-  color: var(--text);
-  font: 600 12px/1 'Courier Prime', 'Courier New', monospace;
-  letter-spacing: 0.02em;
-  cursor: pointer;
-}
-.cast-chip:hover { border-color: var(--muted); }
-.cast-chip.is-selected { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
-.cast-count {
-  font: 500 11px/1 var(--ui-font);
-  opacity: 0.7;
-}
+/* .cast-chip uses the shared .pill look (index.css); the line count rides inside it. */
+.cast-chip { color: var(--text); }
+.cast-count { font-size: 11px; font-weight: 500; opacity: 0.7; }
 
 .tuner-stats {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: 4px 14px;
   padding: 0 18px 10px;
   font-size: 12px;
   color: var(--muted);
 }
 .tuner-stats b { color: var(--text); font-weight: 600; }
-.tuner-rename {
-  margin-left: auto;
-  padding: 1px 8px;
-  border: 1px solid var(--line-soft);
-  border-radius: 6px;
-  background: transparent;
-  color: var(--muted);
-  font: inherit;
-  cursor: pointer;
-}
-.tuner-rename:hover { color: var(--text); border-color: var(--muted); }
+.tuner-rename { margin-left: auto; padding: 3px 10px; font-size: 12px; } /* a standard .btn .btn-outline */
 
 .tuner-tools {
   display: flex;

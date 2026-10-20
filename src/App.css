@@ -177,6 +177,9 @@
   white-space: nowrap;
 }
 .btn:hover:not(:disabled) { background: var(--field); }
+/* Secondary (outline) button — defined here, after .btn, so it wins everywhere it's used. */
+.btn.btn-outline { border-color: var(--line-soft); }
+.btn.btn-outline:hover:not(:disabled) { border-color: var(--muted); }
 .btn:disabled { opacity: 0.45; cursor: default; }
 .btn-icon { padding: 6px 7px; display: inline-grid; place-items: center; color: var(--muted); }
 .btn.is-on-subtle { background: var(--chip); color: var(--text); }

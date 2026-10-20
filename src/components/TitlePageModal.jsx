@@ -13,7 +13,7 @@ import {
   titleStyle,
   titleTypography,
 } from '../lib/titleFonts.js';
-import { titlePageSeed } from '../lib/authorDefaults.js';
+import { contactAfterAuthorChange, titlePageSeed } from '../lib/authorDefaults.js';
 import './TitlePageModal.css';
 
 const FIELDS = [
@@ -44,13 +44,30 @@ export default function TitlePageModal({ meta, onSave, onClose, onViewCover }) {
     titleBold: meta.titleBold ?? DEFAULT_TITLE_BOLD,
   }));
   const type = titleTypography(form);
+  // The contact follows the author (lib/authorDefaults.js) until the writer edits it themselves.
+  const [contactState, setContactState] = useState(() => ({
+    auto: seed.suggested && seed.meta.contact ? seed.meta.contact : null, // what the form filled in itself
+    touched: false, // the writer typed in or cleared the contact: never change it for them again
+  }));
 
   useEffect(() => {
     const d = dialogRef.current;
     if (d && !d.open) d.showModal();
   }, []);
 
-  const set = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }));
+  const set = (key) => (e) => {
+    const value = e.target.value;
+    if (key === 'contact') setContactState((c) => (c.touched ? c : { ...c, touched: true }));
+    if (key !== 'author') {
+      setForm((f) => ({ ...f, [key]: value }));
+      return;
+    }
+    const next = contactAfterAuthorChange({
+      author: value, contact: form.contact, contactAuto: contactState.auto, contactTouched: contactState.touched,
+    });
+    setContactState((c) => ({ ...c, auto: next.contactAuto }));
+    setForm((f) => ({ ...f, author: value, contact: next.contact }));
+  };
   const submit = (e) => {
     e.preventDefault();
     onSave(form);
@@ -134,10 +151,9 @@ export default function TitlePageModal({ meta, onSave, onClose, onViewCover }) {
             >
               {form.title || 'Untitled'}
             </div>
-            <span className="tp-note">
-              {type.font.bold ? '' : `${type.font.label} comes in one weight, so Bold is off. `}
-              Title only — the script itself stays Courier Prime 12pt.
-            </span>
+            {!type.font.bold && (
+              <span className="tp-note">{type.font.label} comes in one weight, so Bold is off.</span>
+            )}
           </div>
           {FIELDS.slice(1).map((f) => (
             <label key={f.key} className="tp-field">

@@ -210,6 +210,28 @@ export function themeLine(text) {
     .join('; ');
 }
 
+export const CENTRAL_QUESTION_PREFIX = 'Central dramatic question: ';
+
+/**
+ * Story DNA no longer has a Central Dramatic Question field. A project that filled one in keeps
+ * its words: they're added to the Scratchpad note (once — loading again doesn't repeat them).
+ */
+function keepCentralQuestion(storyNotes, rawDna) {
+  const q = typeof rawDna?.centralQuestion === 'string' ? rawDna.centralQuestion.trim() : '';
+  if (!q) return storyNotes;
+  const line = `${CENTRAL_QUESTION_PREFIX}${q}`;
+  if (storyNotes.sections.some((s) => s.body.includes(line))) return storyNotes;
+  const sections = [...storyNotes.sections];
+  let i = sections.findIndex((s) => s.title === 'Scratchpad');
+  if (i < 0) {
+    sections.push({ id: uid('sn'), title: 'Scratchpad', body: '' });
+    i = sections.length - 1;
+  }
+  const body = sections[i].body.replace(/\s+$/, '');
+  sections[i] = { ...sections[i], body: body ? `${body}\n\n${line}` : line };
+  return { ...storyNotes, sections };
+}
+
 /**
  * Load-time migration for the Story Bible as a whole (stored notes + stored Story DNA):
  * notes saved before version 3 had a Themes card. Its text moves into Story DNA's Theme
@@ -219,7 +241,7 @@ export function themeLine(text) {
  */
 export function migrateStoryBible(rawNotes, rawDna) {
   let storyDna = normalizeStoryDna(rawDna);
-  let storyNotes = normalizeStoryNotes(rawNotes);
+  let storyNotes = keepCentralQuestion(normalizeStoryNotes(rawNotes), rawDna);
   const old = rawNotes && typeof rawNotes === 'object' && (rawNotes.version || 1) < STORY_NOTES_VERSION;
   const card = old ? storyNotes.sections.find((s) => s.title === 'Themes') : null;
   if (!card) return { storyNotes, storyDna, movedTheme: false };

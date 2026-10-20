@@ -42,7 +42,7 @@ export default function DialogueTuner({
                 key={c.name}
                 role="option"
                 aria-selected={current?.name === c.name}
-                className={`cast-chip${current?.name === c.name ? ' is-selected' : ''}`}
+                className={`pill cast-chip${current?.name === c.name ? ' is-selected' : ''}`}
                 onClick={() => onSelect(selected === c.name ? null : c.name)}
                 title={selected === c.name ? `Showing ${c.name} in the script — click again (or Esc) to clear` : `Spotlight ${c.name}’s speeches in the script`}
               >
@@ -61,7 +61,7 @@ export default function DialogueTuner({
               {onRename && (
                 <button
                   type="button"
-                  className="tuner-rename"
+                  className="btn btn-outline tuner-rename"
                   onClick={() => onRename(current.name)}
                   title={`Rename ${current.name} across the script, Beat Board and Story Bible`}
                 >

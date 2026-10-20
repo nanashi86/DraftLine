@@ -140,7 +140,7 @@ function renameDna(dna, variants) {
   if (!dna || typeof dna !== 'object') return { dna, count: 0 };
   let count = 0;
   let out = dna;
-  const top = renameFields(out, ['theme', 'centralQuestion', 'genreOther'], variants);
+  const top = renameFields(out, ['theme', 'genreOther'], variants);
   out = top.obj;
   count += top.count;
   if (out.answers && typeof out.answers === 'object') {

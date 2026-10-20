@@ -139,7 +139,6 @@ export function emptyStoryDna() {
     genres: [],
     genreOther: '',
     theme: '',
-    centralQuestion: '',
     devices: defaultDeviceRows(),
     conflictType: '',
     answers: Object.fromEntries(DNA_QUESTIONS.map((q) => [q.key, ''])),
@@ -174,7 +173,6 @@ export function normalizeStoryDna(raw) {
     Object.assign(d, genresFromText(raw.genre)); // older projects stored one text field
   }
   d.theme = str(raw.theme);
-  d.centralQuestion = str(raw.centralQuestion);
   const stored = [];
   if (Array.isArray(raw.devices)) {
     const seen = new Set();
