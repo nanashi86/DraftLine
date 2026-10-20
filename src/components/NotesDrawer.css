@@ -1,0 +1,73 @@
+/* Margin Notes drawer (shares the right dock with the Story Bible, Characters and Snapshots). */
+.nd-current { padding: 4px 16px 14px; border-bottom: 1px solid var(--line-soft); }
+.nd-nav { display: flex; align-items: center; gap: 4px; font-size: 12px; color: var(--muted); min-height: 30px; }
+.nd-nav .btn-icon { font-size: 16px; line-height: 1; padding: 2px 8px; }
+.nd-spacer { flex: 1; }
+.nd-del { font-size: 12px; padding: 3px 8px; color: var(--muted); }
+.nd-confirm { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; }
+.nd-confirm .btn { padding: 3px 8px; font-size: 12px; }
+.nd-danger { color: #e8836b; border-color: color-mix(in srgb, #e8836b 45%, transparent); }
+.nd-anchor {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 100%;
+  margin: 6px 0 8px;
+  padding: 7px 10px;
+  border: 1px solid var(--line-soft);
+  border-left: 3px solid #e3c34a;
+  border-radius: 7px;
+  background: var(--field);
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+}
+.nd-anchor:hover { border-color: #e3c34a; }
+.nd-anchor-type { font-size: 11px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); }
+.nd-anchor-text { font: 12.5px/1.4 'Courier Prime', 'Courier New', monospace; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.nd-editor {
+  display: block;
+  width: 100%;
+  min-height: 130px;
+  box-sizing: border-box;
+  padding: 9px 11px;
+  border: 1px solid #e3c34a;
+  border-radius: 8px;
+  background: #fff6cc;
+  color: #3d3207;
+  font: 13.5px/1.5 var(--ui-font);
+  resize: vertical;
+}
+.nd-editor:focus { outline: 2px solid #e3c34a; outline-offset: 0; }
+.nd-meta { margin: 6px 0 0; font-size: 11.5px; color: var(--muted); }
+.nd-history { margin-top: 12px; }
+.nd-history summary { cursor: pointer; font-size: 12px; font-weight: 600; color: var(--text); }
+.nd-history ol { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 6px; }
+.nd-history li { padding: 7px 9px; border: 1px solid var(--line-soft); border-radius: 7px; background: color-mix(in srgb, var(--field) 60%, transparent); }
+.nd-history-head { display: flex; justify-content: space-between; align-items: center; font-size: 11.5px; color: var(--muted); }
+.nd-history p { margin: 4px 0 0; font-size: 12.5px; line-height: 1.45; white-space: pre-wrap; overflow-wrap: anywhere; opacity: 0.85; }
+.nd-link { padding: 0; border: 0; background: none; color: var(--accent); font: 11.5px var(--ui-font); text-decoration: underline; text-underline-offset: 2px; cursor: pointer; }
+.nd-hint { margin: 14px 16px; font-size: 12.5px; line-height: 1.55; color: var(--muted); }
+.nd-hint kbd { padding: 0 4px; border: 1px solid var(--line-soft); border-radius: 4px; font: 11.5px var(--ui-font); color: var(--text); }
+.nd-all { padding: 12px 10px 24px; }
+.nd-all h3 { margin: 0 6px 8px; font-size: 11.5px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.nd-all ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.nd-row {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 100%;
+  padding: 7px 9px;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+}
+.nd-row:hover { background: var(--field); }
+.nd-row.is-on { border-color: #e3c34a; background: color-mix(in srgb, #f7d95a 10%, transparent); }
+.nd-row-head { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+.nd-row-head small { text-transform: none; letter-spacing: 0; }
+.nd-row-line { font: 12px/1.35 'Courier Prime', 'Courier New', monospace; opacity: 0.8; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.nd-row-note { font-size: 12.5px; line-height: 1.4; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

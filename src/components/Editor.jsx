@@ -1,7 +1,6 @@
 import { memo, useCallback, useEffect, useImperativeHandle, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { createPortal } from 'react-dom';
 import AutoTextarea from './AutoTextarea.jsx';
-import { placeNote } from '../lib/notePlacement.js';
+import { hasNote } from '../lib/editorialNotes.js';
 import { measureTextarea } from '../lib/measure.js';
 import { backspaceAt, deleteAt } from '../lib/editing.js';
 import {
@@ -89,116 +88,42 @@ function marginStyle(lines, gaps) {
 // ---------------------------------------------------------------------------
 
 /**
- * Margin note: a compact NOTE chip in the page's right margin. Clicking it (or Alt+N) opens
- * the note editor *outside the script text*: in the gutter beside the page when there's
- * room, otherwise just above or below the element — never on top of the line it belongs to
- * (see lib/notePlacement.js). The editor floats in a portal, so it never changes an
- * element's height: notes add nothing to line counts or pagination, and never print.
+ * Editorial margin notes, in the page's *left* margin (past the scene number), so they never
+ * touch the script text: a small marker on annotated lines, and — on hover — a faint ＋ to add
+ * one. Either opens the Notes drawer (Alt+N too; right-click works as well). Absolutely
+ * positioned, so they add nothing to line counts or pagination, and never print.
  */
-function NoteFlag({ block, open, onToggle, onChange, onClose }) {
-  const text = block.note ?? '';
-  const preview = text.trim() ? text.trim().split('\n')[0] : 'Empty note';
-  const flagRef = useRef(null);
-  const popRef = useRef(null);
-  const [pos, setPos] = useState(null);
-
-  // Place the popover, and keep it placed while the page scrolls or the window resizes.
-  useLayoutEffect(() => {
-    if (!open) return undefined;
-    const place = () => {
-      const flag = flagRef.current;
-      const pop = popRef.current;
-      const el = flag?.closest('.el');
-      const sheet = flag?.closest('.sheet');
-      if (!el || !sheet || !pop) return;
-      const s = sheet.getBoundingClientRect();
-      const page = { left: s.left, right: s.left + s.width, top: s.top, bottom: s.bottom };
-      const sc = sheet.closest('.scroller')?.getBoundingClientRect();
-      const view = {
-        left: Math.max(0, sc?.left ?? 0),
-        right: Math.min(window.innerWidth, sc?.right ?? window.innerWidth),
-        top: Math.max(0, sc?.top ?? 0),
-        bottom: Math.min(window.innerHeight, sc?.bottom ?? window.innerHeight),
-      };
-      const next = placeNote({
-        anchor: el.getBoundingClientRect(), page, view, size: { width: pop.offsetWidth, height: pop.offsetHeight },
-      });
-      setPos((p) => (p && p.x === next.x && p.y === next.y && p.placement === next.placement ? p : next));
-    };
-    place();
-    const scroller = flagRef.current?.closest('.scroller');
-    scroller?.addEventListener('scroll', place, { passive: true });
-    window.addEventListener('resize', place);
-    const ro = new ResizeObserver(place);
-    if (popRef.current) ro.observe(popRef.current);
-    const anchorEl = flagRef.current?.closest('.el');
-    if (anchorEl) ro.observe(anchorEl); // the line grows or shrinks as you type
-    return () => {
-      scroller?.removeEventListener('scroll', place);
-      window.removeEventListener('resize', place);
-      ro.disconnect();
-    };
-  }, [open]);
-
+function NoteMarker({ block, open, onOpen }) {
+  const noted = hasNote(block);
+  const text = noted ? block.note.trim() : '';
+  const preview = noted ? (text ? text.split('\n')[0] : 'Empty note') : '';
+  const open_ = (e) => {
+    e.preventDefault();
+    onOpen(block.id);
+  };
   return (
-    <>
-      <button
-        ref={flagRef}
-        type="button"
-        className={`note-flag${open ? ' is-open' : ''}`}
-        title={`Note: ${preview}  ·  Alt+N`}
-        aria-label={`Script note: ${preview}`}
-        aria-expanded={open}
-        onMouseDown={(e) => e.preventDefault()}
-        onClick={() => onToggle(block.id)}
-      >
-        Note
-      </button>
-      {open && createPortal(
-        <div
-          ref={popRef}
-          className={`note-pop is-${pos?.placement || 'measuring'}`}
-          role="dialog"
-          aria-label="Script note"
-          style={pos ? { left: pos.x, top: pos.y } : { left: -9999, top: 0 }}
-        >
-          <header>
-            <span>Note</span>
-            <button
-              type="button"
-              className="note-del"
-              onClick={() => onChange(block.id, null)}
-              title="Delete note"
-            >
-              Delete
-            </button>
-          </header>
-          <textarea
-            autoFocus
-            value={text}
-            placeholder="Write a note… it stays in the margin and never prints."
-            onChange={(e) => onChange(block.id, e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Escape' || (e.altKey && e.code === 'KeyN')) {
-                e.preventDefault();
-                e.stopPropagation();
-                onClose(block.id, true);
-              }
-              e.stopPropagation(); // keep editor/global shortcuts out of the note
-            }}
-          />
-          <footer>Esc to close · never prints · exports as [[ ]] / ScriptNote</footer>
-        </div>,
-        document.body,
-      )}
-    </>
+    <button
+      type="button"
+      className={noted ? `note-mark${open ? ' is-open' : ''}` : 'note-add'}
+      title={noted ? `Note: ${preview}  ·  Alt+N` : 'Add a margin note  ·  Alt+N'}
+      aria-label={noted ? `Margin note: ${preview}` : 'Add a margin note'}
+      aria-expanded={noted ? open : undefined}
+      tabIndex={noted ? 0 : -1}
+      onMouseDown={(e) => e.preventDefault()}
+      onClick={open_}
+      onContextMenu={open_}
+    >
+      {noted ? (
+        <svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 1.5h8a.5.5 0 0 1 .5.5v5.6a.5.5 0 0 1-.15.35L7.95 10.35a.5.5 0 0 1-.35.15H2a.5.5 0 0 1-.5-.5V2a.5.5 0 0 1 .5-.5Z" /><path d="M7.5 10.4V8a.5.5 0 0 1 .5-.5h2.4" fill="none" /></svg>
+      ) : '+'}
+    </button>
   );
 }
 
 const Block = memo(function Block({
   block, sceneNumber, isActive, isHighlighted, isDim, marginLines, marginGaps,
   register, observe, onText, onKey, onFocusBlock,
-  noteOpen, onNoteToggle, onNoteChange, onNoteClose,
+  noteOpen, onOpenNote,
 }) {
   const setRef = useCallback((el) => register(block.id, el), [register, block.id]);
   const meta = ELEMENT_META[block.type];
@@ -206,7 +131,7 @@ const Block = memo(function Block({
     <div
       ref={observe}
       data-key={observe ? block.id : undefined}
-      className={`el el-${block.type}${isActive ? ' is-active' : ''}${isHighlighted ? ' is-highlighted' : ''}${isDim ? ' is-dim' : ''}${block.note != null ? ' has-note' : ''}${hasMarks(block.marks) ? ' has-fmt' : ''}`}
+      className={`el el-${block.type}${isActive ? ' is-active' : ''}${isHighlighted ? ' is-highlighted' : ''}${isDim ? ' is-dim' : ''}${hasNote(block) ? ' has-note' : ''}${noteOpen ? ' is-note-open' : ''}${hasMarks(block.marks) ? ' has-fmt' : ''}`}
       style={observe ? marginStyle(marginLines, marginGaps) : undefined}
     >
       {sceneNumber != null && (
@@ -236,16 +161,14 @@ const Block = memo(function Block({
         onKeyDown={(e) => onKey(e, block.id)}
         onFocus={() => onFocusBlock(block.id)}
       />
-      {(block.note != null || noteOpen) && onNoteToggle && (
-        <NoteFlag block={block} open={noteOpen} onToggle={onNoteToggle} onChange={onNoteChange} onClose={onNoteClose} />
-      )}
+      {onOpenNote && <NoteMarker block={block} open={noteOpen} onOpen={onOpenNote} />}
     </div>
   );
 });
 
 const DualRow = memo(function DualRow({
   item, activeId, highlightId, spotlight, marginLines, marginGaps, register, observe, onText, onKey, onFocusBlock,
-  openNoteId, onNoteToggle, onNoteChange, onNoteClose,
+  openNoteId, onOpenNote,
 }) {
   const col = (bs) => bs.map((b) => (
     <Block
@@ -259,9 +182,7 @@ const DualRow = memo(function DualRow({
       onKey={onKey}
       onFocusBlock={onFocusBlock}
       noteOpen={b.id === openNoteId}
-      onNoteToggle={onNoteToggle}
-      onNoteChange={onNoteChange}
-      onNoteClose={onNoteClose}
+      onOpenNote={onOpenNote}
     />
   ));
   return (
@@ -325,7 +246,8 @@ export default function Editor({
   hidden = false,
   onCommit,
   onTextChange,
-  onNoteChange,
+  openNoteId = null, // the element whose note is open in the Notes drawer
+  onOpenNote, // (id, { quote }) → open (or start) that element's note in the drawer
   onUndo,
   onRedo,
   onActiveChange,
@@ -345,7 +267,6 @@ export default function Editor({
   const [typedIn, setTypedIn] = useState(null);
   const [dismissed, setDismissed] = useState(null);
   const [acState, setAcState] = useState({ sig: '', index: 0 });
-  const [openNoteId, setOpenNoteId] = useState(null);
   const lastSel = useRef(null); // { id, start, end } of the last selection inside the script
   const lastFmt = useRef('');
   const onFormatStateRef = useRef(onFormatState);
@@ -526,6 +447,10 @@ export default function Editor({
       if (sel && blocksRef.current.some((b) => b.id === sel.id)) formatAt(sel.id, sel.start, sel.end, style);
       else onNotice?.('Click into the script and select some text to format it');
     },
+    /** Scroll element `id` into view without moving focus (the Notes drawer keeps it). */
+    revealBlock(id) {
+      els.current.get(id)?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    },
     focusBlock(id) {
       const el = els.current.get(id);
       if (!el) return;
@@ -542,33 +467,8 @@ export default function Editor({
 
   const handleFocus = useCallback((id) => {
     setTypedIn((t) => (t === id ? t : null));
-    setOpenNoteId((n) => (n === id ? n : null)); // moving to another line closes an open note
     onActiveChange(id);
   }, [onActiveChange]);
-
-  // ---- Margin notes ----
-  const closeNote = useCallback((id, refocus) => {
-    setOpenNoteId(null);
-    const b = blocksRef.current.find((x) => x.id === id);
-    if (b && b.note != null && !b.note.trim()) onNoteChange(id, null); // drop empty notes
-    if (refocus) focusNow(id, 'end');
-  }, [focusNow, onNoteChange]);
-
-  const toggleNote = useCallback((id) => {
-    setOpenNoteId((cur) => {
-      if (cur === id) {
-        const b = blocksRef.current.find((x) => x.id === id);
-        if (b && b.note != null && !b.note.trim()) onNoteChange(id, null);
-        return null;
-      }
-      return id;
-    });
-  }, [onNoteChange]);
-
-  const changeNote = useCallback((id, note) => {
-    onNoteChange(id, note);
-    if (note === null) setOpenNoteId(null);
-  }, [onNoteChange]);
 
   const handleKeyDown = useCallback((e, id) => {
     const cur = blocksRef.current;
@@ -632,19 +532,11 @@ export default function Editor({
       setTypeAt(idx, altType, start);
       return;
     }
-    // Alt+N: add a margin note — or move the selected text into one.
+    // Alt+N: open this line's margin note in the Notes drawer (starting one if needed). A selection
+    // is quoted into the note — the script text itself is never changed.
     if (e.altKey && !mod && e.code === 'KeyN') {
       e.preventDefault();
-      const selected = text.slice(start, end).trim();
-      if (selected) {
-        const rest = (text.slice(0, start).replace(/[ \t]+$/, '') + ' ' + text.slice(end).replace(/^[ \t]+/, '')).trim();
-        const note = [b.note, selected].filter((n) => n && n.trim()).join('\n');
-        commit(splice(cur, idx, 1, { ...b, text: rest, note })); // focus goes to the note popover
-        onNotice?.('Selection moved to a margin note');
-      } else if (b.note == null) {
-        commit(splice(cur, idx, 1, { ...b, note: '' }));
-      }
-      setOpenNoteId(id);
+      onOpenNote?.(id, { quote: text.slice(start, end) });
       return;
     }
 
@@ -773,7 +665,7 @@ export default function Editor({
 
       default:
     }
-  }, [acceptSuggestion, commit, focusNow, formatAt, onNotice, onRedo, onUndo, setTypeAt, toggleDual]);
+  }, [acceptSuggestion, commit, focusNow, formatAt, onOpenNote, onRedo, onUndo, setTypeAt, toggleDual]);
 
   // Clicking empty paper focuses the nearest line instead of doing nothing.
   const onSheetMouseDown = (e) => {
@@ -832,9 +724,7 @@ export default function Editor({
               onKey={handleKeyDown}
               onFocusBlock={handleFocus}
               openNoteId={openNoteId}
-              onNoteToggle={toggleNote}
-              onNoteChange={changeNote}
-              onNoteClose={closeNote}
+              onOpenNote={onOpenNote}
             />
           );
         }
@@ -855,9 +745,7 @@ export default function Editor({
             onKey={handleKeyDown}
             onFocusBlock={handleFocus}
             noteOpen={b.id === openNoteId}
-            onNoteToggle={toggleNote}
-            onNoteChange={changeNote}
-            onNoteClose={closeNote}
+            onOpenNote={onOpenNote}
           />
         );
       })}

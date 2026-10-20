@@ -21,6 +21,7 @@
 import { ELEMENT_META, buildItems, makeBlock, paginate } from './screenplay.js';
 import { migrateBlock } from './formatting.js';
 import { normalizeBeats, validBeats } from './beats.js';
+import { normalizeRevisions, revisionRecord } from './revisions.js';
 import { migrateStoryBible, normalizeStoryNotes, validCharacters } from './bible.js';
 import { normalizeStoryDna } from './storyDna.js';
 import { newProjectMeta } from './authorDefaults.js';
@@ -78,7 +79,7 @@ export function projectStats(blocks) {
 
 /** Editor document ({ meta, blocks, beats }) → stored record. */
 export function toRecord({
-  id, meta = {}, blocks = [], beats = [], characters = [], storyNotes, storyDna, pages, scenes,
+  id, meta = {}, blocks = [], beats = [], characters = [], storyNotes, storyDna, revisions, pages, scenes,
 }, now = Date.now()) {
   const rec = { id: id || newProjectId() };
   for (const k of META_FIELDS) rec[k] = meta[k] ?? EMPTY_META[k];
@@ -87,6 +88,9 @@ export function toRecord({
   rec.characters = characters;
   rec.storyNotes = normalizeStoryNotes(storyNotes);
   rec.storyDna = normalizeStoryDna(storyDna);
+  // Snapshots (revisions.js). Left out when the caller doesn't know them — saving then keeps
+  // whatever the library already has (see saveActiveProject).
+  if (revisions !== undefined) rec.revisions = normalizeRevisions(revisions);
   const est = pages == null || scenes == null ? projectStats(blocks) : null;
   rec.pages = pages ?? est.pages;
   rec.scenes = scenes ?? est.scenes;
@@ -109,9 +113,16 @@ export function toDoc(rec) {
     characters: validCharacters(rec.characters) ? rec.characters : [],
     // Notes from before Theme moved to Story DNA hand their Themes text over (bible.js).
     ...pickBible(migrateStoryBible(rec.storyNotes, rec.storyDna)),
+    revisions: normalizeRevisions(rec.revisions),
     createdAt: rec.createdAt,
     updatedAt: rec.updatedAt,
   };
+}
+
+/** A snapshot → the editor document it restores (migrated like any stored project). */
+export function revisionToDoc(rev) {
+  const { revisions, id, createdAt, updatedAt, ...doc } = toDoc(revisionRecord(rev)); // eslint-disable-line no-unused-vars
+  return doc;
 }
 
 const clone = (v) => (typeof structuredClone === 'function' ? structuredClone(v) : JSON.parse(JSON.stringify(v)));
@@ -234,6 +245,8 @@ export function createProjectStore({ indexedDB = globalThis.indexedDB, now = Dat
         if (projectData.id) {
           const prev = await b.get(projectData.id);
           if (prev?.createdAt) rec.createdAt = prev.createdAt;
+          // A save that doesn't carry snapshots (crash-recovery journal, older callers) keeps them.
+          if (projectData.revisions === undefined && prev?.revisions) rec.revisions = prev.revisions;
         }
         await b.put(rec);
         return rec;

@@ -1,8 +1,10 @@
-// The right dock holds one drawer at a time — the Story Bible or Characters (Bios · Dialogue).
-// Opening one closes the other; the workspace makes room for whichever is open (on wide
-// screens the script and Beat Board flex beside it, on narrow ones it overlays them).
+// The right dock holds one drawer at a time — the Story Bible, Characters (Bios · Dialogue),
+// Snapshots or Margin Notes. Opening one closes the other; the workspace makes room for
+// whichever is open (on wide screens the script and Beat Board flex beside it, on narrow ones
+// it overlays them). Only the Story Bible and Characters reopen after a reload.
 
-export const DOCK_PANELS = ['bible', 'characters'];
+export const DOCK_PANELS = ['bible', 'characters', 'snapshots', 'notes'];
+export const REOPENED_PANELS = ['bible', 'characters'];
 
 /** Toggle `panel`: open it (closing the other), or close it if it's the one showing. */
 export function toggleDock(current, panel) {
@@ -21,7 +23,8 @@ export const closeDock = (current, panel) => (current === panel ? null : current
  * open Characters.
  */
 export function dockFromPrefs(prefs = {}) {
-  if (prefs.dock === null || DOCK_PANELS.includes(prefs.dock)) return prefs.dock;
+  if (prefs.dock === null || REOPENED_PANELS.includes(prefs.dock)) return prefs.dock;
+  if (DOCK_PANELS.includes(prefs.dock)) return null; // Snapshots / Notes are opened on purpose
   if (prefs.dock === 'tuner') return 'characters';
   return (prefs.tunerOpen ?? true) ? 'characters' : null;
 }

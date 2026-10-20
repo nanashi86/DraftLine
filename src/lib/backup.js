@@ -20,6 +20,7 @@
 //                  colour tags (`tags: string[]`; older backups' single `tag` is read as one) and
 //                  linked scene
 //   • characters, storyNotes, storyDna — the Project Bible
+//   • revisions  — Snapshots: labelled checkpoints of the whole project (revisions.js)
 // Block ids are kept, so cards stay linked to their scenes after a restore.
 //
 // `board.actMode` is the 3- or 4-act view the board was in. `dictionary` holds the writer's
@@ -29,6 +30,7 @@ import { normalizeStoryDna } from './storyDna.js';
 import { normalizeStoryNotes, validCharacters } from './bible.js';
 import { validBeats } from './beats.js';
 import { validBlocks } from './projectStorage.js';
+import { validRevisions } from './revisions.js';
 
 export const BACKUP_FORMAT = 'draftline-backup';
 export const BACKUP_VERSION = 1;
@@ -88,6 +90,7 @@ export function parseBackup(text) {
   if (!validBlocks(record.script)) throw new Error('This backup’s script is damaged.');
   if (record.beats !== undefined && !validBeats(record.beats)) throw new Error('This backup’s Beat Board is damaged.');
   if (record.characters !== undefined && !validCharacters(record.characters)) throw new Error('This backup’s character bios are damaged.');
+  if (!validRevisions(record.revisions)) throw new Error('This backup’s snapshots are damaged.');
   // These two normalise anything older; reading them here just proves they're readable.
   normalizeStoryNotes(record.storyNotes);
   normalizeStoryDna(record.storyDna);

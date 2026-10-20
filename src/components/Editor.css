@@ -250,78 +250,52 @@
 .el-parenthetical { --el-left: calc(var(--in) * 1.6); }
 .el-dialogue { --el-left: calc(var(--in) * 1); }
 
-.note-flag {
-  /* A compact chip in the right margin (like the CUE tag on the left): past the text
-     column and the scene number, inside the paper. Sized in page units so it scales. */
+.note-mark,
+.note-add {
+  /* Left margin, past the scene number: the text column starts at 0, so -(--el-left) puts every
+     marker in one vertical line whatever the element's indent. Sized in page units so it scales. */
   position: absolute;
-  top: calc((var(--line) - var(--in) * 0.14) / 2);
-  left: calc(var(--in) * 6.54 - var(--el-left));
+  top: calc((var(--line) - var(--in) * 0.2) / 2);
+  left: calc(-1 * var(--el-left) - var(--in) * 1.12);
   z-index: 3;
-  height: calc(var(--in) * 0.14);
-  padding: 0 calc(var(--in) * 0.04);
-  border: 1px solid #e3c34a;
-  border-radius: 3px;
-  background: #fbe9a0;
-  color: #806409;
-  font: 700 calc(var(--in) * 0.09) / 1 var(--ui-font);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  width: calc(var(--in) * 0.2);
+  height: calc(var(--in) * 0.2);
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border-radius: calc(var(--in) * 0.04);
   cursor: pointer;
   user-select: none;
 }
-.note-flag:hover,
-.note-flag.is-open { background: #f7d95a; color: #5e4905; }
-.note-flag:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
-.dual-col .el .note-flag { left: calc(100% + var(--in) * 0.06); }
-.has-note.is-active .el-input { box-shadow: inset -2px 0 0 #f2d15c; }
-
-/* The editor floats in a portal (fixed to the window) beside the page — or above/below
-   the element when there's no gutter — so it never sits on the line it annotates. */
-.note-pop {
-  position: fixed;
-  z-index: 35;
-  width: 260px;
-  padding: 8px 10px 6px;
+.note-mark {
   border: 1px solid #e3c34a;
-  border-radius: 6px;
-  background: #fff6cc;
-  color: #3d3207;
-  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.32);
-  font: 13px/1.4 var(--ui-font);
-  text-align: left;
-  cursor: default;
+  background: #fbe9a0;
+  color: #806409;
 }
-.note-pop.is-measuring { opacity: 0; pointer-events: none; } /* still focusable while measured */
-.note-pop.is-gutter-right::before,
-.note-pop.is-gutter-left::before {
-  content: '';
-  position: absolute;
-  top: 9px;
-  width: 8px;
-  height: 8px;
-  border: 1px solid #e3c34a;
-  background: #fff6cc;
-  transform: rotate(45deg);
+.note-mark svg { width: 70%; height: 70%; fill: currentColor; stroke: #806409; stroke-width: 0.6; }
+.note-mark svg path + path { fill: none; stroke: #fbe9a0; stroke-width: 0.9; }
+.note-mark:hover,
+.note-mark.is-open { background: #f7d95a; color: #5e4905; box-shadow: 0 0 0 2px color-mix(in srgb, #f7d95a 45%, transparent); }
+.note-mark:focus-visible,
+.note-add:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+/* ＋ appears only while you hover the line (or the gutter beside it). */
+.note-add {
+  border: 1px dashed color-mix(in srgb, var(--scene-no) 60%, transparent);
+  background: transparent;
+  color: var(--scene-no);
+  font: 600 calc(var(--in) * 0.16) / 1 var(--ui-font);
+  opacity: 0;
+  transition: opacity 120ms ease;
 }
-.note-pop.is-gutter-right::before { left: -5px; border-top: 0; border-right: 0; }
-.note-pop.is-gutter-left::before { right: -5px; border-bottom: 0; border-left: 0; }
-.note-pop header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; font-weight: 650; font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: #8a6d0c; }
-.note-del { padding: 1px 6px; border: 0; border-radius: 4px; background: transparent; color: #8a6d0c; font: 11px var(--ui-font); cursor: pointer; }
-.note-del:hover { background: rgba(0, 0, 0, 0.07); color: #b4471f; }
-.note-pop textarea {
-  display: block;
-  width: 100%;
-  min-height: 72px;
-  box-sizing: border-box;
-  padding: 6px 7px;
-  border: 1px solid #ecd682;
-  border-radius: 4px;
-  background: #fffbe6;
-  color: inherit;
-  font: 13px/1.45 var(--ui-font);
-  resize: vertical;
-  outline: none;
-}
-.note-pop textarea:focus { border-color: #d9b53a; }
-.note-pop footer { margin-top: 4px; font-size: 10.5px; color: #9a8540; }
-.focus-mode .note-flag { opacity: 0.5; }
+.el:hover > .note-add,
+.note-add:focus-visible { opacity: 0.75; }
+.note-add:hover { opacity: 1 !important; border-style: solid; color: #806409; border-color: #e3c34a; background: #fbe9a0; }
+/* Dual dialogue: the left column's markers sit in the left margin, the right column's in the right. */
+.dual-col .el .note-mark,
+.dual-col .el .note-add { left: calc(-1 * var(--in) * 1.12); }
+.dual-col:last-child .el .note-mark,
+.dual-col:last-child .el .note-add { left: auto; right: calc(-1 * var(--in) * 0.75); }
+.has-note.is-active .el-input,
+.is-note-open .el-input { box-shadow: inset 2px 0 0 #f2d15c; }
+.focus-mode .note-add { display: none; }
+.focus-mode .note-mark { opacity: 0.5; }

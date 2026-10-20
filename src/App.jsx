@@ -16,6 +16,10 @@ import HelpModal from './components/HelpModal.jsx';
 import ProjectsDrawer from './components/ProjectsDrawer.jsx';
 import ProjectBibleDrawer from './components/ProjectBibleDrawer.jsx';
 import RenameCharacterModal from './components/RenameCharacterModal.jsx';
+import NotesDrawer from './components/NotesDrawer.jsx';
+import { RestorePrompt, SnapshotPrompt, SnapshotsDrawer } from './components/Snapshots.jsx';
+import { addRevision, createRevision, getRevision, removeRevision } from './lib/revisions.js';
+import { endNoteSession, hasNote, restoreNoteVersion, setNoteText, startNote } from './lib/editorialNotes.js';
 import { renameCharacter, revertRename } from './lib/renameCharacter.js';
 import { moveCardAndScene } from './lib/sceneSync.js';
 import { dialogueFilter, filterLabel } from './lib/dialogueFilter.js';
@@ -24,7 +28,7 @@ import { mergeDictionary } from './lib/structureDictionary.js';
 import { characterTabFromPrefs, closeDock, dockFromPrefs, openDock, toggleDock } from './lib/dock.js';
 import { DEFAULT_BIBLE_TAB } from './lib/bible.js';
 import {
-  DICTIONARY_KEY, EMPTY_META, bootLibrary, clearJournal, projects, toDoc, toRecord, writeJournal,
+  DICTIONARY_KEY, EMPTY_META, bootLibrary, clearJournal, projects, revisionToDoc, toDoc, toRecord, writeJournal,
 } from './lib/projectStorage.js';
 import {
   BACKUP_MIME, backupFileName, isBackupFile, mergeBackupDictionary, parseBackup, serializeBackup,
@@ -110,6 +114,9 @@ function download(filename, content, mime) {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
+/** Narrower than this, the header's author field hides rather than showing a sliver. */
+const AUTHOR_MIN_WIDTH = 90;
+
 function timeLabel(ts) {
   return ts ? new Date(ts).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : '';
 }
@@ -171,6 +178,11 @@ function Workspace({ boot }) {
   const [characters, setCharacters] = useState(initialDoc.characters); // Story Bible
   const [storyNotes, setStoryNotes] = useState(initialDoc.storyNotes);
   const [storyDna, setStoryDna] = useState(initialDoc.storyDna);
+  const [revisions, setRevisions] = useState(initialDoc.revisions); // Snapshots (lib/revisions.js)
+  const [snapshotPrompt, setSnapshotPrompt] = useState(false);
+  const [restoreId, setRestoreId] = useState(null); // the snapshot waiting on "Restore?"
+  const [noteId, setNoteId] = useState(null); // the element whose margin note the Notes drawer shows
+  const noteSession = useRef(null); // { id, start } — the note's text when this editing stretch began
   const [dictOverrides, setDictOverrides] = useState(boot.dictionary || {}); // Glossary wording (all projects)
 
   const [lineMap, setLineMap] = useState({});
@@ -180,6 +192,8 @@ function Workspace({ boot }) {
   const [dock, setDock] = useState(() => dockFromPrefs(initialPrefs));
   const charactersOpen = dock === 'characters';
   const bibleOpen = dock === 'bible';
+  const snapshotsOpen = dock === 'snapshots';
+  const notesOpen = dock === 'notes';
   const [bibleTab, setBibleTab] = useState(DEFAULT_BIBLE_TAB); // DNA unless you pick another this session
   const [characterTab, setCharacterTab] = useState(() => characterTabFromPrefs(initialPrefs));
   /** Alt+T / ⋮: show Characters on its Dialogue tab (or close it if that's what's showing). */
@@ -210,6 +224,19 @@ function Workspace({ boot }) {
   };
   const themeNext = canvasThemeInfo(nextCanvasTheme(canvasTheme));
   const barRef = useRef(null);
+  // The author field gives way to the toolbar; with only a sliver left it hides (staying in the
+  // layout, invisible, so it can tell when there's room again).
+  const authorRef = useRef(null);
+  const [authorCramped, setAuthorCramped] = useState(false);
+  useLayoutEffect(() => {
+    const el = authorRef.current;
+    if (!el || typeof ResizeObserver === 'undefined') return undefined;
+    const check = () => setAuthorCramped(el.offsetParent !== null && el.clientWidth < Math.min(AUTHOR_MIN_WIDTH, el.scrollWidth));
+    check();
+    const ro = new ResizeObserver(check);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
   const charactersBtnRef = useRef(null);
   const bibleBtnRef = useRef(null);
   const [toast, setToast] = useState(() => bootMessage(boot));
@@ -220,6 +247,7 @@ function Workspace({ boot }) {
     characters: initialDoc.characters,
     storyNotes: initialDoc.storyNotes,
     storyDna: initialDoc.storyDna,
+    revisions: initialDoc.revisions,
     at: initialDoc.updatedAt,
     ok: boot.persistent,
   }));
@@ -314,11 +342,12 @@ function Workspace({ boot }) {
 
   // ---- Auto-save to the project library (IndexedDB), debounced ----
   const dirty = saved.blocks !== blocks || saved.meta !== meta || saved.beats !== beats
-    || saved.characters !== characters || saved.storyNotes !== storyNotes || saved.storyDna !== storyDna;
+    || saved.characters !== characters || saved.storyNotes !== storyNotes || saved.storyDna !== storyDna
+    || saved.revisions !== revisions;
   const latest = useRef(null);
   useLayoutEffect(() => {
     latest.current = {
-      projectId, meta, blocks, beats, characters, storyNotes, storyDna, pages: layout.pageCount, scenes: analysis.sceneCount, dirty,
+      projectId, meta, blocks, beats, characters, storyNotes, storyDna, revisions, pages: layout.pageCount, scenes: analysis.sceneCount, dirty,
     };
   });
 
@@ -327,6 +356,7 @@ function Workspace({ boot }) {
     const s = latest.current;
     const snap = {
       meta: s.meta, blocks: s.blocks, beats: s.beats, characters: s.characters, storyNotes: s.storyNotes, storyDna: s.storyDna,
+      revisions: s.revisions,
     };
     return projects.saveActiveProject({ id: s.projectId, ...snap, pages: s.pages, scenes: s.scenes })
       .then(async (rec) => {
@@ -348,7 +378,7 @@ function Workspace({ boot }) {
     if (!dirty) return undefined;
     const t = setTimeout(saveNow, SAVE_DEBOUNCE_MS);
     return () => clearTimeout(t);
-  }, [dirty, meta, blocks, beats, characters, storyNotes, storyDna, saveNow]);
+  }, [dirty, meta, blocks, beats, characters, storyNotes, storyDna, revisions, saveNow]);
 
   // Tab hidden or closing inside the debounce window: start the save, and journal the state
   // synchronously in case the browser kills the page before IndexedDB commits.
@@ -389,21 +419,64 @@ function Workspace({ boot }) {
     set((prev) => prev.map((b) => (b.id === id ? { ...b, text } : b)), `text:${id}`);
   }, [set]);
 
-  /** Set (string) or remove (null) an element's margin note. */
-  const updateBlockNote = useCallback((id, note) => {
-    set((prev) => prev.map((b) => {
-      if (b.id !== id) return b;
-      if (note === null) {
-        const { note: _drop, ...rest } = b; // eslint-disable-line no-unused-vars
-        return rest;
-      }
-      return { ...b, note };
-    }), `note:${id}`);
+  // ---- Margin notes (Notes drawer) ----
+  /** End the current note-editing stretch: log the version it started from, drop it if left empty. */
+  const endNoteEditing = useCallback(() => {
+    const sess = noteSession.current;
+    noteSession.current = null;
+    if (!sess) return;
+    const b = latest.current.blocks.find((x) => x.id === sess.id);
+    if (!b) return;
+    const next = endNoteSession(b, sess.start);
+    if (next !== b) set((prev) => prev.map((x) => (x.id === sess.id ? next : x)), `note:${sess.id}`);
   }, [set]);
+
+  /** Open element `id`'s note in the drawer — starting one (or quoting a selection into it) as needed. */
+  const openNote = useCallback((id, { quote = '' } = {}) => {
+    if (noteSession.current?.id !== id) endNoteEditing();
+    const b = latest.current.blocks.find((x) => x.id === id);
+    if (!b) return;
+    if (!noteSession.current) noteSession.current = { id, start: hasNote(b) ? b.note : null };
+    const next = startNote(b, { quote });
+    if (next !== b) set((prev) => prev.map((x) => (x.id === id ? next : x)), `note:${id}`);
+    setNoteId(id);
+    setDock('notes');
+  }, [endNoteEditing, set]);
+
+  const changeNote = useCallback((id, text) => {
+    set((prev) => prev.map((b) => (b.id === id ? setNoteText(b, text) : b)), `note:${id}`);
+  }, [set]);
+
+  const deleteNote = useCallback((id) => {
+    if (noteSession.current?.id === id) noteSession.current = null;
+    set((prev) => prev.map((b) => (b.id === id ? setNoteText(b, null) : b)));
+    setNoteId(null);
+    notify('Note deleted · Ctrl+Z to undo');
+  }, [set, notify]);
+
+  const restoreNote = useCallback((id, index) => {
+    set((prev) => prev.map((b) => (b.id === id ? restoreNoteVersion(b, index) : b)));
+    if (noteSession.current?.id === id) noteSession.current = null; // the restore logged the old text itself
+    const b = latest.current.blocks.find((x) => x.id === id);
+    noteSession.current = { id, start: b?.noteLog?.[index]?.text ?? null };
+  }, [set]);
+
+  /** Close the drawer; `refocus` returns the caret to the note's line. */
+  const closeNotes = useCallback((refocus) => {
+    const id = noteId;
+    endNoteEditing();
+    setDock((d) => closeDock(d, 'notes'));
+    if (refocus && id) requestAnimationFrame(() => editorRef.current?.focusBlock(id));
+  }, [noteId, endNoteEditing]);
+
+  // Another drawer took the dock: the note being edited is done.
+  useEffect(() => {
+    if (dock !== 'notes') endNoteEditing();
+  }, [dock, endNoteEditing]);
 
   // ---- Format Doctor ----
   const issues = useMemo(() => auditScript(blocks, { skipId: activeId }), [blocks, activeId]);
-  const noteCount = useMemo(() => blocks.filter((b) => b.note?.trim()).length, [blocks]);
+  const noteCount = useMemo(() => blocks.filter((b) => hasNote(b) && b.note.trim()).length, [blocks]);
   const fixIssues = useCallback((list) => {
     if (!list.length) return;
     set(applyFixes(blocks, list));
@@ -450,13 +523,17 @@ function Workspace({ boot }) {
     setCharacters(doc.characters);
     setStoryNotes(doc.storyNotes);
     setStoryDna(doc.storyDna);
+    setRevisions(doc.revisions);
+    noteSession.current = null;
+    setNoteId(null);
+    setRestoreId(null);
     setLineMap({});
     setSelectedChar(null);
     setActiveId(null);
     setProjectId(rec.id);
     setSaved({
       meta: m, blocks: bl, beats: doc.beats, characters: doc.characters, storyNotes: doc.storyNotes, storyDna: doc.storyDna,
-      at: rec.updatedAt, ok: true,
+      revisions: doc.revisions, at: rec.updatedAt, ok: true,
     });
     projects.setActiveProjectId(rec.id);
   }, [reset]);
@@ -572,12 +649,60 @@ function Workspace({ boot }) {
     const s = latest.current;
     const live = {
       id: s.projectId, meta: s.meta, blocks: s.blocks, beats: s.beats, characters: s.characters,
-      storyNotes: s.storyNotes, storyDna: s.storyDna, pages: s.pages, scenes: s.scenes,
+      storyNotes: s.storyNotes, storyDna: s.storyDna, revisions: s.revisions, pages: s.pages, scenes: s.scenes,
     };
     // If storage is blocked the save fails, but the backup is still made from what's open.
     const rec = (await saveNow().catch(() => null)) || toRecord(live);
     downloadBackup(rec);
   };
+
+  // ---- Snapshots (Revisions): labelled checkpoints of the whole project, kept with it ----
+  const takeSnapshot = useCallback((label) => {
+    const s = latest.current;
+    const rev = createRevision(s, { label, pages: s.pages });
+    setRevisions((list) => addRevision(list, rev));
+    setSnapshotPrompt(false);
+    notify(`Snapshot saved · “${rev.label}”`);
+    return rev;
+  }, [notify]);
+
+  const deleteSnapshot = useCallback((id) => {
+    const rev = getRevision(latest.current.revisions, id);
+    setRevisions((list) => removeRevision(list, id));
+    if (rev) notify(`Deleted snapshot “${rev.label}”`);
+  }, [notify]);
+
+  /** Put snapshot `id` back (one undo step), first snapshotting what's on screen if `keepCurrent`. */
+  const restoreSnapshot = useCallback((id, keepCurrent) => {
+    const s = latest.current;
+    const rev = getRevision(s.revisions, id);
+    setRestoreId(null);
+    if (!rev) return;
+    endNoteEditing();
+    let list = s.revisions;
+    if (keepCurrent) {
+      list = addRevision(list, createRevision(s, { label: `Before restoring “${rev.label}”`, pages: s.pages }));
+    }
+    const doc = revisionToDoc(rev);
+    const before = { meta: s.meta, beats: s.beats, characters: s.characters, storyNotes: s.storyNotes, storyDna: s.storyDna };
+    const after = {
+      meta: { ...EMPTY_META, ...doc.meta }, beats: doc.beats, characters: doc.characters, storyNotes: doc.storyNotes, storyDna: doc.storyDna,
+    };
+    const applyParts = (x) => {
+      setMeta(x.meta);
+      setBeats(x.beats);
+      setCharacters(x.characters);
+      setStoryNotes(x.storyNotes);
+      setStoryDna(x.storyDna);
+    };
+    // The script step carries the rest, so Ctrl+Z takes the whole restore back at once.
+    set(doc.blocks.length ? doc.blocks : [makeBlock('scene')], null, { undo: () => applyParts(before), redo: () => applyParts(after) });
+    applyParts(after);
+    setRevisions(list);
+    setSelectedChar(null);
+    setNoteId(null);
+    notify(`Restored “${rev.label}”${keepCurrent ? ' · your previous draft is saved as a snapshot' : ''} · Ctrl+Z to undo`);
+  }, [set, notify, endNoteEditing]);
 
   /**
    * Restore a .draftline backup as a project (never overwriting one) and open it. Resolves
@@ -872,7 +997,7 @@ function Workspace({ boot }) {
               <span className="brand-mark">D</span>
               <span className="brand-name">DraftLine</span>
             </button>
-            <div className="doc-meta">
+            <div className={`doc-meta${authorCramped ? ' is-cramped' : ''}`}>
               <div className={`doc-switch${drawerOpen ? ' is-open' : ''}`}>
                 <input
                   className="doc-title"
@@ -895,6 +1020,7 @@ function Workspace({ boot }) {
               </div>
               <span className="doc-by">by</span>
               <input
+                ref={authorRef}
                 className="doc-author"
                 style={{ width: `calc(${Math.max(6, meta.author.length)} * 0.58em + 14px)` }}
                 value={meta.author}
@@ -986,6 +1112,19 @@ function Workspace({ boot }) {
           {/* 5 · Output & side panels */}
           <div className="bar-group bar-right">
             <Menu label="Export" items={exportItems} align="right" title="Export the screenplay or beat outline, print / save as PDF, or back up the project" />
+            <button
+              className={`btn btn-snapshot${snapshotsOpen ? ' is-on-subtle' : ''}`}
+              onClick={() => setSnapshotPrompt(true)}
+              title={`Snapshot this draft — a labelled checkpoint you can restore${revisions.length ? ` · ${revisions.length} saved (⋮ → View Snapshots)` : ''}`}
+              aria-label="Snapshot"
+            >
+              <svg className="snap-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
+                <path d="M2.5 5h2l1.2-1.6h4.6L11.5 5h2a1 1 0 0 1 1 1v6.5a1 1 0 0 1-1 1h-11a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1Z" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round" />
+                <circle cx="8" cy="9.2" r="2.4" fill="none" stroke="currentColor" strokeWidth="1.3" />
+              </svg>
+              <span className="snap-label">Snapshot</span>
+              {revisions.length > 0 && <span className="btn-count" aria-label={`${revisions.length} saved`}>{revisions.length}</span>}
+            </button>
             <button className="btn" onClick={() => setFocusMode(true)} title="Hide everything but the page (Esc to exit)">Focus</button>
             <button
               ref={bibleBtnRef}
@@ -1010,7 +1149,7 @@ function Workspace({ boot }) {
               caret={false}
               className="btn btn-kebab"
               align="right"
-              title="More: keyboard shortcuts, sample script, about"
+              title="More: snapshots, margin notes, keyboard shortcuts, sample script, about"
               ariaLabel="More"
               items={() => moreMenuItems({
                 // Checked as the menu opens: panels the toolbar is showing aren't repeated here.
@@ -1018,6 +1157,13 @@ function Workspace({ boot }) {
                 charactersOnBar: isOnBar(charactersBtnRef.current, barRef.current),
                 onBible: () => setDock((d) => openDock(d, 'bible')),
                 onCharacters: () => setDock((d) => openDock(d, 'characters')),
+                onSnapshots: () => setDock((d) => openDock(d, 'snapshots')),
+                snapshotCount: revisions.length,
+                onNotes: () => {
+                  setNoteId(null);
+                  setDock((d) => openDock(d, 'notes'));
+                },
+                noteCount,
                 onShortcuts: () => setHelpKind('shortcuts'),
                 onSample: loadSample,
                 onAbout: () => setHelpKind('about'),
@@ -1084,7 +1230,8 @@ function Workspace({ boot }) {
               onCommit={commitBlocks}
               onTextChange={updateBlockText}
               onFormatState={setFmtState}
-              onNoteChange={updateBlockNote}
+              openNoteId={notesOpen && !focusMode ? noteId : null}
+              onOpenNote={openNote}
               onUndo={undo}
               onRedo={redo}
               onActiveChange={setActiveId}
@@ -1153,7 +1300,22 @@ function Workspace({ boot }) {
           </span>
           <span>{analysis.sceneCount} scenes</span>
           <span>{beats.length} beats</span>
-          {noteCount > 0 && <span title="Margin notes (never print)">{noteCount} {noteCount === 1 ? 'note' : 'notes'}</span>}
+          {noteCount > 0 && (
+            <button
+              type="button"
+              className="status-btn"
+              onClick={() => {
+                if (notesOpen) closeNotes(false);
+                else {
+                  setNoteId(null);
+                  setDock((d) => openDock(d, 'notes'));
+                }
+              }}
+              title="Margin notes — private, never printed or exported"
+            >
+              {noteCount} {noteCount === 1 ? 'note' : 'notes'}
+            </button>
+          )}
           <span>{analysis.words.toLocaleString()} words</span>
           <span title="54 lines per page">
             {currentPage && showEditor ? `p. ${currentPage} of ${layout.pageCount}` : `${layout.pageCount} ${layout.pageCount === 1 ? 'page' : 'pages'}`}
@@ -1209,6 +1371,53 @@ function Workspace({ boot }) {
           dictionary={dictionary}
           onDictionaryEdit={editDictionary}
         />
+
+        <SnapshotsDrawer
+          open={snapshotsOpen && !focusMode}
+          revisions={revisions}
+          projectTitle={meta.title}
+          onClose={() => setDock((d) => closeDock(d, 'snapshots'))}
+          onSnapshot={() => setSnapshotPrompt(true)}
+          onRestore={(id) => setRestoreId(id)}
+          onDelete={deleteSnapshot}
+        />
+
+        <NotesDrawer
+          open={notesOpen && !focusMode}
+          blocks={blocks}
+          noteId={noteId}
+          pageOf={layout.pageOfBlock}
+          projectTitle={meta.title}
+          onSelect={(id) => {
+            openNote(id);
+            editorRef.current?.revealBlock?.(id);
+          }}
+          onChange={changeNote}
+          onDelete={deleteNote}
+          onRestoreVersion={restoreNote}
+          onJump={(id) => editorRef.current?.focusBlock(id)}
+          onClose={closeNotes}
+        />
+
+        {snapshotPrompt && (
+          <SnapshotPrompt
+            count={revisions.length}
+            onSave={takeSnapshot}
+            onViewAll={() => {
+              setSnapshotPrompt(false);
+              setDock((d) => openDock(d, 'snapshots'));
+            }}
+            onClose={() => setSnapshotPrompt(false)}
+          />
+        )}
+        {restoreId && getRevision(revisions, restoreId) && (
+          <RestorePrompt
+            revision={getRevision(revisions, restoreId)}
+            dirty={!revisions.length || JSON.stringify(revisions[revisions.length - 1].script) !== JSON.stringify(blocks)}
+            onRestore={(keep) => restoreSnapshot(restoreId, keep)}
+            onClose={() => setRestoreId(null)}
+          />
+        )}
 
         <ProjectsDrawer
           open={drawerOpen}

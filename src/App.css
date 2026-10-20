@@ -81,7 +81,13 @@
 }
 .brand-name { font-weight: 650; letter-spacing: 0.01em; }
 
-.g-identity { flex: 0 1 auto; min-width: 0; gap: 8px; }
+/* Title and author may shrink (never the badge) so the toolbar always fits; .bar-group's own
+   flex: none would otherwise win. */
+.bar-group.g-identity { flex: 0 1 auto; min-width: 0; gap: 8px; }
+.doc-meta .doc-switch { min-width: 0; } /* the title input (min 6ch) shrinks before anything spills over */
+.doc-meta .doc-author { flex-shrink: 6; } /* the author gives way well before the title */
+.doc-meta.is-cramped .doc-by,
+.doc-meta.is-cramped .doc-author { visibility: hidden; }
 .doc-meta { display: flex; align-items: center; gap: 2px; min-width: 0; }
 .doc-by { color: var(--muted); font-size: 12px; flex: none; }
 .doc-author {
@@ -114,6 +120,50 @@
 
 .bar-group { display: flex; align-items: center; gap: 4px; flex: none; }
 .bar-right { margin-left: auto; }
+
+/* Top-right cluster (Export ▾ · Snapshot · Focus · Story Bible · Characters · ⋮): one flex row,
+   every button — including the Export trigger inside its .menu wrapper — the same 32px box,
+   centred on the same line, so no label sits a pixel or two lower than its neighbours. */
+.bar-right { display: flex; align-items: center; gap: 8px; }
+.bar-right > .menu { display: inline-flex; align-items: center; }
+.bar-right > .btn,
+.bar-right > .menu > .btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 32px;
+  line-height: 1;
+  vertical-align: middle;
+  padding: 0 10px;
+  box-sizing: border-box;
+}
+.bar-right > .menu > .btn-kebab { padding: 0 8px; }
+/* The ▾ is its own small flex item, centred — so it can't drop the label's baseline. */
+.dropdown-caret {
+  font-size: 0.75em;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  margin-left: 4px;
+  opacity: 0.6;
+}
+.snap-icon { display: none; }
+.btn-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 16px;
+  height: 16px;
+  margin-left: 6px;
+  padding: 0 4px;
+  box-sizing: border-box;
+  border-radius: 999px;
+  background: var(--chip);
+  color: var(--text);
+  font-size: 10.5px;
+  font-weight: 650;
+  line-height: 1;
+}
 .bar-label { color: var(--muted); font-size: 12px; margin-right: 2px; }
 
 .btn {
@@ -207,7 +257,6 @@
 
 /* Dropdown menu */
 .menu { position: relative; }
-.menu-caret { font-size: 10px; opacity: 0.6; margin-left: 2px; }
 .menu-pop {
   position: absolute;
   top: calc(100% + 6px);
@@ -409,6 +458,8 @@
 .zoom-val { font-size: 11px; min-width: 40px; }
 
 /* Page colour toggle: a swatch of the current page, then its name */
+.status-btn { padding: 0 6px; border: 0; border-radius: 4px; background: transparent; color: inherit; font: inherit; cursor: pointer; }
+.status-btn:hover { color: var(--text); background: var(--field); }
 .status-canvas { display: inline-flex; align-items: center; gap: 6px; padding: 0 7px; font-size: 11.5px; color: var(--muted); }
 .status-canvas:hover { color: var(--text); }
 .canvas-swatch {
@@ -479,8 +530,14 @@
   .type-select { min-width: 150px; }
   .bar { gap: 18px; padding: 0 14px; }
 }
+@media (max-width: 1500px) {
+  .bar-right > .btn-snapshot .snap-label { display: none; }
+  .bar-right > .btn-snapshot .snap-icon { display: block; }
+  .bar-right > .btn-snapshot { padding: 0 8px; }
+  .type-select { min-width: 0; width: 140px; }
+}
 @media (max-width: 1379px) {
-  .btn-bible { display: none; } /* still in ⋮ and on Alt+I */
+  .bar-right > .btn-bible { display: none; } /* still in ⋮ and on Alt+I */
 }
 @media (max-width: 1650px) {
   .btn { padding: 6px 8px; }
@@ -490,7 +547,7 @@
 @media (max-width: 1440px) {
   .bar-sep { display: none; }
 }
-@media (max-width: 1580px) {
+@media (max-width: 1680px) {
   .doc-by,
   .doc-author { display: none; }
 }

@@ -1,6 +1,7 @@
-// Script notes use Fountain's [[ … ]] syntax in text. In DraftLine a note belongs to an
-// element (block.note) and is shown in the margin — it never counts toward page length
-// and never prints.
+// Margin notes: private editorial notes on an element (block.note), shown in the left margin.
+// They never count toward page length, never print, and are never written to an export
+// (.fountain / .fdx / PDF). Imported Fountain [[ … ]] notes and Final Draft ScriptNotes are
+// read *into* margin notes. A .draftline backup keeps them, since it is the whole project.
 
 const NOTE_RE = /\[\[([\s\S]*?)\]\]/g;
 
@@ -20,11 +21,4 @@ export function addNotes(block, notes) {
   if (!block || !list.length) return block;
   block.note = [block.note, ...list].filter(Boolean).join('\n');
   return block;
-}
-
-/** Fountain form of a block's note, ready to append to its last line ("" when none). */
-export function fountainNote(block) {
-  const n = (block.note || '').trim();
-  // Blank lines would end the note's paragraph in Fountain; keep them as two spaces.
-  return n ? ` [[${n.split('\n').map((l) => (l.trim() === '' ? '  ' : l)).join('\n')}]]` : '';
 }

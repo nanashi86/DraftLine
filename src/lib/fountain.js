@@ -2,7 +2,7 @@
 
 import { draftLines, splitDraftInfo } from './titleFonts.js';
 import { END_RE, isCueShaped, isFormatCue, isSlugline, startsLikeProse } from './sluglines.js';
-import { addNotes, fountainNote } from './notes.js';
+import { addNotes } from './notes.js';
 import { parseInline, stripInline, toFountainInline } from './formatting.js';
 
 /** The element's text with **bold**, *italic*, _underline_ and ~~strike~~ (literal * _ ~ escaped). */
@@ -61,31 +61,25 @@ export function toFountain({ meta = {}, blocks }) {
   ].filter(Boolean);
   if (titlePage.length) paras.push(titlePage.join('\n'));
 
-  const bs = blocks.filter((b) => (b.text.trim() !== '' && b.text.trim() !== '()') || b.note?.trim());
+  // Margin notes are private editorial notes: they are never written to an export.
+  const bs = blocks.filter((b) => b.text.trim() !== '' && b.text.trim() !== '()');
   let i = 0;
   // Dual dialogue is only valid when a ^ cue directly follows a (non-^) speech.
   let lastSpeech = null; // 'left' | 'right' | null
   while (i < bs.length) {
     const b = bs[i];
-    if (b.text.trim() === '' || b.text.trim() === '()') {
-      // An element that only carries a note becomes a standalone [[note]].
-      paras.push(fountainNote(b).trim());
-      lastSpeech = null;
-      i++;
-      continue;
-    }
     switch (b.type) {
       case 'scene': {
         // Export uses the strict Fountain prefixes; anything else is forced with "."
         const t = ft(b).trim().toUpperCase();
-        paras.push((SCENE_RE.test(t) ? t : `.${t}`) + fountainNote(b));
+        paras.push((SCENE_RE.test(t) ? t : `.${t}`));
         lastSpeech = null;
         i++;
         break;
       }
       case 'transition': {
         const t = ft(b).trim().toUpperCase();
-        paras.push((/TO:$/.test(t) ? t : `> ${t}`) + fountainNote(b));
+        paras.push((/TO:$/.test(t) ? t : `> ${t}`));
         lastSpeech = null;
         i++;
         break;
@@ -95,12 +89,12 @@ export function toFountain({ meta = {}, blocks }) {
         const bare = cue.replace(/\(.*?\)/g, '').trim();
         if (!/[A-Z]/.test(bare)) cue = `@${cue}`;
         const isRight = !!b.dual && lastSpeech === 'left';
-        const lines = [(isRight ? `${cue} ^` : cue) + fountainNote(b)];
+        const lines = [(isRight ? `${cue} ^` : cue)];
         i++;
         while (i < bs.length && (bs[i].type === 'dialogue' || bs[i].type === 'parenthetical') && bs[i].text.trim()) {
           const p = bs[i];
-          if (p.type === 'parenthetical') lines.push(wrapParens(ft(p)) + fountainNote(p));
-          else lines.push(ft(p).replace(/\s+$/, '').split('\n').map((l) => (l.trim() === '' ? '  ' : l)).join('\n') + fountainNote(p));
+          if (p.type === 'parenthetical') lines.push(wrapParens(ft(p)));
+          else lines.push(ft(p).replace(/\s+$/, '').split('\n').map((l) => (l.trim() === '' ? '  ' : l)).join('\n'));
           i++;
         }
         if (lines.length > 1) {
@@ -108,13 +102,13 @@ export function toFountain({ meta = {}, blocks }) {
           lastSpeech = isRight ? 'right' : 'left';
         } else {
           // A cue with no dialogue isn't a valid Fountain character; keep it as action.
-          paras.push(escapeAction(cue) + fountainNote(b));
+          paras.push(escapeAction(cue));
           lastSpeech = null;
         }
         break;
       }
       case 'centered':
-        paras.push(ft(b).replace(/\s+$/, '').split('\n').map((l) => `> ${l.trim()} <`).join('\n') + fountainNote(b));
+        paras.push(ft(b).replace(/\s+$/, '').split('\n').map((l) => `> ${l.trim()} <`).join('\n'));
         lastSpeech = null;
         i++;
         break;
@@ -122,12 +116,12 @@ export function toFountain({ meta = {}, blocks }) {
         // Fountain has no format-cue element: an all-caps Action line, which DraftLine (and the
         // text importer) reads back as a Format Cue when it matches IN … WITH ENGLISH SUBTITLES,
         // BEGIN …, END …, SUPER: … The .fdx export keeps every format cue exactly.
-        paras.push(escapeAction(ft(b).trim().toUpperCase()) + fountainNote(b));
+        paras.push(escapeAction(ft(b).trim().toUpperCase()));
         lastSpeech = null;
         i++;
         break;
       default:
-        paras.push(escapeAction(ft(b)) + fountainNote(b));
+        paras.push(escapeAction(ft(b)));
         lastSpeech = null;
         i++;
     }

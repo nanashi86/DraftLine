@@ -42,18 +42,6 @@ function esc(s) {
     .replace(/"/g, '&quot;');
 }
 
-let noteId = 0;
-
-/** Final Draft ScriptNote: anchored inside the element's <Paragraph>, holding its own paragraphs. */
-function scriptNote(note, indent) {
-  if (!note?.trim()) return '';
-  noteId += 1;
-  const paras = note.trim().split('\n')
-    .map((l) => `${indent}    <Paragraph>\n${indent}      <Text>${esc(l)}</Text>\n${indent}    </Paragraph>`)
-    .join('\n');
-  return `\n${indent}  <ScriptNote ID="${noteId}">\n${paras}\n${indent}  </ScriptNote>`;
-}
-
 /**
  * `content` is a string or a list of runs [{ text, b, i, u, s }]. Each run becomes its own
  * <Text> with Final Draft's Style="Bold+Italic+Underline+Strikeout" (any combination);
@@ -65,14 +53,14 @@ const runStyle = (run, base) => {
   return st.join('+');
 };
 
-function paragraph(type, content, attrs = '', indent = '    ', textAttrs = '', note = '', style = '') {
+function paragraph(type, content, attrs = '', indent = '    ', textAttrs = '', style = '') {
   const runs = typeof content === 'string' ? [{ text: content }] : content;
   const xml = runs.map((run) => {
     const { text } = run;
     const st = runStyle(run, style);
     return `<Text${textAttrs}${st ? ` Style="${st}"` : ''}>${esc(text)}</Text>`;
   }).join(`\n${indent}  `);
-  return `${indent}<Paragraph${attrs} Type="${type}">\n${indent}  ${xml}${scriptNote(note, indent)}\n${indent}</Paragraph>`;
+  return `${indent}<Paragraph${attrs} Type="${type}">\n${indent}  ${xml}\n${indent}</Paragraph>`;
 }
 
 const CAPS = new Set(['scene', 'character', 'transition', 'format_cue']);
@@ -101,18 +89,18 @@ function cleanRuns(b) {
 const styleOf = (b) => (b.type === 'format_cue' ? 'Bold' : '');
 
 export function toFDX({ meta = {}, blocks }) {
-  noteId = 0;
-  const kept = blocks.filter((b) => (b.text.trim() !== '' && b.text.trim() !== '()') || b.note?.trim());
+  // Margin notes are private editorial notes: never written to Final Draft (no <ScriptNote>).
+  const kept = blocks.filter((b) => b.text.trim() !== '' && b.text.trim() !== '()');
   let sceneNo = 0;
   const body = buildItems(kept)
     .map((it) => {
       if (it.kind === 'dual') {
-        const inner = it.blocks.map((b) => paragraph(TO_FDX[b.type], cleanRuns(b), '', '        ', '', b.note)).join('\n');
+        const inner = it.blocks.map((b) => paragraph(TO_FDX[b.type], cleanRuns(b), '', '        ')).join('\n');
         return `    <Paragraph>\n      <DualDialogue>\n${inner}\n      </DualDialogue>\n    </Paragraph>`;
       }
       const b = it.block;
       const attrs = b.type === 'scene' ? ` Number="${++sceneNo}"` : b.type === 'centered' ? ' Alignment="Center"' : '';
-      return paragraph(TO_FDX[b.type], cleanRuns(b), attrs, '    ', '', b.note, styleOf(b));
+      return paragraph(TO_FDX[b.type], cleanRuns(b), attrs, '    ', '', styleOf(b));
     })
     .join('\n');
 
@@ -132,7 +120,7 @@ export function toFDX({ meta = {}, blocks }) {
     const style = [bold && 'Bold', font.id === 'courier-prime' && 'Underline'].filter(Boolean).join('+');
     const fontAttrs = ` Font="${font.label}" Size="${size}"`;
     const titleText = font.upper ? meta.title.trim().toUpperCase() : meta.title.trim();
-    tp.push(paragraph('Action', rich(titleText), C, '      ', fontAttrs, '', style));
+    tp.push(paragraph('Action', rich(titleText), C, '      ', fontAttrs, style));
     if (meta.author?.trim()) {
       const credit = (meta.credit ?? 'Written by').trim();
       tp.push(...blank(1));

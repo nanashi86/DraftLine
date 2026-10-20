@@ -82,7 +82,7 @@ describe('toolbar: Export holds Print; panels stay visible on laptops', () => {
     assert.match(app, /addEventListener\('beforeprint'/);
   });
   it('Story Bible tucks into ⋮ only below 1380px (≈ laptop width); Characters never does', () => {
-    const m = /@media \(max-width: (\d+)px\) \{\s*\.btn-bible \{ display: none; \}/.exec(css);
+    const m = /@media \(max-width: (\d+)px\) \{\s*\.bar-right > \.btn-bible \{ display: none; \}/.exec(css);
     assert.ok(m, 'a breakpoint hides .btn-bible');
     assert.equal(Number(m[1]), 1379);
     assert.ok(!/\.btn-accent[^}]*display:\s*none/.test(css), 'Characters is never hidden');

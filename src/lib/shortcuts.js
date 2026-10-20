@@ -56,7 +56,7 @@ export const SHORTCUT_SECTIONS = [
   {
     title: 'Script',
     rows: [
-      ['Alt+N', 'Margin ScriptNote (or move the selection into one)'],
+      ['Alt+N', 'Margin note for this line (quotes any selected words) — opens the Notes drawer'],
       ['Ctrl+Z', 'Undo'],
       ['Ctrl+Shift+Z', 'Redo'],
       ['Ctrl+S', 'Save now (it also autosaves)'],

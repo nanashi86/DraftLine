@@ -126,7 +126,9 @@ describe('drawer tabs', () => {
 
 describe('right dock (Story Bible / Characters)', () => {
   it('holds one drawer: opening Characters closes the Story Bible and vice versa', () => {
-    assert.deepEqual(DOCK_PANELS, ['bible', 'characters']);
+    assert.deepEqual(DOCK_PANELS, ['bible', 'characters', 'snapshots', 'notes']);
+    assert.equal(dockFromPrefs({ dock: 'snapshots' }), null, 'Snapshots / Notes don’t reopen on load');
+    assert.equal(dockFromPrefs({ dock: 'notes' }), null);
     assert.equal(toggleDock('characters', 'bible'), 'bible');
     assert.equal(toggleDock('bible', 'characters'), 'characters');
     assert.equal(openDock('characters', 'bible'), 'bible');
@@ -192,7 +194,7 @@ describe('keyboard shortcuts dialog', () => {
     assert.match(SHORTCUTS['Alt+I'], /^Story Bible/);
     assert.match(SHORTCUTS['Alt+C'], /^Characters \(Bios · Dialogue\)/);
     assert.match(SHORTCUTS['Alt+T'], /^Characters → Dialogue/);
-    assert.match(SHORTCUTS['Alt+N'], /Margin ScriptNote/);
+    assert.match(SHORTCUTS['Alt+N'], /Margin note for this line \(quotes any selected words\)/);
     assert.match(SHORTCUTS['Ctrl+\\'], /Clear formatting/);
   });
   it('covers Alt+1…8 elements and the four formatting keys', () => {

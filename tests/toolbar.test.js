@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs';
 import { isOnBar, moreMenuItems } from '../src/lib/toolbar.js';
 
 const noop = () => {};
-const handlers = { onBible: noop, onCharacters: noop, onShortcuts: noop, onSample: noop, onAbout: noop };
+const handlers = { onBible: noop, onCharacters: noop, onSnapshots: noop, onNotes: noop, onShortcuts: noop, onSample: noop, onAbout: noop };
 const shape = (items) => items.map((it) => (it.divider ? '---' : `${it.label}${it.hint ? ` [${it.hint}]` : ''}`));
 
 /** A fake element: shown or display:none, at a horizontal position. */
@@ -15,14 +15,15 @@ const el = (left, right, shown = true) => ({
 const bar = el(0, 1400);
 
 describe('⋮ menu', () => {
-  it('when the toolbar shows both panels: Keyboard Shortcuts · Load Sample · About DraftLine', () => {
-    assert.deepEqual(shape(moreMenuItems({ ...handlers, charactersOnBar: true, bibleOnBar: true })), [
-      'Keyboard Shortcuts [Ctrl+/]', '---', 'Load Sample [The Last Ferry]', '---', 'About DraftLine',
+  it('when the toolbar shows both panels: Snapshots · Notes — Shortcuts — Load Sample — About', () => {
+    assert.deepEqual(shape(moreMenuItems({ ...handlers, charactersOnBar: true, bibleOnBar: true, snapshotCount: 3, noteCount: 7 })), [
+      'View Snapshots [3]', 'Margin Notes [7]', '---', 'Keyboard Shortcuts [Ctrl+/]', '---', 'Load Sample [The Last Ferry]', '---', 'About DraftLine',
     ]);
   });
   it('adds Story Bible on top only while the toolbar has tucked it away', () => {
     assert.deepEqual(shape(moreMenuItems({ ...handlers, charactersOnBar: true, bibleOnBar: false })), [
-      'Story Bible [Alt+I]', '---', 'Keyboard Shortcuts [Ctrl+/]', '---', 'Load Sample [The Last Ferry]', '---', 'About DraftLine',
+      'Story Bible [Alt+I]', '---', 'View Snapshots [0]', 'Margin Notes [0]', '---', 'Keyboard Shortcuts [Ctrl+/]', '---',
+      'Load Sample [The Last Ferry]', '---', 'About DraftLine',
     ]);
   });
   it('adds Characters on top only while the toolbar has it out of view', () => {
@@ -39,7 +40,7 @@ describe('⋮ menu', () => {
     const calls = [];
     const h = Object.fromEntries(Object.keys(handlers).map((k) => [k, () => calls.push(k)]));
     moreMenuItems({ ...h, charactersOnBar: false, bibleOnBar: false }).filter((i) => !i.divider).forEach((i) => i.onSelect());
-    assert.deepEqual(calls, ['onBible', 'onCharacters', 'onShortcuts', 'onSample', 'onAbout']);
+    assert.deepEqual(calls, ['onBible', 'onCharacters', 'onSnapshots', 'onNotes', 'onShortcuts', 'onSample', 'onAbout']);
   });
 });
 

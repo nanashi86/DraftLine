@@ -14,26 +14,29 @@ const script = [
   { type: 'dialogue', text: 'Turn us around.', note: 'Read flatter' },
   { type: 'transition', text: 'CUT TO:', note: 'Smash?' },
 ];
-const shape = (bs) => bs.map((b) => `${b.type}|${b.text}|${b.note || ''}`);
 
 describe('margin notes', () => {
   it('extracts [[notes]] from text', () => {
     assert.deepEqual(extractNotes('Rain. [[Note: check fog]] Wind.'), { text: 'Rain. Wind.', notes: ['Note: check fog'] });
   });
 
-  it('round-trip through Fountain [[ ]] and stay on their elements', () => {
-    const out = toFountain({ meta: {}, blocks: script });
-    assert.match(out, /^INT\. FERRY - NIGHT \[\[Night shoot — budget\?\]\]$/m);
-    assert.match(out, /^MARIE \[\[Cast: Lyra\]\]$/m);
-    assert.deepEqual(shape(parseFountain(out).blocks), shape(script));
+  it('are never written to a Fountain export — not even a note on an empty line', () => {
+    const out = toFountain({ meta: {}, blocks: [...script, { type: 'action', text: '', note: 'Orphan reminder' }] });
+    assert.ok(!/\[\[|Night shoot|Cast: Lyra|Read flatter|Smash\?|Orphan/.test(out), out);
+    assert.match(out, /^INT\. FERRY - NIGHT$/m);
+    assert.match(out, /^MARIE$/m);
+    assert.deepEqual(parseFountain(out).blocks.map((b) => [b.type, b.text, b.note ?? null]), script.map((b) => [b.type, b.text, null]));
   });
 
-  it('export to Final Draft as <ScriptNote> inside the element’s paragraph', () => {
+  it('are never written to Final Draft — no <ScriptNote>, element text untouched', () => {
     const xml = toFDX({ meta: {}, blocks: script });
-    assert.equal((xml.match(/<ScriptNote /g) || []).length, 5);
-    assert.match(xml, /<Text>MARIE<\/Text>\s*<ScriptNote ID="\d+">\s*<Paragraph>\s*<Text>Cast: Lyra<\/Text>/);
-    // the note's text is not part of the element's own text run
-    assert.match(xml, /<Paragraph Type="Character">\s*<Text>MARIE<\/Text>/);
+    assert.ok(!/ScriptNote|Night shoot|Cast: Lyra|Read flatter|Smash\?/.test(xml));
+    assert.match(xml, /<Paragraph Type="Character">\s*<Text>MARIE<\/Text>\s*<\/Paragraph>/);
+  });
+
+  it('imported Fountain [[notes]] still arrive as margin notes', () => {
+    const r = parseFountain('INT. FERRY - NIGHT [[Night shoot — budget?]]\n\nMARIE [[Cast: Lyra]]\nTurn us around.\n');
+    assert.deepEqual(r.blocks.map((b) => b.note ?? null), ['Night shoot — budget?', 'Cast: Lyra', null]);
   });
 
   it('never change pagination (notes are not body text)', () => {

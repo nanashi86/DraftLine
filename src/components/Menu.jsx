@@ -37,7 +37,7 @@ export default function Menu({
         aria-label={ariaLabel}
       >
         {label}
-        {caret && <> <span className="menu-caret" aria-hidden="true">▾</span></>}
+        {caret && <span className="dropdown-caret" aria-hidden="true">▾</span>}
       </button>
       {open && (
         <div className={`menu-pop menu-${align}`} role="menu">
