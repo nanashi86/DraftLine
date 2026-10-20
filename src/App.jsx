@@ -19,8 +19,12 @@ import { mergeDictionary } from './lib/structureDictionary.js';
 import { closeDock, dockFromPrefs, openDock, toggleDock } from './lib/dock.js';
 import { DEFAULT_BIBLE_TAB } from './lib/bible.js';
 import {
-  DICTIONARY_KEY, EMPTY_META, bootLibrary, clearJournal, projects, toDoc, writeJournal,
+  DICTIONARY_KEY, EMPTY_META, bootLibrary, clearJournal, projects, toDoc, toRecord, writeJournal,
 } from './lib/projectStorage.js';
+import {
+  BACKUP_MIME, backupFileName, isBackupFile, mergeBackupDictionary, parseBackup, serializeBackup,
+} from './lib/backup.js';
+import pkg from '../package.json';
 import { STYLES, STYLE_INFO, reconcileMarks } from './lib/formatting.js';
 import {
   ELEMENT_META,
@@ -32,6 +36,7 @@ import {
   paginate,
 } from './lib/screenplay.js';
 import { ELEMENT_SHORTCUTS } from './lib/shortcuts.js';
+import { newProjectMeta, rememberAuthorDefaults } from './lib/authorDefaults.js';
 import { parseFountain, toFountain } from './lib/fountain.js';
 import { parseFDX, toFDX } from './lib/fdx.js';
 import { beatsToFountain, beatsToMarkdown, sampleBeats } from './lib/beats.js';
@@ -457,15 +462,73 @@ function Workspace({ boot }) {
   }, [applyProject, flushSave, notify]);
 
   const newScript = async (title = 'Untitled') => {
-    await openAsNewProject({ meta: { ...EMPTY_META, title }, blocks: [makeBlock('scene')], beats: [] }, `New script “${title}” · your other scripts are in Projects`);
+    await openAsNewProject({ meta: { ...EMPTY_META, ...newProjectMeta({ title }) }, blocks: [makeBlock('scene')], beats: [] }, `New script “${title}” · your other scripts are in Projects`);
     if (view === 'board') setView('page');
     requestAnimationFrame(() => document.querySelector('.sheet .el-input')?.focus());
   };
 
   const loadSample = () => openAsNewProject(sampleDoc(), 'Sample script added to your Projects');
 
+  // ---- Backup (.draftline): the whole project, restorable with nothing lost ----
+  const downloadBackup = (rec) => {
+    const name = backupFileName(rec.title);
+    download(name, serializeBackup(rec, { actMode, dictionary: dictOverrides, appVersion: pkg.version }), BACKUP_MIME);
+    notify(`Backed up ${name}`);
+  };
+
+  /** Back up the open project: saved first, so the file matches what's on screen. */
+  const backupProject = async () => {
+    const s = latest.current;
+    const live = {
+      id: s.projectId, meta: s.meta, blocks: s.blocks, beats: s.beats, characters: s.characters,
+      storyNotes: s.storyNotes, storyDna: s.storyDna, pages: s.pages, scenes: s.scenes,
+    };
+    // If storage is blocked the save fails, but the backup is still made from what's open.
+    const rec = (await saveNow().catch(() => null)) || toRecord(live);
+    downloadBackup(rec);
+  };
+
+  /**
+   * Restore a .draftline backup as a project (never overwriting one) and open it. Resolves
+   * true, or with the reason it couldn't (shown in the Import dialog; toasted when `toastErrors`).
+   */
+  const restoreBackup = async (text, fileName, { toastErrors = false } = {}) => {
+    let parsed;
+    try {
+      parsed = parseBackup(text);
+    } catch (err) {
+      if (toastErrors) notify(err.message);
+      return err.message;
+    }
+    await flushSave();
+    const { record, newId } = await projects.restoreProject(parsed.record);
+    applyProject(record);
+    if (parsed.actMode) setActMode(parsed.actMode);
+    const { dictionary: merged, added } = mergeBackupDictionary(dictOverrides, parsed.dictionary);
+    if (added) {
+      setDictOverrides(merged);
+      projects.setSetting(DICTIONARY_KEY, merged).catch(() => {});
+    }
+    setImportSeed(null);
+    setDrawerOpen(false);
+    const title = record.title?.trim() || 'Untitled';
+    notify(newId
+      ? `Restored “${title}” from ${fileName} · added beside the existing copy`
+      : `Restored “${title}” from ${fileName}`);
+    return true;
+  };
+
   /** Export any project — the open one from live state, others from the library. */
   const exportProject = async (id, kind) => {
+    if (kind === 'draftline') {
+      if (id === projectId) {
+        backupProject();
+        return;
+      }
+      const rec = await projects.getProject(id);
+      if (rec) downloadBackup(rec);
+      return;
+    }
     let doc = { meta, blocks };
     if (id !== projectId) {
       const rec = await projects.getProject(id);
@@ -512,6 +575,10 @@ function Workspace({ boot }) {
     if (!file) return;
     try {
       const text = await file.text();
+      if (isBackupFile(file.name)) {
+        await restoreBackup(text, file.name, { toastErrors: true });
+        return;
+      }
       // Plain .txt scripts (Docs/Word exports) go through the importer so they can be previewed.
       if (/\.(txt|text)$/i.test(file.name)) {
         setImportSeed({ text, name: file.name });
@@ -661,6 +728,9 @@ function Workspace({ boot }) {
     { heading: 'Beat outline' },
     { label: 'Fountain outline', hint: '.fountain', onSelect: () => exportOutline('fountain') },
     { label: 'Markdown', hint: '.md', onSelect: () => exportOutline('md') },
+    { divider: true },
+    { heading: 'Project' },
+    { label: 'Backup Project', hint: '.draftline', onSelect: backupProject },
   ];
 
   return (
@@ -740,12 +810,12 @@ function Workspace({ boot }) {
           {/* 2 · Document operations */}
           <div className="bar-group">
             <button className="btn" onClick={() => newScript()} title="Start a new script (your others stay in Projects)">New</button>
-            <button className="btn" onClick={() => fileInputRef.current?.click()} title="Open .fountain, .fdx or .txt">Open</button>
+            <button className="btn" onClick={() => fileInputRef.current?.click()} title="Open .fountain, .fdx, .txt or a .draftline backup">Open</button>
             <button className="btn" onClick={() => setImportSeed({ text: '', name: '' })} title="Import a script from Google Docs, Word, a PDF or plain text">Import</button>
             <button className="btn" onClick={() => setTitleOpen(true)}>
               Title Page
             </button>
-            <input ref={fileInputRef} type="file" accept=".fountain,.spmd,.txt,.fdx" hidden onChange={openFile} />
+            <input ref={fileInputRef} type="file" accept=".fountain,.spmd,.txt,.fdx,.draftline" hidden onChange={openFile} />
           </div>
 
           <span className="bar-sep" aria-hidden="true" />
@@ -1050,6 +1120,7 @@ function Workspace({ boot }) {
             initialName={importSeed.name}
             currentBlockCount={blocks.length}
             onImport={importScript}
+            onBackup={restoreBackup}
             onClose={() => setImportSeed(null)}
           />
         )}
@@ -1059,11 +1130,13 @@ function Workspace({ boot }) {
             onClose={() => setTitleOpen(false)}
             onSave={(next) => {
               setMeta((m) => ({ ...m, ...next }));
+              rememberAuthorDefaults(next); // the next new script starts with this author / contact
               setTitleOpen(false);
               notify('Title page updated');
             }}
             onViewCover={(next) => {
               setMeta((m) => ({ ...m, ...next }));
+              rememberAuthorDefaults(next);
               setTitleOpen(false);
               showCover();
             }}

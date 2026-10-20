@@ -219,6 +219,14 @@ nothing uploaded, works offline). Click the title's **▾** or the **D** logo (o
   **misaligned script ending** (`THE END` as left-aligned Action or a Transition; **Center ‘THE END’**), act markers
   and empty elements. Format Cues themselves are never flagged. Review each in a list,
   **Show** it in the page, fix one with its button (e.g. **Convert to Scene Heading**) or **Fix All**; Ctrl+Z undoes.
+- **Backup Project** (Export menu, or a project's ⋯ menu in Projects) saves the whole project as one `.draftline`
+  file (JSON): every element with its formatting, notes and dual-dialogue flag; the title page including font, size
+  and bold; the Beat Board (card order, act columns and Act 2 lanes, colour tags, scene links) and its 3- / 4-Act
+  view; character bios, Story Notes and Story DNA; and your Structure Dictionary wording. **Open** a `.draftline`
+  file, or drop / choose one in **Import**, to restore it exactly — on this or any other browser. A restore never
+  overwrites: if that project is already in your library, the backup comes in beside it. Your own dictionary wording
+  always wins over the backup's. Scripts live in each browser's own storage, so this is also how you move projects
+  between your local DraftLine and the published one.
 - **Export** writes `.fountain` and `.fdx`; **Print** gives a paginated PDF with the title page as page 0.
   Page 1 is unnumbered; pages 2 onward carry a right-aligned "2.", "3." ….
 - **⋮** (far right of the toolbar): **Load Sample Script** (*The Last Ferry*), **Keyboard Shortcuts** (also Ctrl+/)
@@ -227,6 +235,11 @@ nothing uploaded, works offline). Click the title's **▾** or the **D** logo (o
   author, "based on", **Draft Version** (suggests First / Second / Revised / Final / Shooting Draft), draft date and
   contact/copyright, plus the title's typography: **Title Font** (38 Google Fonts — classic, serif, sans, display, script and handwritten; they load in the background and are used only on the title page),
   **Title Size** (18–48pt) and **Bold**. The script itself always stays Courier Prime 12pt.
+  Every **new** script starts with your author and contact block (Eric Lemaire and his phone / WhatsApp / email);
+  saving the Title Page remembers its Author and Contact (localStorage `draftline_user_author` /
+  `draftline_user_contact`) for the next new script. Both stay ordinary fields — edit or clear them per script. An
+  existing script's title page is never changed: imported, opened and saved scripts keep theirs, and only a script
+  with neither an author nor a contact has them suggested when you open the Title Page (kept only if you save).
 - **View Full Cover** (in the Title Page dialog, or **Title Page** at the top of the Scenes list) shows the title page
   at true 8.5×11 size as *Page 0* above Page 1; **Back to Script** jumps to Page 1. The same layout prints as the cover
   and exports to .fountain (`Credit:`) and .fdx.

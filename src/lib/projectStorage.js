@@ -23,6 +23,7 @@ import { migrateBlock } from './formatting.js';
 import { validBeats } from './beats.js';
 import { normalizeStoryNotes, validCharacters } from './bible.js';
 import { normalizeStoryDna } from './storyDna.js';
+import { newProjectMeta } from './authorDefaults.js';
 import { DEFAULT_CREDIT, DEFAULT_TITLE_BOLD, DEFAULT_TITLE_FONT, DEFAULT_TITLE_SIZE } from './titleFonts.js';
 
 export const DB_NAME = 'draftline_db';
@@ -237,10 +238,33 @@ export function createProjectStore({ indexedDB = globalThis.indexedDB, now = Dat
       });
     },
 
-    /** A new, empty project (one blank scene heading). */
-    createProject({ title = 'Untitled', meta = {}, blocks, beats = [] } = {}) {
+    /**
+     * Put a backed-up record (see backup.js) into the library exactly as it was: every field,
+     * block ids, beats, Bible and title typography untouched. It keeps its id unless a project
+     * with that id is already here — then it comes in beside it under a new id, so restoring
+     * never overwrites anything. Returns { record, newId }.
+     */
+    restoreProject(record) {
+      return serial(async () => {
+        const b = await backend();
+        const rec = clone(record);
+        const taken = rec.id && (await b.get(rec.id));
+        const newId = !rec.id || !!taken;
+        if (newId) rec.id = newProjectId();
+        const t = stamp();
+        rec.createdAt = Number.isFinite(rec.createdAt) ? rec.createdAt : t;
+        rec.updatedAt = t; // newest in the Projects list
+        if (rec.pages == null || rec.scenes == null) Object.assign(rec, projectStats(rec.script));
+        await b.put(rec);
+        return { record: rec, newId };
+      });
+    },
+
+    /** A new, empty project (one blank scene heading), with the writer's author and contact. */
+    createProject({ title = 'Untitled', meta = {}, blocks, beats = [], storage } = {}) {
       const script = blocks?.length ? blocks : [makeBlock('scene')];
-      return store.saveActiveProject({ meta: { ...EMPTY_META, ...meta, title }, blocks: script, beats });
+      const m = storage === undefined ? newProjectMeta(meta) : newProjectMeta(meta, storage);
+      return store.saveActiveProject({ meta: { ...EMPTY_META, ...m, title }, blocks: script, beats });
     },
 
     renameProject(id, title) {

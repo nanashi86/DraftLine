@@ -4,7 +4,7 @@ import { parseTextScript } from '../lib/textScriptParser.js';
 import './ImportModal.css';
 
 const PREVIEW_LIMIT = 400;
-const ACCEPT = '.txt,.text,.fountain,.md';
+const ACCEPT = '.txt,.text,.fountain,.md,.draftline';
 
 const LAYOUT_NOTES = {
   compact: 'One paragraph per line (Google Docs / Word paste)',
@@ -21,7 +21,7 @@ function plural(n, one, many = `${one}s`) {
  * Import a script from plain text: drop a .txt file or paste, preview how each line
  * was classified, then replace the current script (undoable) or append to it.
  */
-export default function ImportModal({ initialText = '', initialName = '', currentBlockCount, onImport, onClose }) {
+export default function ImportModal({ initialText = '', initialName = '', currentBlockCount, onImport, onBackup, onClose }) {
   const dialogRef = useRef(null);
   const fileRef = useRef(null);
   const [text, setText] = useState(initialText);
@@ -48,6 +48,14 @@ export default function ImportModal({ initialText = '', initialName = '', curren
 
   const readFile = async (file) => {
     if (!file) return;
+    // A .draftline backup isn't parsed as text: it restores the whole project as it was.
+    if (/\.draftline$/i.test(file.name)) {
+      setError('');
+      setFileName(file.name);
+      const result = await onBackup?.(await file.text(), file.name);
+      if (result !== true) setError(typeof result === 'string' ? result : 'That .draftline file couldn’t be restored.');
+      return;
+    }
     if (/\.(docx?|pdf|fdx)$/i.test(file.name)) {
       setError(/\.fdx$/i.test(file.name)
         ? 'Final Draft files open directly — use Open in the toolbar.'
@@ -111,7 +119,7 @@ export default function ImportModal({ initialText = '', initialName = '', curren
             <div className="im-drop-row">
               <span className="im-drop-icon" aria-hidden="true">⤓</span>
               <span>
-                Drop a <b>.txt</b> file here or{' '}
+                Drop a <b>.txt</b> script or a <b>.draftline</b> backup here, or{' '}
                 <button type="button" className="im-link" onClick={() => fileRef.current?.click()}>choose one</button>
                 {fileName && <span className="im-file"> · {fileName}</span>}
               </span>

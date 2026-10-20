@@ -13,6 +13,7 @@ import {
   titleStyle,
   titleTypography,
 } from '../lib/titleFonts.js';
+import { titlePageSeed } from '../lib/authorDefaults.js';
 import './TitlePageModal.css';
 
 const FIELDS = [
@@ -28,14 +29,16 @@ const FIELDS = [
 /** Form for the title page, with a live miniature of how it will print. */
 export default function TitlePageModal({ meta, onSave, onClose, onViewCover }) {
   const dialogRef = useRef(null);
+  // A title page with no author and no contact yet starts from the writer's defaults.
+  const [seed] = useState(() => titlePageSeed(meta));
   const [form, setForm] = useState(() => ({
     title: meta.title || '',
     credit: meta.credit ?? DEFAULT_CREDIT,
-    author: meta.author || '',
+    author: seed.meta.author || '',
     basedOn: meta.basedOn || '',
     draftVersion: meta.draftVersion || '',
     draftDate: meta.draftDate || '',
-    contact: meta.contact || '',
+    contact: seed.meta.contact || '',
     titleFont: meta.titleFont || DEFAULT_TITLE_FONT,
     titleSize: meta.titleSize || DEFAULT_TITLE_SIZE,
     titleBold: meta.titleBold ?? DEFAULT_TITLE_BOLD,
@@ -143,6 +146,9 @@ export default function TitlePageModal({ meta, onSave, onClose, onViewCover }) {
                 <textarea rows={4} value={form[f.key]} placeholder={f.placeholder} onChange={set(f.key)} />
               ) : (
                 <input value={form[f.key]} placeholder={f.placeholder} onChange={set(f.key)} list={f.list} />
+              )}
+              {f.key === 'contact' && seed.suggested && (
+                <span className="tp-note tp-suggested">Author and contact filled in from your defaults — edit or clear them freely.</span>
               )}
             </label>
           ))}

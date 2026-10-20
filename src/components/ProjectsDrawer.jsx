@@ -221,6 +221,7 @@ export default function ProjectsDrawer({
                           { divider: true },
                           { label: 'Export Final Draft', hint: '.fdx', onSelect: () => onExport(p.id, 'fdx') },
                           { label: 'Export Fountain', hint: '.fountain', onSelect: () => onExport(p.id, 'fountain') },
+                          { label: 'Backup Project', hint: '.draftline', onSelect: () => onExport(p.id, 'draftline') },
                           { divider: true },
                           {
                             label: 'Delete…',
