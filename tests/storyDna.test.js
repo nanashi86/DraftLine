@@ -93,7 +93,7 @@ describe('Genre checklist', () => {
   });
 });
 
-describe('Project Bible tabs', () => {
+describe('Story Bible tabs', () => {
   it('Story DNA first (and the default), then Character Bios, then Story Notes', () => {
     assert.deepEqual(BIBLE_TABS.map((t) => t.label), ['Story DNA', 'Character Bios', 'Story Notes']);
     assert.equal(DEFAULT_BIBLE_TAB, 'dna');
@@ -105,8 +105,8 @@ describe('Project Bible tabs', () => {
   });
 });
 
-describe('right dock (Dialogue Tuner / Project Bible)', () => {
-  it('holds one panel: opening the Bible closes the Tuner and vice versa', () => {
+describe('right dock (Dialogue / Story Bible)', () => {
+  it('holds one panel: opening the Story Bible closes Dialogue and vice versa', () => {
     assert.equal(toggleDock('tuner', 'bible'), 'bible');
     assert.equal(toggleDock('bible', 'tuner'), 'tuner');
     assert.equal(openDock('tuner', 'bible'), 'bible');
@@ -157,7 +157,8 @@ describe('Structure Dictionary', () => {
 describe('keyboard shortcuts dialog', () => {
   it('lists Projects, Bible, margin notes and clear formatting', () => {
     assert.match(SHORTCUTS['Alt+P'], /Projects drawer/);
-    assert.match(SHORTCUTS['Alt+I'], /Project Bible/);
+    assert.match(SHORTCUTS['Alt+I'], /^Story Bible/);
+    assert.match(SHORTCUTS['Alt+T'], /^Dialogue\b/);
     assert.match(SHORTCUTS['Alt+N'], /Margin ScriptNote/);
     assert.match(SHORTCUTS['Ctrl+\\'], /Clear formatting/);
   });

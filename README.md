@@ -101,10 +101,10 @@ Exports as `NAME ^` in Fountain and Final Draft's `<DualDialogue>` block in .fdx
 | Alt+1 … Alt+8 | Scene Heading · Format Cue · Action · Character · Parenthetical · Dialogue · Transition · Centered |
 | Alt+N | Margin note (or move the selection into one) |
 | Alt+S | Scenes sidebar |
-| Alt+T | Dialogue Tuner |
+| Alt+T | Dialogue |
 | Alt+B | Cycle Page → Split → Board |
 | Alt+P | Projects drawer |
-| Alt+I | Project Bible |
+| Alt+I | Story Bible |
 | Ctrl+P | Print / save as PDF (title page first) |
 | Ctrl+S | Save now (it also autosaves continuously) |
 
@@ -139,17 +139,17 @@ the page auto-fits its half) and **Board** (full-width).
   the 3-Act view gives Act 2 scenes their lane from the 50% page.
 - Cards autosave with the script, in the project's record.
 
-## Dialogue Tuner
+## Dialogue
 
 Pick a character to read every line they speak, top to bottom, tagged with scene number and heading.
 Edit right in the panel: changes write straight to the script. "Go ↗" jumps to the line in the page.
 
-## Project Bible
+## Story Bible
 
-**Bible** in the toolbar (or **⋮ → Project Bible**, or **Alt+I**) opens the Bible in the right dock — the column the
-Dialogue Tuner uses. The dock holds one panel at a time: opening the Bible closes the Tuner and vice versa. On wide
+**Story Bible** in the toolbar (or **⋮ → Story Bible**, or **Alt+I**) opens the Story Bible in the right dock — the column
+the Dialogue panel uses. The dock holds one panel at a time: opening the Story Bible closes Dialogue and vice versa. On wide
 screens the script and Beat Board make room for it (nothing is covered); on narrow screens it overlays them, like the
-Tuner. Everything in it is saved inside the open project and switched with it in Projects. Three tabs, in this order —
+Dialogue panel. Everything in it is saved inside the open project and switched with it in Projects. Three tabs, in this order —
 **Story DNA** opens first unless you've picked another tab this session:
 
 - **📖 Story DNA** — two views:
@@ -178,7 +178,7 @@ nothing uploaded, works offline). Click the title's **▾** or the **D** logo (o
 
 - Each card shows the title, author, page and scene counts and when it was last edited; the open script is marked
   **Active**. Click a card to switch: your changes are saved first, then the script, title page, Scene Navigator,
-  Dialogue Tuner and Beat Board all switch over (undo history starts fresh for each script).
+  Dialogue and Beat Board all switch over (undo history starts fresh for each script).
 - **+ New Script** asks for a title and opens a blank script. A card's **⋮** menu renames, duplicates
   ("[Title] (Copy)"), exports (.fdx / .fountain — no need to open it first) or deletes it (after a confirmation;
   you can't delete your only script).
@@ -219,7 +219,7 @@ nothing uploaded, works offline). Click the title's **▾** or the **D** logo (o
   **misaligned script ending** (`THE END` as left-aligned Action or a Transition; **Center ‘THE END’**), act markers
   and empty elements. Format Cues themselves are never flagged. Review each in a list,
   **Show** it in the page, fix one with its button (e.g. **Convert to Scene Heading**) or **Fix All**; Ctrl+Z undoes.
-- **Rename a character** — **Rename…** in the Dialogue Tuner (for the selected voice) or **Rename across script…**
+- **Rename a character** — **Rename…** in Dialogue (for the selected voice) or **Rename across script…**
   on a Character Bio. A review lists what would change, with counts and before → after examples, in four groups you
   can switch off: **character cues** (extensions such as `(V.O.)`, `(O.S.)`, `(CONT'D)` and the dual-dialogue `^` are
   kept), **spoken dialogue mentions** (dialogue and parentheticals), **action & description mentions** (action, scene
@@ -268,7 +268,7 @@ dialogue, pagination rules, the plain-text importer's layouts, beat-board moves 
 title page metadata (credit, draft version/date, typography), the title font list (every family loaded once by index.html, bold only where it exists, never applied to the Courier Prime script), slugline variants and act-marker stripping, Backspace /
 Delete behaviour, margin-note round-trips (Fountain, FDX, Import), the Format Doctor, secondary sluglines, inline
 formatting (toggling, clearing, cursor-boundary isolation, every combination of bold/italic/underline/strikethrough
-through Fountain, FDX and Import), page-number labels, the Format Cue element, the Project Bible (character CRUD, sorting and filtering, story-note sections, presets and
+through Fountain, FDX and Import), page-number labels, the Format Cue element, the Story Bible (character CRUD, sorting and filtering, story-note sections, presets and
 import, Story DNA questions, migration and persistence, the Structure Dictionary and your edits to it), the Bible's tab order and badges, the genre checklist, right-dock exclusivity, the keyboard
 shortcut list, proportional page targets and Act 2 lane memory, margin-note placement (never over the script), Beat Board population (3-Act and 4-Act page targets and boundaries, scene-range input
 and validation, re-populating, 3 ↔ 4 Act folding), and the project library (create, list,
@@ -310,12 +310,12 @@ src/
   lib/notes.js             [[note]] extraction and Fountain note output
   lib/formatting.js        inline formatting: ranges, toggling, following edits, Markdown/HTML/FDX conversion
   lib/projectStorage.js    IndexedDB project library, migration, crash journal
-  lib/bible.js             Project Bible model: characters, story notes, notes import, Markdown reader
+  lib/bible.js             Story Bible model: characters, story notes, notes import, Markdown reader
   lib/notePlacement.js     where a margin note's editor opens (never over the script)
   lib/storyDna.js          Story DNA blueprint model
   lib/structureDictionary.js  the 11 structure terms (starter wording) and your overrides
   lib/shortcuts.js         every keyboard shortcut (feeds the Ctrl+/ dialog)
-  lib/dock.js              the right dock: Dialogue Tuner or Project Bible, one at a time
+  lib/dock.js              the right dock: Dialogue or Story Bible, one at a time
   lib/formatDoctor.js      script audit + fixes
   lib/fountain.js          Fountain import/export
   lib/fdx.js               Final Draft XML import/export

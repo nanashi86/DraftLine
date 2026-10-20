@@ -30,13 +30,13 @@ export default function DialogueTuner({
     : [];
 
   return (
-    <aside className={`tuner${open ? ' is-open' : ''}`} aria-hidden={!open} inert={!open}>
+    <aside className={`tuner${open ? ' is-open' : ''}`} aria-label="Dialogue" aria-hidden={!open} inert={!open}>
       <header className="tuner-head">
         <div>
-          <h2>Dialogue Tuner</h2>
+          <h2>Dialogue</h2>
           <p className="tuner-sub">Every line, one voice at a time.</p>
         </div>
-        <button className="icon-btn" onClick={onClose} title="Close (Alt+T)" aria-label="Close Dialogue Tuner">
+        <button className="icon-btn" onClick={onClose} title="Close (Alt+T)" aria-label="Close Dialogue">
           ×
         </button>
       </header>
@@ -71,7 +71,7 @@ export default function DialogueTuner({
                   type="button"
                   className="tuner-rename"
                   onClick={() => onRename(current.name)}
-                  title={`Rename ${current.name} across the script, Beat Board and Bible`}
+                  title={`Rename ${current.name} across the script, Beat Board and Story Bible`}
                 >
                   Rename…
                 </button>

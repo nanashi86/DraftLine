@@ -163,7 +163,7 @@ function Workspace({ boot }) {
   const [meta, setMeta] = useState(initialDoc.meta);
   const { present: blocks, set, undo, redo, reset, canUndo, canRedo } = useHistory(initialDoc.blocks, reconcileMarks);
   const [beats, setBeats] = useState(initialDoc.beats);
-  const [characters, setCharacters] = useState(initialDoc.characters); // Project Bible
+  const [characters, setCharacters] = useState(initialDoc.characters); // Story Bible
   const [storyNotes, setStoryNotes] = useState(initialDoc.storyNotes);
   const [storyDna, setStoryDna] = useState(initialDoc.storyDna);
   const [dictOverrides, setDictOverrides] = useState(boot.dictionary || {}); // Structure Dictionary wording (all projects)
@@ -171,7 +171,7 @@ function Workspace({ boot }) {
   const [lineMap, setLineMap] = useState({});
   const [activeId, setActiveId] = useState(null);
   const [view, setView] = useState(VIEWS.some((v) => v.id === initialPrefs.view) ? initialPrefs.view : 'page');
-  // Right dock: the Dialogue Tuner or the Project Bible — one at a time (lib/dock.js).
+  // Right dock: Dialogue or the Story Bible — one at a time (lib/dock.js).
   const [dock, setDock] = useState(() => dockFromPrefs(initialPrefs));
   const tunerOpen = dock === 'tuner';
   const bibleOpen = dock === 'bible';
@@ -355,7 +355,7 @@ function Workspace({ boot }) {
 
   const saveLabel = !saved.ok ? 'Not saved — browser storage blocked or full' : dirty ? 'Saving…' : 'Saved locally';
 
-  // ---- Script mutations (shared by Editor and Tuner) ----
+  // ---- Script mutations (shared by the Editor and the Dialogue panel) ----
   const commitBlocks = useCallback((next) => {
     set(next.length ? next : [makeBlock('action')]);
   }, [set]);
@@ -742,7 +742,7 @@ function Workspace({ boot }) {
         setFocusMode(false);
       } else if (mod && !e.defaultPrevented && !titleOpen && !importSeed && !doctorOpen && !renameFrom
         && (e.key.toLowerCase() === 'z' || e.key.toLowerCase() === 'y')
-        // Script undo applies to the editor and Tuner, not to text fields on the board/toolbar.
+        // Script undo applies to the editor and the Dialogue panel, not to text fields on the board/toolbar.
         && !['INPUT', 'SELECT'].includes(t.tagName) && !t.closest?.('.board')) {
         e.preventDefault();
         if (e.key.toLowerCase() === 'y' || e.shiftKey) redo(); else undo();
@@ -933,18 +933,18 @@ function Workspace({ boot }) {
             <button
               className={`btn btn-accent${tunerOpen ? ' is-on' : ''}`}
               onClick={() => setDock((d) => toggleDock(d, 'tuner'))}
-              title="Dialogue Tuner (Alt+T)"
+              title="Dialogue: every line, one character at a time (Alt+T)"
               aria-pressed={tunerOpen}
             >
-              <span className="lbl-long">Dialogue Tuner</span><span className="lbl-short">Tuner</span>
+              Dialogue
             </button>
             <button
               className={`btn btn-bible${bibleOpen ? ' is-on-subtle' : ''}`}
               onClick={() => setDock((d) => toggleDock(d, 'bible'))}
-              title="Project Bible: character bios and story notes (Alt+I)"
+              title="Story Bible: Story DNA, character bios and story notes (Alt+I)"
               aria-pressed={bibleOpen}
             >
-              Bible
+              Story Bible
             </button>
             <Menu
               label={<span className="kebab" aria-hidden="true">⋮</span>}
@@ -954,7 +954,7 @@ function Workspace({ boot }) {
               title="More: sample script, shortcuts, about"
               ariaLabel="More"
               items={[
-                { label: 'Project Bible', hint: 'Alt+I', onSelect: () => setDock((d) => openDock(d, 'bible')) },
+                { label: 'Story Bible', hint: 'Alt+I', onSelect: () => setDock((d) => openDock(d, 'bible')) },
                 { divider: true },
                 { label: 'Load Sample Script', hint: 'The Last Ferry', onSelect: loadSample },
                 { divider: true },

@@ -48,7 +48,7 @@ describe('rename: character cues keep their extensions', () => {
     assert.equal(renameCue('@Fito', 'Marc'), '@MARC');
     assert.equal(renameCue('PRESIDENT MOÏSE (CONT’D)', 'President Jovenel'), 'PRESIDENT JOVENEL (CONT’D)');
   });
-  it('renames every cue for that speaker, keeps dual dialogue, and the Tuner sees the new name', () => {
+  it('renames every cue for that speaker, keeps dual dialogue, and the Dialogue panel sees the new name', () => {
     const { project: p, counts } = renameCharacter(project(), 'FITO', 'Marc');
     const cues = p.blocks.filter((b) => b.type === 'character').map((b) => b.text);
     assert.deepEqual(cues, ['MARC (V.O.)', 'MARIE', "MARC (O.S.) (CONT'D)", 'MARC ^']);

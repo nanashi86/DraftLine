@@ -428,17 +428,17 @@
   to { opacity: 1; transform: translate(-50%, 0); }
 }
 
-@media (max-width: 1720px) {
+@media (max-width: 1800px) {
   .brand-name { display: none; }
   .lbl-long { display: none; }
   .lbl-short { display: inline; }
   .type-select { min-width: 150px; }
   .bar { gap: 8px; padding: 0 10px; }
 }
-@media (max-width: 1599px) {
+@media (max-width: 1639px) {
   .btn-bible { display: none; } /* still in ⋮ and on Alt+I */
 }
-@media (max-width: 1520px) {
+@media (max-width: 1540px) {
   .btn { padding: 6px 8px; }
   .seg-btn { padding: 4px 9px; }
   .bar { gap: 6px; }
@@ -446,11 +446,11 @@
 @media (max-width: 1440px) {
   .bar-sep { display: none; }
 }
-@media (max-width: 1460px) {
+@media (max-width: 1480px) {
   .doc-by,
   .doc-author { display: none; }
 }
-@media (max-width: 1290px) {
+@media (max-width: 1300px) {
   .type-select { min-width: 0; width: 120px; }
   .bar-sep { display: none; }
   .bar { overflow-x: auto; scrollbar-width: none; }

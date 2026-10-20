@@ -405,7 +405,7 @@ export default function Editor({
 
   useLayoutEffect(() => syncFormat());
 
-  // Textareas edited while hidden (e.g. via the Tuner in Board view) measure on return.
+  // Textareas edited while hidden (e.g. via the Dialogue panel in Board view) measure on return.
   useLayoutEffect(() => {
     if (hidden) return;
     sheetRef.current?.querySelectorAll('textarea[data-stale]').forEach((el) => measureTextarea(el, true));

@@ -60,7 +60,7 @@ function CharacterCard({ c, open, canMove, onToggle, onChange, onMove, onDelete,
                 type="button"
                 className="btn pb-rename"
                 onClick={() => onRename(name)}
-                title={`Rename ${name} in cues, dialogue, action, the Beat Board and the Bible`}
+                title={`Rename ${name} in cues, dialogue, action, the Beat Board and the Story Bible`}
               >
                 Rename across script…
               </button>
@@ -333,7 +333,7 @@ function StoryNotes({ notes, onChange, onUndoable }) {
 // ---- Drawer -----------------------------------------------------------------------------
 
 /**
- * Project Bible: a right-hand drawer with the open project's Character Bios and Story
+ * Story Bible: a right-hand drawer with the open project's Character Bios and Story
  * Notes. Everything edits the project in place, so it autosaves with the script and
  * switches with it in the Projects drawer.
  */
@@ -366,19 +366,19 @@ export default function ProjectBibleDrawer({
     <aside
       ref={panelRef}
       className={`pb${open ? ' is-open' : ''}`}
-      aria-label="Project Bible"
+      aria-label="Story Bible"
       aria-hidden={!open}
       inert={open ? undefined : true}
     >
       <header className="pb-head">
         <div>
-          <h2>Project Bible</h2>
+          <h2>Story Bible</h2>
           <div className="pb-sub">{projectTitle?.trim() || 'Untitled'} · saved with this script</div>
         </div>
-        <button type="button" className="btn btn-icon pb-close" onClick={onClose} aria-label="Close the Bible" title="Close (Esc)">×</button>
+        <button type="button" className="btn btn-icon pb-close" onClick={onClose} aria-label="Close the Story Bible" title="Close (Esc)">×</button>
       </header>
 
-      <div className="pb-tabs" role="tablist" aria-label="Bible sections">
+      <div className="pb-tabs" role="tablist" aria-label="Story Bible sections">
         {BIBLE_TABS.map((t) => {
           const badge = bibleTabBadge(t.id, {
             characters, dnaAnswered: storyDnaProgress(storyDna), dnaTotal: DNA_QUESTIONS.length,

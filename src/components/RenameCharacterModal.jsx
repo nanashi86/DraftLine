@@ -73,7 +73,7 @@ export default function RenameCharacterModal({ oldName, project, speakers = [], 
         </div>
         {merges && (
           <p id="rn-merge" className="rn-warn" role="note">
-            {target.toUpperCase()} already speaks in this script — renamed cues will join that character in the Tuner.
+            {target.toUpperCase()} already speaks in this script — renamed cues will join that character in Dialogue.
           </p>
         )}
 
