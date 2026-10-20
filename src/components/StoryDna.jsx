@@ -83,14 +83,14 @@ function InfoTip({ entry, onOpen }) {
 
 function YesNo({ value, onChange, label }) {
   return (
-    <span className="seg seg-sm dna-yn" role="radiogroup" aria-label={label}>
+    <span className="dna-yn" role="radiogroup" aria-label={label}>
       {[[true, 'Yes'], [false, 'No']].map(([v, t]) => (
         <button
           key={t}
           type="button"
           role="radio"
           aria-checked={value === v}
-          className={`seg-btn${value === v ? ' is-on' : ''}`}
+          className={`dna-yn-btn${value === v ? ' is-on' : ''}`}
           onClick={() => onChange(v)}
         >
           {t}
@@ -108,7 +108,7 @@ function YesNo({ value, onChange, label }) {
 function PlotDevices({ dna, onChange, dictionary, onOpenTerm }) {
   return (
     <section className="dna-devices" aria-labelledby="dna-devices-title">
-      <h3 className="dna-devices-title" id="dna-devices-title">Plot Devices</h3>
+      <h3 className="dna-label dna-devices-title" id="dna-devices-title">Plot Devices</h3>
       {plotDeviceLayout(dna).map((item) => {
         if (item.kind === 'add') {
           return (
@@ -170,7 +170,7 @@ function Blueprint({ dna, onChange, dictionary, onOpenTerm }) {
     <div className="dna-blueprint">
       <div className="dna-meta">
         <fieldset className="dna-genres">
-          <legend>Genre <em>— pick all that apply</em></legend>
+          <legend className="dna-label">Genre<span className="dna-hint">pick all that apply</span></legend>
           <div className="dna-pills">
             {GENRES.map((g) => {
               const on = dna.genres.includes(g);
@@ -199,11 +199,11 @@ function Blueprint({ dna, onChange, dictionary, onOpenTerm }) {
           )}
         </fieldset>
         <label className="pb-field">
-          <span>Theme <em>— revealed by the Climax</em></span>
+          <span className="dna-label">Theme<span className="dna-hint">revealed by the climax</span></span>
           <input value={dna.theme} placeholder="What the story finally says" onChange={(e) => onChange(setField(dna, 'theme', e.target.value))} />
         </label>
         <label className="pb-field">
-          <span>Central Dramatic Question</span>
+          <span className="dna-label">Central Dramatic Question</span>
           <input
             value={dna.centralQuestion}
             placeholder="What core question does the climax answer?"

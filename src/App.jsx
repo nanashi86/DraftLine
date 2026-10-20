@@ -52,6 +52,7 @@ import { parseFountain, toFountain } from './lib/fountain.js';
 import { parseFDX, toFDX } from './lib/fdx.js';
 import { beatsToFountain, beatsToMarkdown, byAct, moveBeat, sampleBeats } from './lib/beats.js';
 import { SAMPLE_SCRIPT } from './lib/sampleScript.js';
+import { effectiveZoomFor } from './lib/zoom.js';
 import './App.css';
 
 // Scripts live in IndexedDB (lib/projectStorage.js); localStorage keeps only UI prefs.
@@ -267,9 +268,9 @@ function Workspace({ boot }) {
   const showEditor = view !== 'board' || focusMode;
   const showBoard = view !== 'page' && !focusMode;
 
-  // In Split view, shrink the page to fit its half (never zoom in past the user's zoom).
-  const fitZoom = scrollerWidth ? Math.floor((scrollerWidth / 816) * 100) / 100 : zoom;
-  const effectiveZoom = view === 'split' ? Math.max(0.5, Math.min(zoom, fitZoom)) : zoom;
+  // Page and Split: the page shrinks to fit beside the open drawers — never sideways scrolling,
+  // never zoomed in past the writer's own zoom (lib/zoom.js).
+  const effectiveZoom = effectiveZoomFor({ view: focusMode ? 'page' : view, zoom, width: scrollerWidth });
   const zoomPct = (z) => Math.round((Math.max(6, Math.round(16 * z)) / 16) * 100); // matches the editor's whole-pixel lines
   const isFitted = zoomPct(effectiveZoom) !== zoomPct(zoom);
 
@@ -1339,7 +1340,7 @@ function Workspace({ boot }) {
             <button
               className="mini zoom-val"
               onClick={() => setZoom(1)}
-              title={isFitted ? 'Fitted to the split pane · click to reset zoom' : 'Reset zoom'}
+              title={isFitted ? 'Shrunk to fit beside the open panels · click to reset zoom' : 'Reset zoom'}
             >
               {zoomPct(effectiveZoom)}%{isFitted ? ' fit' : ''}
             </button>

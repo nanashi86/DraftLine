@@ -279,7 +279,7 @@ describe('Plot Devices: defaults and layout', () => {
   it('the section renders a plain "Plot Devices" label, then rows and picklist in layout order', () => {
     const src = readFileSync(new URL('../src/components/StoryDna.jsx', import.meta.url), 'utf8');
     const section = src.slice(src.indexOf('function PlotDevices'), src.indexOf('function Blueprint'));
-    assert.match(section, /<h3 className="dna-devices-title"[^>]*>Plot Devices<\/h3>/);
+    assert.match(section, /<h3 className="dna-label dna-devices-title"[^>]*>Plot Devices<\/h3>/);
     assert.ok(!/dna-devices-head/.test(section), 'no header row holding the picklist');
     const label = section.indexOf('>Plot Devices<');
     const loop = section.indexOf('plotDeviceLayout(dna).map');

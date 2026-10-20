@@ -32,7 +32,7 @@
 
   --bar-h: 52px;
   --status-h: 30px;
-  --tuner-w: 400px;
+  --tuner-w: 480px; /* right dock: Story Bible · Characters · Snapshots · Margin Notes */
   --nav-w: 290px;
 
   color-scheme: dark;

@@ -1,6 +1,7 @@
 import { memo, useCallback, useEffect, useImperativeHandle, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import AutoTextarea from './AutoTextarea.jsx';
 import { hasNote } from '../lib/editorialNotes.js';
+import { linePxFor } from '../lib/zoom.js';
 import { measureTextarea } from '../lib/measure.js';
 import { backspaceAt, deleteAt } from '../lib/editing.js';
 import {
@@ -74,10 +75,6 @@ function formatKey(e) {
   if (e.code === 'Backslash' && !e.shiftKey) return 'clear';
   if (e.shiftKey) return e.code === 'KeyX' ? 's' : null;
   return { KeyB: 'b', KeyI: 'i', KeyU: 'u' }[e.code] || null;
-}
-
-function linePxFor(zoom) {
-  return Math.max(6, Math.round(16 * zoom));
 }
 
 function marginStyle(lines, gaps) {

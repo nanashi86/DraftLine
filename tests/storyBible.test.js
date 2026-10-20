@@ -27,9 +27,9 @@ describe('Story Bible: one home for Theme', () => {
     assert.deepEqual(DEFAULT_SECTIONS, ['Logline', 'Tone', 'Timeline', 'Pitch', 'Scratchpad']);
     assert.deepEqual(titles(defaultStoryNotes()), DEFAULT_SECTIONS);
   });
-  it('the DNA tab keeps "Theme — revealed by the Climax" as the field', () => {
+  it('the DNA tab keeps "Theme · revealed by the climax" as the field', () => {
     const dna = readFileSync(new URL('../src/components/StoryDna.jsx', import.meta.url), 'utf8');
-    assert.match(dna, /Theme <em>— revealed by the Climax<\/em>/);
+    assert.match(dna, /<span className="dna-label">Theme<span className="dna-hint">revealed by the climax<\/span><\/span>/);
   });
 });
 
