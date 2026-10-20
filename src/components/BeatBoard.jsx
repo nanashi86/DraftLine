@@ -3,7 +3,7 @@ import AutoTextarea from './AutoTextarea.jsx';
 import Menu from './Menu.jsx';
 import SceneRangeModal from './SceneRangeModal.jsx';
 import {
-  TAGS, actPacing, byAct, formatPageTargets, formatPercentTargets, moveBeat, newBeat, populateByPages, populateByRanges, structureFor,
+  TAGS, actPacing, beatTags, beatsWithTag, byAct, formatPageTargets, formatPercentTargets, moveBeat, newBeat, populateByPages, populateByRanges, structureFor, tagAccent, toggleTag,
 } from '../lib/beats.js';
 import './BeatBoard.css';
 
@@ -14,8 +14,10 @@ import './BeatBoard.css';
  */
 
 const BeatCard = memo(function BeatCard({
-  beat, number, scene, isDragging, onField, onDelete, onDragStart, onDragEnd, onKeyMove, onJump, autoFocus,
+  beat, number, scene, isDragging, onField, onToggleTag, onDelete, onDragStart, onDragEnd, onKeyMove, onJump, autoFocus, dim, lit,
 }) {
+  const tags = beatTags(beat);
+  const accent = tagAccent(tags);
   const cardRef = useRef(null);
   const titleRef = useRef(null);
 
@@ -27,7 +29,9 @@ const BeatCard = memo(function BeatCard({
     <article
       ref={cardRef}
       data-beat={beat.id}
-      className={`card tag-${beat.tag || 'none'}${isDragging ? ' is-dragging' : ''}${scene ? ' is-linked' : ''}`}
+      className={`card${tags.length ? ' has-tags' : ''}${isDragging ? ' is-dragging' : ''}${scene ? ' is-linked' : ''}${dim ? ' is-dim' : ''}${lit ? ' is-lit' : ''}`}
+      data-tags={tags.join(' ')}
+      style={accent ? { '--card-accent': accent } : undefined}
       title={scene ? `Click to go to scene ${scene.number} (p. ${scene.page})` : undefined}
       onClick={(e) => {
         // A scene card jumps to its scene — unless you clicked into its text or a control.
@@ -91,7 +95,7 @@ const BeatCard = memo(function BeatCard({
         aria-label="Synopsis"
         onChange={(e) => onField(beat.id, 'synopsis', e.target.value)}
       />
-      <footer className="card-foot" role="radiogroup" aria-label="Tag">
+      <footer className="card-foot" role="group" aria-label="Tags">
         {beat.sceneId && (
           scene ? (
             <button
@@ -106,18 +110,24 @@ const BeatCard = memo(function BeatCard({
             <span className="card-scene is-gone" title="This card’s scene heading was deleted">Scene removed</span>
           )
         )}
-        {TAGS.map((t) => (
-          <button
-            key={t.id}
-            role="radio"
-            aria-checked={beat.tag === t.id}
-            className={`tag-dot tag-${t.id}${beat.tag === t.id ? ' is-on' : ''}`}
-            title={t.label}
-            onClick={() => onField(beat.id, 'tag', beat.tag === t.id ? null : t.id)}
-          >
-            {beat.tag === t.id && <span className="tag-name">{t.label}</span>}
-          </button>
-        ))}
+        <span className="card-tags">
+          {TAGS.map((t) => {
+            const on = tags.includes(t.id);
+            return (
+              <button
+                key={t.id}
+                type="button"
+                aria-pressed={on}
+                className={`tag-dot tag-${t.id}${on ? ' is-on' : ''}`}
+                title={on ? `${t.label} — click to remove` : `Add ${t.label}`}
+                aria-label={t.label}
+                onClick={() => onToggleTag(beat.id, t.id)}
+              >
+                {on && <span className="tag-name">{t.label}</span>}
+              </button>
+            );
+          })}
+        </span>
       </footer>
     </article>
   );
@@ -136,6 +146,7 @@ export default function BeatBoard({
   const [focusId, setFocusId] = useState(null);
   const [undo, setUndo] = useState(null); // { message, beats? } — the toast; `beats` is what Undo restores
   const [rangesOpen, setRangesOpen] = useState(false);
+  const [tagFilter, setTagFilter] = useState(null); // legend filter: highlight cards with this tag
   const beatsRef = useRef(beats);
   const structureRef = useRef(null);
   const pendingGrip = useRef(null);
@@ -158,6 +169,9 @@ export default function BeatBoard({
     return () => clearTimeout(t);
   }, [undo]);
 
+  const lit = useMemo(() => beatsWithTag(beats, tagFilter), [beats, tagFilter]);
+  const filterLabel = TAGS.find((t) => t.id === tagFilter)?.label;
+
   const sceneById = new Map(scenes.map((s) => [s.id, s]));
 
   const acts = byAct(beats);
@@ -167,6 +181,10 @@ export default function BeatBoard({
 
   const onField = useCallback((id, key, value) => {
     onChange(beatsRef.current.map((b) => (b.id === id ? { ...b, [key]: value } : b)));
+  }, [onChange]);
+
+  const onToggleTag = useCallback((id, tag) => {
+    onChange(beatsRef.current.map((b) => (b.id === id ? toggleTag(b, tag) : b)));
   }, [onChange]);
 
   const onDelete = useCallback((id) => {
@@ -308,12 +326,26 @@ export default function BeatBoard({
   const dropLine = <div className="drop-line" />;
 
   return (
-    <section className={`board${compact ? ' is-compact' : ''}`} ref={boardRef} aria-label="Beat Board">
+    <section
+      className={`board${compact ? ' is-compact' : ''}${tagFilter ? ' is-filtered' : ''}`}
+      ref={boardRef}
+      aria-label="Beat Board"
+      data-filter={tagFilter || undefined}
+      onKeyDown={(e) => {
+        if (e.key === 'Escape' && tagFilter) {
+          e.preventDefault();
+          e.stopPropagation();
+          setTagFilter(null);
+        }
+      }}
+    >
       <header className="board-head">
         <div className="board-title">
           <h2>Beat Board</h2>
           <p className="board-sub">
-            {beats.length} {beats.length === 1 ? 'beat' : 'beats'} · drag cards by the grip to restructure
+            {tagFilter
+              ? <span role="status">{filterLabel}: {lit.size} of {beats.length} {beats.length === 1 ? 'card' : 'cards'} · Esc shows all</span>
+              : <>{beats.length} {beats.length === 1 ? 'beat' : 'beats'} · drag cards by the grip to restructure</>}
           </p>
         </div>
         <div className="board-tools">
@@ -333,10 +365,22 @@ export default function BeatBoard({
               </button>
             ))}
           </div>
-          <div className="board-legend" aria-hidden="true">
-            {TAGS.map((t) => (
-              <span key={t.id} className="legend-item"><span className={`legend-dot tag-${t.id}`} />{t.label}</span>
-            ))}
+          <div className="board-legend" role="group" aria-label="Highlight cards by tag">
+            {TAGS.map((t) => {
+              const on = tagFilter === t.id;
+              return (
+                <button
+                  key={t.id}
+                  type="button"
+                  className={`legend-item${on ? ' is-on' : ''}`}
+                  aria-pressed={on}
+                  title={on ? 'Show all cards (Esc)' : `Highlight ${t.label} cards`}
+                  onClick={() => setTagFilter(on ? null : t.id)}
+                >
+                  <span className={`legend-dot tag-${t.id}`} />{t.label}
+                </button>
+              );
+            })}
           </div>
           <Menu
             label="Populate from Script"
@@ -416,6 +460,9 @@ export default function BeatBoard({
                               onJump={onJump}
                               isDragging={b.id === dragId}
                               onField={onField}
+                              onToggleTag={onToggleTag}
+                              dim={!!lit && !lit.has(b.id)}
+                              lit={!!lit && lit.has(b.id)}
                               onDelete={onDelete}
                               onDragStart={onDragStart}
                               onDragEnd={onDragEnd}

@@ -28,7 +28,7 @@
 .board-sub { margin: 2px 0 0; font-size: 12px; color: var(--muted); }
 .board-title { min-width: 0; }
 .board-tools { display: flex; align-items: center; gap: 14px; margin-left: auto; }
-.board-legend { display: flex; gap: 12px; font-size: 12px; color: var(--muted); }
+.board-legend { display: flex; align-items: center; gap: 4px; font-size: 12px; color: var(--muted); }
 .seg-sm .seg-btn { padding: 3px 10px; font-size: 12px; }
 .legend-item { display: inline-flex; align-items: center; gap: 5px; }
 .legend-dot { width: 8px; height: 8px; border-radius: 50%; }
@@ -162,14 +162,32 @@
   background: var(--card-paper);
   color: var(--card-ink);
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.35), 0 4px 14px rgba(0, 0, 0, 0.18);
-  border-top: 5px solid var(--card-tag, #b8b2a4);
-  transition: opacity 120ms ease, transform 120ms ease;
+  /* Top accent bar: neutral with no tags, one colour for one tag, equal hard-stop bands for
+     two or more (--card-accent is set per card from tagAccent() in beats.js). */
+  border-top: 5px solid #b8b2a4;
+  transition: opacity 120ms ease, transform 120ms ease, filter 120ms ease;
+}
+.card.has-tags { border-top-color: transparent; }
+.card.has-tags::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -5px;
+  height: 5px;
+  border-radius: 4px 4px 0 0;
+  background: var(--card-accent);
+  pointer-events: none;
 }
 .card.is-dragging { opacity: 0.35; transform: scale(0.98); }
-.card.tag-plot { --card-tag: var(--tag-plot); }
-.card.tag-subplot { --card-tag: var(--tag-subplot); }
-.card.tag-character { --card-tag: var(--tag-character); }
-.card.tag-theme { --card-tag: var(--tag-theme); }
+/* Legend filter: cards with the tag stay bright, the rest fade back. */
+.card.is-dim { opacity: 0.28; filter: saturate(0.4); }
+.card.is-dim:hover, .card.is-dim:focus-within { opacity: 0.75; }
+.card.is-lit { box-shadow: 0 0 0 2px color-mix(in srgb, var(--filter-color, var(--accent)) 70%, transparent), 0 4px 14px rgba(0, 0, 0, 0.22); }
+.board[data-filter='plot'] { --filter-color: var(--tag-plot); }
+.board[data-filter='subplot'] { --filter-color: var(--tag-subplot); }
+.board[data-filter='character'] { --filter-color: var(--tag-character); }
+.board[data-filter='theme'] { --filter-color: var(--tag-theme); }
 
 .card-head {
   display: flex;
@@ -254,7 +272,8 @@
   background-position: 0 2px;
 }
 
-.card-foot { display: flex; align-items: center; gap: 6px; padding: 4px 10px 8px 26px; }
+.card-foot { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; padding: 4px 10px 8px 26px; }
+.card-tags { display: inline-flex; align-items: center; flex-wrap: wrap; gap: 5px; }
 .tag-dot {
   height: 12px;
   min-width: 12px;
@@ -274,6 +293,18 @@
 .tag-character { --dot: var(--tag-character); }
 .tag-theme { --dot: var(--tag-theme); }
 .legend-dot { background: var(--dot); }
+button.legend-item {
+  border: 1px solid transparent;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  border-radius: 999px;
+  padding: 2px 8px 2px 6px;
+}
+button.legend-item:hover { background: color-mix(in srgb, var(--dot, currentColor) 10%, transparent); }
+button.legend-item.is-on { border-color: currentColor; font-weight: 600; }
+.board.is-filtered button.legend-item:not(.is-on) { opacity: 0.55; }
 
 /* ---- Undo toast ---- */
 .board-undo {

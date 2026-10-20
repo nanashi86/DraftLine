@@ -20,7 +20,7 @@
 
 import { ELEMENT_META, buildItems, makeBlock, paginate } from './screenplay.js';
 import { migrateBlock } from './formatting.js';
-import { validBeats } from './beats.js';
+import { normalizeBeats, validBeats } from './beats.js';
 import { migrateStoryBible, normalizeStoryNotes, validCharacters } from './bible.js';
 import { normalizeStoryDna } from './storyDna.js';
 import { newProjectMeta } from './authorDefaults.js';
@@ -105,7 +105,7 @@ export function toDoc(rec) {
     id: rec.id,
     meta,
     blocks: validBlocks(rec.script) ? rec.script.map(migrateBlock) : [],
-    beats: validBeats(rec.beats) ? rec.beats : [],
+    beats: validBeats(rec.beats) ? normalizeBeats(rec.beats) : [],
     characters: validCharacters(rec.characters) ? rec.characters : [],
     // Notes from before Theme moved to Story DNA hand their Themes text over (bible.js).
     ...pickBible(migrateStoryBible(rec.storyNotes, rec.storyDna)),
@@ -346,7 +346,7 @@ export function readLegacyDoc(storage) {
   for (const key of LEGACY_KEYS.slice(0, 2)) {
     const d = readJSON(storage, key);
     if (d && validBlocks(d.blocks)) {
-      return { meta: { ...EMPTY_META, ...d.meta }, blocks: d.blocks.map(migrateBlock), beats: validBeats(d.beats) ? d.beats : [] };
+      return { meta: { ...EMPTY_META, ...d.meta }, blocks: d.blocks.map(migrateBlock), beats: validBeats(d.beats) ? normalizeBeats(d.beats) : [] };
     }
   }
   const v1 = readJSON(storage, LEGACY_KEYS[2]);

@@ -4,12 +4,32 @@ import { readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { SHORTCUTS } from '../src/lib/shortcuts.js';
 import { RENAME_CATEGORIES } from '../src/lib/renameCharacter.js';
+import { BIBLE_TABS, DNA_VIEWS } from '../src/lib/bible.js';
 
 const root = new URL('../src/', import.meta.url).pathname;
 const files = (dir) => readdirSync(dir, { withFileTypes: true })
   .flatMap((d) => (d.isDirectory() ? files(join(dir, d.name)) : [join(dir, d.name)]));
 // Everything the writer can see or hear: components, the app shell, menus, shortcut and rename labels.
 const uiSources = files(root).filter((f) => /\.jsx$/.test(f) || /lib\/(shortcuts|renameCharacter)\.js$/.test(f));
+
+describe('DNA tab views: Blueprint and Glossary', () => {
+  it('the toggle reads [ Blueprint | Glossary ], in that order', () => {
+    assert.deepEqual(DNA_VIEWS.map((v) => v.label), ['Blueprint', 'Glossary']);
+    assert.deepEqual(DNA_VIEWS.map((v) => v.id), ['blueprint', 'dictionary']);
+    assert.match(readFileSync(join(root, 'components/StoryDna.jsx'), 'utf8'), /DNA_VIEWS\.map/);
+  });
+  it('the DNA tab title and toolbar tooltip use the short names', () => {
+    assert.equal(BIBLE_TABS.find((t) => t.id === 'dna').title, 'Blueprint & Glossary');
+    assert.match(readFileSync(join(root, 'App.jsx'), 'utf8'), /DNA \(Blueprint & Glossary\)/);
+  });
+  it('no toggle, tab header, tooltip or aria-label says "Story Blueprint" or "Story Glossary"', () => {
+    for (const f of uiSources) {
+      const src = readFileSync(f, 'utf8').replace(/^\s*(\/\/|\*|\/\*).*$/gm, ''); // code, not comments
+      assert.ok(!/Story Blueprint/.test(src), `${f} still says "Story Blueprint"`);
+      assert.ok(!/Story Glossary/.test(src), `${f} still says "Story Glossary"`);
+    }
+  });
+});
 
 describe('UI names: Story Bible, Characters and Dialogue', () => {
   it('no component, label, tooltip or aria-label says "Project Bible" or "Dialogue Tuner"', () => {

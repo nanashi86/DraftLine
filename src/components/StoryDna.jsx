@@ -7,9 +7,10 @@ import {
 } from '../lib/storyDna.js';
 import { dictionaryEntry, searchDictionary } from '../lib/structureDictionary.js';
 import { TIP_MAX_WIDTH, clipToViewport, placeTooltip } from '../lib/tooltip.js';
+import { DNA_VIEWS } from '../lib/bible.js';
 
 /**
- * (i) with the term's Story Glossary definition on hover / focus; click opens the entry.
+ * (i) with the term's Glossary definition on hover / focus; click opens the entry.
  * The definition is drawn in a fixed layer (a portal on <body>) and placed with
  * placeTooltip, so the drawer's edges and scrolling can never clip it.
  */
@@ -72,7 +73,7 @@ function InfoTip({ entry, onOpen }) {
           {entry.items && (
             <span className="dna-tip-items">{entry.items.map((it) => it.term).join(' · ')}</span>
           )}
-          <span className="dna-tip-more">Click for the Story Glossary</span>
+          <span className="dna-tip-more">Click for the Glossary</span>
         </span>,
         document.body,
       )}
@@ -300,7 +301,7 @@ function Dictionary({ dictionary, openId, setOpenId, onEdit }) {
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         placeholder="Search terms and definitions…"
-        aria-label="Search the Story Glossary"
+        aria-label="Search the Glossary"
       />
       {starterCount > 0 && (
         <p className="dict-starter-note">
@@ -356,7 +357,7 @@ function Dictionary({ dictionary, openId, setOpenId, onEdit }) {
   );
 }
 
-/** Story DNA tab: [ Story Blueprint | Story Glossary ]. */
+/** Story DNA tab: [ Blueprint | Glossary ]. */
 export default function StoryDna({ dna, onChange, dictionary, onDictionaryEdit }) {
   const [view, setView] = useState('blueprint');
   const [openId, setOpenId] = useState(null);
@@ -367,7 +368,7 @@ export default function StoryDna({ dna, onChange, dictionary, onDictionaryEdit }
   return (
     <div className="pb-pane">
       <div className="seg dna-view" role="radiogroup" aria-label="Story DNA view">
-        {[['blueprint', 'Story Blueprint'], ['dictionary', 'Story Glossary']].map(([id, label]) => (
+        {DNA_VIEWS.map(({ id, label }) => (
           <button
             key={id}
             type="button"

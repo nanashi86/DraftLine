@@ -110,8 +110,9 @@ describe('.draftline backup: round trip with zero data loss', () => {
     assert.equal(b.meta.titleFont, 'playfair-display');
     assert.equal(b.meta.titleSize, 40);
     assert.equal(b.meta.titleBold, false);
-    assert.deepEqual(b.beats.map((x) => [x.id, x.act, x.tag, x.sceneId]), [
-      ['b1', 0, 'plot', 's1'], ['b3', 2, 'character', undefined], ['b2', 1, 'subplot', undefined], ['b4', 3, 'theme', 's2'],
+    // The backup's single-tag cards (pre-multi-tag) open as tag lists.
+    assert.deepEqual(b.beats.map((x) => [x.id, x.act, x.tags, x.sceneId]), [
+      ['b1', 0, ['plot'], 's1'], ['b3', 2, ['character'], undefined], ['b2', 1, ['subplot'], undefined], ['b4', 3, ['theme'], 's2'],
     ], 'card order, columns / Act 2 lanes, colour tags and scene links');
     assert.deepEqual(b.characters, a.characters);
     assert.deepEqual(b.storyNotes, a.storyNotes);

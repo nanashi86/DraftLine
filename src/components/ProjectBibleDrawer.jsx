@@ -189,8 +189,8 @@ function StoryNotes({ notes, onChange, onUndoable }) {
 // ---- Drawer -----------------------------------------------------------------------------
 
 /**
- * Story Bible: a right-hand drawer with two tabs — DNA (Story Blueprint & Structure
- * Dictionary) and Notes. Character bios live in the Characters drawer. Everything edits the
+ * Story Bible: a right-hand drawer with two tabs — DNA (Blueprint & Glossary)
+ * and Notes. Character bios live in the Characters drawer. Everything edits the
  * project in place, so it autosaves with the script and switches with it in Projects.
  */
 export default function ProjectBibleDrawer({

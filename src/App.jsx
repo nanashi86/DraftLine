@@ -171,7 +171,7 @@ function Workspace({ boot }) {
   const [characters, setCharacters] = useState(initialDoc.characters); // Story Bible
   const [storyNotes, setStoryNotes] = useState(initialDoc.storyNotes);
   const [storyDna, setStoryDna] = useState(initialDoc.storyDna);
-  const [dictOverrides, setDictOverrides] = useState(boot.dictionary || {}); // Story Glossary wording (all projects)
+  const [dictOverrides, setDictOverrides] = useState(boot.dictionary || {}); // Glossary wording (all projects)
 
   const [lineMap, setLineMap] = useState({});
   const [activeId, setActiveId] = useState(null);
@@ -302,7 +302,7 @@ function Workspace({ boot }) {
     return () => clearTimeout(t);
   }, [toast, boot]);
 
-  // Story Glossary: starter text with your own wording laid over it, kept for all projects.
+  // Glossary: starter text with your own wording laid over it, kept for all projects.
   const dictionary = useMemo(() => mergeDictionary(dictOverrides), [dictOverrides]);
   const editDictionary = useCallback((id, override) => {
     const next = { ...dictOverrides };
@@ -991,7 +991,7 @@ function Workspace({ boot }) {
               ref={bibleBtnRef}
               className={`btn btn-bible${bibleOpen ? ' is-on-subtle' : ''}`}
               onClick={() => setDock((d) => toggleDock(d, 'bible'))}
-              title="Story Bible: DNA (Story Blueprint & Story Glossary) · Notes (Alt+I)"
+              title="Story Bible: DNA (Blueprint & Glossary) · Notes (Alt+I)"
               aria-pressed={bibleOpen}
             >
               Story Bible

@@ -17,7 +17,8 @@
 //   • title page — title, credit, author, based on, draft version / date, contact, and the
 //                  title typography (titleFont, titleSize, titleBold)
 //   • beats      — Beat Board cards in board order: act column / Act 2 lane, title, synopsis,
-//                  colour tag and linked scene
+//                  colour tags (`tags: string[]`; older backups' single `tag` is read as one) and
+//                  linked scene
 //   • characters, storyNotes, storyDna — the Project Bible
 // Block ids are kept, so cards stay linked to their scenes after a restore.
 //

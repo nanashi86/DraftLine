@@ -38,11 +38,68 @@ export const TAGS = [
   { id: 'theme', label: 'Theme' },
 ];
 
+const TAG_IDS = TAGS.map((t) => t.id);
+const isTagId = (id) => TAG_IDS.includes(id);
+
+/**
+ * A card's tags, in legend order (Plot · Subplot · Character · Theme), without repeats or
+ * unknown ids. Cards from before multi-tagging stored one `tag` string (or null) — that
+ * single tag is read as a one-item list.
+ */
+export function beatTags(beat) {
+  if (!beat) return [];
+  const raw = Array.isArray(beat.tags) ? beat.tags : (beat.tag ? [beat.tag] : []);
+  return TAG_IDS.filter((id) => raw.includes(id));
+}
+
+/** The card stored the current way: `tags: string[]`, no legacy `tag`. */
+export function normalizeBeat(beat) {
+  const { tag, ...rest } = beat; // eslint-disable-line no-unused-vars
+  return { ...rest, tags: beatTags(beat) };
+}
+
+/** Every card stored the current way (unchanged cards keep their identity). */
+export function normalizeBeats(beats) {
+  if (!Array.isArray(beats)) return [];
+  return beats.map((b) => (Array.isArray(b.tags) && !('tag' in b) && beatTags(b).length === b.tags.length ? b : normalizeBeat(b)));
+}
+
+/** Switch one tag on or off, leaving the others as they are. */
+export function toggleTag(beat, id) {
+  if (!isTagId(id)) return beat;
+  const cur = beatTags(beat);
+  const next = cur.includes(id) ? cur.filter((t) => t !== id) : TAG_IDS.filter((t) => t === id || cur.includes(t));
+  return normalizeBeat({ ...beat, tags: next });
+}
+
+const pct = (n) => `${Number(n.toFixed(3))}%`;
+
+/**
+ * The card's top accent bar as a CSS background: null with no tags (the neutral border),
+ * the tag's colour for one, and equal hard-stop bands left → right for two or more —
+ * 2 tags 50 / 50, 3 tags 33.333 % each, 4 tags 25 % each.
+ * `colorOf` maps a tag id to a CSS colour (default: the board's --tag-* variables).
+ */
+export function tagAccent(tags, colorOf = (id) => `var(--tag-${id})`) {
+  const list = TAG_IDS.filter((id) => (tags || []).includes(id));
+  if (!list.length) return null;
+  if (list.length === 1) return colorOf(list[0]);
+  const step = 100 / list.length;
+  const stops = list.map((id, i) => `${colorOf(id)} ${pct(i * step)} ${pct((i + 1) * step)}`);
+  return `linear-gradient(to right, ${stops.join(', ')})`;
+}
+
+/** Ids of the cards carrying `tag` (any of their tags) — the legend filter's highlight set. */
+export function beatsWithTag(beats, tag) {
+  if (!isTagId(tag)) return null;
+  return new Set(beats.filter((b) => beatTags(b).includes(tag)).map((b) => b.id));
+}
+
 let counter = 0;
 const seed = Math.random().toString(36).slice(2, 6);
 export function newBeat(act, extra = {}) {
   counter += 1;
-  return { id: `beat${seed}${counter.toString(36)}`, act, title: '', synopsis: '', tag: 'plot', ...extra };
+  return { id: `beat${seed}${counter.toString(36)}`, act, title: '', synopsis: '', tags: ['plot'], ...extra };
 }
 
 export function validBeats(beats) {
@@ -78,7 +135,7 @@ export function byAct(beats) {
   return cols;
 }
 
-const tagLabel = (id) => TAGS.find((t) => t.id === id)?.label || '';
+const tagLabels = (b) => beatTags(b).map((id) => TAGS.find((t) => t.id === id).label);
 
 /** Fountain outline: acts as # sections, beats as ## sections with = synopses. */
 export function beatsToFountain(beats, title, mode = 4) {
@@ -93,7 +150,7 @@ export function beatsToFountain(beats, title, mode = 4) {
         out.push(`## ${b.title.trim() || 'Untitled beat'}`);
         const syn = b.synopsis.trim();
         if (syn) for (const line of syn.split('\n')) if (line.trim()) out.push(`= ${line.trim()}`);
-        if (b.tag) out.push(`[[${tagLabel(b.tag)}]]`);
+        if (beatTags(b).length) out.push(`[[${tagLabels(b).join(' · ')}]]`);
         out.push('');
       }
     });
@@ -113,7 +170,7 @@ export function beatsToMarkdown(beats, title, mode = 4) {
       if (i > 0 && acts[col.acts[0]].length && acts[a].length) out.push('*— Midpoint —*', '');
       for (const b of acts[a]) {
         n += 1;
-        out.push(`### ${n}. ${b.title.trim() || 'Untitled beat'}${b.tag ? ` · *${tagLabel(b.tag)}*` : ''}`);
+        out.push(`### ${n}. ${b.title.trim() || 'Untitled beat'}${beatTags(b).length ? ` · *${tagLabels(b).join(' · ')}*` : ''}`);
         if (b.synopsis.trim()) out.push('', b.synopsis.trim());
         out.push('');
       }
@@ -125,14 +182,14 @@ export function beatsToMarkdown(beats, title, mode = 4) {
 /** Starter beats for the sample script. */
 export function sampleBeats() {
   return [
-    newBeat(0, { title: 'Flight at dawn', synopsis: 'Marie slips out before sunrise. Theo catches her at the pier, barefoot.', tag: 'plot' }),
-    newBeat(0, { title: 'Tickets or goodbyes', synopsis: 'Augustin forces the choice: get on the last ferry or let her go.', tag: 'character' }),
-    newBeat(1, { title: 'The letter', synopsis: 'Marie left Manman a letter nobody can read — Theo will have to.', tag: 'subplot' }),
-    newBeat(1, { title: 'The pier slides away', synopsis: 'Point of no return. Both of them are on the boat now.', tag: 'plot' }),
-    newBeat(2, { title: 'Father at the bow', synopsis: 'Augustin: "Like the sea owed him money." Marie is her father’s daughter.', tag: 'character' }),
-    newBeat(2, { title: '"Don’t come after me"', synopsis: 'Theo reads the one line she didn’t cross out. All is lost between them.', tag: 'subplot' }),
-    newBeat(3, { title: 'Turn us around', synopsis: 'Marie chooses to go back — into the storm, toward home.', tag: 'plot' }),
-    newBeat(3, { title: 'Their father’s laugh', synopsis: 'Theo laughs, and it’s their father’s laugh. Something healed.', tag: 'theme' }),
+    newBeat(0, { title: 'Flight at dawn', synopsis: 'Marie slips out before sunrise. Theo catches her at the pier, barefoot.', tags: ['plot'] }),
+    newBeat(0, { title: 'Tickets or goodbyes', synopsis: 'Augustin forces the choice: get on the last ferry or let her go.', tags: ['character'] }),
+    newBeat(1, { title: 'The letter', synopsis: 'Marie left Manman a letter nobody can read — Theo will have to.', tags: ['subplot'] }),
+    newBeat(1, { title: 'The pier slides away', synopsis: 'Point of no return. Both of them are on the boat now.', tags: ['plot'] }),
+    newBeat(2, { title: 'Father at the bow', synopsis: 'Augustin: "Like the sea owed him money." Marie is her father’s daughter.', tags: ['character'] }),
+    newBeat(2, { title: '"Don’t come after me"', synopsis: 'Theo reads the one line she didn’t cross out. All is lost between them.', tags: ['subplot'] }),
+    newBeat(3, { title: 'Turn us around', synopsis: 'Marie chooses to go back — into the storm, toward home.', tags: ['plot'] }),
+    newBeat(3, { title: 'Their father’s laugh', synopsis: 'Theo laughs, and it’s their father’s laugh. Something healed.', tags: ['theme'] }),
   ];
 }
 
@@ -218,7 +275,7 @@ const flatten = (cols) => cols.flat();
  * Build the board from scene cards placed in visible columns.
  *   scenes     — [{ id, number, heading, page, snippet }] in script order
  *   columnOf   — (scene, index) → visible column in `mode`
- * Cards already linked to a scene keep their id and your edits (title, synopsis, tag) and
+ * Cards already linked to a scene keep their id and your edits (title, synopsis, tags) and
  * just move; new scenes get new cards; your own (unlinked) cards stay in their acts,
  * after the scene cards. Cards whose scene was deleted become ordinary cards.
  */
@@ -234,7 +291,7 @@ export function populateBeats(beats, scenes, mode, columnOf, totalPages) {
     const prev = linked.get(s.id);
     if (!prev) created += 1;
     visible[col].push(prev || newBeat(0, {
-      title: sceneCardTitle(s), synopsis: firstSentence(s.snippet), tag: 'plot', sceneId: s.id,
+      title: sceneCardTitle(s), synopsis: firstSentence(s.snippet), tags: ['plot'], sceneId: s.id,
     }));
   });
 

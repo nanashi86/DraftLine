@@ -54,10 +54,10 @@ describe('(i) tooltips stay inside the drawer', () => {
   });
 });
 
-describe('Story Glossary', () => {
+describe('Glossary', () => {
   it('is what the DNA view calls it now', () => {
     const src = read('src/components/StoryDna.jsx');
-    assert.match(src, /\['dictionary', 'Story Glossary'\]/);
+    assert.match(src, /DNA_VIEWS\.map/);
     assert.ok(!/Structure Dictionary/.test(src));
   });
   it('every plot device has its glossary entry for the (i)', () => {

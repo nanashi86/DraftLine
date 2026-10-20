@@ -57,11 +57,17 @@ const uid = (p) => {
 
 /** The Bible's tabs, in order. Story DNA opens first unless you pick another tab this session. */
 // Two drawers share the right dock. Labels stay short so the tabs never wrap.
-//   Story Bible — DNA (Story Blueprint + Story Glossary) · Notes (Logline, Pitch, Scratchpad …)
+//   Story Bible — DNA (Blueprint + Glossary) · Notes (Logline, Pitch, Scratchpad …)
 //   Characters  — Bios (profiles, rename) · Dialogue (every line, one voice at a time)
 // The ids are only UI state; the project still stores storyDna, storyNotes and characters.
+/** The DNA tab's two views, left to right. */
+export const DNA_VIEWS = [
+  { id: 'blueprint', label: 'Blueprint' },
+  { id: 'dictionary', label: 'Glossary' },
+];
+
 export const BIBLE_TABS = [
-  { id: 'dna', icon: '📖', label: 'DNA', title: 'Story Blueprint & Story Glossary' },
+  { id: 'dna', icon: '📖', label: 'DNA', title: 'Blueprint & Glossary' },
   { id: 'notes', icon: '📝', label: 'Notes', title: 'Logline, tone, timeline, pitch, scratchpad (theme is in DNA)' },
 ];
 export const DEFAULT_BIBLE_TAB = 'dna';

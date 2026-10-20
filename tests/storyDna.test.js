@@ -111,7 +111,7 @@ describe('drawer tabs', () => {
       assert.match(t.label, /^\S{1,8}$/, t.label);
       assert.ok(t.title.length > t.label.length, t.id);
     }
-    assert.match(BIBLE_TABS[0].title, /Story Blueprint & Story Glossary/);
+    assert.equal(BIBLE_TABS[0].title, 'Blueprint & Glossary');
   });
   it('badges: DNA progress, bio count, speaking characters; Notes has none', () => {
     assert.equal(bibleTabBadge('dna', { dnaAnswered: 3, dnaTotal: 8 }), '3/8');
