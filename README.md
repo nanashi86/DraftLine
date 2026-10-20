@@ -128,11 +128,12 @@ the page auto-fits its half) and **Board** (full-width).
   act structure is showing.
 - **Populate from Script** makes a card for every scene — titled "12. INT. HOTEL BALLROOM - NIGHT", with the first
   sentence of the scene's action as its synopsis — and places it in an act column:
-  - **Auto-Distribute by Page Targets** uses the page each scene starts on, against targets proportional to the
-    script's length. 3 Acts: Act 1 ≤ 25% · Act 2 ≤ 75% · Act 3 the rest. 4 Acts: Act 1 ≤ 25% · 2A ≤ 50% · 2B ≤ 75% ·
-    Act 3 the rest. The menu shows the actual pages for the open script (a 96-page script: "pp. 1–24 · 25–72 · 73+").
+  - **Auto-Distribute (% Targets)** uses the page each scene starts on, against targets worked out from the
+    script's actual page count: 3 Acts = 25 · 50 · 25 % (Act 1 ≤ 25% · Act 2 ≤ 75% · Act 3 the rest); 4 Acts = 25 %
+    each (Act 1 ≤ 25% · 2A ≤ 50% · 2B ≤ 75% · Act 3 the rest). The menu shows the shares and, underneath, the actual
+    page ranges for the open script (a 96-page script in 3 Acts: "pp. 1–24 · 25–72 · 73+").
     A scene is never split — it belongs wholly to the act its first page falls in.
-  - **Assign by Scene Ranges…** asks for scene numbers per act (`1-12, 15`) — three inputs in 3-Act view, four in
+  - **Manual Scene Ranges…** asks for scene numbers per act (`1-12, 15`) — three inputs in 3-Act view, four in
     4-Act view — starting from the page-target placement, and only applies once every scene is in exactly one act.
 
   A scene card shows its scene and page (**Sc 12 · p. 34 ↗**); click it (or the card) to jump to that scene in the
@@ -188,10 +189,13 @@ Two tabs — **DNA** opens first unless you've picked Notes this session:
   - **Structure Dictionary**: the 11 terms (the eight above plus Text / Subtext / Context, Foreshadowing and
     Flashback), searchable. They ship with DraftLine's *starter* definitions — **Edit** any entry to paste your own
     reference's wording (kept for all projects; **Reset** restores the starter).
-- **📝 Notes** — Markdown sections (**Logline**, **Themes**, **Tone**, **Timeline**, **Pitch**, **Scratchpad**,
-  plus any you add below them). Notes from earlier versions are updated once on open — "Themes & Motifs" becomes
-  Themes, "Timeline & Lore" Timeline, "General Scratchpad" Scratchpad, missing presets are added and your own
-  sections follow — keeping every word, edited in place and shown formatted in Preview. **Import from Notes** pastes text from anywhere: append
+- **📝 Notes** — Markdown sections (**Logline**, **Tone**, **Timeline**, **Pitch**, **Scratchpad**, plus any you add
+  below them). The story's theme has one home — **Theme** in DNA ("revealed by the Climax") — so there's no Themes
+  card. Notes from earlier versions are updated once on open: a Themes card's text moves into DNA's Theme when that's
+  empty (lists become one line, e.g. "Exile; Return home"); if Theme already says the same, the card just goes; if it
+  says something different, the card stays as one of your own sections so nothing is overwritten. "Timeline & Lore"
+  becomes Timeline, "General Scratchpad" Scratchpad, missing presets are added and your own sections follow — keeping
+  every word, edited in place and shown formatted in Preview. **Import from Notes** pastes text from anywhere: append
   to a section, replace it, or split it at `# headings` into matching or new sections (undoable).
 
 ## Projects
@@ -321,7 +325,7 @@ src/
   components/PrintView.jsx print-only paginated pages
   components/TitlePageSheet.jsx  the title page in page units (canvas cover, print, modal preview)
   components/BeatBoard.jsx 4-act index-card board with drag-and-drop, Populate from Script
-  components/SceneRangeModal.jsx  Assign by Scene Ranges dialog
+  components/SceneRangeModal.jsx  Manual Scene Ranges dialog
   components/Menu.jsx      small dropdown menu (Export, ⋮)
   components/HelpModal.jsx Keyboard Shortcuts and About DraftLine
   components/ProjectsDrawer.jsx  the project library drawer

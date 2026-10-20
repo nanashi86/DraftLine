@@ -56,7 +56,12 @@ export default function Menu({
                 it.onSelect();
               }}
             >
-              <span>{it.label}</span>
+              {it.sub ? (
+                <span className="menu-label">
+                  <span>{it.label}</span>
+                  <small className="menu-sub">{it.sub}</small>
+                </span>
+              ) : <span>{it.label}</span>}
               {it.hint && <span className="menu-hint">{it.hint}</span>}
             </button>
           )))}

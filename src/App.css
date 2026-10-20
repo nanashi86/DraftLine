@@ -242,7 +242,9 @@
 .menu-item:disabled { opacity: 0.45; cursor: default; }
 .menu-item.is-danger:not(:disabled) { color: #f0a090; }
 .menu-item.is-danger:hover:not(:disabled) { background: #b5402c; color: #fff; }
-.menu-hint { opacity: 0.6; font-size: 12px; }
+.menu-hint { opacity: 0.6; font-size: 12px; white-space: nowrap; }
+.menu-label { display: flex; flex-direction: column; gap: 1px; white-space: nowrap; }
+.menu-sub { font-size: 11.5px; opacity: 0.65; font-variant-numeric: tabular-nums; }
 
 /* Long/short button labels for narrower windows */
 .lbl-short { display: none; }

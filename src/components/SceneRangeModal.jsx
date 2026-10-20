@@ -5,7 +5,7 @@ import {
 import './SceneRangeModal.css';
 
 /**
- * "Assign by Scene Ranges…": one range input per visible act column — three in 3-Act
+ * "Manual Scene Ranges…": one range input per visible act column — three in 3-Act
  * view (Act 1 · Act 2 · Act 3), four in 4-Act view (Act 1 · 2A · 2B · Act 3). Starts from
  * the page-target placement; Apply is enabled once every scene is in exactly one act.
  */
@@ -52,7 +52,7 @@ export default function SceneRangeModal({ mode, scenes, pageCount, onApply, onCl
         }}
       >
         <header className="sr-head">
-          <h2 id="sr-title">Assign by Scene Ranges</h2>
+          <h2 id="sr-title">Manual Scene Ranges</h2>
           <p>
             {scenes.length} {scenes.length === 1 ? 'scene' : 'scenes'} · {pageCount} {pageCount === 1 ? 'page' : 'pages'} ·{' '}
             {mode} Acts ({formatPageTargets(mode, pageCount)}). Enter scene numbers per act — ranges and lists like <code>1-12, 15</code>.

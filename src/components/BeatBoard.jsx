@@ -3,7 +3,7 @@ import AutoTextarea from './AutoTextarea.jsx';
 import Menu from './Menu.jsx';
 import SceneRangeModal from './SceneRangeModal.jsx';
 import {
-  TAGS, actPacing, byAct, formatPageTargets, moveBeat, newBeat, populateByPages, populateByRanges, structureFor,
+  TAGS, actPacing, byAct, formatPageTargets, formatPercentTargets, moveBeat, newBeat, populateByPages, populateByRanges, structureFor,
 } from '../lib/beats.js';
 import './BeatBoard.css';
 
@@ -224,11 +224,12 @@ export default function BeatBoard({
   // Pacing badges: pages and share of the script per column, from the scene cards in it.
   const pacing = useMemo(() => actPacing(beats, scenes, actMode), [beats, scenes, actMode]);
 
+  // Act targets come from the script's real length: 25 / 50 / 25 % (3 acts) or 25 % each (4 acts).
   const targets = formatPageTargets(actMode, pageCount);
   const populateItems = [
     { heading: `${actMode} Acts · ${scenes.length} ${scenes.length === 1 ? 'scene' : 'scenes'} · ${pageCount} ${pageCount === 1 ? 'page' : 'pages'}` },
-    { label: 'Auto-Distribute by Page Targets', hint: targets, onSelect: populateByTargets },
-    { label: 'Assign by Scene Ranges…', onSelect: openRanges },
+    { label: 'Auto-Distribute (% Targets)', hint: formatPercentTargets(actMode), sub: targets, onSelect: populateByTargets },
+    { label: 'Manual Scene Ranges…', sub: 'Type the scene numbers for each act', onSelect: openRanges },
   ];
 
   const addBeat = (act) => {

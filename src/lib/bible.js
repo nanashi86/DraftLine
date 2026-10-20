@@ -4,6 +4,8 @@
 //   characters: [{ id, name, role, age, traits, backstory }]
 //   storyNotes: { sections: [{ id, title, body }] }   — body is Markdown
 
+import { normalizeStoryDna } from './storyDna.js';
+
 export const CHARACTER_FIELDS = [
   { key: 'name', label: 'Name', placeholder: 'MARIE CINEUS' },
   { key: 'role', label: 'Role / Relationship', placeholder: 'Protagonist · Theo’s older sister' },
@@ -12,8 +14,15 @@ export const CHARACTER_FIELDS = [
   { key: 'backstory', label: 'Backstory / Motivation', placeholder: 'What happened before page 1 — and what she wants now', multiline: true },
 ];
 
-/** Story Notes sections a new project starts with, in order. */
-export const DEFAULT_SECTIONS = ['Logline', 'Themes', 'Tone', 'Timeline', 'Pitch', 'Scratchpad'];
+/**
+ * Story Notes sections a new project starts with, in order. Theme isn't one of them: it
+ * lives in Story DNA ("Theme — revealed by the Climax"), so there's one place for it.
+ */
+export const DEFAULT_SECTIONS = ['Logline', 'Tone', 'Timeline', 'Pitch', 'Scratchpad'];
+
+/** Note titles that meant the story's theme in earlier versions (case-insensitive). */
+const THEME_TITLES = new Set(['themes', 'themes & motifs', 'theme']);
+const isThemeTitle = (title) => THEME_TITLES.has(String(title || '').trim().toLowerCase());
 
 /** Earlier preset names → today's (case-insensitive). */
 export const LEGACY_SECTION_NAMES = {
@@ -23,15 +32,18 @@ export const LEGACY_SECTION_NAMES = {
 };
 
 /**
- * Story Notes format version. Version 2 = the six presets above. Older notes are migrated
- * once (renamed, completed and reordered); after that your own deletions, renames and
- * order are left alone.
+ * Story Notes format version. Version 3 = the five presets above (version 2 also had
+ * Themes). Older notes are migrated once (renamed, completed and reordered; Themes moves to
+ * Story DNA — see migrateStoryBible); after that your own deletions, renames and order are
+ * left alone.
  */
-export const STORY_NOTES_VERSION = 2;
+export const STORY_NOTES_VERSION = 3;
 
+/** Today's preset name for a title (old names included), or null if it isn't a preset. */
 const presetName = (title) => {
   const k = String(title || '').trim().toLowerCase();
-  return LEGACY_SECTION_NAMES[k] || DEFAULT_SECTIONS.find((d) => d.toLowerCase() === k) || null;
+  const name = LEGACY_SECTION_NAMES[k] || DEFAULT_SECTIONS.find((d) => d.toLowerCase() === k) || null;
+  return DEFAULT_SECTIONS.includes(name) ? name : null;
 };
 
 let counter = 0;
@@ -50,7 +62,7 @@ const uid = (p) => {
 // The ids are only UI state; the project still stores storyDna, storyNotes and characters.
 export const BIBLE_TABS = [
   { id: 'dna', icon: '📖', label: 'DNA', title: 'Story Blueprint & Structure Dictionary' },
-  { id: 'notes', icon: '📝', label: 'Notes', title: 'Logline, themes, tone, timeline, pitch, scratchpad' },
+  { id: 'notes', icon: '📝', label: 'Notes', title: 'Logline, tone, timeline, pitch, scratchpad (theme is in DNA)' },
 ];
 export const DEFAULT_BIBLE_TAB = 'dna';
 
@@ -158,7 +170,16 @@ export function defaultStoryNotes() {
 export function migrateStoryNotes(sections) {
   const presets = new Map();
   const custom = [];
+  let themes = null; // old "Themes" / "Themes & Motifs" text, combined — kept unless it moves to Story DNA
+  const combine = (have, s) => {
+    if (s.body.trim()) have.body = have.body.trim() ? `${have.body.replace(/\s+$/, '')}\n\n${s.body}` : s.body;
+  };
   for (const s of sections) {
+    if (isThemeTitle(s.title)) {
+      if (!themes) themes = { ...s, title: 'Themes' };
+      else combine(themes, s);
+      continue;
+    }
     const name = presetName(s.title);
     if (!name) {
       custom.push(s);
@@ -166,10 +187,42 @@ export function migrateStoryNotes(sections) {
     }
     const have = presets.get(name);
     if (!have) presets.set(name, { ...s, title: name });
-    else if (s.body.trim()) have.body = have.body.trim() ? `${have.body.replace(/\s+$/, '')}\n\n${s.body}` : s.body;
+    else combine(have, s);
   }
   const ordered = DEFAULT_SECTIONS.map((name) => presets.get(name) || { id: uid('sn'), title: name, body: '' });
-  return { version: STORY_NOTES_VERSION, sections: [...ordered, ...custom] };
+  // An empty Themes card just goes; one with text stays (as your own section) until it can move.
+  const kept = themes?.body.trim() ? [themes] : [];
+  return { version: STORY_NOTES_VERSION, sections: [...ordered, ...kept, ...custom] };
+}
+
+/** "- Exile\n- Return home" → "Exile; Return home" (Story DNA's Theme is a one-line field). */
+export function themeLine(text) {
+  return String(text || '')
+    .split('\n')
+    .map((l) => l.replace(/^\s*(?:[-*+•]|\d+[.)])\s+/, '').replace(/^#+\s*/, '').trim())
+    .filter(Boolean)
+    .join('; ');
+}
+
+/**
+ * Load-time migration for the Story Bible as a whole (stored notes + stored Story DNA):
+ * notes saved before version 3 had a Themes card. Its text moves into Story DNA's Theme
+ * when that's blank; if Theme already says the same thing, the card simply goes; if Theme
+ * says something else, the card stays as one of your own notes — nothing is overwritten.
+ * Returns { storyNotes, storyDna, movedTheme }.
+ */
+export function migrateStoryBible(rawNotes, rawDna) {
+  let storyDna = normalizeStoryDna(rawDna);
+  let storyNotes = normalizeStoryNotes(rawNotes);
+  const old = rawNotes && typeof rawNotes === 'object' && (rawNotes.version || 1) < STORY_NOTES_VERSION;
+  const card = old ? storyNotes.sections.find((s) => s.title === 'Themes') : null;
+  if (!card) return { storyNotes, storyDna, movedTheme: false };
+  const line = themeLine(card.body);
+  const current = storyDna.theme.trim();
+  if (current && current !== line) return { storyNotes, storyDna, movedTheme: false };
+  if (!current) storyDna = { ...storyDna, theme: line };
+  storyNotes = { ...storyNotes, sections: storyNotes.sections.filter((s) => s !== card) };
+  return { storyNotes, storyDna, movedTheme: !current };
 }
 
 /**

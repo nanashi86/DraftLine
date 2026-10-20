@@ -68,3 +68,20 @@ describe('toolbar: Export holds Print; panels stay visible on laptops', () => {
     assert.ok(!/\.btn-accent[^}]*display:\s*none/.test(css), 'Characters is never hidden');
   });
 });
+
+describe('Beat Board: Populate from Script menu', () => {
+  const board = readFileSync(join(root, 'components/BeatBoard.jsx'), 'utf8');
+  const modal = readFileSync(join(root, 'components/SceneRangeModal.jsx'), 'utf8');
+  const menu = board.slice(board.indexOf('const populateItems = ['), board.indexOf('];', board.indexOf('const populateItems = [')));
+  it('offers "Auto-Distribute (% Targets)" with the page ranges underneath, and "Manual Scene Ranges…"', () => {
+    assert.match(menu, /label: 'Auto-Distribute \(% Targets\)', hint: formatPercentTargets\(actMode\), sub: targets/);
+    assert.match(menu, /label: 'Manual Scene Ranges…'/);
+    assert.match(board, /const targets = formatPageTargets\(actMode, pageCount\);/);
+    assert.ok(!/Auto-Distribute by Page Targets|Assign by Scene Ranges/.test(board + modal));
+    assert.match(modal, /<h2 id="sr-title">Manual Scene Ranges<\/h2>/);
+  });
+  it('menus can show a second line under an item', () => {
+    const m = readFileSync(join(root, 'components/Menu.jsx'), 'utf8');
+    assert.match(m, /<small className="menu-sub">\{it\.sub\}<\/small>/);
+  });
+});

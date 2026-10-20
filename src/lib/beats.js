@@ -175,6 +175,13 @@ export function pageTargetsFor(mode, totalPages) {
   return [...b.map((to, i) => ({ from: i ? b[i - 1] + 1 : 1, to })), { from: b[b.length - 1] + 1, to: Infinity }];
 }
 
+/** "25 · 50 · 25%" — each column's share of the script, for the menu. */
+export function formatPercentTargets(mode) {
+  const pcts = PAGE_PERCENTS[mode] || PAGE_PERCENTS[4];
+  const shares = [...pcts, 1].map((p, i) => Math.round((p - (i ? pcts[i - 1] : 0)) * 100));
+  return `${shares.join(' · ')}%`;
+}
+
 /** "pp. 1–24 · 25–72 · 73+" for the menu. */
 export function formatPageTargets(mode, totalPages) {
   const t = pageTargetsFor(mode, totalPages)

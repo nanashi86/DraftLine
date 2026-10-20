@@ -21,7 +21,7 @@
 import { ELEMENT_META, buildItems, makeBlock, paginate } from './screenplay.js';
 import { migrateBlock } from './formatting.js';
 import { validBeats } from './beats.js';
-import { normalizeStoryNotes, validCharacters } from './bible.js';
+import { migrateStoryBible, normalizeStoryNotes, validCharacters } from './bible.js';
 import { normalizeStoryDna } from './storyDna.js';
 import { newProjectMeta } from './authorDefaults.js';
 import { DEFAULT_CREDIT, DEFAULT_TITLE_BOLD, DEFAULT_TITLE_FONT, DEFAULT_TITLE_SIZE } from './titleFonts.js';
@@ -95,6 +95,8 @@ export function toRecord({
   return rec;
 }
 
+const pickBible = ({ storyNotes, storyDna }) => ({ storyNotes, storyDna });
+
 /** Stored record → editor document. */
 export function toDoc(rec) {
   const meta = { ...EMPTY_META };
@@ -105,8 +107,8 @@ export function toDoc(rec) {
     blocks: validBlocks(rec.script) ? rec.script.map(migrateBlock) : [],
     beats: validBeats(rec.beats) ? rec.beats : [],
     characters: validCharacters(rec.characters) ? rec.characters : [],
-    storyNotes: normalizeStoryNotes(rec.storyNotes),
-    storyDna: normalizeStoryDna(rec.storyDna),
+    // Notes from before Theme moved to Story DNA hand their Themes text over (bible.js).
+    ...pickBible(migrateStoryBible(rec.storyNotes, rec.storyDna)),
     createdAt: rec.createdAt,
     updatedAt: rec.updatedAt,
   };

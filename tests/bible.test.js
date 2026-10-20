@@ -41,9 +41,9 @@ describe('Character Bios: CRUD', () => {
 });
 
 describe('Story Notes', () => {
-  it('a new project starts with Logline, Themes, Tone, Timeline, Pitch, Scratchpad', () => {
-    assert.deepEqual(defaultStoryNotes().sections.map((s) => s.title), ['Logline', 'Themes', 'Tone', 'Timeline', 'Pitch', 'Scratchpad']);
-    assert.equal(defaultStoryNotes().version, 2);
+  it('a new project starts with Logline, Tone, Timeline, Pitch, Scratchpad (Theme lives in Story DNA)', () => {
+    assert.deepEqual(defaultStoryNotes().sections.map((s) => s.title), ['Logline', 'Tone', 'Timeline', 'Pitch', 'Scratchpad']);
+    assert.equal(defaultStoryNotes().version, 3);
   });
   it('older notes are renamed and reordered with every word kept (same section ids)', () => {
     const old = {
@@ -58,16 +58,17 @@ describe('Story Notes', () => {
       ],
     };
     const n = normalizeStoryNotes(old);
+    // On its own (no Story DNA to hand it to) the old Themes text is kept, after the presets.
     assert.deepEqual(n.sections.map((s) => `${s.id}:${s.title}:${s.body}`), [
       'l:Logline:A ferry, a storm, a choice.',
-      'm:Themes:Exile and return',
       'o:Tone:',
       't:Timeline:1986 — Jacmel',
       'p:Pitch:Two siblings…',
       'g:Scratchpad:Loose ideas',
+      'm:Themes:Exile and return',
       'r:Research:Ferry routes 1991',
     ]);
-    assert.equal(n.version, 2);
+    assert.equal(n.version, 3);
   });
   it('the original three-section notes gain the missing presets; custom sections follow, in their order', () => {
     const old = { sections: [
@@ -78,7 +79,7 @@ describe('Story Notes', () => {
       { id: 'g', title: 'General Scratchpad', body: '' },
     ] };
     assert.deepEqual(normalizeStoryNotes(old).sections.map((s) => s.title),
-      ['Logline', 'Themes', 'Tone', 'Timeline', 'Pitch', 'Scratchpad', 'Locations', 'Music']);
+      ['Logline', 'Tone', 'Timeline', 'Pitch', 'Scratchpad', 'Themes', 'Locations', 'Music']);
   });
   it('if an old and a new name meet, their text is combined — nothing is lost', () => {
     const both = { sections: [{ id: 'a', title: 'Themes', body: 'Mine.' }, { id: 'b', title: 'Themes & Motifs', body: 'Older.' }] };
@@ -89,32 +90,34 @@ describe('Story Notes', () => {
   it('migrates once: after that, deleted or reordered presets stay the way you left them', () => {
     let n = normalizeStoryNotes({ sections: [{ id: 'g', title: 'General Scratchpad', body: 'x' }] });
     n = removeSection(n, n.sections.find((s) => s.title === 'Tone').id);
-    assert.deepEqual(normalizeStoryNotes(n).sections.map((s) => s.title), ['Logline', 'Themes', 'Timeline', 'Pitch', 'Scratchpad']);
+    assert.deepEqual(normalizeStoryNotes(n).sections.map((s) => s.title), ['Logline', 'Timeline', 'Pitch', 'Scratchpad']);
   });
   it('edits, adds and removes sections; new sections go after Scratchpad', () => {
     let n = defaultStoryNotes();
     n = updateSection(n, n.sections[0].id, { body: 'A ferry, a storm.' });
     const added = addSection(n, 'Research');
     n = removeSection(added.notes, n.sections[2].id);
-    assert.deepEqual(n.sections.map((s) => s.title), ['Logline', 'Themes', 'Timeline', 'Pitch', 'Scratchpad', 'Research']);
+    assert.deepEqual(n.sections.map((s) => s.title), ['Logline', 'Tone', 'Pitch', 'Scratchpad', 'Research']);
     assert.equal(n.sections[0].body, 'A ferry, a storm.');
   });
   it('a legacy plain-markdown string becomes the scratchpad', () => {
-    assert.equal(normalizeStoryNotes('just text').sections[5].body, 'just text');
+    const n = normalizeStoryNotes('just text');
+    assert.equal(n.sections.at(-1).title, 'Scratchpad');
+    assert.equal(n.sections.at(-1).body, 'just text');
   });
   it('Import from Notes: append, replace, or split by headings into matching/new sections', () => {
     const base = defaultStoryNotes();
-    const timeline = base.sections[3].id;
+    const timeline = base.sections[2].id;
     const a = importNotes(updateSection(base, timeline, { body: 'Old.' }), 'New.', { targetId: timeline });
-    assert.equal(a.sections[3].body, 'Old.\n\nNew.');
-    assert.equal(importNotes(a, 'Only this.', { targetId: timeline, mode: 'replace' }).sections[3].body, 'Only this.');
-    // A pasted "# Themes & Motifs" heading (the old name) lands in Themes.
-    const pasted = 'Loose intro.\n\n# Themes & Motifs\nThe sea owes everyone.\n\n## Locations\n- Jacmel\n- Port-au-Prince';
-    const s = importNotes(base, pasted, { targetId: base.sections[5].id, mode: 'sections' });
-    assert.deepEqual(s.sections.map((x) => x.title), ['Logline', 'Themes', 'Tone', 'Timeline', 'Pitch', 'Scratchpad', 'Locations']);
-    assert.equal(s.sections[1].body, 'The sea owes everyone.');
-    assert.equal(s.sections[5].body, 'Loose intro.');
-    assert.equal(s.sections[6].body, '- Jacmel\n- Port-au-Prince');
+    assert.equal(a.sections[2].body, 'Old.\n\nNew.');
+    assert.equal(importNotes(a, 'Only this.', { targetId: timeline, mode: 'replace' }).sections[2].body, 'Only this.');
+    // A pasted "# Timeline & Lore" heading (an old name) lands in Timeline; unknown headings add sections.
+    const pasted = 'Loose intro.\n\n# Timeline & Lore\n1986 — Jacmel.\n\n## Locations\n- Jacmel\n- Port-au-Prince';
+    const s = importNotes(base, pasted, { targetId: base.sections[4].id, mode: 'sections' });
+    assert.deepEqual(s.sections.map((x) => x.title), ['Logline', 'Tone', 'Timeline', 'Pitch', 'Scratchpad', 'Locations']);
+    assert.equal(s.sections[2].body, '1986 — Jacmel.');
+    assert.equal(s.sections[4].body, 'Loose intro.');
+    assert.equal(s.sections[5].body, '- Jacmel\n- Port-au-Prince');
   });
   it('splits on Markdown and underlined headings', () => {
     assert.deepEqual(splitByHeadings('Intro\n\nLore\n====\nA\n### B\nC').map((p) => p.title), [null, 'Lore', 'B']);
@@ -141,13 +144,13 @@ describe('Bible persistence across project switches', () => {
     // "Switch" to B, then back to A: each loads its own Bible.
     const docB = toDoc(await store.getProject(b.id));
     assert.deepEqual(docB.characters, []);
-    assert.deepEqual(docB.storyNotes.sections.map((s) => s.body), ['', '', '', '', '', '']);
+    assert.deepEqual(docB.storyNotes.sections.map((s) => s.body), ['', '', '', '', '']);
     const docA = toDoc(await store.getProject(a.id));
     assert.equal(docA.characters[0].age, '10 in 1986, 45 in 2021');
     assert.equal(docA.storyNotes.sections[0].body, '1986: Jean-Claude leaves.');
     // Editing A's notes and saving keeps B untouched.
     await store.saveActiveProject({ ...docA, storyNotes: updateSection(docA.storyNotes, docA.storyNotes.sections[2].id, { body: 'idea' }) });
-    assert.deepEqual(toDoc(await store.getProject(b.id)).storyNotes.sections.map((s) => s.body), ['', '', '', '', '', '']);
+    assert.deepEqual(toDoc(await store.getProject(b.id)).storyNotes.sections.map((s) => s.body), ['', '', '', '', '']);
     assert.equal(toDoc(await store.getProject(a.id)).storyNotes.sections[2].body, 'idea');
   });
   it('a duplicated project carries a copy of its Bible', async () => {
