@@ -58,7 +58,8 @@ export const CONFLICT_TYPES = [
 
 /**
  * Plot Devices the writer can add to the blueprint, each with Yes / No and notes. `dict` is the
- * Story Glossary entry its (i) shows. Stored as `devices: [{ id, on, notes }]` in the order added.
+ * Glossary entry its (i) shows. Stored as `devices: [{ id, on, notes }]`: Foreshadowing and
+ * Flashback first (always there — see DEFAULT_DEVICES), then the others in the order added.
  */
 export const PLOT_DEVICES = [
   { id: 'foreshadowing', label: 'Foreshadowing', dict: 'foreshadowing' },
@@ -74,6 +75,24 @@ export const PLOT_DEVICES = [
 const LEGACY_TECHNIQUE = { id: 'technique', label: 'Special Plot Technique', dict: null };
 const ALL_DEVICES = [...PLOT_DEVICES, LEGACY_TECHNIQUE];
 
+/**
+ * Every script starts with these two rows, set to No (collapsed — no notes box until Yes).
+ * They're always present: a script that loads without them (new, older, or saved before this)
+ * gets them back, set to No; they can be switched to No but not removed.
+ */
+export const DEFAULT_DEVICES = ['foreshadowing', 'flashback'];
+export const isDefaultDevice = (id) => DEFAULT_DEVICES.includes(id);
+const defaultDeviceRows = () => DEFAULT_DEVICES.map((id) => ({ id, on: false, notes: '' }));
+
+/** The default rows first (keeping what's stored for them), then everything else in order. */
+function withDefaultDevices(list) {
+  const byId = new Map(list.map((x) => [x.id, x]));
+  return [
+    ...DEFAULT_DEVICES.map((id) => byId.get(id) || { id, on: false, notes: '' }),
+    ...list.filter((x) => !isDefaultDevice(x.id)),
+  ];
+}
+
 export const deviceInfo = (id) => ALL_DEVICES.find((d) => d.id === id) || null;
 
 /** Devices not added yet, for the picklist (in glossary order). */
@@ -87,7 +106,21 @@ export function setDevice(dna, id, patch) {
   return { ...dna, devices: dna.devices.map((x) => (x.id === id ? { ...x, ...patch, id } : x)) };
 }
 export function removeDevice(dna, id) {
+  if (isDefaultDevice(id)) return setDevice(dna, id, { on: false }); // the defaults stay, set to No
   return { ...dna, devices: dna.devices.filter((x) => x.id !== id) };
+}
+
+/**
+ * The Plot Devices section top to bottom: one row per device (defaults first, then added ones in
+ * the order added), and the "+ Add device…" picklist last — always below the rows — while any
+ * device is left to add.
+ */
+export function plotDeviceLayout(dna) {
+  const rows = dna.devices.map((dev) => ({
+    kind: 'device', ...dev, info: deviceInfo(dev.id), removable: !isDefaultDevice(dev.id), expanded: !!(dev.on || dev.notes),
+  }));
+  const options = availableDevices(dna);
+  return options.length ? [...rows, { kind: 'add', options }] : rows;
 }
 
 export const DNA_QUESTIONS = [
@@ -107,7 +140,7 @@ export function emptyStoryDna() {
     genreOther: '',
     theme: '',
     centralQuestion: '',
-    devices: [],
+    devices: defaultDeviceRows(),
     conflictType: '',
     answers: Object.fromEntries(DNA_QUESTIONS.map((q) => [q.key, ''])),
   };
@@ -129,6 +162,7 @@ function legacyToggle(v) {
  * top level, conflict types written loosely ("vs self", "Man vs. Nature"), and the old fixed
  * toggles — Foreshadowing, Flashback and Special Plot Technique, stored as booleans, strings
  * or { on, notes } — which become Plot Devices when they were used (on, or with notes).
+ * Foreshadowing and Flashback are always in the result (set to No unless stored otherwise).
  */
 export function normalizeStoryDna(raw) {
   const d = emptyStoryDna();
@@ -141,19 +175,21 @@ export function normalizeStoryDna(raw) {
   }
   d.theme = str(raw.theme);
   d.centralQuestion = str(raw.centralQuestion);
+  const stored = [];
   if (Array.isArray(raw.devices)) {
     const seen = new Set();
     for (const x of raw.devices) {
       if (!x || !deviceInfo(x.id) || seen.has(x.id)) continue;
       seen.add(x.id);
-      d.devices.push({ id: x.id, on: !!x.on, notes: str(x.notes) });
+      stored.push({ id: x.id, on: !!x.on, notes: str(x.notes) });
     }
   } else {
     for (const id of ['foreshadowing', 'flashback', 'technique']) {
       const t = legacyToggle(raw[id]);
-      if (t) d.devices.push({ id, ...t });
+      if (t) stored.push({ id, ...t });
     }
   }
+  d.devices = withDefaultDevices(stored);
   const answers = raw.answers && typeof raw.answers === 'object' ? raw.answers : {};
   for (const q of DNA_QUESTIONS) d.answers[q.key] = str(answers[q.key] ?? raw[q.key]);
   d.conflictType = matchConflictType(raw.conflictType);

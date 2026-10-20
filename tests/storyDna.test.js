@@ -4,6 +4,7 @@ import { createFakeIndexedDB, createFakeStorage } from './helpers/fakeIndexedDB.
 import {
   CONFLICT_TYPES, DNA_QUESTIONS, GENRES, PLOT_DEVICES, addDevice, emptyStoryDna, genresFromText, matchConflictType,
   normalizeStoryDna, setAnswer, setDevice, setField, storyDnaProgress, toggleGenre,
+  DEFAULT_DEVICES, plotDeviceLayout, removeDevice,
 } from '../src/lib/storyDna.js';
 import { BIBLE_TABS, CHARACTER_TABS, DEFAULT_BIBLE_TAB, DEFAULT_CHARACTER_TAB, bibleTabBadge } from '../src/lib/bible.js';
 import { DOCK_PANELS, characterTabFromPrefs, closeDock, dockFromPrefs, openDock, toggleDock } from '../src/lib/dock.js';
@@ -13,6 +14,7 @@ import {
 import { DICTIONARY_KEY, bootLibrary, createProjectStore, toDoc } from '../src/lib/projectStorage.js';
 import { SHORTCUTS, SHORTCUT_SECTIONS, keycaps } from '../src/lib/shortcuts.js';
 import { makeBlock } from '../src/lib/screenplay.js';
+import { readFileSync } from 'node:fs';
 
 describe('Story DNA', () => {
   it('has the eight narrative questions in order, each tied to a dictionary term', () => {
@@ -32,10 +34,11 @@ describe('Story DNA', () => {
     let d = emptyStoryDna();
     d = setAnswer(d, 'protagonist', 'Marie, 45, who left Haiti at 10.');
     d = setField(d, 'conflictType', 'Individual vs. Society');
-    d = setDevice(addDevice(d, 'flashback'), 'flashback', { notes: '1986 Jacmel' });
+    d = setDevice(d, 'flashback', { on: true, notes: '1986 Jacmel' });
     assert.equal(storyDnaProgress(d), 1);
     assert.equal(emptyStoryDna().answers.protagonist, '');
-    assert.deepEqual(d.devices, [{ id: 'flashback', on: true, notes: '1986 Jacmel' }]);
+    assert.deepEqual(d.devices, [{ id: 'foreshadowing', on: false, notes: '' }, { id: 'flashback', on: true, notes: '1986 Jacmel' }]);
+    assert.equal(emptyStoryDna().devices[1].on, false, 'the original is untouched');
   });
   it('migrates missing or older shapes into a complete blueprint', () => {
     assert.deepEqual(normalizeStoryDna(undefined), emptyStoryDna());
@@ -205,5 +208,81 @@ describe('keyboard shortcuts dialog', () => {
     assert.deepEqual(keycaps('Ctrl+Shift+X', true), ['⌘', '⇧', 'X']);
     assert.deepEqual(keycaps('Ctrl+\\'), ['Ctrl', '\\']);
     assert.deepEqual(keycaps('Alt+I', true), ['⌥', 'I']);
+  });
+});
+
+describe('Plot Devices: defaults and layout', () => {
+  const OFF = [{ id: 'foreshadowing', on: false, notes: '' }, { id: 'flashback', on: false, notes: '' }];
+
+  it('a new script starts with Foreshadowing and Flashback, both No (enabled: false)', () => {
+    assert.deepEqual(DEFAULT_DEVICES, ['foreshadowing', 'flashback']);
+    assert.deepEqual(emptyStoryDna().devices, OFF);
+  });
+
+  it('any script loading without explicit devices gets them back, set to No', () => {
+    for (const raw of [undefined, null, {}, { devices: [] }, { devices: 'junk' }, { theme: 'Home' }]) {
+      assert.deepEqual(normalizeStoryDna(raw).devices, OFF, JSON.stringify(raw));
+    }
+    const project = toDoc({ id: 'p', title: 'Old', script: [makeBlock('scene')], storyDna: { theme: 'x', devices: [] } });
+    assert.deepEqual(project.storyDna.devices, OFF);
+  });
+
+  it('stored values for the defaults are kept; the defaults always lead the list', () => {
+    const d = normalizeStoryDna({ devices: [{ id: 'redHerring', on: true, notes: 'bike' }, { id: 'flashback', on: true, notes: '1986' }] });
+    assert.deepEqual(d.devices, [
+      { id: 'foreshadowing', on: false, notes: '' },
+      { id: 'flashback', on: true, notes: '1986' },
+      { id: 'redHerring', on: true, notes: 'bike' },
+    ]);
+  });
+
+  it('new devices append beneath Flashback, in the order added', () => {
+    let d = addDevice(emptyStoryDna(), 'macguffin');
+    d = addDevice(d, 'redHerring');
+    assert.deepEqual(d.devices.map((x) => x.id), ['foreshadowing', 'flashback', 'macguffin', 'redHerring']);
+  });
+
+  it('the defaults can be set to No but not removed', () => {
+    const d = setDevice(emptyStoryDna(), 'foreshadowing', { on: true, notes: 'horn' });
+    const r = removeDevice(d, 'foreshadowing');
+    assert.deepEqual(r.devices[0], { id: 'foreshadowing', on: false, notes: 'horn' });
+    assert.equal(r.devices.length, 2);
+  });
+
+  it('collapsed until Yes: rows set to No with no notes show no notes box', () => {
+    const rows = plotDeviceLayout(emptyStoryDna()).filter((x) => x.kind === 'device');
+    assert.deepEqual(rows.map((r) => [r.id, r.on, r.expanded, r.removable]), [
+      ['foreshadowing', false, false, false], ['flashback', false, false, false],
+    ]);
+    const on = plotDeviceLayout(setDevice(emptyStoryDna(), 'flashback', { on: true }));
+    assert.equal(on[1].expanded, true);
+  });
+
+  it('the add-device control comes after (below) every device row', () => {
+    let d = emptyStoryDna();
+    for (const id of [null, 'macguffin', 'redHerring']) {
+      if (id) d = addDevice(d, id);
+      const layout = plotDeviceLayout(d);
+      const last = layout[layout.length - 1];
+      assert.equal(last.kind, 'add');
+      assert.equal(layout.filter((x) => x.kind === 'add').length, 1);
+      assert.deepEqual(layout.slice(0, -1).map((x) => x.id), d.devices.map((x) => x.id));
+      assert.ok(!last.options.some((o) => d.devices.some((x) => x.id === o.id)), 'offers only devices not yet added');
+    }
+    // Every device added: no picklist left.
+    for (const dev of PLOT_DEVICES) d = addDevice(d, dev.id);
+    assert.ok(plotDeviceLayout(d).every((x) => x.kind === 'device'));
+  });
+
+  it('the section renders a plain "Plot Devices" label, then rows and picklist in layout order', () => {
+    const src = readFileSync(new URL('../src/components/StoryDna.jsx', import.meta.url), 'utf8');
+    const section = src.slice(src.indexOf('function PlotDevices'), src.indexOf('function Blueprint'));
+    assert.match(section, /<h3 className="dna-devices-title"[^>]*>Plot Devices<\/h3>/);
+    assert.ok(!/dna-devices-head/.test(section), 'no header row holding the picklist');
+    const label = section.indexOf('>Plot Devices<');
+    const loop = section.indexOf('plotDeviceLayout(dna).map');
+    assert.ok(label > 0 && loop > label, 'label first, then the layout (rows, then picklist)');
+    assert.equal((section.match(/className="dna-device-add"/g) || []).length, 1);
+    assert.ok(section.indexOf('className="dna-device-add"') > loop, 'the picklist is rendered from the layout');
   });
 });

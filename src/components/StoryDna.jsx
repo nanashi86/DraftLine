@@ -2,7 +2,7 @@ import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import AutoTextarea from './AutoTextarea.jsx';
 import {
-  CONFLICT_TYPES, DNA_QUESTIONS, GENRES, addDevice, availableDevices, deviceInfo, removeDevice, setAnswer, setDevice,
+  CONFLICT_TYPES, DNA_QUESTIONS, GENRES, addDevice, plotDeviceLayout, removeDevice, setAnswer, setDevice,
   setField, storyDnaProgress, toggleGenre,
 } from '../lib/storyDna.js';
 import { dictionaryEntry, searchDictionary } from '../lib/structureDictionary.js';
@@ -100,58 +100,61 @@ function YesNo({ value, onChange, label }) {
   );
 }
 
-/** Plot Devices: pick from the glossary's devices; each has Yes / No, notes and its (i). */
+/**
+ * Plot Devices: a plain "Plot Devices" label, then the rows — Foreshadowing and Flashback always
+ * (No and collapsed until switched to Yes), then any added ones — and the "+ Add device…"
+ * picklist below them, so new devices appear just above it.
+ */
 function PlotDevices({ dna, onChange, dictionary, onOpenTerm }) {
-  const options = availableDevices(dna);
   return (
-    <section className="dna-devices" aria-label="Plot Devices">
-      <div className="dna-devices-head">
-        <span className="dna-devices-title">Plot Devices</span>
-        {options.length > 0 && (
-          <select
-            className="dna-device-add"
-            value=""
-            aria-label="Add a plot device"
-            onChange={(e) => e.target.value && onChange(addDevice(dna, e.target.value))}
-          >
-            <option value="">+ Add device…</option>
-            {options.map((d) => <option key={d.id} value={d.id}>{d.label}</option>)}
-          </select>
-        )}
-      </div>
-      {dna.devices.length === 0 && (
-        <p className="dna-devices-empty">Foreshadowing, flashback, a MacGuffin, a red herring… add the ones this script uses.</p>
-      )}
-      {dna.devices.map((dev) => {
-        const info = deviceInfo(dev.id);
+    <section className="dna-devices" aria-labelledby="dna-devices-title">
+      <h3 className="dna-devices-title" id="dna-devices-title">Plot Devices</h3>
+      {plotDeviceLayout(dna).map((item) => {
+        if (item.kind === 'add') {
+          return (
+            <select
+              key="add"
+              className="dna-device-add"
+              value=""
+              aria-label="Add a plot device"
+              onChange={(e) => e.target.value && onChange(addDevice(dna, e.target.value))}
+            >
+              <option value="">+ Add device…</option>
+              {item.options.map((d) => <option key={d.id} value={d.id}>{d.label}</option>)}
+            </select>
+          );
+        }
+        const { id, info, notes } = item;
         return (
-          <div key={dev.id} className={`dna-toggle${dev.on ? ' is-on' : ''}`}>
+          <div key={id} className={`dna-toggle${item.on ? ' is-on' : ''}`} data-device={id}>
             <div className="dna-toggle-row">
               <span className="dna-toggle-label">
                 {info.label}
                 <InfoTip entry={info.dict && dictionaryEntry(dictionary, info.dict)} onOpen={onOpenTerm} />
               </span>
-              <YesNo label={info.label} value={dev.on} onChange={(on) => onChange(setDevice(dna, dev.id, { on }))} />
-              <button
-                type="button"
-                className="dna-device-remove"
-                aria-label={`Remove ${info.label}`}
-                title={dev.notes.trim() ? 'Remove (its notes go with it — Ctrl+Z won’t bring them back)' : 'Remove'}
-                onClick={() => {
-                  if (dev.notes.trim() && !window.confirm(`Remove ${info.label} and its notes?`)) return;
-                  onChange(removeDevice(dna, dev.id));
-                }}
-              >
-                ×
-              </button>
+              <YesNo label={info.label} value={item.on} onChange={(on) => onChange(setDevice(dna, id, { on }))} />
+              {item.removable ? (
+                <button
+                  type="button"
+                  className="dna-device-remove"
+                  aria-label={`Remove ${info.label}`}
+                  title={notes.trim() ? 'Remove (its notes go with it — Ctrl+Z won’t bring them back)' : 'Remove'}
+                  onClick={() => {
+                    if (notes.trim() && !window.confirm(`Remove ${info.label} and its notes?`)) return;
+                    onChange(removeDevice(dna, id));
+                  }}
+                >
+                  ×
+                </button>
+              ) : <span className="dna-device-remove is-placeholder" aria-hidden="true" />}
             </div>
-            {(dev.on || dev.notes) && (
+            {item.expanded && (
               <AutoTextarea
                 className="dna-notes"
-                value={dev.notes}
+                value={notes}
                 placeholder={`How the script uses ${info.label.toLowerCase()}…`}
                 aria-label={`${info.label} notes`}
-                onChange={(e) => onChange(setDevice(dna, dev.id, { notes: e.target.value }))}
+                onChange={(e) => onChange(setDevice(dna, id, { notes: e.target.value }))}
               />
             )}
           </div>

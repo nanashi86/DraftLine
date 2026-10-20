@@ -70,15 +70,16 @@ describe('Plot Devices', () => {
     assert.deepEqual(PLOT_DEVICES.map((d) => d.label), [
       'Foreshadowing', 'Flashback', 'Deus ex machina', 'MacGuffin', 'Quest', 'Cliffhanger', 'Red herring', 'Love triangle',
     ]);
+    assert.equal(availableDevices(emptyStoryDna()).length, 6, 'Foreshadowing and Flashback are already there');
     let d = addDevice(emptyStoryDna(), 'macguffin');
     d = addDevice(d, 'macguffin'); // no duplicates
-    assert.deepEqual(d.devices, [{ id: 'macguffin', on: true, notes: '' }]);
+    assert.deepEqual(d.devices, [{ id: 'foreshadowing', on: false, notes: '' }, { id: 'flashback', on: false, notes: '' }, { id: 'macguffin', on: true, notes: '' }]);
     assert.ok(!availableDevices(d).some((x) => x.id === 'macguffin'));
-    assert.equal(availableDevices(d).length, 7);
+    assert.equal(availableDevices(d).length, 5);
     d = setDevice(d, 'macguffin', { on: false, notes: 'The letter' });
-    assert.deepEqual(d.devices[0], { id: 'macguffin', on: false, notes: 'The letter' });
-    assert.deepEqual(removeDevice(d, 'macguffin').devices, []);
-    assert.equal(addDevice(emptyStoryDna(), 'bogus').devices.length, 0);
+    assert.deepEqual(d.devices[2], { id: 'macguffin', on: false, notes: 'The letter' });
+    assert.deepEqual(removeDevice(d, 'macguffin').devices, [{ id: 'foreshadowing', on: false, notes: '' }, { id: 'flashback', on: false, notes: '' }]);
+    assert.equal(addDevice(emptyStoryDna(), 'bogus').devices.length, 2);
   });
   it('old Foreshadowing / Flashback notes migrate into Plot Devices, nothing lost', () => {
     const old = normalizeStoryDna({
@@ -94,14 +95,14 @@ describe('Plot Devices', () => {
   });
   it('an old "Special Plot Technique" with notes is kept as its own device', () => {
     const old = normalizeStoryDna({ technique: { on: true, notes: 'Told in reverse.' } });
-    assert.deepEqual(old.devices, [{ id: 'technique', on: true, notes: 'Told in reverse.' }]);
+    assert.deepEqual(old.devices, [{ id: 'foreshadowing', on: false, notes: '' }, { id: 'flashback', on: false, notes: '' }, { id: 'technique', on: true, notes: 'Told in reverse.' }]);
     assert.equal(deviceInfo('technique').label, 'Special Plot Technique');
     assert.ok(!availableDevices(old).some((x) => x.id === 'technique'), 'not offered for new scripts');
   });
-  it('unused old toggles leave no device behind; a saved device list loads as it is', () => {
-    assert.deepEqual(normalizeStoryDna({ foreshadowing: { on: false, notes: '' }, flashback: false }).devices, []);
+  it('unused old toggles load as the two defaults set to No; a saved device list keeps its own rows', () => {
+    assert.deepEqual(normalizeStoryDna({ foreshadowing: { on: false, notes: '' }, flashback: false }).devices, [{ id: 'foreshadowing', on: false, notes: '' }, { id: 'flashback', on: false, notes: '' }]);
     const d = normalizeStoryDna({ devices: [{ id: 'quest', on: true, notes: 'x' }, { id: 'nope' }, { id: 'quest' }] });
-    assert.deepEqual(d.devices, [{ id: 'quest', on: true, notes: 'x' }]);
+    assert.deepEqual(d.devices, [{ id: 'foreshadowing', on: false, notes: '' }, { id: 'flashback', on: false, notes: '' }, { id: 'quest', on: true, notes: 'x' }]);
   });
   it('the Central Dramatic Question is a field of its own', () => {
     assert.equal(emptyStoryDna().centralQuestion, '');
