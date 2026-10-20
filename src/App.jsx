@@ -700,7 +700,7 @@ function Workspace({ boot }) {
     setView((v) => VIEWS[(VIEWS.findIndex((x) => x.id === v) + 1) % VIEWS.length].id);
   }, []);
 
-  // Print view is only mounted while printing (Print button or Ctrl+P).
+  // Print view is only mounted while printing (Export → Print Script / PDF, or Ctrl+P).
   useEffect(() => {
     const before = () => flushSync(() => setPrinting(true));
     const after = () => setPrinting(false);
@@ -766,6 +766,9 @@ function Workspace({ boot }) {
     { heading: 'Beat outline' },
     { label: 'Fountain outline', hint: '.fountain', onSelect: () => exportOutline('fountain') },
     { label: 'Markdown', hint: '.md', onSelect: () => exportOutline('md') },
+    { divider: true },
+    { heading: 'Document' },
+    { label: 'Print Script / PDF', hint: 'Ctrl+P', onSelect: printScript },
     { divider: true },
     { heading: 'Project' },
     { label: 'Backup Project', hint: '.draftline', onSelect: backupProject },
@@ -925,10 +928,7 @@ function Workspace({ boot }) {
 
           {/* 5 · Output & side panels */}
           <div className="bar-group bar-right">
-            <Menu label="Export" items={exportItems} align="right" title="Export screenplay or beat outline" />
-            <button className="btn" onClick={printScript} title="Print or save as PDF (Ctrl+P)">
-              <span className="lbl-long">Print / PDF</span><span className="lbl-short">Print</span>
-            </button>
+            <Menu label="Export" items={exportItems} align="right" title="Export the screenplay or beat outline, print / save as PDF, or back up the project" />
             <button className="btn" onClick={() => setFocusMode(true)} title="Hide everything but the page (Esc to exit)">Focus</button>
             <button
               className={`btn btn-accent${tunerOpen ? ' is-on' : ''}`}

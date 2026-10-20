@@ -10,8 +10,8 @@
   height: var(--bar-h);
   display: flex;
   align-items: center;
-  gap: 14px;
-  padding: 0 14px;
+  gap: 22px; /* between groups — buttons inside a group sit 4px apart */
+  padding: 0 18px;
   background: var(--bar);
   border-bottom: 1px solid var(--line-soft);
   z-index: 30;
@@ -433,20 +433,20 @@
   .lbl-long { display: none; }
   .lbl-short { display: inline; }
   .type-select { min-width: 150px; }
-  .bar { gap: 8px; padding: 0 10px; }
+  .bar { gap: 18px; padding: 0 14px; }
 }
-@media (max-width: 1639px) {
+@media (max-width: 1379px) {
   .btn-bible { display: none; } /* still in ⋮ and on Alt+I */
 }
-@media (max-width: 1540px) {
+@media (max-width: 1650px) {
   .btn { padding: 6px 8px; }
   .seg-btn { padding: 4px 9px; }
-  .bar { gap: 6px; }
+  .bar { gap: 14px; }
 }
 @media (max-width: 1440px) {
   .bar-sep { display: none; }
 }
-@media (max-width: 1480px) {
+@media (max-width: 1580px) {
   .doc-by,
   .doc-author { display: none; }
 }

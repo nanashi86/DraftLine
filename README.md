@@ -236,8 +236,12 @@ nothing uploaded, works offline). Click the title's **▾** or the **D** logo (o
   overwrites: if that project is already in your library, the backup comes in beside it. Your own dictionary wording
   always wins over the backup's. Scripts live in each browser's own storage, so this is also how you move projects
   between your local DraftLine and the published one.
-- **Export** writes `.fountain` and `.fdx`; **Print** gives a paginated PDF with the title page as page 0.
-  Page 1 is unnumbered; pages 2 onward carry a right-aligned "2.", "3." ….
+- **Export** has four sections: **Screenplay** (Fountain `.fountain`, Final Draft `.fdx`), **Beat outline** (Fountain
+  outline, Markdown), **Document** (**Print Script / PDF**, also **Ctrl+P** — a paginated PDF with the title page as
+  page 0; page 1 is unnumbered, pages 2 onward carry a right-aligned "2.", "3." …) and **Project** (**Backup
+  Project**, `.draftline`).
+- The toolbar keeps **Dialogue** and **Story Bible** visible down to 1380px wide (about a laptop screen); below that,
+  Story Bible moves into **⋮** (and stays on Alt+I). Below 1300px the toolbar scrolls sideways.
 - **⋮** (far right of the toolbar): **Load Sample Script** (*The Last Ferry*), **Keyboard Shortcuts** (also Ctrl+/)
   and **About DraftLine** (version, where your draft is saved, its size and last save).
 - **Title Page** edits title, **Credit / Subtitle** ("Written by", "Screenplay by", "Story by", … or anything you type),
