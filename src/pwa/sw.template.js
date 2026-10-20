@@ -31,7 +31,8 @@ async function cacheFonts(cssUrl) {
 self.addEventListener('install', (event) => {
   event.waitUntil((async () => {
     const shell = await caches.open(SHELL_CACHE);
-    await shell.addAll(PRECACHE);
+    // cache: 'reload' skips the browser's HTTP cache, so a redrawn icon (same file name) is fetched fresh.
+    await shell.addAll(PRECACHE.map((u) => new Request(u, { cache: 'reload' })));
     // Fonts are a bonus: offline still works (with fallback fonts) if they can't be fetched now.
     await cacheFonts(CORE_FONTS_CSS).catch(() => null);
     await self.skipWaiting();

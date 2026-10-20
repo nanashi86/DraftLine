@@ -1,4 +1,5 @@
 import { describe, it } from 'node:test';
+import { Buffer } from 'node:buffer';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { TIP_MARGIN, clipToViewport, placeTooltip } from '../src/lib/tooltip.js';
@@ -8,7 +9,7 @@ import {
 import { STRUCTURE_DICTIONARY, dictionaryEntry } from '../src/lib/structureDictionary.js';
 import { dialogueFilter, filterLabel } from '../src/lib/dialogueFilter.js';
 import { analyzeScript } from '../src/lib/screenplay.js';
-import { buildServiceWorker, CORE_FONTS_CSS } from '../src/pwa/vitePlugin.js';
+import { buildServiceWorker, CACHE_REVISION, CORE_FONTS_CSS } from '../src/pwa/vitePlugin.js';
 import { registerServiceWorker } from '../src/pwa/register.js';
 import { renameCharacter } from '../src/lib/renameCharacter.js';
 
@@ -174,6 +175,14 @@ describe('PWA', () => {
     const a = buildServiceWorker(['assets/index-1.js']).version;
     assert.equal(buildServiceWorker(['assets/index-1.js']).version, a);
     assert.notEqual(buildServiceWorker(['assets/index-2.js']).version, a);
+  });
+  it('a changed file with the same name (e.g. a redrawn icon) also gets a new version', () => {
+    const files = ['icon-maskable-512.png'];
+    const v1 = buildServiceWorker(files, undefined, { 'icon-maskable-512.png': Buffer.from('old') }).version;
+    assert.equal(buildServiceWorker(files, undefined, { 'icon-maskable-512.png': Buffer.from('old') }).version, v1);
+    assert.notEqual(buildServiceWorker(files, undefined, { 'icon-maskable-512.png': Buffer.from('new') }).version, v1);
+    assert.ok(CACHE_REVISION >= 2, 'bumped for the maskable icon');
+    assert.match(read('src/pwa/sw.template.js'), /new Request\(u, \{ cache: 'reload' \}\)/, 'install skips the HTTP cache');
   });
   it('offline lookups ignore Vary (module scripts carry an Origin header the precache didn’t)', () => {
     assert.match(read('src/pwa/sw.template.js'), /ignoreSearch: true, ignoreVary: true/);

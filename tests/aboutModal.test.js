@@ -22,22 +22,24 @@ describe('About DraftLine', () => {
     for (let i = 1; i < order.length; i++) assert.ok(order[i] > order[i - 1], `item ${i} out of order`);
   });
 
-  it('the Origin Story reads exactly as written, with the title in italics and DraftLine in bold', () => {
+  it('the Origin Story reads exactly as written', () => {
     const block = about.slice(about.indexOf('className="hm-origin"'), about.indexOf('</section>'));
     const story = text(block.slice(block.indexOf('<p>'))).trim();
-    assert.equal(story, 'My storytelling journey began when I was eight years old, banging out short stories on my father’s '
-      + 'electric typewriter and sketching character designs. I’ve always loved storytelling. Years later, when I set out '
-      + 'to write my first feature-length screenplay, What Happened to Haiti?, I took the hard route. Refusing to pay '
-      + 'subscriptions for bloated commercial tools, I built an industry-standard template in raw Google Docs and manually '
-      + 'handled every indentation, parenthetical, and scene heading across six drafts. That grind taught me the mechanics '
-      + 'of dramatic architecture from the ground up: discovering where a narrative drags, how dialogue functions as '
-      + 'action, and how multiple dramatic threads intertwine across fifty-plus scenes. When preparing for my next script, '
-      + 'I explored existing modern screenwriting applications. Every option either locked vital structural tools behind '
-      + 'paywalls, cluttered the writing canvas, or lacked the planning features screenwriters need. So, I teamed up with '
-      + 'my AI buddies and engineered DraftLine.');
-    assert.match(block, /<i>What Happened to Haiti\?<\/i>/);
-    assert.match(block, /<b>DraftLine<\/b>\./);
+    assert.equal(story, 'I began storytelling at eight on my father’s electric typewriter. Decades later, while writing '
+      + 'my first feature, What Happened to Haiti?, I refused to pay bloated subscriptions and manually drafted all six '
+      + 'drafts in raw Google Docs. That grind taught me structure and what features writers actually need. So I teamed '
+      + 'up with my AI buddies to build DraftLine: an independent, distraction-free tool with dramatic architecture '
+      + 'built right in.');
     assert.match(block, /<h3 id="hm-origin-title">Origin Story<\/h3>/);
+  });
+
+  it('the facts list leads with "Created by: Eric Lemaire Jr.", then the five storage rows, all one label width', () => {
+    const facts = about.slice(about.indexOf('className="hm-facts"'), about.indexOf('</dl>'));
+    const labels = [...facts.matchAll(/<dt>([^<]+)<\/dt>/g)].map((m) => m[1]);
+    assert.deepEqual(labels, ['Created by', 'Storage', 'Last saved', 'This script', 'Protected', 'Network']);
+    assert.match(facts, /<dt>Created by<\/dt><dd>Eric Lemaire Jr\.<\/dd>/);
+    assert.match(css, /\.hm-facts dt \{ flex: none; width: 92px;/);
+    assert.ok(about.indexOf('className="hm-facts"') > about.indexOf('Backup Project (.draftline)'), 'below the backup box');
   });
 
   it('the story has comfortable line height and the About pane scrolls inside the dialog', () => {
