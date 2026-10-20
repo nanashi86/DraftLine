@@ -15,11 +15,18 @@ describe('About DraftLine', () => {
       return i;
     };
     const order = [
-      at('className="hm-name"'), at('className="hm-version"'), at('A fast, distraction-free screenwriting app'),
+      at('className="hm-name"'), at('className="hm-version"'), at('A fast, distraction‑free screenwriting app using Courier Prime at 12 pt.'),
       at('className="hm-origin"'), at('Backup Project (.draftline)'), at('<dt>Storage</dt>'), at('<dt>Last saved</dt>'),
       at('<dt>This script</dt>'), at('<dt>Protected</dt>'), at('Everything runs locally'),
     ];
     for (let i = 1; i < order.length; i++) assert.ok(order[i] > order[i - 1], `item ${i} out of order`);
+  });
+
+  it('the description: Courier Prime at 12 pt, native .draftline, Fountain or Final Draft', () => {
+    const p = about.slice(about.indexOf('<p>'), about.indexOf('</p>'));
+    assert.equal(text(p).trim(), 'A fast, distraction‑free screenwriting app using Courier Prime at 12 pt. Projects save in '
+      + 'DraftLine’s native .draftline format and export to Fountain or Final Draft (.fdx).');
+    assert.match(p, /native <b>\.draftline<\/b> format/);
   });
 
   it('the Origin Story reads exactly as written', () => {
@@ -27,10 +34,12 @@ describe('About DraftLine', () => {
     const story = text(block.slice(block.indexOf('<p>'))).trim();
     assert.equal(story, 'I began storytelling at eight on my father’s electric typewriter. Decades later, while writing '
       + 'my first feature, What Happened to Haiti?, I refused to pay bloated subscriptions and manually drafted all six '
-      + 'drafts in raw Google Docs. That grind taught me structure and what features writers actually need. So I teamed '
+      + 'drafts in raw Google Docs. That grind taught me structure and what feature writers actually need. So I teamed '
       + 'up with my AI buddies to build DraftLine: an independent, distraction-free tool with dramatic architecture '
       + 'built right in.');
     assert.match(block, /<h3 id="hm-origin-title">Origin Story<\/h3>/);
+    assert.match(block, /my first\s+feature, <em>What Happened to Haiti\?<\/em>, I refused/, 'the screenplay title is italic');
+    assert.ok(!/features writers/.test(block));
   });
 
   it('the facts list leads with "Created by: Eric Lemaire Jr.", then the five storage rows, all one label width', () => {
