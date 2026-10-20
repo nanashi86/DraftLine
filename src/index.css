@@ -57,3 +57,22 @@ button { font-family: inherit; }
 
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .el-input:focus-visible { outline: none; }
+
+/* ---- Midnight page: dark paper, soft light ink, on screen only. Scoped to the app, so the
+   print view (a sibling of .app) never inherits it: print and PDF stay black on white. ---- */
+.app[data-canvas='midnight'] {
+  --paper: #1f1f22;          /* between #1c1c1e and #242426 */
+  --ink: #e4e4e7;
+  --caret: #e8836b;
+  --placeholder: #6e6e76;
+  --selection: #5a3a31;
+  --scene-no: #8e8e96;
+  --active-rule: #7a4537;
+  --highlight: #4d4322;
+  --dual-tag: #e8b6a6;
+  --dual-tag-bg: #3b2a25;
+  --fmt-ink: #8fd0d6;
+  --fmt-tag: #8fd0d6;
+  --fmt-tag-bg: #1f3a3c;
+  --paper-shadow: 0 0 0 1px #2e2e33, 0 10px 40px rgba(0, 0, 0, 0.45);
+}

@@ -109,6 +109,12 @@ function characterSuggestions(block, blocks) {
     .map((n) => ({ label: n, value: n, kind: 'Character' }));
 }
 
+/**
+ * Does accepting a suggestion with `key` move on? A character name, with Enter or Tab, goes
+ * straight to its Dialogue line; a scene heading stays put (Tab just completes it).
+ */
+export const acceptAdvances = (block, key) => key === 'Enter' || (key === 'Tab' && block?.type === 'character');
+
 export function getSuggestions(block, blocks) {
   if (!block) return [];
   if (block.type === 'scene') return sceneSuggestions(block, blocks);

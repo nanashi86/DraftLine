@@ -17,9 +17,14 @@
   .app { display: none !important; }
 
   .print-root {
+    /* Always black on white, whatever the page colour on screen */
     --in: 1in;
     --ink: #000;
+    --paper: #fff;
+    --fmt-ink: #000;
     --scene-no: #000;
+    color: #000;
+    background: #fff;
     display: block;
   }
 

@@ -16,13 +16,16 @@ Each line is a screenplay element. The status bar always shows where Enter and T
 | Scene Heading | Action         | Action                                  |
 | Action        | Action         | Character (new cue below)               |
 | Character     | Dialogue       | Transition (when empty)                 |
-| Dialogue      | Character      | Parenthetical (inserted at the caret)   |
+| Dialogue      | Dialogue       | Parenthetical (inserted at the caret)   |
 | Parenthetical | Dialogue       | Dialogue                                |
-| Transition    | Scene Heading  | Scene Heading                           |
+| Transition    | Action         | Scene Heading                           |
 | Format Cue    | Action         | Action                                  |
 | Centered      | Action         | Action                                  |
 
-- **Enter on an empty** Character / Dialogue / Parenthetical / Transition turns it into Action.
+- **Enter on an empty** Character / Dialogue / Parenthetical / Transition turns it into Action — so after a line of
+  dialogue, **Enter** starts another Dialogue paragraph and **Enter, Enter** steps out of the speech into Action
+  (then **Tab** for the next Character).
+- Typing **(** at the start of an empty Dialogue line makes it a Parenthetical — `()` with the caret inside.
 - **Shift+Tab** cycles the type backwards; **Alt+1…8** sets it directly.
 - **Shift+Enter** adds a line break inside Action or Dialogue.
 - **Backspace** or **Delete** on an empty element removes it. An empty first element is removed and the next one
@@ -76,7 +79,7 @@ Title page fields accept the same Markdown emphasis on the cover, in print and i
 
 - **Scene Headings** suggest `INT.` / `EXT.` / `INT./EXT.` (typed `INT/EXT`, `EXT./INT.`, `I/E` and their variants still work), then locations you've already used, then times of day.
 - **Character** cues suggest names already in the script as soon as you type a letter; type `(` for `(V.O.)`, `(O.S.)`, `(CONT'D)`.
-- **↑/↓** move through suggestions, **Tab** accepts, **Enter** accepts (and on a Character cue, drops you into Dialogue), **Esc** dismisses.
+- **↑/↓** move through suggestions, **Enter** or **Tab** accepts — on a Character cue either one drops you straight into its Dialogue line; on a Scene Heading **Tab** completes it in place — and **Esc** dismisses. Suggestions are computed in memory from the open script, with no network or library involved.
 
 ### Pages
 
@@ -138,6 +141,10 @@ the page auto-fits its half) and **Board** (full-width).
 - **Act 2 lane memory:** every card remembers whether it's 2A or 2B, so switching **3 Acts ↔ 4 Acts** never moves a
   card — the Midpoint divider you set in the 3-Act view is exactly where 2A ends in the 4-Act view. Placing scenes in
   the 3-Act view gives Act 2 scenes their lane from the 50% page.
+- **Pacing badges.** Once the board has scene cards, each act column's header shows how many pages its scenes add up
+  to and their share of the whole script — e.g. `24 pgs · 25%` (scene lengths are counted from heading to heading,
+  in eighths of a page). A dot appears when an act is more than 7 points off the usual share: 25 / 50 / 25 % in 3-Act
+  view, 25 % each in 4-Act — so an Act 1 above 32 % gets flagged. Hover for the details.
 - **Restructure the script from the board.** Dragging a scene card (one made by **Populate from Script**, linked to
   its scene) — or moving it with the arrow keys — moves that whole scene in the screenplay: the heading and everything
   up to the next heading (action, dialogue, parentheticals, transitions, notes, formatting) travels together. The
@@ -253,6 +260,9 @@ nothing uploaded, works offline). Click the title's **▾** or the **D** logo (o
   overwrites: if that project is already in your library, the backup comes in beside it. Your own dictionary wording
   always wins over the backup's. Scripts live in each browser's own storage, so this is also how you move projects
   between your local DraftLine and the published one.
+- **Page colour** (status bar, or the top-right corner in Focus mode): **Paper** — the classic ivory page with black
+  ink — or **Midnight**, a dark page (#1f1f22) with soft light text (#e4e4e7) that matches the app around it.
+  Remembered in this browser (`draftline_canvas_theme`). Printing and PDFs are always black on white either way.
 - **Export** has four sections: **Screenplay** (Fountain `.fountain`, Final Draft `.fdx`), **Beat outline** (Fountain
   outline, Markdown), **Document** (**Print Script / PDF**, also **Ctrl+P** — a paginated PDF with the title page as
   page 0; page 1 is unnumbered, pages 2 onward carry a right-aligned "2.", "3." …) and **Project** (**Backup

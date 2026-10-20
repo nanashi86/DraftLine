@@ -18,6 +18,7 @@ import ProjectBibleDrawer from './components/ProjectBibleDrawer.jsx';
 import RenameCharacterModal from './components/RenameCharacterModal.jsx';
 import { renameCharacter, revertRename } from './lib/renameCharacter.js';
 import { moveCardAndScene } from './lib/sceneSync.js';
+import { canvasThemeInfo, nextCanvasTheme, readCanvasTheme, writeCanvasTheme } from './lib/canvasTheme.js';
 import { mergeDictionary } from './lib/structureDictionary.js';
 import { characterTabFromPrefs, closeDock, dockFromPrefs, openDock, toggleDock } from './lib/dock.js';
 import { DEFAULT_BIBLE_TAB } from './lib/bible.js';
@@ -35,6 +36,7 @@ import {
   buildItems,
   flowHints,
   formatEighths,
+  linesToEighths,
   makeBlock,
   paginate,
 } from './lib/screenplay.js';
@@ -198,6 +200,14 @@ function Workspace({ boot }) {
   const [fmtState, setFmtState] = useState({ b: false, i: false, u: false, s: false }); // toolbar B I U S
   const [helpKind, setHelpKind] = useState(null); // 'shortcuts' | 'about' while that dialog is open
   const [printing, setPrinting] = useState(false);
+  // Page colour: Paper (default) or Midnight — on screen only; print is always black on white.
+  const [canvasTheme, setCanvasTheme] = useState(() => readCanvasTheme());
+  const toggleCanvasTheme = () => {
+    const next = nextCanvasTheme(canvasTheme);
+    setCanvasTheme(next);
+    writeCanvasTheme(next);
+  };
+  const themeNext = canvasThemeInfo(nextCanvasTheme(canvasTheme));
   const barRef = useRef(null);
   const charactersBtnRef = useRef(null);
   const bibleBtnRef = useRef(null);
@@ -265,6 +275,7 @@ function Workspace({ boot }) {
         heading: items[k].block.text.trim(),
         page: pl.page + 1,
         length: formatEighths(Math.max(1, nextPos - pl.pos)),
+        eighths: linesToEighths(Math.max(1, nextPos - pl.pos)), // length in eighths of a page (Beat Board pacing)
         snippet,
       };
     });
@@ -827,6 +838,7 @@ function Workspace({ boot }) {
           navVisible ? 'nav-open' : '',
           focusMode ? 'focus-mode' : '',
         ].filter(Boolean).join(' ')}
+        data-canvas={canvasTheme}
       >
         <header className="bar" ref={barRef}>
           {/* 1 · Identity & metadata */}
@@ -1131,6 +1143,16 @@ function Workspace({ boot }) {
           <span title="54 lines per page">
             {currentPage && showEditor ? `p. ${currentPage} of ${layout.pageCount}` : `${layout.pageCount} ${layout.pageCount === 1 ? 'page' : 'pages'}`}
           </span>
+          <button
+            type="button"
+            className={`mini status-canvas is-${canvasTheme}`}
+            onClick={toggleCanvasTheme}
+            title={`Page colour: ${canvasThemeInfo(canvasTheme).label}. Switch to ${themeNext.label} — ${themeNext.hint}`}
+            aria-label={`Page colour: ${canvasThemeInfo(canvasTheme).label}. Switch to ${themeNext.label}`}
+          >
+            <span className="canvas-swatch" aria-hidden="true" />
+            {canvasThemeInfo(canvasTheme).label}
+          </button>
           <span className="status-history">
             <button className="mini" onClick={undo} disabled={!canUndo} title="Undo script edit (Ctrl+Z)">↶</button>
             <button className="mini" onClick={redo} disabled={!canRedo} title="Redo (Ctrl+Shift+Z)">↷</button>
@@ -1149,7 +1171,12 @@ function Workspace({ boot }) {
         </footer>
 
         {focusMode && (
-          <button className="focus-exit" onClick={() => setFocusMode(false)}>Exit focus · Esc</button>
+          <div className="focus-controls">
+            <button type="button" className="focus-exit" onClick={toggleCanvasTheme} title={`Switch to ${themeNext.label}`}>
+              {themeNext.label}
+            </button>
+            <button type="button" className="focus-exit" onClick={() => setFocusMode(false)}>Exit focus · Esc</button>
+          </div>
         )}
         {toast && <div className="toast" role="status">{toast}</div>}
 

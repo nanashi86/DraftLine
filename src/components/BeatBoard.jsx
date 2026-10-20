@@ -1,9 +1,9 @@
-import { Fragment, memo, useCallback, useEffect, useRef, useState } from 'react';
+import { Fragment, memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import AutoTextarea from './AutoTextarea.jsx';
 import Menu from './Menu.jsx';
 import SceneRangeModal from './SceneRangeModal.jsx';
 import {
-  TAGS, byAct, formatPageTargets, moveBeat, newBeat, populateByPages, populateByRanges, structureFor,
+  TAGS, actPacing, byAct, formatPageTargets, moveBeat, newBeat, populateByPages, populateByRanges, structureFor,
 } from '../lib/beats.js';
 import './BeatBoard.css';
 
@@ -221,6 +221,9 @@ export default function BeatBoard({
     if (mode !== actMode) onActModeChange(mode);
   };
 
+  // Pacing badges: pages and share of the script per column, from the scene cards in it.
+  const pacing = useMemo(() => actPacing(beats, scenes, actMode), [beats, scenes, actMode]);
+
   const targets = formatPageTargets(actMode, pageCount);
   const populateItems = [
     { heading: `${actMode} Acts · ${scenes.length} ${scenes.length === 1 ? 'scene' : 'scenes'} · ${pageCount} ${pageCount === 1 ? 'page' : 'pages'}` },
@@ -346,7 +349,8 @@ export default function BeatBoard({
       </header>
 
       <div className="board-cols" style={{ '--cols': structure.length }}>
-        {structure.map((colDef) => {
+        {structure.map((colDef, ci) => {
+          const pace = pacing[ci];
           const count = colDef.acts.reduce((t, a) => t + acts[a].length, 0);
           const over = !!(dragId && drop && colDef.acts.includes(drop.act));
           return (
@@ -379,6 +383,13 @@ export default function BeatBoard({
                 <span className="col-act">{colDef.label}</span>
                 <span className="col-name">{colDef.name}</span>
                 <span className="col-count">{count}</span>
+                {pace && (
+                  <span className={`col-pace is-${pace.status}`} title={pace.note}>
+                    {(pace.status === 'long' || pace.status === 'short') && <span className="pace-dot" aria-hidden="true" />}
+                    {pace.status === 'none' ? '— pgs · 0%' : pace.label}
+                    {(pace.status === 'long' || pace.status === 'short') && <span className="sr-only"> — {pace.note}</span>}
+                  </span>
+                )}
               </header>
               <div className="col-list">
                 {colDef.acts.map((a, si) => {

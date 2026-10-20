@@ -9,15 +9,17 @@ import {
   ENTER_NEXT,
   SHIFT_TAB_NEXT,
   TAB_NEXT,
+  enterFlow,
   isBlank,
   lineIndexOf,
   makeBlock,
+  opensParenthetical,
   pageLabel,
   toggleDualAt,
   wrapOffsets,
 } from '../lib/screenplay.js';
 import { elementForCode } from '../lib/shortcuts.js';
-import { getSuggestions } from '../lib/autocomplete.js';
+import { acceptAdvances, getSuggestions } from '../lib/autocomplete.js';
 import FormattedText from './FormattedText.jsx';
 import {
   STYLES, activeStyles, clearMarks, hasMarks, sliceMarks, targetRange, toggleStyle, withMarks,
@@ -25,7 +27,6 @@ import {
 import './Editor.css';
 
 /** Types where a blank block + Enter falls back to Action (Fade In-style escape hatch). */
-const ENTER_ESCAPES_TO_ACTION = new Set(['character', 'dialogue', 'parenthetical', 'transition', 'format_cue', 'centered']);
 /** Types that allow a soft line break with Shift+Enter. */
 const SOFT_BREAK_TYPES = new Set(['action', 'dialogue']);
 
@@ -610,7 +611,8 @@ export default function Editor({
       }
       if ((e.key === 'Enter' || e.key === 'Tab') && !e.shiftKey && !e.nativeEvent.isComposing) {
         e.preventDefault();
-        acceptSuggestion(ac.list[ac.index], e.key === 'Enter');
+        // A character name moves on to its Dialogue line (Enter or Tab); a heading stays put on Tab.
+        acceptSuggestion(ac.list[ac.index], acceptAdvances(b, e.key));
         return;
       }
       if (e.key === 'Escape') {
@@ -644,6 +646,13 @@ export default function Editor({
       return;
     }
 
+    // "(" at the start of an empty Dialogue line: it's a Parenthetical — "()" with the caret inside.
+    if (!mod && !e.altKey && opensParenthetical(b, e.key) && start === end) {
+      e.preventDefault();
+      commit(splice(cur, idx, 1, { ...b, type: 'parenthetical', text: '()' }), { id: b.id, caret: 1 });
+      return;
+    }
+
     // Alt+D: dual dialogue
     if (e.altKey && !mod && e.code === 'KeyD') {
       e.preventDefault();
@@ -657,7 +666,7 @@ export default function Editor({
         e.preventDefault();
         if (e.nativeEvent.isComposing) return;
 
-        if (isBlank(text) && ENTER_ESCAPES_TO_ACTION.has(b.type)) {
+        if (enterFlow(b).convertTo) { // an empty Dialogue / Character … line steps out to Action
           setTypeAt(idx, 'action', 0);
           return;
         }

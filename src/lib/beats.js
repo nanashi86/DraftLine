@@ -337,3 +337,53 @@ export function populateByRanges(beats, scenes, mode, inputs, totalPages) {
   if (!v.ok) return { error: v.errors.join(' · ') };
   return populateBeats(beats, scenes, mode, (s) => v.columnOfScene.get(s.number), totalPages);
 }
+
+// ---- Act pacing ----------------------------------------------------------------------------
+//
+// Each column's badge: how many pages its scene cards add up to, and what share of the
+// script that is ("24 pgs · 25%"). A scene's length runs from its heading to the next one,
+// in eighths of a page. Guidelines: 3 acts ≈ 25 / 50 / 25 %, 4 acts ≈ 25 % each; a column
+// more than PACING_TOLERANCE points away from its share gets a status dot.
+
+export const PACING_TARGETS = { 3: [25, 50, 25], 4: [25, 25, 25, 25] };
+export const PACING_TOLERANCE = 7; // percentage points — e.g. Act 1 above 32 % is flagged
+
+/** "24 pgs", "1 pg", "1.5 pgs", "6/8 pg" for a length in eighths. */
+export function formatPacingPages(eighths) {
+  if (eighths < 8) return `${eighths}/8 pg`;
+  const pages = Math.round((eighths / 8) * 10) / 10;
+  return `${pages} ${pages === 1 ? 'pg' : 'pgs'}`;
+}
+
+/**
+ * Per visible column: { pages, eighths, pct, target, scenes, status, label, note }.
+ *   scenes — [{ id, eighths }] in script order (every scene, so the % is of the whole script)
+ * status: 'none' (no scene cards here), 'ok', 'long' or 'short'. Returns [] while the board
+ * has no scene cards at all — there's nothing to pace yet.
+ */
+export function actPacing(beats, scenes, mode = 4) {
+  const len = new Map(scenes.map((s) => [s.id, Math.max(0, s.eighths || 0)]));
+  const total = [...len.values()].reduce((a, b) => a + b, 0);
+  const cols = structureFor(mode);
+  const linked = beats.filter((b) => b.sceneId && len.has(b.sceneId));
+  if (!linked.length || !total) return [];
+  const targets = PACING_TARGETS[mode] || PACING_TARGETS[4];
+  return cols.map((col, i) => {
+    const seen = new Set();
+    let eighths = 0;
+    for (const b of linked) {
+      if (!col.acts.includes(b.act) || seen.has(b.sceneId)) continue;
+      seen.add(b.sceneId);
+      eighths += len.get(b.sceneId);
+    }
+    const pct = Math.round((eighths / total) * 100);
+    const target = targets[i];
+    const status = !seen.size ? 'none' : pct > target + PACING_TOLERANCE ? 'long' : pct < target - PACING_TOLERANCE ? 'short' : 'ok';
+    const note = status === 'long'
+      ? `${col.label} runs ${pct}% of the script — the usual share is about ${target}%`
+      : status === 'short'
+        ? `${col.label} is ${pct}% of the script — the usual share is about ${target}%`
+        : status === 'ok' ? `${col.label}: ${pct}% of the script (guideline ≈ ${target}%)` : `No scene cards in ${col.label} yet`;
+    return { pages: eighths / 8, eighths, pct, target, scenes: seen.size, status, label: `${formatPacingPages(eighths)} · ${pct}%`, note };
+  });
+}

@@ -32,14 +32,19 @@ export const PAGE_LINES = 54;
 /** Page number label for the 0-based page `p`: page 1 is unnumbered, then "2.", "3." … */
 export const pageLabel = (p) => (p > 0 ? `${p + 1}.` : '');
 
-/** Element created when pressing Enter at the end of a block. */
+/**
+ * Element created when pressing Enter at the end of a block. Dialogue continues as Dialogue
+ * (a second paragraph of the same speech); Enter on that new, empty line steps out to Action
+ * — so "Enter, Enter" ends a speech. Any empty Character / Dialogue / Parenthetical /
+ * Transition / Format Cue / Centered line turns into Action on Enter.
+ */
 export const ENTER_NEXT = {
   scene: 'action',
   action: 'action',
   character: 'dialogue',
   parenthetical: 'dialogue',
-  dialogue: 'character',
-  transition: 'scene',
+  dialogue: 'dialogue',
+  transition: 'action',
   format_cue: 'action',
   centered: 'action',
 };
@@ -72,6 +77,18 @@ export const isClosingCue = (b) => b?.type === 'format_cue' && /^\s*END\b/i.test
 
 /** Elements that stay on the page of whatever precedes them. */
 const keepsWithPrevious = (item) => item.type === 'transition' || item.type === 'centered' || isClosingCue(item.block);
+
+/** Empty lines of these types become Action on Enter (step out of a speech, a transition …). */
+export const ENTER_EMPTY_TO_ACTION = new Set(['character', 'dialogue', 'parenthetical', 'transition', 'format_cue', 'centered']);
+
+/** What Enter does on `block` with the caret at the end: { convertTo } for an empty line, else { next }. */
+export function enterFlow(block) {
+  if (isBlank(block.text) && ENTER_EMPTY_TO_ACTION.has(block.type)) return { convertTo: 'action' };
+  return { next: ENTER_NEXT[block.type] };
+}
+
+/** Typing "(" at the start of an empty Dialogue line makes it a Parenthetical "()" (caret inside). */
+export const opensParenthetical = (block, key) => key === '(' && block?.type === 'dialogue' && block.text.trim() === '';
 
 export function flowHints(type) {
   const enter = ELEMENT_META[ENTER_NEXT[type]].label;
@@ -402,8 +419,11 @@ export function paginate(items, measured = {}) {
 }
 
 /** "1 3/8" style scene lengths, rounded up to the nearest eighth (min 1/8). */
+/** Screenplay lines → eighths of a page (at least 1), the way scene lengths are counted. */
+export const linesToEighths = (lines) => Math.max(1, Math.ceil((lines / PAGE_LINES) * 8 - 0.01));
+
 export function formatEighths(lines) {
-  const eighths = Math.max(1, Math.ceil((lines / PAGE_LINES) * 8 - 0.01));
+  const eighths = linesToEighths(lines);
   const whole = Math.floor(eighths / 8);
   const rem = eighths % 8;
   if (!whole) return `${rem}/8`;

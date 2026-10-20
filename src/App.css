@@ -373,6 +373,18 @@
 .mini:disabled { opacity: 0.35; cursor: default; }
 .zoom-val { font-size: 11px; min-width: 40px; }
 
+/* Page colour toggle: a swatch of the current page, then its name */
+.status-canvas { display: inline-flex; align-items: center; gap: 6px; padding: 0 7px; font-size: 11.5px; color: var(--muted); }
+.status-canvas:hover { color: var(--text); }
+.canvas-swatch {
+  width: 11px;
+  height: 11px;
+  border-radius: 3px;
+  border: 1px solid var(--line-soft);
+  background: #fdfcf8;
+}
+.status-canvas.is-midnight .canvas-swatch { background: #202023; border-color: #55555c; }
+
 .icon-btn {
   width: 28px;
   height: 28px;
@@ -391,10 +403,8 @@
 .focus-mode .status { display: none; }
 .focus-mode .scroller { padding-top: 60px; }
 .focus-mode .el.is-active::before { background: transparent; }
+.focus-controls { position: fixed; top: 12px; right: 16px; display: flex; gap: 6px; z-index: 40; }
 .focus-exit {
-  position: fixed;
-  top: 12px;
-  right: 16px;
   padding: 6px 10px;
   border: 1px solid var(--line-soft);
   border-radius: 6px;
