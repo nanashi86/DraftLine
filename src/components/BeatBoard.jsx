@@ -129,7 +129,7 @@ const MODES = [
 ];
 
 export default function BeatBoard({
-  beats, onChange, onExport, compact, actMode = 4, onActModeChange, scenes = [], pageCount = 1, onJump,
+  beats, onChange, onMoveCard, onExport, compact, actMode = 4, onActModeChange, scenes = [], pageCount = 1, onJump,
 }) {
   const [dragId, setDragId] = useState(null);
   const [drop, setDrop] = useState(null); // { act, index } — act is always one of the four underlying acts
@@ -275,8 +275,9 @@ export default function BeatBoard({
       index = Math.min(idx, byA[act].length);
     }
     pendingGrip.current = id;
-    onChange(moveBeat(cur, id, act, index));
-  }, [onChange]);
+    if (onMoveCard) onMoveCard(id, act, index);
+    else onChange(moveBeat(cur, id, act, index));
+  }, [onChange, onMoveCard]);
 
   /** Which underlying act and position the pointer is over inside a column. */
   const dropTargetFor = (colEl, colDef, clientY) => {
@@ -365,7 +366,11 @@ export default function BeatBoard({
               onDrop={(e) => {
                 e.preventDefault();
                 const id = dragId || e.dataTransfer.getData('text/plain');
-                if (id && drop) onChange(moveBeat(beatsRef.current, id, drop.act, drop.index));
+                if (id && drop) {
+                  // A scene card moves its scene in the script too (App → sceneSync.js).
+                  if (onMoveCard) onMoveCard(id, drop.act, drop.index);
+                  else onChange(moveBeat(beatsRef.current, id, drop.act, drop.index));
+                }
                 setDragId(null);
                 setDrop(null);
               }}

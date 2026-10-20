@@ -17,6 +17,7 @@ import ProjectsDrawer from './components/ProjectsDrawer.jsx';
 import ProjectBibleDrawer from './components/ProjectBibleDrawer.jsx';
 import RenameCharacterModal from './components/RenameCharacterModal.jsx';
 import { renameCharacter, revertRename } from './lib/renameCharacter.js';
+import { moveCardAndScene } from './lib/sceneSync.js';
 import { mergeDictionary } from './lib/structureDictionary.js';
 import { closeDock, dockFromPrefs, openDock, toggleDock } from './lib/dock.js';
 import { DEFAULT_BIBLE_TAB } from './lib/bible.js';
@@ -42,7 +43,7 @@ import { isOnBar, moreMenuItems } from './lib/toolbar.js';
 import { newProjectMeta, rememberAuthorDefaults } from './lib/authorDefaults.js';
 import { parseFountain, toFountain } from './lib/fountain.js';
 import { parseFDX, toFDX } from './lib/fdx.js';
-import { beatsToFountain, beatsToMarkdown, sampleBeats } from './lib/beats.js';
+import { beatsToFountain, beatsToMarkdown, byAct, moveBeat, sampleBeats } from './lib/beats.js';
 import { SAMPLE_SCRIPT } from './lib/sampleScript.js';
 import './App.css';
 
@@ -475,6 +476,34 @@ function Workspace({ boot }) {
 
   const loadSample = () => openAsNewProject(sampleDoc(), 'Sample script added to your Projects');
 
+  // ---- Beat Board → script: moving a scene card moves its scene (one undo step) ----
+  const moveCard = (id, act, index) => {
+    const s = latest.current;
+    const r = moveCardAndScene(s.beats, s.blocks, id, act, index);
+    if (!r.scriptMoved) {
+      setBeats(r.beats); // your own cards, or a move that keeps the scene order: board only
+      return;
+    }
+    const before = s.beats;
+    const after = r.beats;
+    const old = before.find((b) => b.id === id);
+    const oldIndex = byAct(before)[old.act].indexOf(old);
+    // Script and board change together; Ctrl+Z / Ctrl+Shift+Z take both back and forth.
+    set(r.blocks, null, {
+      undo: () => {
+        const cur = latest.current.beats;
+        setBeats(cur === after ? before : moveBeat(cur, id, old.act, oldIndex));
+      },
+      redo: () => {
+        const cur = latest.current.beats;
+        setBeats(cur === before ? after : moveBeat(cur, id, act, index));
+      },
+    });
+    setBeats(after);
+    const heading = r.blocks.find((b) => b.id === old.sceneId)?.text.trim() || 'Scene';
+    notify(`Moved ${heading} in the script · Ctrl+Z to undo`);
+  };
+
   // ---- Rename a character everywhere (one undo step) ----
   const [renameFrom, setRenameFrom] = useState(null); // the name being renamed, while the review is open
   const renameSource = useMemo(
@@ -746,8 +775,9 @@ function Workspace({ boot }) {
         setFocusMode(false);
       } else if (mod && !e.defaultPrevented && !titleOpen && !importSeed && !doctorOpen && !renameFrom
         && (e.key.toLowerCase() === 'z' || e.key.toLowerCase() === 'y')
-        // Script undo applies to the editor and the Dialogue panel, not to text fields on the board/toolbar.
-        && !['INPUT', 'SELECT'].includes(t.tagName) && !t.closest?.('.board')) {
+        // Script undo covers the editor, the Dialogue panel and Beat Board moves (focus on a card's grip
+        // or the board itself) — but a card's own title / synopsis text keeps the browser's text undo.
+        && !['INPUT', 'SELECT'].includes(t.tagName) && !(t.tagName === 'TEXTAREA' && t.closest?.('.board'))) {
         e.preventDefault();
         if (e.key.toLowerCase() === 'y' || e.shiftKey) redo(); else undo();
       }
@@ -1032,6 +1062,7 @@ function Workspace({ boot }) {
               key={projectId}
               beats={beats}
               onChange={setBeats}
+              onMoveCard={moveCard}
               onExport={exportOutline}
               compact={view === 'split'}
               actMode={actMode}

@@ -137,6 +137,13 @@ the page auto-fits its half) and **Board** (full-width).
 - **Act 2 lane memory:** every card remembers whether it's 2A or 2B, so switching **3 Acts ↔ 4 Acts** never moves a
   card — the Midpoint divider you set in the 3-Act view is exactly where 2A ends in the 4-Act view. Placing scenes in
   the 3-Act view gives Act 2 scenes their lane from the 50% page.
+- **Restructure the script from the board.** Dragging a scene card (one made by **Populate from Script**, linked to
+  its scene) — or moving it with the arrow keys — moves that whole scene in the screenplay: the heading and everything
+  up to the next heading (action, dialogue, parentheticals, transitions, notes, formatting) travels together. The
+  scene lands right after the scene of the nearest scene card above it on the board. Scene numbers, the Scenes list
+  and generated card titles ("2. INT. FERRY - DAY") renumber; titles you've rewritten are left alone. Your own cards
+  (no scene) move on the board only, `FADE IN:` stays first and a closing `FADE OUT.` / `THE END` stays last. One
+  **Ctrl+Z** puts back both the board and the script.
 - Cards autosave with the script, in the project's record.
 
 ## Dialogue
