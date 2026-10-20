@@ -15,6 +15,8 @@ import { useHistory } from './hooks/useHistory.js';
 import HelpModal from './components/HelpModal.jsx';
 import ProjectsDrawer from './components/ProjectsDrawer.jsx';
 import ProjectBibleDrawer from './components/ProjectBibleDrawer.jsx';
+import RenameCharacterModal from './components/RenameCharacterModal.jsx';
+import { renameCharacter, revertRename } from './lib/renameCharacter.js';
 import { mergeDictionary } from './lib/structureDictionary.js';
 import { closeDock, dockFromPrefs, openDock, toggleDock } from './lib/dock.js';
 import { DEFAULT_BIBLE_TAB } from './lib/bible.js';
@@ -469,6 +471,42 @@ function Workspace({ boot }) {
 
   const loadSample = () => openAsNewProject(sampleDoc(), 'Sample script added to your Projects');
 
+  // ---- Rename a character everywhere (one undo step) ----
+  const [renameFrom, setRenameFrom] = useState(null); // the name being renamed, while the review is open
+  const renameSource = useMemo(
+    () => ({ blocks, beats, characters, storyNotes, storyDna }),
+    [blocks, beats, characters, storyNotes, storyDna],
+  );
+  const renameCharacterEverywhere = (oldName, newName, categories) => {
+    const s = latest.current;
+    const before = { blocks: s.blocks, beats: s.beats, characters: s.characters, storyNotes: s.storyNotes, storyDna: s.storyDna };
+    const { project: after, changed, total } = renameCharacter(before, oldName, newName, categories);
+    if (!total) return;
+    const applyAux = (direction) => {
+      const cur = latest.current;
+      const next = revertRename(
+        { beats: cur.beats, characters: cur.characters, storyNotes: cur.storyNotes, storyDna: cur.storyDna }, changed, direction,
+      );
+      setBeats(next.beats);
+      setCharacters(next.characters);
+      setStoryNotes(next.storyNotes);
+      setStoryDna(next.storyDna);
+    };
+    // The script step carries the board / Bible changes, so one Ctrl+Z undoes everything.
+    set(after.blocks === before.blocks ? before.blocks.slice() : after.blocks, null, {
+      undo: () => applyAux('undo'),
+      redo: () => applyAux('redo'),
+    });
+    setBeats(after.beats);
+    setCharacters(after.characters);
+    setStoryNotes(after.storyNotes);
+    setStoryDna(after.storyDna);
+    const oldCue = oldName.trim().toUpperCase();
+    setSelectedChar((c) => (c && c.toUpperCase() === oldCue ? newName.trim().toUpperCase() : c));
+    setRenameFrom(null);
+    notify(`Renamed ${oldName.trim()} → ${newName.trim()} · ${total} ${total === 1 ? 'change' : 'changes'} · Ctrl+Z to undo`);
+  };
+
   // ---- Backup (.draftline): the whole project, restorable with nothing lost ----
   const downloadBackup = (rec) => {
     const name = backupFileName(rec.title);
@@ -702,7 +740,7 @@ function Workspace({ boot }) {
         cycleView();
       } else if (e.key === 'Escape' && focusMode && !titleOpen && !importSeed && !doctorOpen) {
         setFocusMode(false);
-      } else if (mod && !e.defaultPrevented && !titleOpen && !importSeed && !doctorOpen
+      } else if (mod && !e.defaultPrevented && !titleOpen && !importSeed && !doctorOpen && !renameFrom
         && (e.key.toLowerCase() === 'z' || e.key.toLowerCase() === 'y')
         // Script undo applies to the editor and Tuner, not to text fields on the board/toolbar.
         && !['INPUT', 'SELECT'].includes(t.tagName) && !t.closest?.('.board')) {
@@ -712,7 +750,7 @@ function Workspace({ boot }) {
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [focusMode, titleOpen, importSeed, doctorOpen, notify, undo, redo, cycleView, saveNow]);
+  }, [focusMode, titleOpen, importSeed, doctorOpen, renameFrom, notify, undo, redo, cycleView, saveNow]);
 
   const hints = activeBlock ? flowHints(activeBlock.type) : null;
   const currentSceneId = activeId ? analysis.sceneOfBlock[activeId] : null;
@@ -1008,6 +1046,7 @@ function Workspace({ boot }) {
           onEditText={updateBlockText}
           onJump={jumpTo}
           onHover={setHoverId}
+          onRename={setRenameFrom}
           onClose={() => setDock((d) => closeDock(d, 'tuner'))}
         />
 
@@ -1067,6 +1106,7 @@ function Workspace({ boot }) {
           onClose={() => setDock((d) => closeDock(d, 'bible'))}
           tab={bibleTab}
           onTabChange={setBibleTab}
+          onRenameCharacter={setRenameFrom}
           projectTitle={meta.title}
           characters={characters}
           onCharactersChange={setCharacters}
@@ -1122,6 +1162,15 @@ function Workspace({ boot }) {
             onImport={importScript}
             onBackup={restoreBackup}
             onClose={() => setImportSeed(null)}
+          />
+        )}
+        {renameFrom && (
+          <RenameCharacterModal
+            oldName={renameFrom}
+            project={renameSource}
+            speakers={speakers}
+            onConfirm={(newName, categories) => renameCharacterEverywhere(renameFrom, newName, categories)}
+            onClose={() => setRenameFrom(null)}
           />
         )}
         {titleOpen && (

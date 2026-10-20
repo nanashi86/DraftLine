@@ -16,6 +16,7 @@ export default function DialogueTuner({
   onEditText,
   onJump,
   onHover,
+  onRename,
   onClose,
 }) {
   const [showContext, setShowContext] = useState(true);
@@ -65,6 +66,16 @@ export default function DialogueTuner({
               <span><b>{current.words}</b> words</span>
               <span><b>{current.scenes.size}</b> {current.scenes.size === 1 ? 'scene' : 'scenes'}</span>
               <span><b>{current.lines ? Math.round(current.words / current.lines) : 0}</b> avg words/line</span>
+              {onRename && (
+                <button
+                  type="button"
+                  className="tuner-rename"
+                  onClick={() => onRename(current.name)}
+                  title={`Rename ${current.name} across the script, Beat Board and Bible`}
+                >
+                  Rename…
+                </button>
+              )}
             </div>
           )}
 

@@ -65,6 +65,17 @@
   color: var(--muted);
 }
 .tuner-stats b { color: var(--text); font-weight: 600; }
+.tuner-rename {
+  margin-left: auto;
+  padding: 1px 8px;
+  border: 1px solid var(--line-soft);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  cursor: pointer;
+}
+.tuner-rename:hover { color: var(--text); border-color: var(--muted); }
 
 .tuner-tools {
   display: flex;

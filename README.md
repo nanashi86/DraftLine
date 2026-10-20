@@ -219,6 +219,15 @@ nothing uploaded, works offline). Click the title's **▾** or the **D** logo (o
   **misaligned script ending** (`THE END` as left-aligned Action or a Transition; **Center ‘THE END’**), act markers
   and empty elements. Format Cues themselves are never flagged. Review each in a list,
   **Show** it in the page, fix one with its button (e.g. **Convert to Scene Heading**) or **Fix All**; Ctrl+Z undoes.
+- **Rename a character** — **Rename…** in the Dialogue Tuner (for the selected voice) or **Rename across script…**
+  on a Character Bio. A review lists what would change, with counts and before → after examples, in four groups you
+  can switch off: **character cues** (extensions such as `(V.O.)`, `(O.S.)`, `(CONT'D)` and the dual-dialogue `^` are
+  kept), **spoken dialogue mentions** (dialogue and parentheticals), **action & description mentions** (action, scene
+  headings and other direction) and the **Beat Board & Story Bible** (cards, bios, Story Notes, Story DNA). Margin
+  notes go with their element's group. Matching is whole-name and keeps each mention's case — `FITO` → `MARC`,
+  `Fito's` → `Marc's` — and only the name as written, ALL CAPS and Title Case match, so renaming ROSE leaves "a
+  rose" alone; it never touches `FITOS`, `AFITO` or `JEAN-FITO`. The whole rename is one **Ctrl+Z**, script, board
+  and Bible together (anything you edited since is left as it is).
 - **Backup Project** (Export menu, or a project's ⋯ menu in Projects) saves the whole project as one `.draftline`
   file (JSON): every element with its formatting, notes and dual-dialogue flag; the title page including font, size
   and bold; the Beat Board (card order, act columns and Act 2 lanes, colour tags, scene links) and its 3- / 4-Act

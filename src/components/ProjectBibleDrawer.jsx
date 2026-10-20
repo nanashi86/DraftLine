@@ -12,7 +12,7 @@ import './ProjectBibleDrawer.css';
 
 // ---- Character Bios -----------------------------------------------------------------------
 
-function CharacterCard({ c, open, canMove, onToggle, onChange, onMove, onDelete, autoFocus }) {
+function CharacterCard({ c, open, canMove, onToggle, onChange, onMove, onDelete, onRename, autoFocus }) {
   const nameRef = useRef(null);
   useEffect(() => {
     if (autoFocus) nameRef.current?.focus();
@@ -55,6 +55,16 @@ function CharacterCard({ c, open, canMove, onToggle, onChange, onMove, onDelete,
             </label>
           ))}
           <div className="pb-char-foot">
+            {onRename && name && (
+              <button
+                type="button"
+                className="btn pb-rename"
+                onClick={() => onRename(name)}
+                title={`Rename ${name} in cues, dialogue, action, the Beat Board and the Bible`}
+              >
+                Rename across script…
+              </button>
+            )}
             <button type="button" className="btn pb-danger" onClick={onDelete}>Delete character</button>
           </div>
         </div>
@@ -63,7 +73,7 @@ function CharacterCard({ c, open, canMove, onToggle, onChange, onMove, onDelete,
   );
 }
 
-function CharacterBios({ characters, onChange, speakers, onUndoable }) {
+function CharacterBios({ characters, onChange, speakers, onUndoable, onRename }) {
   const [query, setQuery] = useState('');
   const [openId, setOpenId] = useState(null);
   const [focusId, setFocusId] = useState(null);
@@ -129,6 +139,7 @@ function CharacterBios({ characters, onChange, speakers, onUndoable }) {
               onToggle={() => setOpenId((o) => (o === c.id ? null : c.id))}
               onChange={(patch) => onChange(updateCharacter(characters, c.id, patch))}
               onMove={(dir) => onChange(moveCharacter(characters, c.id, dir))}
+              onRename={onRename}
               onDelete={() => {
                 onUndoable(`Deleted ${c.name.trim() || 'character'}`, characters);
                 onChange(removeCharacter(characters, c.id));
@@ -328,7 +339,7 @@ function StoryNotes({ notes, onChange, onUndoable }) {
  */
 export default function ProjectBibleDrawer({
   open, onClose, projectTitle, characters, onCharactersChange, storyNotes, onStoryNotesChange, speakers,
-  storyDna, onStoryDnaChange, dictionary, onDictionaryEdit, tab = DEFAULT_BIBLE_TAB, onTabChange,
+  storyDna, onStoryDnaChange, dictionary, onDictionaryEdit, tab = DEFAULT_BIBLE_TAB, onTabChange, onRenameCharacter,
 }) {
   const [undo, setUndo] = useState(null); // { message, restore }
   const panelRef = useRef(null);
@@ -396,6 +407,7 @@ export default function ProjectBibleDrawer({
             onChange={onCharactersChange}
             speakers={speakers}
             onUndoable={(message, prev) => setUndo({ message, restore: () => onCharactersChange(prev) })}
+            onRename={onRenameCharacter}
           />
         ) : (
           <StoryNotes

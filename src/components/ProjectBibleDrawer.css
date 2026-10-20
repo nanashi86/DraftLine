@@ -128,7 +128,8 @@
 .pb-field textarea { min-height: 56px; }
 .pb-field input:focus,
 .pb-field textarea:focus { border-color: var(--accent); }
-.pb-char-foot { display: flex; justify-content: flex-end; }
+.pb-char-foot { display: flex; justify-content: flex-end; gap: 8px; }
+.pb-rename { margin-right: auto; }
 .pb-danger { color: #f0a090; }
 .pb-danger:hover { background: #b5402c !important; color: #fff; }
 
