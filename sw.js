@@ -9,11 +9,11 @@
    • Google Fonts: cached as they're used (title-page fonts too), served from cache after that.
    • Your scripts never touch this: they live in IndexedDB. Nothing is sent anywhere. */
 
-const VERSION = "1e044c073b05";
+const VERSION = "9ad599260479";
 const PRECACHE = [
   "./",
   "./apple-touch-icon.png",
-  "./assets/index-BxT47KSu.js",
+  "./assets/index-C70ijQ6Y.js",
   "./assets/index-DrkL8gtX.css",
   "./favicon.svg",
   "./icon-192.png",
@@ -42,7 +42,8 @@ async function cacheFonts(cssUrl) {
 self.addEventListener('install', (event) => {
   event.waitUntil((async () => {
     const shell = await caches.open(SHELL_CACHE);
-    await shell.addAll(PRECACHE);
+    // cache: 'reload' skips the browser's HTTP cache, so a redrawn icon (same file name) is fetched fresh.
+    await shell.addAll(PRECACHE.map((u) => new Request(u, { cache: 'reload' })));
     // Fonts are a bonus: offline still works (with fallback fonts) if they can't be fetched now.
     await cacheFonts(CORE_FONTS_CSS).catch(() => null);
     await self.skipWaiting();
