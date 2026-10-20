@@ -19,7 +19,7 @@ function fmtBytes(n) {
 }
 
 /** Keyboard Shortcuts or About DraftLine, from the ⋮ menu. */
-export default function HelpModal({ kind, storage, onClose }) {
+export default function HelpModal({ kind, storage, onBackup, onClose }) {
   const dialogRef = useRef(null);
   const [lib, setLib] = useState({ count: null, persisted: null, usage: null });
 
@@ -84,7 +84,21 @@ export default function HelpModal({ kind, storage, onClose }) {
               <div className="hm-version">Version {pkg.version}</div>
             </div>
           </div>
-          <p>A fast, distraction-free screenwriting app built on Fountain and Final Draft (.fdx), set in Courier Prime 12pt.</p>
+          <p>
+            A fast, distraction-free screenwriting app, set in Courier Prime 12pt. Projects are saved in DraftLine’s
+            own <b>.draftline</b> format and export to Fountain and Final Draft (.fdx).
+          </p>
+          {onBackup && (
+            <div className="hm-backup">
+              <button type="button" className="btn btn-primary" onClick={onBackup}>
+                Backup Project (.draftline)
+              </button>
+              <span>
+                Downloads this script complete — title page, Beat Board and Story Bible included — to restore here or on
+                any other browser.
+              </span>
+            </div>
+          )}
           <dl className="hm-facts">
             <div>
               <dt>Storage</dt>
@@ -118,8 +132,8 @@ export default function HelpModal({ kind, storage, onClose }) {
           <p className="hm-note">
             Everything runs locally: nothing is uploaded and no account is needed, so writing works offline. The only
             network use is loading Google Fonts (cached after the first visit). Your scripts belong to this browser on
-            this computer — clearing its site data removes them — so use Export (.fountain / .fdx) to keep real files and
-            to move between machines.
+            this computer — clearing its site data removes them — so use Export (.draftline / .fountain / .fdx) to keep
+            real files, and .draftline backups to move projects between browsers and machines with full fidelity.
           </p>
         </div>
       )}

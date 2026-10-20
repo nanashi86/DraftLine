@@ -25,11 +25,20 @@ export function elementForCode(code) {
 /** "Alt+3" for 'action'. */
 export const elementCombo = (type) => ELEMENT_SHORTCUTS.find((s) => s.type === type)?.combo ?? '';
 
+/** Dual dialogue: an action on the current speech (not an element type), on Alt+D. */
+export const DUAL_SHORTCUT = { action: 'dual', label: 'Dual Dialogue', combo: 'Alt+D', code: 'KeyD' };
+
+/**
+ * The toolbar's Element dropdown, top to bottom: the eight element types with Dual Dialogue
+ * right after Dialogue. The Ctrl+/ dialog lists the Elements group in the same order.
+ */
+export const ELEMENT_MENU = ELEMENT_SHORTCUTS.flatMap((s) => (s.type === 'dialogue' ? [s, DUAL_SHORTCUT] : [s]));
+
 export const SHORTCUT_SECTIONS = [
   {
     title: 'Elements',
     rows: [
-      ...ELEMENT_SHORTCUTS.map((s) => [s.combo, s.label]),
+      ...ELEMENT_MENU.map((s) => [s.combo, s.label]),
       ['Enter', 'Next element (Scene → Action, Character → Dialogue …)'],
       ['Tab', 'Change type / start a Character cue or Parenthetical'],
       ['Shift+Tab', 'Change type backwards'],
@@ -48,11 +57,10 @@ export const SHORTCUT_SECTIONS = [
     title: 'Script',
     rows: [
       ['Alt+N', 'Margin ScriptNote (or move the selection into one)'],
-      ['Alt+D', 'Dual dialogue'],
       ['Ctrl+Z', 'Undo'],
       ['Ctrl+Shift+Z', 'Redo'],
       ['Ctrl+S', 'Save now (it also autosaves)'],
-      ['Ctrl+P', 'Print / save as PDF'],
+      ['Ctrl+P', 'Print Script / PDF'],
     ],
   },
   {

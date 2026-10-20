@@ -37,7 +37,8 @@ import {
   makeBlock,
   paginate,
 } from './lib/screenplay.js';
-import { ELEMENT_SHORTCUTS } from './lib/shortcuts.js';
+import { DUAL_SHORTCUT, ELEMENT_MENU } from './lib/shortcuts.js';
+import { isOnBar, moreMenuItems } from './lib/toolbar.js';
 import { newProjectMeta, rememberAuthorDefaults } from './lib/authorDefaults.js';
 import { parseFountain, toFountain } from './lib/fountain.js';
 import { parseFDX, toFDX } from './lib/fdx.js';
@@ -190,6 +191,9 @@ function Workspace({ boot }) {
   const [fmtState, setFmtState] = useState({ b: false, i: false, u: false, s: false }); // toolbar B I U S
   const [helpKind, setHelpKind] = useState(null); // 'shortcuts' | 'about' while that dialog is open
   const [printing, setPrinting] = useState(false);
+  const barRef = useRef(null);
+  const dialogueBtnRef = useRef(null);
+  const bibleBtnRef = useRef(null);
   const [toast, setToast] = useState(() => bootMessage(boot));
   const [saved, setSaved] = useState(() => ({
     blocks: initialDoc.blocks,
@@ -786,7 +790,7 @@ function Workspace({ boot }) {
           focusMode ? 'focus-mode' : '',
         ].filter(Boolean).join(' ')}
       >
-        <header className="bar">
+        <header className="bar" ref={barRef}>
           {/* 1 · Identity & metadata */}
           <div className="bar-group g-identity">
             <button
@@ -867,14 +871,22 @@ function Workspace({ boot }) {
               className="type-select"
               value={elementControlsEnabled ? activeBlock.type : ''}
               disabled={!elementControlsEnabled}
-              onChange={(e) => editorRef.current?.setType(activeId, e.target.value)}
+              onChange={(e) => {
+                // "Dual Dialogue" is an action on the speech, not a type: the select keeps showing the type.
+                if (e.target.value === DUAL_SHORTCUT.action) editorRef.current?.toggleDual(activeId);
+                else editorRef.current?.setType(activeId, e.target.value);
+              }}
               aria-label="Element type"
-              title={`Element type (Alt+1…${ELEMENT_SHORTCUTS.length})`}
+              title="Element type (Alt+1…8) · Dual Dialogue (Alt+D)"
             >
               {!elementControlsEnabled && <option value="">Element</option>}
-              {ELEMENT_SHORTCUTS.map((s) => (
+              {ELEMENT_MENU.map((s) => (s.action ? (
+                <option key={s.action} value={s.action}>
+                  {`${activeInDual && elementControlsEnabled ? '✓ ' : ''}${s.label}  ·  ${s.combo}`}
+                </option>
+              ) : (
                 <option key={s.type} value={s.type}>{`${s.label}  ·  ${s.combo}`}</option>
-              ))}
+              )))}
             </select>
             <div className="fmt-seg" role="group" aria-label="Text formatting">
               {STYLES.map((k) => {
@@ -896,16 +908,6 @@ function Workspace({ boot }) {
                 );
               })}
             </div>
-            <button
-              className={`btn${activeInDual && elementControlsEnabled ? ' is-on-subtle' : ''}`}
-              disabled={!elementControlsEnabled}
-              onMouseDown={(e) => e.preventDefault()}
-              onClick={() => editorRef.current?.toggleDual(activeId)}
-              title="Dual dialogue: pair this speech with the one next to it (Alt+D)"
-              aria-pressed={activeInDual}
-            >
-              Dual
-            </button>
           </div>
 
           <span className="bar-sep" aria-hidden="true" />
@@ -931,6 +933,7 @@ function Workspace({ boot }) {
             <Menu label="Export" items={exportItems} align="right" title="Export the screenplay or beat outline, print / save as PDF, or back up the project" />
             <button className="btn" onClick={() => setFocusMode(true)} title="Hide everything but the page (Esc to exit)">Focus</button>
             <button
+              ref={dialogueBtnRef}
               className={`btn btn-accent${tunerOpen ? ' is-on' : ''}`}
               onClick={() => setDock((d) => toggleDock(d, 'tuner'))}
               title="Dialogue: every line, one character at a time (Alt+T)"
@@ -939,6 +942,7 @@ function Workspace({ boot }) {
               Dialogue
             </button>
             <button
+              ref={bibleBtnRef}
               className={`btn btn-bible${bibleOpen ? ' is-on-subtle' : ''}`}
               onClick={() => setDock((d) => toggleDock(d, 'bible'))}
               title="Story Bible: Story DNA, character bios and story notes (Alt+I)"
@@ -951,16 +955,18 @@ function Workspace({ boot }) {
               caret={false}
               className="btn btn-kebab"
               align="right"
-              title="More: sample script, shortcuts, about"
+              title="More: keyboard shortcuts, sample script, about"
               ariaLabel="More"
-              items={[
-                { label: 'Story Bible', hint: 'Alt+I', onSelect: () => setDock((d) => openDock(d, 'bible')) },
-                { divider: true },
-                { label: 'Load Sample Script', hint: 'The Last Ferry', onSelect: loadSample },
-                { divider: true },
-                { label: 'Keyboard Shortcuts', hint: 'Ctrl+/', onSelect: () => setHelpKind('shortcuts') },
-                { label: 'About DraftLine', onSelect: () => setHelpKind('about') },
-              ]}
+              items={() => moreMenuItems({
+                // Checked as the menu opens: panels the toolbar is showing aren't repeated here.
+                dialogueOnBar: isOnBar(dialogueBtnRef.current, barRef.current),
+                bibleOnBar: isOnBar(bibleBtnRef.current, barRef.current),
+                onDialogue: () => setDock((d) => openDock(d, 'tuner')),
+                onBible: () => setDock((d) => openDock(d, 'bible')),
+                onShortcuts: () => setHelpKind('shortcuts'),
+                onSample: loadSample,
+                onAbout: () => setHelpKind('about'),
+              })}
             />
           </div>
         </header>
@@ -1137,6 +1143,7 @@ function Workspace({ boot }) {
           <HelpModal
             kind={helpKind}
             storage={{ ok: saved.ok, savedAt: saved.at, bytes: JSON.stringify({ meta, blocks, beats, characters, storyNotes, storyDna }).length, countProjects: () => projects.getAllProjects().then((l) => l.length) }}
+            onBackup={backupProject}
             onClose={() => setHelpKind(null)}
           />
         )}

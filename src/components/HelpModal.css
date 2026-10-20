@@ -85,3 +85,27 @@
   text-underline-offset: 2px;
   cursor: pointer;
 }
+
+/* About → Backup Project (.draftline) */
+.hm-backup {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 14px;
+  padding: 12px 14px;
+  border: 1px solid var(--line-soft);
+  border-radius: 9px;
+  background: color-mix(in srgb, var(--accent) 7%, transparent);
+}
+.hm-backup .btn-primary {
+  flex: none;
+  padding: 7px 14px;
+  background: var(--accent);
+  color: var(--on-accent);
+  font-weight: 600;
+}
+.hm-backup .btn-primary:hover { filter: brightness(1.08); }
+.hm-backup span { font-size: 12px; line-height: 1.45; color: var(--muted); }
+@media (max-width: 520px) {
+  .hm-backup { flex-direction: column; align-items: stretch; }
+}

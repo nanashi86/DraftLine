@@ -1,6 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 
-/** Small dropdown menu: a button that opens a list of actions. */
+/**
+ * Small dropdown menu: a button that opens a list of actions. `items` can be a function,
+ * called each time the menu opens — for menus whose contents depend on the page right then.
+ */
 export default function Menu({
   label, title, items, align = 'left', className = 'btn', caret = true, ariaLabel,
 }) {
@@ -38,7 +41,7 @@ export default function Menu({
       </button>
       {open && (
         <div className={`menu-pop menu-${align}`} role="menu">
-          {items.map((it, i) => (it.divider ? (
+          {(typeof items === 'function' ? items() : items).map((it, i) => (it.divider ? (
             <div key={`d${i}`} className="menu-divider" role="separator" />
           ) : it.heading ? (
             <div key={`h${i}`} className="menu-heading">{it.heading}</div>

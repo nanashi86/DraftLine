@@ -85,7 +85,7 @@ Speeches never split from their Character cue, scene headings stay with what fol
 
 ### Dual dialogue
 
-Put the cursor in either of two back-to-back speeches and press **Alt+D** (or the **Dual** button). Press again to undo.
+Put the cursor in either of two back-to-back speeches and press **Alt+D** (or choose **Dual Dialogue** in the Element dropdown, right below Dialogue — it shows ✓ when the speech is paired). Press again to undo.
 Exports as `NAME ^` in Fountain and Final Draft's `<DualDialogue>` block in .fdx.
 
 ### Shortcuts
@@ -146,7 +146,7 @@ Edit right in the panel: changes write straight to the script. "Go ↗" jumps to
 
 ## Story Bible
 
-**Story Bible** in the toolbar (or **⋮ → Story Bible**, or **Alt+I**) opens the Story Bible in the right dock — the column
+**Story Bible** in the toolbar (or **⋮ → Story Bible** in narrow windows, or **Alt+I**) opens the Story Bible in the right dock — the column
 the Dialogue panel uses. The dock holds one panel at a time: opening the Story Bible closes Dialogue and vice versa. On wide
 screens the script and Beat Board make room for it (nothing is covered); on narrow screens it overlays them, like the
 Dialogue panel. Everything in it is saved inside the open project and switched with it in Projects. Three tabs, in this order —
@@ -182,7 +182,7 @@ nothing uploaded, works offline). Click the title's **▾** or the **D** logo (o
 - **+ New Script** asks for a title and opens a blank script. A card's **⋮** menu renames, duplicates
   ("[Title] (Copy)"), exports (.fdx / .fountain — no need to open it first) or deletes it (after a confirmation;
   you can't delete your only script).
-- **New**, **Open** and **⋮ → Load Sample Script** each add a new project instead of replacing the one you're in.
+- **New**, **Open** and **⋮ → Load Sample** each add a new project instead of replacing the one you're in.
   **Import** still works on the open script (Ctrl+Z undoes it).
 - On first run the script DraftLine kept in localStorage moves into the library as your first project; the old copy
   is left in place untouched.
@@ -242,8 +242,10 @@ nothing uploaded, works offline). Click the title's **▾** or the **D** logo (o
   Project**, `.draftline`).
 - The toolbar keeps **Dialogue** and **Story Bible** visible down to 1380px wide (about a laptop screen); below that,
   Story Bible moves into **⋮** (and stays on Alt+I). Below 1300px the toolbar scrolls sideways.
-- **⋮** (far right of the toolbar): **Load Sample Script** (*The Last Ferry*), **Keyboard Shortcuts** (also Ctrl+/)
-  and **About DraftLine** (version, where your draft is saved, its size and last save).
+- **⋮** (far right of the toolbar): **Keyboard Shortcuts** (also Ctrl+/), **Load Sample** (*The Last Ferry*) and
+  **About DraftLine** (version, where your draft is saved, its size and last save, and a **Backup Project
+  (.draftline)** button). **Dialogue** and **Story Bible** appear at the top of ⋮ only when the toolbar can't show them
+  itself (narrow windows) — never twice.
 - **Title Page** edits title, **Credit / Subtitle** ("Written by", "Screenplay by", "Story by", … or anything you type),
   author, "based on", **Draft Version** (suggests First / Second / Revised / Final / Shooting Draft), draft date and
   contact/copyright, plus the title's typography: **Title Font** (38 Google Fonts — classic, serif, sans, display, script and handwritten; they load in the background and are used only on the title page),
