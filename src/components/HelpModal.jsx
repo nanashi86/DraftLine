@@ -43,7 +43,7 @@ export default function HelpModal({ kind, storage, onBackup, onClose }) {
   return (
     <dialog
       ref={dialogRef}
-      className={`hm-modal hm-${kind}`}
+      className={`hm-modal is-${kind}`}
       aria-labelledby="hm-title"
       onCancel={(e) => {
         e.preventDefault();
@@ -88,6 +88,22 @@ export default function HelpModal({ kind, storage, onBackup, onClose }) {
             A fast, distraction-free screenwriting app, set in Courier Prime 12pt. Projects are saved in DraftLine’s
             own <b>.draftline</b> format and export to Fountain and Final Draft (.fdx).
           </p>
+          <section className="hm-origin" aria-labelledby="hm-origin-title">
+            <h3 id="hm-origin-title">Origin Story</h3>
+            <p>
+              My storytelling journey began when I was eight years old, banging out short stories on my father’s
+              electric typewriter and sketching character designs. I’ve always loved storytelling. Years later, when I
+              set out to write my first feature-length screenplay, <i>What Happened to Haiti?</i>, I took the hard
+              route. Refusing to pay subscriptions for bloated commercial tools, I built an industry-standard template
+              in raw Google Docs and manually handled every indentation, parenthetical, and scene heading across six
+              drafts. That grind taught me the mechanics of dramatic architecture from the ground up: discovering where
+              a narrative drags, how dialogue functions as action, and how multiple dramatic threads intertwine across
+              fifty-plus scenes. When preparing for my next script, I explored existing modern screenwriting
+              applications. Every option either locked vital structural tools behind paywalls, cluttered the writing
+              canvas, or lacked the planning features screenwriters need. So, I teamed up with my AI buddies and
+              engineered <b>DraftLine</b>.
+            </p>
+          </section>
           {onBackup && (
             <div className="hm-backup">
               <button type="button" className="btn btn-primary" onClick={onBackup}>
