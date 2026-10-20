@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import AutoTextarea from './AutoTextarea.jsx';
+import TabIcon from './TabIcon.jsx';
 import { RichLine } from './FormattedText.jsx';
 import {
   BIBLE_TABS, DEFAULT_BIBLE_TAB, addSection, bibleTabBadge, importNotes, markdownBlocks, removeSection, updateSection,
@@ -99,8 +100,7 @@ function StoryNotes({ notes, onChange, onUndoable }) {
 
   return (
     <div className="pb-pane">
-      <div className="pb-tools">
-        <span className="pb-hint">Markdown: # heading, **bold**, *italic*, - lists</span>
+      <div className="pb-tools is-end">
         <button type="button" className="btn" onClick={() => setImporting((v) => !v)} aria-expanded={importing}>
           Import from Notes
         </button>
@@ -247,7 +247,7 @@ export default function ProjectBibleDrawer({
               onClick={() => onTabChange(t.id)}
               title={t.title}
             >
-              <span aria-hidden="true">{t.icon}</span> {t.label}{badge != null && <b>{badge}</b>}
+              <TabIcon name={t.id} />{t.label}{badge != null && <b>{badge}</b>}
             </button>
           );
         })}

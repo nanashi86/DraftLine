@@ -34,7 +34,7 @@
 .pb-tab {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 0; /* the icon brings its own 6px; the count badge its own margin */
   padding: 9px 10px 8px;
   border: 0;
   border-bottom: 2px solid transparent;
@@ -47,7 +47,10 @@
   cursor: pointer;
 }
 .pb-tab:hover { color: var(--text); }
-.pb-tab.is-on { color: var(--text); border-bottom-color: var(--accent); }
+.pb-tab.is-on { color: #ffffff; border-bottom-color: var(--accent); }
+/* Tab icons (TabIcon.jsx): stroke in currentColor — muted when inactive, white when active. */
+.tab-icon { display: inline-block; vertical-align: middle; margin-right: 6px; flex-shrink: 0; }
+.pb-tab b { margin-left: 6px; }
 .pb-tab b { padding: 0 6px; border-radius: 999px; background: var(--chip); font-size: 11px; font-weight: 600; color: var(--text); }
 
 .pb-scroll { flex: 1; min-height: 0; overflow-y: auto; }
@@ -73,7 +76,7 @@
 }
 .pb-search:focus { border-color: var(--accent); }
 .pb-sort { border-color: var(--line-soft); }
-.pb-hint { flex: 1; font-size: 11.5px; color: var(--muted); }
+.pb-tools.is-end { justify-content: flex-end; } /* Notes: Import from Notes sits at the right */
 
 .pb-suggest { display: flex; flex-wrap: wrap; align-items: center; gap: 5px; margin-bottom: 10px; font-size: 12px; color: var(--muted); }
 .pb-chip {
@@ -454,5 +457,5 @@
 
 /* Three tabs must fit the 400px dock */
 .pb-tabs { gap: 0; padding: 0 8px; }
-.pb-tab { gap: 5px; padding: 9px 7px 8px; font-size: 12.5px; }
-.pb-tab b { padding: 0 5px; }
+.pb-tab { gap: 0; padding: 9px 7px 8px; font-size: 12.5px; }
+.pb-tab b { padding: 0 5px; margin-left: 5px; }

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import AutoTextarea from './AutoTextarea.jsx';
+import TabIcon from './TabIcon.jsx';
 import DialogueTuner from './DialogueTuner.jsx';
 import {
   CHARACTER_FIELDS, CHARACTER_TABS, DEFAULT_CHARACTER_TAB, addCharacter, bibleTabBadge, filterCharacters,
@@ -213,7 +214,7 @@ export default function CharactersDrawer({
               onClick={() => onTabChange(t.id)}
               title={t.title}
             >
-              <span aria-hidden="true">{t.icon}</span> {t.label}{badge != null && <b>{badge}</b>}
+              <TabIcon name={t.id} />{t.label}{badge != null && <b>{badge}</b>}
             </button>
           );
         })}

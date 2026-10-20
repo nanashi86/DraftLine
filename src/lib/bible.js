@@ -67,14 +67,14 @@ export const DNA_VIEWS = [
 ];
 
 export const BIBLE_TABS = [
-  { id: 'dna', icon: '📖', label: 'DNA', title: 'Blueprint & Glossary' },
-  { id: 'notes', icon: '📝', label: 'Notes', title: 'Logline, tone, timeline, pitch, scratchpad (theme is in DNA)' },
+  { id: 'dna', label: 'DNA', title: 'Blueprint & Glossary' },
+  { id: 'notes', label: 'Notes', title: 'Logline, tone, timeline, pitch, scratchpad (theme is in DNA)' },
 ];
 export const DEFAULT_BIBLE_TAB = 'dna';
 
 export const CHARACTER_TABS = [
-  { id: 'bios', icon: '👤', label: 'Bios', title: 'Character profiles, traits and backstory · rename across the script' },
-  { id: 'dialogue', icon: '💬', label: 'Dialogue', title: 'Every line a character speaks, top to bottom' },
+  { id: 'bios', label: 'Bios', title: 'Character profiles, traits and backstory · rename across the script' },
+  { id: 'dialogue', label: 'Dialogue', title: 'Every line a character speaks, top to bottom' },
 ];
 export const DEFAULT_CHARACTER_TAB = 'bios';
 
