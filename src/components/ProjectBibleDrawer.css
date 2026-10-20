@@ -1,7 +1,7 @@
-/* ---- Project Bible: docked in the right column, exactly where the Dialogue Tuner sits.
-   The two share the dock (opening one closes the other). On wide screens the workspace
-   makes room for it (App.css: .bible-open .workspace), so the script and Beat Board flex
-   beside it instead of being covered; on narrow screens it overlays, like the Tuner. */
+/* ---- Story Bible and Characters: two drawers sharing the right dock (opening one closes
+   the other). On wide screens the workspace makes room for whichever is open (App.css:
+   .dock-open .workspace), so the script and Beat Board flex beside it instead of being
+   covered; on narrow screens it overlays them. */
 .pb {
   position: fixed;
   top: var(--bar-h);
@@ -30,7 +30,7 @@
 .pb-sub { margin-top: 3px; font-size: 12px; color: var(--muted); }
 .pb-close { font-size: 18px; line-height: 1; }
 
-.pb-tabs { display: flex; gap: 4px; padding: 0 14px; border-bottom: 1px solid var(--line-soft); }
+.pb-tabs { display: flex; gap: 6px; padding: 0 14px; border-bottom: 1px solid var(--line-soft); }
 .pb-tab {
   display: inline-flex;
   align-items: center;
@@ -41,6 +41,9 @@
   background: transparent;
   color: var(--muted);
   font: 550 13px var(--ui-font);
+  white-space: nowrap; /* short labels ("DNA", "Notes", "Bios", "Dialogue") never wrap */
+  flex: 0 1 auto;
+  min-width: 0;
   cursor: pointer;
 }
 .pb-tab:hover { color: var(--text); }
@@ -48,6 +51,8 @@
 .pb-tab b { padding: 0 6px; border-radius: 999px; background: var(--chip); font-size: 11px; font-weight: 600; color: var(--text); }
 
 .pb-scroll { flex: 1; min-height: 0; overflow-y: auto; }
+/* Characters → Dialogue: the tab itself doesn't scroll; its line stream does (DialogueTuner.css). */
+.pb-dialogue { flex: 1; min-height: 0; display: flex; flex-direction: column; }
 .pb-pane { padding: 12px 16px 24px; }
 .pb-tools { display: flex; align-items: center; gap: 6px; margin-bottom: 10px; }
 .pb-tools .btn-primary,

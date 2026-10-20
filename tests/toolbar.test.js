@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs';
 import { isOnBar, moreMenuItems } from '../src/lib/toolbar.js';
 
 const noop = () => {};
-const handlers = { onDialogue: noop, onBible: noop, onShortcuts: noop, onSample: noop, onAbout: noop };
+const handlers = { onBible: noop, onCharacters: noop, onShortcuts: noop, onSample: noop, onAbout: noop };
 const shape = (items) => items.map((it) => (it.divider ? '---' : `${it.label}${it.hint ? ` [${it.hint}]` : ''}`));
 
 /** A fake element: shown or display:none, at a horizontal position. */
@@ -16,25 +16,30 @@ const bar = el(0, 1400);
 
 describe('⋮ menu', () => {
   it('when the toolbar shows both panels: Keyboard Shortcuts · Load Sample · About DraftLine', () => {
-    assert.deepEqual(shape(moreMenuItems({ ...handlers, dialogueOnBar: true, bibleOnBar: true })), [
+    assert.deepEqual(shape(moreMenuItems({ ...handlers, charactersOnBar: true, bibleOnBar: true })), [
       'Keyboard Shortcuts [Ctrl+/]', '---', 'Load Sample [The Last Ferry]', '---', 'About DraftLine',
     ]);
   });
   it('adds Story Bible on top only while the toolbar has tucked it away', () => {
-    assert.deepEqual(shape(moreMenuItems({ ...handlers, dialogueOnBar: true, bibleOnBar: false })), [
+    assert.deepEqual(shape(moreMenuItems({ ...handlers, charactersOnBar: true, bibleOnBar: false })), [
       'Story Bible [Alt+I]', '---', 'Keyboard Shortcuts [Ctrl+/]', '---', 'Load Sample [The Last Ferry]', '---', 'About DraftLine',
     ]);
   });
-  it('adds both panels when neither is on the toolbar (narrow, scrolled bar)', () => {
-    assert.deepEqual(shape(moreMenuItems({ ...handlers, dialogueOnBar: false, bibleOnBar: false })).slice(0, 3), [
-      'Dialogue [Alt+T]', 'Story Bible [Alt+I]', '---',
+  it('adds Characters on top only while the toolbar has it out of view', () => {
+    assert.deepEqual(shape(moreMenuItems({ ...handlers, charactersOnBar: false, bibleOnBar: true })).slice(0, 2), [
+      'Characters [Alt+C]', '---',
+    ]);
+  });
+  it('adds both, in toolbar order, when neither is on the toolbar (narrow, scrolled bar)', () => {
+    assert.deepEqual(shape(moreMenuItems({ ...handlers, charactersOnBar: false, bibleOnBar: false })).slice(0, 3), [
+      'Story Bible [Alt+I]', 'Characters [Alt+C]', '---',
     ]);
   });
   it('items do what they say', () => {
     const calls = [];
     const h = Object.fromEntries(Object.keys(handlers).map((k) => [k, () => calls.push(k)]));
-    moreMenuItems({ ...h, dialogueOnBar: false, bibleOnBar: false }).filter((i) => !i.divider).forEach((i) => i.onSelect());
-    assert.deepEqual(calls, ['onDialogue', 'onBible', 'onShortcuts', 'onSample', 'onAbout']);
+    moreMenuItems({ ...h, charactersOnBar: false, bibleOnBar: false }).filter((i) => !i.divider).forEach((i) => i.onSelect());
+    assert.deepEqual(calls, ['onBible', 'onCharacters', 'onShortcuts', 'onSample', 'onAbout']);
   });
 });
 
@@ -64,8 +69,15 @@ describe('toolbar & About wiring', () => {
   });
   it('the ⋮ menu is built as it opens, from what the toolbar is showing', () => {
     assert.match(bar, /items=\{\(\) => moreMenuItems\(\{/);
-    assert.match(bar, /dialogueOnBar: isOnBar\(dialogueBtnRef\.current, barRef\.current\)/);
     assert.match(bar, /bibleOnBar: isOnBar\(bibleBtnRef\.current, barRef\.current\)/);
+    assert.match(bar, /charactersOnBar: isOnBar\(charactersBtnRef\.current, barRef\.current\)/);
+  });
+  it('the right-hand order is Export · Focus · Story Bible · Characters · ⋮', () => {
+    const right = bar.slice(bar.indexOf('bar-group bar-right'));
+    const pos = ['label="Export"', '>Focus<', 'Story Bible\n', 'Characters\n', 'btn-kebab'].map((k) => right.indexOf(k));
+    assert.ok(pos.every((p) => p > 0), JSON.stringify(pos));
+    assert.deepEqual([...pos].sort((a, b) => a - b), pos);
+    assert.ok(!/>\s*Dialogue\s*</.test(right), 'no separate Dialogue toolbar button');
   });
   it('About points to .draftline and has a Backup Project button', () => {
     assert.match(about, /Export \(\.draftline \/ \.fountain \/ \.fdx\)/);

@@ -101,10 +101,11 @@ Exports as `NAME ^` in Fountain and Final Draft's `<DualDialogue>` block in .fdx
 | Alt+1 … Alt+8 | Scene Heading · Format Cue · Action · Character · Parenthetical · Dialogue · Transition · Centered |
 | Alt+N | Margin note (or move the selection into one) |
 | Alt+S | Scenes sidebar |
-| Alt+T | Dialogue |
+| Alt+C | Characters (Bios · Dialogue) |
+| Alt+T | Characters → Dialogue |
 | Alt+B | Cycle Page → Split → Board |
 | Alt+P | Projects drawer |
-| Alt+I | Story Bible |
+| Alt+I | Story Bible (DNA · Notes) |
 | Ctrl+P | Print / save as PDF (title page first) |
 | Ctrl+S | Save now (it also autosaves continuously) |
 
@@ -146,20 +147,32 @@ the page auto-fits its half) and **Board** (full-width).
   **Ctrl+Z** puts back both the board and the script.
 - Cards autosave with the script, in the project's record.
 
-## Dialogue
+## The right dock: Story Bible and Characters
 
-Pick a character to read every line they speak, top to bottom, tagged with scene number and heading.
-Edit right in the panel: changes write straight to the script. "Go ↗" jumps to the line in the page.
+The toolbar's right side reads **Export ▾ · Focus · Story Bible · Characters · ⋮**. Story Bible and Characters are
+two drawers sharing the right dock — opening one closes the other. On wide screens the script and Beat Board make room
+(nothing is covered); on narrow screens the drawer overlays them. Everything in both is saved inside the open project
+and switches with it in Projects. Tab labels are one short word each, so they never wrap.
 
-## Story Bible
+### Characters (Alt+C)
 
-**Story Bible** in the toolbar (or **⋮ → Story Bible** in narrow windows, or **Alt+I**) opens the Story Bible in the right dock — the column
-the Dialogue panel uses. The dock holds one panel at a time: opening the Story Bible closes Dialogue and vice versa. On wide
-screens the script and Beat Board make room for it (nothing is covered); on narrow screens it overlays them, like the
-Dialogue panel. Everything in it is saved inside the open project and switched with it in Projects. Three tabs, in this order —
-**Story DNA** opens first unless you've picked another tab this session:
+- **👤 Bios** (with a count) — a card per character: name, role / relationship, age (or timeline ages, e.g. "10 in 1986,
+  45 in 2021"), traits, and backstory / motivation. **+ Add Character**, filter by name, **A–Z** sort or ↑ ↓ to
+  reorder, one-click chips for script speakers who don't have a bio yet, and **Rename across script…**. Deleting can
+  be undone.
+- **💬 Dialogue** (with the number of speaking characters) — pick a character to read every line they speak, top to
+  bottom, tagged with scene number and heading; filter lines, show the cue before each speech, see lines / words /
+  scenes, and **Rename…** the character. Edit right in the tab: changes write straight to the script. "Go ↗" jumps to
+  the line in the page. **Alt+T** opens Characters straight on this tab.
 
-- **📖 Story DNA** — two views:
+If you had the old Dialogue drawer open, DraftLine opens Characters on its Dialogue tab instead; the tab you last used
+is remembered.
+
+### Story Bible (Alt+I)
+
+Two tabs — **DNA** opens first unless you've picked Notes this session:
+
+- **📖 DNA** — two views:
   - **Story Blueprint**: a genre checklist (Drama, Thriller, Crime, Horror, Comedy, Action, Adventure, Romance,
     Fantasy, Science Fiction, Western, Noire, Other — with a text box for Other), theme (revealed by the climax), Yes/No + notes for special plot technique,
     foreshadowing and flashback, and eight question cards — Protagonist, Inciting Incident, Goal / Desire, Flaw,
@@ -168,10 +181,7 @@ Dialogue panel. Everything in it is saved inside the open project and switched w
   - **Structure Dictionary**: the 11 terms (the eight above plus Text / Subtext / Context, Foreshadowing and
     Flashback), searchable. They ship with DraftLine's *starter* definitions — **Edit** any entry to paste your own
     reference's wording (kept for all projects; **Reset** restores the starter).
-- **👤 Character Bios** (with a count) — a card per character: name, role / relationship, age (or timeline ages, e.g. "10 in 1986,
-  45 in 2021"), traits, and backstory / motivation. **+ Add Character**, filter by name, **A–Z** sort or ↑ ↓ to
-  reorder, and one-click chips for script speakers who don't have a bio yet. Deleting can be undone.
-- **📝 Story Notes** — Markdown sections (**Logline**, **Themes**, **Tone**, **Timeline**, **Pitch**, **Scratchpad**,
+- **📝 Notes** — Markdown sections (**Logline**, **Themes**, **Tone**, **Timeline**, **Pitch**, **Scratchpad**,
   plus any you add below them). Notes from earlier versions are updated once on open — "Themes & Motifs" becomes
   Themes, "Timeline & Lore" Timeline, "General Scratchpad" Scratchpad, missing presets are added and your own
   sections follow — keeping every word, edited in place and shown formatted in Preview. **Import from Notes** pastes text from anywhere: append
@@ -247,11 +257,11 @@ nothing uploaded, works offline). Click the title's **▾** or the **D** logo (o
   outline, Markdown), **Document** (**Print Script / PDF**, also **Ctrl+P** — a paginated PDF with the title page as
   page 0; page 1 is unnumbered, pages 2 onward carry a right-aligned "2.", "3." …) and **Project** (**Backup
   Project**, `.draftline`).
-- The toolbar keeps **Dialogue** and **Story Bible** visible down to 1380px wide (about a laptop screen); below that,
+- The toolbar keeps **Story Bible** and **Characters** visible down to 1380px wide (about a laptop screen); below that,
   Story Bible moves into **⋮** (and stays on Alt+I). Below 1300px the toolbar scrolls sideways.
 - **⋮** (far right of the toolbar): **Keyboard Shortcuts** (also Ctrl+/), **Load Sample** (*The Last Ferry*) and
   **About DraftLine** (version, where your draft is saved, its size and last save, and a **Backup Project
-  (.draftline)** button). **Dialogue** and **Story Bible** appear at the top of ⋮ only when the toolbar can't show them
+  (.draftline)** button). **Story Bible** and **Characters** appear at the top of ⋮ only when the toolbar can't show them
   itself (narrow windows) — never twice.
 - **Title Page** edits title, **Credit / Subtitle** ("Written by", "Screenplay by", "Story by", … or anything you type),
   author, "based on", **Draft Version** (suggests First / Second / Revised / Final / Shooting Draft), draft date and
@@ -296,7 +306,7 @@ src/
   App.jsx                  shell, toolbar, status bar, autosave, shortcuts
   components/Editor.jsx    paginated block editor, keyboard flow, autocomplete, dual rows
   components/Navigator.jsx scene sidebar
-  components/DialogueTuner.jsx
+  components/DialogueTuner.jsx       Characters → Dialogue tab
   components/TitlePageModal.jsx
   components/PrintView.jsx print-only paginated pages
   components/TitlePageSheet.jsx  the title page in page units (canvas cover, print, modal preview)
@@ -305,7 +315,8 @@ src/
   components/Menu.jsx      small dropdown menu (Export, ⋮)
   components/HelpModal.jsx Keyboard Shortcuts and About DraftLine
   components/ProjectsDrawer.jsx  the project library drawer
-  components/ProjectBibleDrawer.jsx  Character Bios, Story Notes and Story DNA
+  components/ProjectBibleDrawer.jsx  Story Bible drawer: DNA and Notes tabs
+  components/CharactersDrawer.jsx    Characters drawer: Bios and Dialogue tabs
   components/StoryDna.jsx  Story Blueprint and Structure Dictionary
   components/FormattedText.jsx  styled runs (editor overlay, print, title page)
   components/ImportModal.jsx  paste / drop import with live preview
@@ -328,7 +339,7 @@ src/
   lib/storyDna.js          Story DNA blueprint model
   lib/structureDictionary.js  the 11 structure terms (starter wording) and your overrides
   lib/shortcuts.js         every keyboard shortcut (feeds the Ctrl+/ dialog)
-  lib/dock.js              the right dock: Dialogue or Story Bible, one at a time
+  lib/dock.js              the right dock: Story Bible or Characters, one at a time
   lib/formatDoctor.js      script audit + fixes
   lib/fountain.js          Fountain import/export
   lib/fdx.js               Final Draft XML import/export

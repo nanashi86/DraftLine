@@ -44,17 +44,27 @@ const uid = (p) => {
 // ---- Drawer tabs -------------------------------------------------------------------------
 
 /** The Bible's tabs, in order. Story DNA opens first unless you pick another tab this session. */
+// Two drawers share the right dock. Labels stay short so the tabs never wrap.
+//   Story Bible — DNA (Story Blueprint + Structure Dictionary) · Notes (Logline, Pitch, Scratchpad …)
+//   Characters  — Bios (profiles, rename) · Dialogue (every line, one voice at a time)
+// The ids are only UI state; the project still stores storyDna, storyNotes and characters.
 export const BIBLE_TABS = [
-  { id: 'dna', icon: '📖', label: 'Story DNA' },
-  { id: 'characters', icon: '👤', label: 'Character Bios' },
-  { id: 'notes', icon: '📝', label: 'Story Notes' },
+  { id: 'dna', icon: '📖', label: 'DNA', title: 'Story Blueprint & Structure Dictionary' },
+  { id: 'notes', icon: '📝', label: 'Notes', title: 'Logline, themes, tone, timeline, pitch, scratchpad' },
 ];
 export const DEFAULT_BIBLE_TAB = 'dna';
 
-/** Badge beside a tab label: character count, Story DNA progress; Story Notes has none. */
-export function bibleTabBadge(id, { characters = [], dnaAnswered = 0, dnaTotal = 8 } = {}) {
-  if (id === 'characters') return String(characters.length);
+export const CHARACTER_TABS = [
+  { id: 'bios', icon: '👤', label: 'Bios', title: 'Character profiles, traits and backstory · rename across the script' },
+  { id: 'dialogue', icon: '💬', label: 'Dialogue', title: 'Every line a character speaks, top to bottom' },
+];
+export const DEFAULT_CHARACTER_TAB = 'bios';
+
+/** Badge beside a tab label: Story DNA progress, bio count, speaking characters; Notes has none. */
+export function bibleTabBadge(id, { characters = [], dnaAnswered = 0, dnaTotal = 8, speakers = [] } = {}) {
   if (id === 'dna') return `${dnaAnswered}/${dnaTotal}`;
+  if (id === 'bios') return String(characters.length);
+  if (id === 'dialogue') return String(speakers.length);
   return null;
 }
 

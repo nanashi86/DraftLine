@@ -14,12 +14,13 @@ export function isOnBar(el, bar) {
 
 /**
  * The ⋮ menu, top to bottom: Keyboard Shortcuts · Load Sample · About DraftLine — plus
- * Dialogue and/or Story Bible first, but only while the toolbar can't show them itself.
+ * Story Bible and/or Characters first (toolbar order), but only while the toolbar can't
+ * show them itself.
  */
-export function moreMenuItems({ dialogueOnBar, bibleOnBar, onDialogue, onBible, onShortcuts, onSample, onAbout }) {
+export function moreMenuItems({ bibleOnBar, charactersOnBar, onBible, onCharacters, onShortcuts, onSample, onAbout }) {
   const panels = [
-    !dialogueOnBar && { label: 'Dialogue', hint: 'Alt+T', onSelect: onDialogue },
     !bibleOnBar && { label: 'Story Bible', hint: 'Alt+I', onSelect: onBible },
+    !charactersOnBar && { label: 'Characters', hint: 'Alt+C', onSelect: onCharacters },
   ].filter(Boolean);
   return [
     ...(panels.length ? [...panels, { divider: true }] : []),

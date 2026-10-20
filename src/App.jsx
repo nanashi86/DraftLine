@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { flushSync } from 'react-dom';
 import Editor from './components/Editor.jsx';
-import DialogueTuner from './components/DialogueTuner.jsx';
+import CharactersDrawer from './components/CharactersDrawer.jsx';
 import Navigator from './components/Navigator.jsx';
 import TitlePageModal from './components/TitlePageModal.jsx';
 import ImportModal from './components/ImportModal.jsx';
@@ -19,7 +19,7 @@ import RenameCharacterModal from './components/RenameCharacterModal.jsx';
 import { renameCharacter, revertRename } from './lib/renameCharacter.js';
 import { moveCardAndScene } from './lib/sceneSync.js';
 import { mergeDictionary } from './lib/structureDictionary.js';
-import { closeDock, dockFromPrefs, openDock, toggleDock } from './lib/dock.js';
+import { characterTabFromPrefs, closeDock, dockFromPrefs, openDock, toggleDock } from './lib/dock.js';
 import { DEFAULT_BIBLE_TAB } from './lib/bible.js';
 import {
   DICTIONARY_KEY, EMPTY_META, bootLibrary, clearJournal, projects, toDoc, toRecord, writeJournal,
@@ -173,11 +173,17 @@ function Workspace({ boot }) {
   const [lineMap, setLineMap] = useState({});
   const [activeId, setActiveId] = useState(null);
   const [view, setView] = useState(VIEWS.some((v) => v.id === initialPrefs.view) ? initialPrefs.view : 'page');
-  // Right dock: Dialogue or the Story Bible — one at a time (lib/dock.js).
+  // Right dock: the Story Bible (DNA · Notes) or Characters (Bios · Dialogue) — one at a time (lib/dock.js).
   const [dock, setDock] = useState(() => dockFromPrefs(initialPrefs));
-  const tunerOpen = dock === 'tuner';
+  const charactersOpen = dock === 'characters';
   const bibleOpen = dock === 'bible';
-  const [bibleTab, setBibleTab] = useState(DEFAULT_BIBLE_TAB); // Story DNA unless you pick another this session
+  const [bibleTab, setBibleTab] = useState(DEFAULT_BIBLE_TAB); // DNA unless you pick another this session
+  const [characterTab, setCharacterTab] = useState(() => characterTabFromPrefs(initialPrefs));
+  /** Alt+T / ⋮: show Characters on its Dialogue tab (or close it if that's what's showing). */
+  const toggleDialogueTab = useCallback(() => {
+    setDock(dock === 'characters' && characterTab === 'dialogue' ? null : 'characters');
+    setCharacterTab('dialogue');
+  }, [dock, characterTab]);
   const [navOpen, setNavOpen] = useState(initialPrefs.navOpen ?? true);
   const [selectedChar, setSelectedChar] = useState(null);
   const [hoverId, setHoverId] = useState(null);
@@ -193,7 +199,7 @@ function Workspace({ boot }) {
   const [helpKind, setHelpKind] = useState(null); // 'shortcuts' | 'about' while that dialog is open
   const [printing, setPrinting] = useState(false);
   const barRef = useRef(null);
-  const dialogueBtnRef = useRef(null);
+  const charactersBtnRef = useRef(null);
   const bibleBtnRef = useRef(null);
   const [toast, setToast] = useState(() => bootMessage(boot));
   const [saved, setSaved] = useState(() => ({
@@ -355,8 +361,8 @@ function Workspace({ boot }) {
   }, [meta.title]);
 
   useEffect(() => {
-    writeJSON(PREFS_KEY, { zoom, dock, tunerOpen, navOpen, view, actMode, coverVisible });
-  }, [zoom, dock, tunerOpen, navOpen, view, actMode, coverVisible]);
+    writeJSON(PREFS_KEY, { zoom, dock, characterTab, navOpen, view, actMode, coverVisible });
+  }, [zoom, dock, characterTab, navOpen, view, actMode, coverVisible]);
 
   const saveLabel = !saved.ok ? 'Not saved — browser storage blocked or full' : dirty ? 'Saving…' : 'Saved locally';
 
@@ -759,9 +765,12 @@ function Workspace({ boot }) {
       } else if (e.altKey && !mod && e.code === 'KeyP') {
         e.preventDefault();
         setDrawerOpen((o) => !o);
+      } else if (e.altKey && !mod && e.code === 'KeyC') {
+        e.preventDefault();
+        setDock((d) => toggleDock(d, 'characters'));
       } else if (e.altKey && !mod && e.code === 'KeyT') {
         e.preventDefault();
-        setDock((d) => toggleDock(d, 'tuner'));
+        toggleDialogueTab();
       } else if (e.altKey && !mod && e.code === 'KeyS') {
         e.preventDefault();
         setNavOpen((o) => !o);
@@ -784,7 +793,7 @@ function Workspace({ boot }) {
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [focusMode, titleOpen, importSeed, doctorOpen, renameFrom, notify, undo, redo, cycleView, saveNow]);
+  }, [focusMode, titleOpen, importSeed, doctorOpen, renameFrom, notify, undo, redo, cycleView, saveNow, toggleDialogueTab]);
 
   const hints = activeBlock ? flowHints(activeBlock.type) : null;
   const currentSceneId = activeId ? analysis.sceneOfBlock[activeId] : null;
@@ -814,8 +823,7 @@ function Workspace({ boot }) {
         className={[
           'app',
           `view-${focusMode ? 'page' : view}`,
-          tunerOpen && !focusMode ? 'tuner-open' : '',
-          bibleOpen && !focusMode ? 'bible-open' : '',
+          dock && !focusMode ? 'dock-open' : '',
           navVisible ? 'nav-open' : '',
           focusMode ? 'focus-mode' : '',
         ].filter(Boolean).join(' ')}
@@ -963,22 +971,22 @@ function Workspace({ boot }) {
             <Menu label="Export" items={exportItems} align="right" title="Export the screenplay or beat outline, print / save as PDF, or back up the project" />
             <button className="btn" onClick={() => setFocusMode(true)} title="Hide everything but the page (Esc to exit)">Focus</button>
             <button
-              ref={dialogueBtnRef}
-              className={`btn btn-accent${tunerOpen ? ' is-on' : ''}`}
-              onClick={() => setDock((d) => toggleDock(d, 'tuner'))}
-              title="Dialogue: every line, one character at a time (Alt+T)"
-              aria-pressed={tunerOpen}
-            >
-              Dialogue
-            </button>
-            <button
               ref={bibleBtnRef}
               className={`btn btn-bible${bibleOpen ? ' is-on-subtle' : ''}`}
               onClick={() => setDock((d) => toggleDock(d, 'bible'))}
-              title="Story Bible: Story DNA, character bios and story notes (Alt+I)"
+              title="Story Bible: DNA (Story Blueprint & Structure Dictionary) · Notes (Alt+I)"
               aria-pressed={bibleOpen}
             >
               Story Bible
+            </button>
+            <button
+              ref={charactersBtnRef}
+              className={`btn btn-accent${charactersOpen ? ' is-on' : ''}`}
+              onClick={() => setDock((d) => toggleDock(d, 'characters'))}
+              title="Characters: Bios · Dialogue (Alt+C · Alt+T opens Dialogue)"
+              aria-pressed={charactersOpen}
+            >
+              Characters
             </button>
             <Menu
               label={<span className="kebab" aria-hidden="true">⋮</span>}
@@ -989,10 +997,10 @@ function Workspace({ boot }) {
               ariaLabel="More"
               items={() => moreMenuItems({
                 // Checked as the menu opens: panels the toolbar is showing aren't repeated here.
-                dialogueOnBar: isOnBar(dialogueBtnRef.current, barRef.current),
                 bibleOnBar: isOnBar(bibleBtnRef.current, barRef.current),
-                onDialogue: () => setDock((d) => openDock(d, 'tuner')),
+                charactersOnBar: isOnBar(charactersBtnRef.current, barRef.current),
                 onBible: () => setDock((d) => openDock(d, 'bible')),
+                onCharacters: () => setDock((d) => openDock(d, 'characters')),
                 onShortcuts: () => setHelpKind('shortcuts'),
                 onSample: loadSample,
                 onAbout: () => setHelpKind('about'),
@@ -1074,17 +1082,25 @@ function Workspace({ boot }) {
           )}
         </div>
 
-        <DialogueTuner
-          open={tunerOpen && !focusMode}
-          analysis={analysis}
-          pageOfBlock={layout.pageOfBlock}
-          selected={selectedChar}
-          onSelect={setSelectedChar}
-          onEditText={updateBlockText}
-          onJump={jumpTo}
-          onHover={setHoverId}
-          onRename={setRenameFrom}
-          onClose={() => setDock((d) => closeDock(d, 'tuner'))}
+        <CharactersDrawer
+          key={`characters-${projectId}`}
+          open={charactersOpen && !focusMode}
+          onClose={() => setDock((d) => closeDock(d, 'characters'))}
+          tab={characterTab}
+          onTabChange={setCharacterTab}
+          characters={characters}
+          onCharactersChange={setCharacters}
+          speakers={speakers}
+          onRenameCharacter={setRenameFrom}
+          dialogue={{
+            analysis,
+            pageOfBlock: layout.pageOfBlock,
+            selected: selectedChar,
+            onSelect: setSelectedChar,
+            onEditText: updateBlockText,
+            onJump: jumpTo,
+            onHover: setHoverId,
+          }}
         />
 
         <footer className="status">
@@ -1143,13 +1159,9 @@ function Workspace({ boot }) {
           onClose={() => setDock((d) => closeDock(d, 'bible'))}
           tab={bibleTab}
           onTabChange={setBibleTab}
-          onRenameCharacter={setRenameFrom}
           projectTitle={meta.title}
-          characters={characters}
-          onCharactersChange={setCharacters}
           storyNotes={storyNotes}
           onStoryNotesChange={setStoryNotes}
-          speakers={speakers}
           storyDna={storyDna}
           onStoryDnaChange={setStoryDna}
           dictionary={dictionary}

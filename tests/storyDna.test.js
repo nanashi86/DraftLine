@@ -5,8 +5,8 @@ import {
   CONFLICT_TYPES, DNA_QUESTIONS, DNA_TOGGLES, GENRES, emptyStoryDna, genresFromText, matchConflictType,
   normalizeStoryDna, setAnswer, setField, setToggle, storyDnaProgress, toggleGenre,
 } from '../src/lib/storyDna.js';
-import { BIBLE_TABS, DEFAULT_BIBLE_TAB, bibleTabBadge } from '../src/lib/bible.js';
-import { closeDock, dockFromPrefs, openDock, toggleDock } from '../src/lib/dock.js';
+import { BIBLE_TABS, CHARACTER_TABS, DEFAULT_BIBLE_TAB, DEFAULT_CHARACTER_TAB, bibleTabBadge } from '../src/lib/bible.js';
+import { DOCK_PANELS, characterTabFromPrefs, closeDock, dockFromPrefs, openDock, toggleDock } from '../src/lib/dock.js';
 import {
   STRUCTURE_DICTIONARY, dictionaryEntry, mergeDictionary, searchDictionary,
 } from '../src/lib/structureDictionary.js';
@@ -93,34 +93,54 @@ describe('Genre checklist', () => {
   });
 });
 
-describe('Story Bible tabs', () => {
-  it('Story DNA first (and the default), then Character Bios, then Story Notes', () => {
-    assert.deepEqual(BIBLE_TABS.map((t) => t.label), ['Story DNA', 'Character Bios', 'Story Notes']);
+describe('drawer tabs', () => {
+  it('Story Bible: DNA (the default), then Notes', () => {
+    assert.deepEqual(BIBLE_TABS.map((t) => [t.id, t.label]), [['dna', 'DNA'], ['notes', 'Notes']]);
     assert.equal(DEFAULT_BIBLE_TAB, 'dna');
   });
-  it('Character Bios shows the character count; Story Notes has no word-count badge', () => {
-    assert.equal(bibleTabBadge('characters', { characters: [{}] }), '1');
-    assert.equal(bibleTabBadge('notes', { characters: [{}] }), null);
+  it('Characters: Bios (the default), then Dialogue', () => {
+    assert.deepEqual(CHARACTER_TABS.map((t) => [t.id, t.label]), [['bios', 'Bios'], ['dialogue', 'Dialogue']]);
+    assert.equal(DEFAULT_CHARACTER_TAB, 'bios');
+  });
+  it('labels stay one short word so they never wrap; tooltips carry the detail', () => {
+    for (const t of [...BIBLE_TABS, ...CHARACTER_TABS]) {
+      assert.match(t.label, /^\S{1,8}$/, t.label);
+      assert.ok(t.title.length > t.label.length, t.id);
+    }
+    assert.match(BIBLE_TABS[0].title, /Story Blueprint & Structure Dictionary/);
+  });
+  it('badges: DNA progress, bio count, speaking characters; Notes has none', () => {
     assert.equal(bibleTabBadge('dna', { dnaAnswered: 3, dnaTotal: 8 }), '3/8');
+    assert.equal(bibleTabBadge('bios', { characters: [{}] }), '1');
+    assert.equal(bibleTabBadge('dialogue', { speakers: ['MARIE', 'THEO'] }), '2');
+    assert.equal(bibleTabBadge('notes', { characters: [{}] }), null);
   });
 });
 
-describe('right dock (Dialogue / Story Bible)', () => {
-  it('holds one panel: opening the Story Bible closes Dialogue and vice versa', () => {
-    assert.equal(toggleDock('tuner', 'bible'), 'bible');
-    assert.equal(toggleDock('bible', 'tuner'), 'tuner');
-    assert.equal(openDock('tuner', 'bible'), 'bible');
+describe('right dock (Story Bible / Characters)', () => {
+  it('holds one drawer: opening Characters closes the Story Bible and vice versa', () => {
+    assert.deepEqual(DOCK_PANELS, ['bible', 'characters']);
+    assert.equal(toggleDock('characters', 'bible'), 'bible');
+    assert.equal(toggleDock('bible', 'characters'), 'characters');
+    assert.equal(openDock('characters', 'bible'), 'bible');
   });
-  it('toggling the open panel closes it; closing the other panel changes nothing', () => {
+  it('toggling the open drawer closes it; closing the other changes nothing', () => {
     assert.equal(toggleDock('bible', 'bible'), null);
-    assert.equal(closeDock('bible', 'tuner'), 'bible');
+    assert.equal(closeDock('bible', 'characters'), 'bible');
     assert.equal(closeDock('bible', 'bible'), null);
   });
-  it('reads older prefs (tunerOpen) and new ones (dock)', () => {
-    assert.equal(dockFromPrefs({}), 'tuner');
+  it('reads every older pref: the Dialogue drawer ("tuner", tunerOpen) now opens Characters → Dialogue', () => {
+    assert.equal(dockFromPrefs({}), 'characters');
     assert.equal(dockFromPrefs({ tunerOpen: false }), null);
+    assert.equal(dockFromPrefs({ dock: 'tuner' }), 'characters');
     assert.equal(dockFromPrefs({ dock: 'bible', tunerOpen: false }), 'bible');
     assert.equal(dockFromPrefs({ dock: null, tunerOpen: true }), null);
+    assert.equal(dockFromPrefs({ dock: 'characters' }), 'characters');
+    assert.equal(characterTabFromPrefs({}), 'dialogue');
+    assert.equal(characterTabFromPrefs({ dock: 'tuner' }), 'dialogue');
+    assert.equal(characterTabFromPrefs({ dock: 'bible' }), 'bios');
+    assert.equal(characterTabFromPrefs({ dock: 'characters', characterTab: 'bios' }), 'bios');
+    assert.equal(characterTabFromPrefs({ dock: null, characterTab: 'dialogue' }), 'dialogue');
   });
 });
 
@@ -158,7 +178,8 @@ describe('keyboard shortcuts dialog', () => {
   it('lists Projects, Bible, margin notes and clear formatting', () => {
     assert.match(SHORTCUTS['Alt+P'], /Projects drawer/);
     assert.match(SHORTCUTS['Alt+I'], /^Story Bible/);
-    assert.match(SHORTCUTS['Alt+T'], /^Dialogue\b/);
+    assert.match(SHORTCUTS['Alt+C'], /^Characters \(Bios · Dialogue\)/);
+    assert.match(SHORTCUTS['Alt+T'], /^Characters → Dialogue/);
     assert.match(SHORTCUTS['Alt+N'], /Margin ScriptNote/);
     assert.match(SHORTCUTS['Ctrl+\\'], /Clear formatting/);
   });

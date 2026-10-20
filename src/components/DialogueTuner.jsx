@@ -3,9 +3,10 @@ import AutoTextarea from './AutoTextarea.jsx';
 import './DialogueTuner.css';
 
 /**
- * Slide-out panel: pick a character, read every line they speak top-to-bottom, and edit
- * in place. Edits write straight back to the script blocks (same ids), so the main
- * editor and this panel are always two views of one source of truth.
+ * Characters → Dialogue tab: pick a character, read every line they speak top-to-bottom, and
+ * edit in place. Edits write straight back to the script blocks (same ids), so the main
+ * editor and this tab are always two views of one source of truth. `open` is whether the tab
+ * is showing (so its text fields can measure themselves on return).
  */
 export default function DialogueTuner({
   open,
@@ -17,7 +18,6 @@ export default function DialogueTuner({
   onJump,
   onHover,
   onRename,
-  onClose,
 }) {
   const [showContext, setShowContext] = useState(true);
   const [query, setQuery] = useState('');
@@ -30,16 +30,7 @@ export default function DialogueTuner({
     : [];
 
   return (
-    <aside className={`tuner${open ? ' is-open' : ''}`} aria-label="Dialogue" aria-hidden={!open} inert={!open}>
-      <header className="tuner-head">
-        <div>
-          <h2>Dialogue</h2>
-          <p className="tuner-sub">Every line, one voice at a time.</p>
-        </div>
-        <button className="icon-btn" onClick={onClose} title="Close (Alt+T)" aria-label="Close Dialogue">
-          ×
-        </button>
-      </header>
+    <div className="tuner" aria-label="Dialogue">
 
       {characterList.length === 0 ? (
         <p className="tuner-empty">No characters yet. Add a Character cue followed by Dialogue and it'll show up here.</p>
@@ -138,6 +129,6 @@ export default function DialogueTuner({
           </div>
         </>
       )}
-    </aside>
+    </div>
   );
 }

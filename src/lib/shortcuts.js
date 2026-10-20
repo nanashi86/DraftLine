@@ -67,9 +67,10 @@ export const SHORTCUT_SECTIONS = [
     title: 'Workspace',
     rows: [
       ['Alt+P', 'Projects drawer (switch scripts)'],
-      ['Alt+I', 'Story Bible (Story DNA, bios, story notes)'],
+      ['Alt+I', 'Story Bible (DNA · Notes)'],
+      ['Alt+C', 'Characters (Bios · Dialogue)'],
       ['Alt+S', 'Scenes sidebar'],
-      ['Alt+T', 'Dialogue (every line, one character at a time)'],
+      ['Alt+T', 'Characters → Dialogue (every line, one character at a time)'],
       ['Alt+B', 'Cycle Page → Split → Board'],
       ['Ctrl+/', 'Keyboard shortcuts (this list)'],
     ],
