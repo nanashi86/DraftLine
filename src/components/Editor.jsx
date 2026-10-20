@@ -196,7 +196,7 @@ function NoteFlag({ block, open, onToggle, onChange, onClose }) {
 }
 
 const Block = memo(function Block({
-  block, sceneNumber, isActive, isHighlighted, marginLines, marginGaps,
+  block, sceneNumber, isActive, isHighlighted, isDim, marginLines, marginGaps,
   register, observe, onText, onKey, onFocusBlock,
   noteOpen, onNoteToggle, onNoteChange, onNoteClose,
 }) {
@@ -206,7 +206,7 @@ const Block = memo(function Block({
     <div
       ref={observe}
       data-key={observe ? block.id : undefined}
-      className={`el el-${block.type}${isActive ? ' is-active' : ''}${isHighlighted ? ' is-highlighted' : ''}${block.note != null ? ' has-note' : ''}${hasMarks(block.marks) ? ' has-fmt' : ''}`}
+      className={`el el-${block.type}${isActive ? ' is-active' : ''}${isHighlighted ? ' is-highlighted' : ''}${isDim ? ' is-dim' : ''}${block.note != null ? ' has-note' : ''}${hasMarks(block.marks) ? ' has-fmt' : ''}`}
       style={observe ? marginStyle(marginLines, marginGaps) : undefined}
     >
       {sceneNumber != null && (
@@ -244,7 +244,7 @@ const Block = memo(function Block({
 });
 
 const DualRow = memo(function DualRow({
-  item, activeId, highlightId, marginLines, marginGaps, register, observe, onText, onKey, onFocusBlock,
+  item, activeId, highlightId, spotlight, marginLines, marginGaps, register, observe, onText, onKey, onFocusBlock,
   openNoteId, onNoteToggle, onNoteChange, onNoteClose,
 }) {
   const col = (bs) => bs.map((b) => (
@@ -253,6 +253,7 @@ const DualRow = memo(function DualRow({
       block={b}
       isActive={b.id === activeId}
       isHighlighted={b.id === highlightId}
+      isDim={!!spotlight && !spotlight.has(b.id)}
       register={register}
       onText={onText}
       onKey={onKey}
@@ -319,6 +320,7 @@ export default function Editor({
   sceneNumbers,
   activeId,
   highlightId,
+  spotlight = null, // Set of block ids to keep bright (Characters → Dialogue filter); the rest dim
   zoom,
   hidden = false,
   onCommit,
@@ -821,6 +823,7 @@ export default function Editor({
               item={it}
               activeId={activeId}
               highlightId={highlightId}
+              spotlight={spotlight}
               marginLines={pl.marginLines}
               marginGaps={pl.marginGaps}
               register={register}
@@ -843,6 +846,7 @@ export default function Editor({
             sceneNumber={sceneNumbers[b.id]}
             isActive={b.id === activeId}
             isHighlighted={b.id === highlightId}
+            isDim={!!spotlight && !spotlight.has(b.id)}
             marginLines={pl.marginLines}
             marginGaps={pl.marginGaps}
             register={register}

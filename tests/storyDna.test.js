@@ -2,8 +2,8 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { createFakeIndexedDB, createFakeStorage } from './helpers/fakeIndexedDB.js';
 import {
-  CONFLICT_TYPES, DNA_QUESTIONS, DNA_TOGGLES, GENRES, emptyStoryDna, genresFromText, matchConflictType,
-  normalizeStoryDna, setAnswer, setField, setToggle, storyDnaProgress, toggleGenre,
+  CONFLICT_TYPES, DNA_QUESTIONS, GENRES, PLOT_DEVICES, addDevice, emptyStoryDna, genresFromText, matchConflictType,
+  normalizeStoryDna, setAnswer, setDevice, setField, storyDnaProgress, toggleGenre,
 } from '../src/lib/storyDna.js';
 import { BIBLE_TABS, CHARACTER_TABS, DEFAULT_BIBLE_TAB, DEFAULT_CHARACTER_TAB, bibleTabBadge } from '../src/lib/bible.js';
 import { DOCK_PANELS, characterTabFromPrefs, closeDock, dockFromPrefs, openDock, toggleDock } from '../src/lib/dock.js';
@@ -20,7 +20,7 @@ describe('Story DNA', () => {
       'Protagonist', 'Inciting Incident', 'Goal / Desire', 'Flaw', 'Conflict / Debate', 'Rising Action', 'Climax', 'Falling Action',
     ]);
     for (const q of DNA_QUESTIONS) assert.ok(dictionaryEntry(STRUCTURE_DICTIONARY, q.dict), q.dict);
-    assert.deepEqual(DNA_TOGGLES.map((t) => t.label), ['Special Plot Technique', 'Foreshadowing', 'Flashback']);
+    for (const d of PLOT_DEVICES) assert.ok(dictionaryEntry(STRUCTURE_DICTIONARY, d.dict), d.dict);
   });
   it('offers the six conflict types', () => {
     assert.deepEqual(CONFLICT_TYPES, [
@@ -32,18 +32,18 @@ describe('Story DNA', () => {
     let d = emptyStoryDna();
     d = setAnswer(d, 'protagonist', 'Marie, 45, who left Haiti at 10.');
     d = setField(d, 'conflictType', 'Individual vs. Society');
-    d = setToggle(d, 'flashback', { on: true, notes: '1986 Jacmel' });
+    d = setDevice(addDevice(d, 'flashback'), 'flashback', { notes: '1986 Jacmel' });
     assert.equal(storyDnaProgress(d), 1);
     assert.equal(emptyStoryDna().answers.protagonist, '');
-    assert.deepEqual(d.flashback, { on: true, notes: '1986 Jacmel' });
+    assert.deepEqual(d.devices, [{ id: 'flashback', on: true, notes: '1986 Jacmel' }]);
   });
   it('migrates missing or older shapes into a complete blueprint', () => {
     assert.deepEqual(normalizeStoryDna(undefined), emptyStoryDna());
     const old = normalizeStoryDna({ genre: 'Drama', flashback: true, foreshadowing: 'the ferry horn', climax: 'She turns back.', conflictType: 'man vs. self' });
     assert.deepEqual(old.genres, ['Drama']);
     assert.equal('genre' in old, false);
-    assert.deepEqual(old.flashback, { on: true, notes: '' });
-    assert.deepEqual(old.foreshadowing, { on: true, notes: 'the ferry horn' });
+    assert.deepEqual(old.devices, [{ id: 'foreshadowing', on: true, notes: 'the ferry horn' }, { id: 'flashback', on: true, notes: '' }]);
+    assert.equal('flashback' in old, false, 'the old fixed toggles are gone from the shape');
     assert.equal(old.answers.climax, 'She turns back.');
     assert.equal(old.conflictType, 'Individual vs. Self');
     assert.equal(matchConflictType('nonsense'), '');
@@ -61,12 +61,16 @@ describe('Story DNA', () => {
   });
 });
 
-describe('Genre checklist', () => {
-  it('has the 13 options, in order', () => {
+describe('Genre pills', () => {
+  it('has the 13 options, in order — Noir spelt right', () => {
     assert.deepEqual(GENRES, [
       'Drama', 'Thriller', 'Crime', 'Horror', 'Comedy', 'Action', 'Adventure', 'Romance', 'Fantasy',
-      'Science Fiction', 'Western', 'Noire', 'Other',
+      'Science Fiction', 'Western', 'Noir', 'Other',
     ]);
+  });
+  it('projects saved with the old "Noire" spelling load as Noir', () => {
+    assert.deepEqual(normalizeStoryDna({ genres: ['Noire', 'Crime'] }).genres, ['Crime', 'Noir']);
+    assert.deepEqual(genresFromText('noire').genres, ['Noir']);
   });
   it('ticks and unticks genres, kept in checklist order', () => {
     let d = emptyStoryDna();
@@ -77,7 +81,7 @@ describe('Genre checklist', () => {
   });
   it('an old single-text genre becomes checkboxes (unknown words go to Other)', () => {
     assert.deepEqual(genresFromText('Political drama · thriller'), { genres: ['Thriller', 'Other'], genreOther: 'Political drama' });
-    assert.deepEqual(genresFromText('Sci-Fi / noir and Horror'), { genres: ['Horror', 'Science Fiction', 'Noire'], genreOther: '' });
+    assert.deepEqual(genresFromText('Sci-Fi / noir and Horror'), { genres: ['Horror', 'Science Fiction', 'Noir'], genreOther: '' });
     assert.deepEqual(normalizeStoryDna({ genre: 'Crime, Western' }).genres, ['Crime', 'Western']);
     assert.deepEqual(normalizeStoryDna({ genres: ['Western', 'bogus', 'Drama'] }).genres, ['Drama', 'Western']);
   });
@@ -107,7 +111,7 @@ describe('drawer tabs', () => {
       assert.match(t.label, /^\S{1,8}$/, t.label);
       assert.ok(t.title.length > t.label.length, t.id);
     }
-    assert.match(BIBLE_TABS[0].title, /Story Blueprint & Structure Dictionary/);
+    assert.match(BIBLE_TABS[0].title, /Story Blueprint & Story Glossary/);
   });
   it('badges: DNA progress, bio count, speaking characters; Notes has none', () => {
     assert.equal(bibleTabBadge('dna', { dnaAnswered: 3, dnaTotal: 8 }), '3/8');
@@ -144,12 +148,15 @@ describe('right dock (Story Bible / Characters)', () => {
   });
 });
 
-describe('Structure Dictionary', () => {
-  it('has the 11 terms, in order, with the conflict types and the text/subtext example', () => {
+describe('Story Glossary', () => {
+  it('has the 17 terms, in order, with the conflict types and the text/subtext example', () => {
     assert.deepEqual(STRUCTURE_DICTIONARY.map((e) => e.term), [
       'Protagonist', 'Inciting Incident', 'Goal / Desire', 'Flaw', 'Conflict / Debate', 'Rising Action', 'Climax',
       'Falling Action', 'Text / Subtext / Context', 'Foreshadowing', 'Flashback',
+      'Deus ex machina', 'MacGuffin', 'Quest', 'Cliffhanger', 'Red herring', 'Love triangle',
     ]);
+    for (const e of STRUCTURE_DICTIONARY) assert.ok(e.definition.length > 40, `${e.term} has a real definition`);
+    assert.equal(new Set(STRUCTURE_DICTIONARY.map((e) => e.id)).size, 17);
     assert.deepEqual(dictionaryEntry(STRUCTURE_DICTIONARY, 'conflict').items.map((i) => i.term), CONFLICT_TYPES);
     assert.match(dictionaryEntry(STRUCTURE_DICTIONARY, 'textSubtext').example, /gun/);
     assert.match(dictionaryEntry(STRUCTURE_DICTIONARY, 'textSubtext').example, /drink/);
@@ -164,7 +171,9 @@ describe('Structure Dictionary', () => {
   it('searches terms, definitions, examples and conflict types', () => {
     assert.deepEqual(searchDictionary(STRUCTURE_DICTIONARY, 'supernatural').map((e) => e.id), ['conflict']);
     assert.deepEqual(searchDictionary(STRUCTURE_DICTIONARY, 'GUN').map((e) => e.id), ['textSubtext']);
-    assert.equal(searchDictionary(STRUCTURE_DICTIONARY, '  ').length, 11);
+    assert.equal(searchDictionary(STRUCTURE_DICTIONARY, '  ').length, 17);
+    assert.deepEqual(searchDictionary(STRUCTURE_DICTIONARY, 'false clue').map((e) => e.id), ['redHerring']);
+    assert.deepEqual(searchDictionary(STRUCTURE_DICTIONARY, 'deus').map((e) => e.id), ['deusExMachina']);
   });
   it('your wording is kept library-wide and loaded at start-up', async () => {
     const store = createProjectStore({ indexedDB: createFakeIndexedDB() });

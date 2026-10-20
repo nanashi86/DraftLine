@@ -1,18 +1,22 @@
-// Story DNA: the Project Bible's story blueprint — a few metadata fields and the eight
-// narrative questions, each tied to its Structure Dictionary term. Stored on the project
-// record as `storyDna` (see projectStorage.js).
+// Story DNA: the Story Bible's blueprint — genre, theme and central dramatic question, the
+// plot devices the script uses, and the eight narrative questions, each tied to its Story
+// Glossary term. Stored on the project record as `storyDna` (see projectStorage.js).
 
-/** Genre checklist (multi-select). "Other" shows a free-text field beside it. */
+/** Genre pills (multi-select). "Other" shows a free-text field beside it. */
 export const GENRES = [
   'Drama', 'Thriller', 'Crime', 'Horror', 'Comedy', 'Action', 'Adventure', 'Romance', 'Fantasy',
-  'Science Fiction', 'Western', 'Noire', 'Other',
+  'Science Fiction', 'Western', 'Noir', 'Other',
 ];
 
-const GENRE_ALIASES = { noir: 'Noire', 'sci-fi': 'Science Fiction', scifi: 'Science Fiction', 'sci fi': 'Science Fiction', sf: 'Science Fiction' };
+const GENRE_ALIASES = {
+  noir: 'Noir', noire: 'Noir', 'sci-fi': 'Science Fiction', scifi: 'Science Fiction', 'sci fi': 'Science Fiction', sf: 'Science Fiction',
+};
+/** Names stored by earlier versions → today's ("Noire" was a misspelling of Noir). */
+const LEGACY_GENRES = { Noire: 'Noir' };
 
-/** Checklist order, unknown names dropped, no repeats. */
+/** Pill order, old spellings fixed, unknown names dropped, no repeats. */
 export function sortGenres(list) {
-  const set = new Set(list);
+  const set = new Set(list.map((g) => LEGACY_GENRES[g] || g));
   return GENRES.filter((g) => set.has(g));
 }
 
@@ -52,12 +56,39 @@ export const CONFLICT_TYPES = [
   'Individual vs. Self',
 ];
 
-/** Yes / No techniques, each with notes. `dict` links to a Structure Dictionary term. */
-export const DNA_TOGGLES = [
-  { key: 'technique', label: 'Special Plot Technique' },
-  { key: 'foreshadowing', label: 'Foreshadowing', dict: 'foreshadowing' },
-  { key: 'flashback', label: 'Flashback', dict: 'flashback' },
+/**
+ * Plot Devices the writer can add to the blueprint, each with Yes / No and notes. `dict` is the
+ * Story Glossary entry its (i) shows. Stored as `devices: [{ id, on, notes }]` in the order added.
+ */
+export const PLOT_DEVICES = [
+  { id: 'foreshadowing', label: 'Foreshadowing', dict: 'foreshadowing' },
+  { id: 'flashback', label: 'Flashback', dict: 'flashback' },
+  { id: 'deusExMachina', label: 'Deus ex machina', dict: 'deusExMachina' },
+  { id: 'macguffin', label: 'MacGuffin', dict: 'macguffin' },
+  { id: 'quest', label: 'Quest', dict: 'quest' },
+  { id: 'cliffhanger', label: 'Cliffhanger', dict: 'cliffhanger' },
+  { id: 'redHerring', label: 'Red herring', dict: 'redHerring' },
+  { id: 'loveTriangle', label: 'Love triangle', dict: 'loveTriangle' },
 ];
+/** The old free "Special Plot Technique" toggle: kept (with its notes) if a project used it. */
+const LEGACY_TECHNIQUE = { id: 'technique', label: 'Special Plot Technique', dict: null };
+const ALL_DEVICES = [...PLOT_DEVICES, LEGACY_TECHNIQUE];
+
+export const deviceInfo = (id) => ALL_DEVICES.find((d) => d.id === id) || null;
+
+/** Devices not added yet, for the picklist (in glossary order). */
+export const availableDevices = (dna) => PLOT_DEVICES.filter((d) => !dna.devices.some((x) => x.id === d.id));
+
+export function addDevice(dna, id) {
+  if (!deviceInfo(id) || dna.devices.some((x) => x.id === id)) return dna;
+  return { ...dna, devices: [...dna.devices, { id, on: true, notes: '' }] };
+}
+export function setDevice(dna, id, patch) {
+  return { ...dna, devices: dna.devices.map((x) => (x.id === id ? { ...x, ...patch, id } : x)) };
+}
+export function removeDevice(dna, id) {
+  return { ...dna, devices: dna.devices.filter((x) => x.id !== id) };
+}
 
 export const DNA_QUESTIONS = [
   { key: 'protagonist', label: 'Protagonist', question: 'Who is it about?', dict: 'protagonist' },
@@ -75,9 +106,8 @@ export function emptyStoryDna() {
     genres: [],
     genreOther: '',
     theme: '',
-    technique: { on: false, notes: '' },
-    foreshadowing: { on: false, notes: '' },
-    flashback: { on: false, notes: '' },
+    centralQuestion: '',
+    devices: [],
     conflictType: '',
     answers: Object.fromEntries(DNA_QUESTIONS.map((q) => [q.key, ''])),
   };
@@ -85,11 +115,20 @@ export function emptyStoryDna() {
 
 const str = (v) => (typeof v === 'string' ? v : '');
 
+/** A stored toggle (boolean, string, or { on, notes }) → { on, notes }, or null if unused. */
+function legacyToggle(v) {
+  if (typeof v === 'boolean') return v ? { on: true, notes: '' } : null;
+  if (typeof v === 'string') return v.trim() ? { on: true, notes: v } : null;
+  if (v && typeof v === 'object' && (v.on || str(v.notes).trim())) return { on: !!v.on, notes: str(v.notes) };
+  return null;
+}
+
 /**
  * Anything stored (nothing, an older or partial shape) → a complete Story DNA object.
- * Accepts a single text `genre` (→ the checklist), toggles stored as plain booleans or
- * strings, answers stored at the top level,
- * and conflict types written loosely ("vs self", "Man vs. Nature").
+ * Accepts a single text `genre` (→ the pills), the misspelt "Noire", answers stored at the
+ * top level, conflict types written loosely ("vs self", "Man vs. Nature"), and the old fixed
+ * toggles — Foreshadowing, Flashback and Special Plot Technique, stored as booleans, strings
+ * or { on, notes } — which become Plot Devices when they were used (on, or with notes).
  */
 export function normalizeStoryDna(raw) {
   const d = emptyStoryDna();
@@ -101,11 +140,19 @@ export function normalizeStoryDna(raw) {
     Object.assign(d, genresFromText(raw.genre)); // older projects stored one text field
   }
   d.theme = str(raw.theme);
-  for (const { key } of DNA_TOGGLES) {
-    const v = raw[key];
-    if (typeof v === 'boolean') d[key] = { on: v, notes: '' };
-    else if (typeof v === 'string') d[key] = { on: !!v.trim(), notes: v };
-    else if (v && typeof v === 'object') d[key] = { on: !!v.on, notes: str(v.notes) };
+  d.centralQuestion = str(raw.centralQuestion);
+  if (Array.isArray(raw.devices)) {
+    const seen = new Set();
+    for (const x of raw.devices) {
+      if (!x || !deviceInfo(x.id) || seen.has(x.id)) continue;
+      seen.add(x.id);
+      d.devices.push({ id: x.id, on: !!x.on, notes: str(x.notes) });
+    }
+  } else {
+    for (const id of ['foreshadowing', 'flashback', 'technique']) {
+      const t = legacyToggle(raw[id]);
+      if (t) d.devices.push({ id, ...t });
+    }
   }
   const answers = raw.answers && typeof raw.answers === 'object' ? raw.answers : {};
   for (const q of DNA_QUESTIONS) d.answers[q.key] = str(answers[q.key] ?? raw[q.key]);
@@ -133,6 +180,4 @@ export function setAnswer(dna, key, value) {
 export function setField(dna, key, value) {
   return { ...dna, [key]: value };
 }
-export function setToggle(dna, key, patch) {
-  return { ...dna, [key]: { ...dna[key], ...patch } };
-}
+

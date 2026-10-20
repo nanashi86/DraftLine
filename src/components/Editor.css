@@ -94,6 +94,11 @@
 
 .el-transition :is(.el-input, .el-text) { text-transform: uppercase; text-align: right; }
 
+/* Characters → Dialogue filter: everything but the chosen character's speeches fades back. */
+.el { transition: opacity 160ms ease; }
+.el.is-dim { opacity: 0.22; }
+.el.is-dim:focus-within { opacity: 1; }
+
 /* Centered: Fountain's > text <, used for the closing THE END. */
 .el-centered :is(.el-input, .el-text) { text-align: center; }
 

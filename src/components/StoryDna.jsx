@@ -1,32 +1,81 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import AutoTextarea from './AutoTextarea.jsx';
 import {
-  CONFLICT_TYPES, DNA_QUESTIONS, DNA_TOGGLES, GENRES, setAnswer, setField, setToggle, storyDnaProgress, toggleGenre,
+  CONFLICT_TYPES, DNA_QUESTIONS, GENRES, addDevice, availableDevices, deviceInfo, removeDevice, setAnswer, setDevice,
+  setField, storyDnaProgress, toggleGenre,
 } from '../lib/storyDna.js';
 import { dictionaryEntry, searchDictionary } from '../lib/structureDictionary.js';
+import { TIP_MAX_WIDTH, clipToViewport, placeTooltip } from '../lib/tooltip.js';
 
-/** ℹ with the term's Structure Dictionary definition on hover / focus; click opens the entry. */
+/**
+ * (i) with the term's Story Glossary definition on hover / focus; click opens the entry.
+ * The definition is drawn in a fixed layer (a portal on <body>) and placed with
+ * placeTooltip, so the drawer's edges and scrolling can never clip it.
+ */
 function InfoTip({ entry, onOpen }) {
+  const [open, setOpen] = useState(false);
+  const btnRef = useRef(null);
+  const popRef = useRef(null);
+  const id = useId();
+
+  useLayoutEffect(() => {
+    const btn = btnRef.current;
+    const pop = popRef.current;
+    if (!open || !btn || !pop) return;
+    const drawer = btn.closest('.pb')?.getBoundingClientRect() ?? { left: 0, top: 0, right: window.innerWidth, bottom: window.innerHeight };
+    const bounds = clipToViewport(drawer, window.innerWidth, window.innerHeight);
+    pop.style.width = `${Math.min(TIP_MAX_WIDTH, bounds.right - bounds.left - 16)}px`;
+    const r = pop.getBoundingClientRect();
+    const at = placeTooltip(btn.getBoundingClientRect(), { width: r.width, height: r.height }, bounds);
+    Object.assign(pop.style, { left: `${at.left}px`, top: `${at.top}px`, width: `${at.width}px`, visibility: 'visible' });
+    pop.dataset.placement = at.placement;
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) return undefined;
+    const hide = () => setOpen(false);
+    const onKey = (e) => {
+      if (e.key === 'Escape') setOpen(false);
+    };
+    window.addEventListener('scroll', hide, true); // the drawer scrolled: the anchor moved
+    window.addEventListener('resize', hide);
+    window.addEventListener('keydown', onKey);
+    return () => {
+      window.removeEventListener('scroll', hide, true);
+      window.removeEventListener('resize', hide);
+      window.removeEventListener('keydown', onKey);
+    };
+  }, [open]);
+
   if (!entry) return null;
   return (
     <span className="dna-tip">
       <button
+        ref={btnRef}
         type="button"
         className="dna-info"
         aria-label={`${entry.term}: definition`}
-        aria-describedby={`tip-${entry.id}`}
+        aria-describedby={open ? id : undefined}
         onClick={() => onOpen(entry.id)}
+        onMouseEnter={() => setOpen(true)}
+        onMouseLeave={() => setOpen(false)}
+        onFocus={() => setOpen(true)}
+        onBlur={() => setOpen(false)}
       >
         i
       </button>
-      <span role="tooltip" id={`tip-${entry.id}`} className="dna-tip-pop">
-        <b>{entry.term}</b>
-        <span className="dna-tip-def">{entry.definition}</span>
-        {entry.items && (
-          <span className="dna-tip-items">{entry.items.map((it) => it.term).join(' · ')}</span>
-        )}
-        <span className="dna-tip-more">Click for the Structure Dictionary</span>
-      </span>
+      {open && createPortal(
+        <span ref={popRef} role="tooltip" id={id} className="dna-tip-pop">
+          <b>{entry.term}</b>
+          <span className="dna-tip-def">{entry.definition}</span>
+          {entry.items && (
+            <span className="dna-tip-items">{entry.items.map((it) => it.term).join(' · ')}</span>
+          )}
+          <span className="dna-tip-more">Click for the Story Glossary</span>
+        </span>,
+        document.body,
+      )}
     </span>
   );
 }
@@ -50,59 +99,114 @@ function YesNo({ value, onChange, label }) {
   );
 }
 
+/** Plot Devices: pick from the glossary's devices; each has Yes / No, notes and its (i). */
+function PlotDevices({ dna, onChange, dictionary, onOpenTerm }) {
+  const options = availableDevices(dna);
+  return (
+    <section className="dna-devices" aria-label="Plot Devices">
+      <div className="dna-devices-head">
+        <span className="dna-devices-title">Plot Devices</span>
+        {options.length > 0 && (
+          <select
+            className="dna-device-add"
+            value=""
+            aria-label="Add a plot device"
+            onChange={(e) => e.target.value && onChange(addDevice(dna, e.target.value))}
+          >
+            <option value="">+ Add device…</option>
+            {options.map((d) => <option key={d.id} value={d.id}>{d.label}</option>)}
+          </select>
+        )}
+      </div>
+      {dna.devices.length === 0 && (
+        <p className="dna-devices-empty">Foreshadowing, flashback, a MacGuffin, a red herring… add the ones this script uses.</p>
+      )}
+      {dna.devices.map((dev) => {
+        const info = deviceInfo(dev.id);
+        return (
+          <div key={dev.id} className={`dna-toggle${dev.on ? ' is-on' : ''}`}>
+            <div className="dna-toggle-row">
+              <span className="dna-toggle-label">
+                {info.label}
+                <InfoTip entry={info.dict && dictionaryEntry(dictionary, info.dict)} onOpen={onOpenTerm} />
+              </span>
+              <YesNo label={info.label} value={dev.on} onChange={(on) => onChange(setDevice(dna, dev.id, { on }))} />
+              <button
+                type="button"
+                className="dna-device-remove"
+                aria-label={`Remove ${info.label}`}
+                title={dev.notes.trim() ? 'Remove (its notes go with it — Ctrl+Z won’t bring them back)' : 'Remove'}
+                onClick={() => {
+                  if (dev.notes.trim() && !window.confirm(`Remove ${info.label} and its notes?`)) return;
+                  onChange(removeDevice(dna, dev.id));
+                }}
+              >
+                ×
+              </button>
+            </div>
+            {(dev.on || dev.notes) && (
+              <AutoTextarea
+                className="dna-notes"
+                value={dev.notes}
+                placeholder={`How the script uses ${info.label.toLowerCase()}…`}
+                aria-label={`${info.label} notes`}
+                onChange={(e) => onChange(setDevice(dna, dev.id, { notes: e.target.value }))}
+              />
+            )}
+          </div>
+        );
+      })}
+    </section>
+  );
+}
+
 function Blueprint({ dna, onChange, dictionary, onOpenTerm }) {
   const done = storyDnaProgress(dna);
   return (
     <div className="dna-blueprint">
       <div className="dna-meta">
         <fieldset className="dna-genres">
-          <legend>Genre <em>— tick all that apply</em></legend>
-          {GENRES.map((g) => {
-            const on = dna.genres.includes(g);
-            return (
-              <span key={g} className={`dna-genre${g === 'Other' ? ' is-other' : ''}`}>
-                <label className={`dna-genre-chip${on ? ' is-on' : ''}`}>
-                  <input type="checkbox" checked={on} onChange={(e) => onChange(toggleGenre(dna, g, e.target.checked))} />
+          <legend>Genre <em>— pick all that apply</em></legend>
+          <div className="dna-pills">
+            {GENRES.map((g) => {
+              const on = dna.genres.includes(g);
+              return (
+                <button
+                  key={g}
+                  type="button"
+                  className={`dna-pill${on ? ' is-on' : ''}`}
+                  aria-pressed={on}
+                  onClick={() => onChange(toggleGenre(dna, g, !on))}
+                >
                   {g}
-                </label>
-                {g === 'Other' && on && (
-                  <input
-                    className="dna-genre-other"
-                    autoFocus={!dna.genreOther}
-                    value={dna.genreOther}
-                    placeholder="e.g. Political drama"
-                    aria-label="Other genre"
-                    onChange={(e) => onChange(setField(dna, 'genreOther', e.target.value))}
-                  />
-                )}
-              </span>
-            );
-          })}
+                </button>
+              );
+            })}
+          </div>
+          {dna.genres.includes('Other') && (
+            <input
+              className="dna-genre-other"
+              autoFocus={!dna.genreOther}
+              value={dna.genreOther}
+              placeholder="Other genre — e.g. Political drama"
+              aria-label="Other genre"
+              onChange={(e) => onChange(setField(dna, 'genreOther', e.target.value))}
+            />
+          )}
         </fieldset>
         <label className="pb-field">
           <span>Theme <em>— revealed by the Climax</em></span>
           <input value={dna.theme} placeholder="What the story finally says" onChange={(e) => onChange(setField(dna, 'theme', e.target.value))} />
         </label>
-        {DNA_TOGGLES.map((t) => (
-          <div key={t.key} className={`dna-toggle${dna[t.key].on ? ' is-on' : ''}`}>
-            <div className="dna-toggle-row">
-              <span className="dna-toggle-label">
-                {t.label}
-                <InfoTip entry={t.dict && dictionaryEntry(dictionary, t.dict)} onOpen={onOpenTerm} />
-              </span>
-              <YesNo label={t.label} value={dna[t.key].on} onChange={(on) => onChange(setToggle(dna, t.key, { on }))} />
-            </div>
-            {(dna[t.key].on || dna[t.key].notes) && (
-              <AutoTextarea
-                className="dna-notes"
-                value={dna[t.key].notes}
-                placeholder={`How the script uses ${t.label.toLowerCase()}…`}
-                aria-label={`${t.label} notes`}
-                onChange={(e) => onChange(setToggle(dna, t.key, { notes: e.target.value }))}
-              />
-            )}
-          </div>
-        ))}
+        <label className="pb-field">
+          <span>Central Dramatic Question</span>
+          <input
+            value={dna.centralQuestion}
+            placeholder="What core question does the climax answer?"
+            onChange={(e) => onChange(setField(dna, 'centralQuestion', e.target.value))}
+          />
+        </label>
+        <PlotDevices dna={dna} onChange={onChange} dictionary={dictionary} onOpenTerm={onOpenTerm} />
       </div>
 
       <div className="dna-progress" aria-live="polite">
@@ -196,7 +300,7 @@ function Dictionary({ dictionary, openId, setOpenId, onEdit }) {
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         placeholder="Search terms and definitions…"
-        aria-label="Search the Structure Dictionary"
+        aria-label="Search the Story Glossary"
       />
       {starterCount > 0 && (
         <p className="dict-starter-note">
@@ -252,7 +356,7 @@ function Dictionary({ dictionary, openId, setOpenId, onEdit }) {
   );
 }
 
-/** Story DNA tab: [ Story Blueprint | Structure Dictionary ]. */
+/** Story DNA tab: [ Story Blueprint | Story Glossary ]. */
 export default function StoryDna({ dna, onChange, dictionary, onDictionaryEdit }) {
   const [view, setView] = useState('blueprint');
   const [openId, setOpenId] = useState(null);
@@ -263,7 +367,7 @@ export default function StoryDna({ dna, onChange, dictionary, onDictionaryEdit }
   return (
     <div className="pb-pane">
       <div className="seg dna-view" role="radiogroup" aria-label="Story DNA view">
-        {[['blueprint', 'Story Blueprint'], ['dictionary', 'Structure Dictionary']].map(([id, label]) => (
+        {[['blueprint', 'Story Blueprint'], ['dictionary', 'Story Glossary']].map(([id, label]) => (
           <button
             key={id}
             type="button"

@@ -311,13 +311,19 @@
 }
 .dna-info:hover,
 .dna-info:focus-visible { border-color: var(--accent); color: var(--text); outline: none; }
+/* Drawn in a fixed layer on <body> (StoryDna.jsx → InfoTip) and placed by lib/tooltip.js,
+   so the drawer's overflow can never clip it. Hidden until it has been measured and placed. */
 .dna-tip-pop {
-  position: absolute;
-  top: calc(100% + 6px);
-  right: -6px;
-  z-index: 5;
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 1000;
   width: 290px;
-  display: none;
+  max-width: calc(100vw - 16px);
+  display: grid;
+  gap: 4px;
+  visibility: hidden;
+  pointer-events: none;
   padding: 9px 11px;
   border: 1px solid var(--line-soft);
   border-radius: 8px;
@@ -328,12 +334,10 @@
   text-align: left;
   white-space: normal;
 }
-.dna-tip:hover .dna-tip-pop,
-.dna-info:focus-visible + .dna-tip-pop { display: grid; gap: 4px; }
 .dna-tip-items { color: var(--muted); font-size: 11.5px; }
 .dna-tip-more { color: var(--muted); font-size: 11px; font-style: italic; }
 
-/* Structure Dictionary */
+/* Story Glossary */
 .dict-starter-note { margin: 8px 2px 10px; font-size: 12px; line-height: 1.5; color: var(--muted); }
 .dict-list { margin: 8px 0 0; padding: 0; list-style: none; display: grid; gap: 6px; }
 .dict-entry { border: 1px solid var(--line-soft); border-radius: 8px; background: var(--card); scroll-margin: 12px; }
@@ -388,31 +392,55 @@
 .dict-edit-foot .btn-primary { background: var(--accent); color: var(--on-accent); }
 .dict-reset { color: var(--muted); }
 
-/* Genre checklist */
-.dna-genres { display: flex; flex-wrap: wrap; gap: 5px; margin: 0; padding: 0; border: 0; min-width: 0; }
+/* Genre pills: compact multi-select toggles */
+.dna-genres { margin: 0; padding: 0; border: 0; min-width: 0; display: grid; gap: 6px; }
 .dna-genres legend { width: 100%; margin-bottom: 4px; padding: 0; font-size: 11.5px; color: var(--muted); }
 .dna-genres legend em { font-style: normal; opacity: 0.75; }
-.dna-genre { display: inline-flex; align-items: center; gap: 5px; }
-.dna-genre.is-other { flex: 1 1 100%; }
-.dna-genre-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 3px 9px 3px 6px;
+.dna-pills { display: flex; flex-wrap: wrap; gap: 5px; }
+.dna-pill {
+  padding: 3px 10px;
   border: 1px solid var(--line-soft);
   border-radius: 999px;
   background: var(--field);
-  color: var(--text);
-  font-size: 12.5px;
+  color: var(--muted);
+  font: 550 12px/1.5 var(--ui-font);
   cursor: pointer;
-  user-select: none;
+  transition: background 120ms ease, border-color 120ms ease, color 120ms ease;
 }
-.dna-genre-chip:hover { border-color: color-mix(in srgb, var(--accent) 50%, var(--line-soft)); }
-.dna-genre-chip.is-on { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 20%, var(--field)); }
-.dna-genre-chip input { width: 13px; height: 13px; margin: 0; accent-color: var(--accent); }
-.dna-genre-chip:has(input:focus-visible) { outline: 2px solid var(--accent); outline-offset: 1px; }
+.dna-pill:hover { border-color: color-mix(in srgb, var(--accent) 50%, var(--line-soft)); color: var(--text); }
+.dna-pill.is-on { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 22%, var(--field)); color: var(--text); }
+.dna-pill:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+/* Plot Devices */
+.dna-devices { display: grid; gap: 10px; }
+.dna-devices-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.dna-devices-title { font-size: 11.5px; color: var(--muted); }
+.dna-device-add {
+  padding: 3px 8px;
+  border: 1px solid var(--line-soft);
+  border-radius: 6px;
+  background: var(--field);
+  color: var(--text);
+  font: 12px var(--ui-font);
+  cursor: pointer;
+}
+.dna-devices-empty { margin: 0; font-size: 12px; color: var(--muted); }
+.dna-device-remove {
+  width: 22px;
+  height: 22px;
+  margin-left: -4px;
+  padding: 0;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+}
+.dna-device-remove:hover { background: var(--field); color: var(--text); }
+.dna-toggle-row .dna-toggle-label { margin-right: auto; }
 .dna-genre-other {
-  flex: 1;
   min-width: 0;
   padding: 4px 8px;
   border: 1px solid var(--accent);

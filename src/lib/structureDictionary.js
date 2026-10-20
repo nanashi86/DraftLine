@@ -1,10 +1,14 @@
-// Structure Dictionary: the 11 story-structure terms the Story DNA questions refer to.
+// Story Glossary (formerly "Structure Dictionary"): the story terms the Story DNA questions
+// and Plot Devices refer to — the eight structure terms, Text / Subtext / Context, and the
+// plot devices (Foreshadowing, Flashback, Deus ex machina, MacGuffin, Quest, Cliffhanger,
+// Red herring, Love triangle).
 //
 // The wording below is DraftLine's STARTER text — short, conventional definitions. It is
 // meant to be replaced by the writer's own reference (a class handout, a book): every
-// entry can be edited in the app (Project Bible → Story DNA → Structure Dictionary), and
-// edits are kept in the library's settings for all projects. `starter: true` marks text
-// that hasn't been replaced yet, so the UI can say so.
+// entry can be edited in the app (Story Bible → DNA → Story Glossary), and edits are kept
+// in the library's settings for all projects (the setting key is still
+// 'structureDictionary', so earlier wording carries over). `starter: true` marks text that
+// hasn't been replaced yet, so the UI can say so.
 
 export const STRUCTURE_DICTIONARY = [
   {
@@ -70,6 +74,36 @@ export const STRUCTURE_DICTIONARY = [
     id: 'flashback',
     term: 'Flashback',
     definition: 'A scene that steps back in time from the story’s present to show an earlier event that explains a character, a relationship or a mystery.',
+  },
+  {
+    id: 'deusExMachina',
+    term: 'Deus ex machina',
+    definition: '“God from the machine”: a sudden, unforeshadowed rescue — a person, event or coincidence that solves the problem from outside the story’s logic. Usually a flaw, because the protagonist’s own choices stop mattering; used knowingly, it can be satire or irony.',
+  },
+  {
+    id: 'macguffin',
+    term: 'MacGuffin',
+    definition: 'The object, secret or goal everyone is chasing — it drives the plot but matters less in itself than in what the pursuit reveals about the characters. The briefcase, the stolen plans, the letter.',
+  },
+  {
+    id: 'quest',
+    term: 'Quest',
+    definition: 'A journey toward a clear goal through a series of trials, often with companions and a cost along the way. The outer road mirrors an inner change: the hero who arrives is not the one who set out.',
+  },
+  {
+    id: 'cliffhanger',
+    term: 'Cliffhanger',
+    definition: 'An ending — of a scene, act or episode — at a moment of unresolved danger or revelation, so the audience has to know what happens next.',
+  },
+  {
+    id: 'redHerring',
+    term: 'Red herring',
+    definition: 'A deliberate false clue that points the audience (and often the characters) the wrong way — a suspect, object or detail that looks important so the real answer lands as a surprise. Fair red herrings still make sense in hindsight.',
+  },
+  {
+    id: 'loveTriangle',
+    term: 'Love triangle',
+    definition: 'Three characters bound by competing romantic loyalties — usually one person torn between two others — so every choice of the heart costs someone something.',
   },
 ];
 

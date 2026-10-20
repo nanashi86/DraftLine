@@ -18,6 +18,7 @@ import ProjectBibleDrawer from './components/ProjectBibleDrawer.jsx';
 import RenameCharacterModal from './components/RenameCharacterModal.jsx';
 import { renameCharacter, revertRename } from './lib/renameCharacter.js';
 import { moveCardAndScene } from './lib/sceneSync.js';
+import { dialogueFilter, filterLabel } from './lib/dialogueFilter.js';
 import { canvasThemeInfo, nextCanvasTheme, readCanvasTheme, writeCanvasTheme } from './lib/canvasTheme.js';
 import { mergeDictionary } from './lib/structureDictionary.js';
 import { characterTabFromPrefs, closeDock, dockFromPrefs, openDock, toggleDock } from './lib/dock.js';
@@ -170,7 +171,7 @@ function Workspace({ boot }) {
   const [characters, setCharacters] = useState(initialDoc.characters); // Story Bible
   const [storyNotes, setStoryNotes] = useState(initialDoc.storyNotes);
   const [storyDna, setStoryDna] = useState(initialDoc.storyDna);
-  const [dictOverrides, setDictOverrides] = useState(boot.dictionary || {}); // Structure Dictionary wording (all projects)
+  const [dictOverrides, setDictOverrides] = useState(boot.dictionary || {}); // Story Glossary wording (all projects)
 
   const [lineMap, setLineMap] = useState({});
   const [activeId, setActiveId] = useState(null);
@@ -283,6 +284,8 @@ function Workspace({ boot }) {
 
   // Speakers in the script (for the Bible's "add from script" chips), most lines first.
   const speakers = useMemo(() => analysis.characterList.map((c) => c.name), [analysis]);
+  // Characters → Dialogue: a character picked there spotlights their speeches in the script.
+  const filter = useMemo(() => dialogueFilter(analysis, selectedChar), [analysis, selectedChar]);
 
   // Scenes the Beat Board can turn into cards: numbered headings with text.
   const boardScenes = useMemo(() => scenes.filter((s) => s.number && s.heading), [scenes]);
@@ -299,7 +302,7 @@ function Workspace({ boot }) {
     return () => clearTimeout(t);
   }, [toast, boot]);
 
-  // Structure Dictionary: starter text with your own wording laid over it, kept for all projects.
+  // Story Glossary: starter text with your own wording laid over it, kept for all projects.
   const dictionary = useMemo(() => mergeDictionary(dictOverrides), [dictOverrides]);
   const editDictionary = useCallback((id, override) => {
     const next = { ...dictOverrides };
@@ -791,6 +794,8 @@ function Workspace({ boot }) {
       } else if (e.altKey && !mod && e.code === 'KeyB') {
         e.preventDefault();
         cycleView();
+      } else if (e.key === 'Escape' && filter && !e.defaultPrevented && !titleOpen && !importSeed && !doctorOpen && !renameFrom) {
+        setSelectedChar(null); // clear the Dialogue filter first; the next Esc can leave Focus mode
       } else if (e.key === 'Escape' && focusMode && !titleOpen && !importSeed && !doctorOpen) {
         setFocusMode(false);
       } else if (mod && !e.defaultPrevented && !titleOpen && !importSeed && !doctorOpen && !renameFrom
@@ -804,7 +809,7 @@ function Workspace({ boot }) {
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [focusMode, titleOpen, importSeed, doctorOpen, renameFrom, notify, undo, redo, cycleView, saveNow, toggleDialogueTab]);
+  }, [focusMode, titleOpen, importSeed, doctorOpen, renameFrom, notify, undo, redo, cycleView, saveNow, toggleDialogueTab, filter]);
 
   const hints = activeBlock ? flowHints(activeBlock.type) : null;
   const currentSceneId = activeId ? analysis.sceneOfBlock[activeId] : null;
@@ -986,7 +991,7 @@ function Workspace({ boot }) {
               ref={bibleBtnRef}
               className={`btn btn-bible${bibleOpen ? ' is-on-subtle' : ''}`}
               onClick={() => setDock((d) => toggleDock(d, 'bible'))}
-              title="Story Bible: DNA (Story Blueprint & Structure Dictionary) · Notes (Alt+I)"
+              title="Story Bible: DNA (Story Blueprint & Story Glossary) · Notes (Alt+I)"
               aria-pressed={bibleOpen}
             >
               Story Bible
@@ -1034,6 +1039,15 @@ function Workspace({ boot }) {
 
         <div className="workspace">
           <main className="scroller" ref={scrollerRef} hidden={!showEditor}>
+            {filter && (
+              <div className="filter-banner" role="status">
+                <span className="filter-dot" aria-hidden="true" />
+                <span>{filterLabel(filter)}</span>
+                <button type="button" className="filter-clear" onClick={() => setSelectedChar(null)} title="Show the whole script again (Esc)">
+                  Clear Filter ✕
+                </button>
+              </div>
+            )}
             {coverVisible && (
               <div
                 className="cover-wrap"
@@ -1064,6 +1078,7 @@ function Workspace({ boot }) {
               sceneNumbers={analysis.sceneNumbers}
               activeId={activeId}
               highlightId={hoverId}
+              spotlight={filter?.ids ?? null}
               zoom={effectiveZoom}
               hidden={!showEditor}
               onCommit={commitBlocks}

@@ -140,13 +140,23 @@ function renameDna(dna, variants) {
   if (!dna || typeof dna !== 'object') return { dna, count: 0 };
   let count = 0;
   let out = dna;
-  const top = renameFields(out, ['theme', 'genreOther'], variants);
+  const top = renameFields(out, ['theme', 'centralQuestion', 'genreOther'], variants);
   out = top.obj;
   count += top.count;
   if (out.answers && typeof out.answers === 'object') {
     const a = renameFields(out.answers, Object.keys(out.answers), variants);
     if (a.count) out = { ...out, answers: a.obj };
     count += a.count;
+  }
+  if (Array.isArray(out.devices)) {
+    let hit = false;
+    const devices = out.devices.map((x) => {
+      const r = renameFields(x, ['notes'], variants);
+      count += r.count;
+      if (r.count) hit = true;
+      return r.obj;
+    });
+    if (hit) out = { ...out, devices };
   }
   for (const [k, v] of Object.entries(out)) {
     if (v && typeof v === 'object' && !Array.isArray(v) && typeof v.notes === 'string' && k !== 'answers') {

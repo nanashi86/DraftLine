@@ -43,7 +43,8 @@ export default function DialogueTuner({
                 role="option"
                 aria-selected={current?.name === c.name}
                 className={`cast-chip${current?.name === c.name ? ' is-selected' : ''}`}
-                onClick={() => onSelect(c.name)}
+                onClick={() => onSelect(selected === c.name ? null : c.name)}
+                title={selected === c.name ? `Showing ${c.name} in the script — click again (or Esc) to clear` : `Spotlight ${c.name}’s speeches in the script`}
               >
                 <span className="cast-name">{c.name}</span>
                 <span className="cast-count">{c.lines}</span>

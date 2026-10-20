@@ -18,4 +18,15 @@ export default defineConfig([
       parserOptions: { ecmaFeatures: { jsx: true } },
     },
   },
+  {
+    // The service worker template: worker globals, plus placeholders the build fills in.
+    files: ['src/pwa/sw.template.js'],
+    languageOptions: {
+      globals: { ...globals.serviceworker, __PRECACHE__: 'readonly', __CORE_FONTS_CSS__: 'readonly' },
+    },
+  },
+  {
+    files: ['src/pwa/vitePlugin.js', 'vite.config.js'],
+    languageOptions: { globals: globals.node },
+  },
 ])

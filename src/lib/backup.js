@@ -7,7 +7,7 @@
 //     "exportedAt": "2026-10-19T23:59:00.000Z",
 //     "project": { …the stored project record, verbatim… },
 //     "board": { "actMode": 3 | 4 },
-//     "dictionary": { …your Structure Dictionary wording… }
+//     "dictionary": { …your Story Glossary wording… }
 //   }
 //
 // `project` is the same record the library keeps in IndexedDB (see projectStorage.js), so a
@@ -22,7 +22,7 @@
 // Block ids are kept, so cards stay linked to their scenes after a restore.
 //
 // `board.actMode` is the 3- or 4-act view the board was in. `dictionary` holds the writer's
-// own Structure Dictionary wording; a restore only adds terms the library has no wording for.
+// own Story Glossary wording; a restore only adds terms the library has no wording for.
 
 import { normalizeStoryDna } from './storyDna.js';
 import { normalizeStoryNotes, validCharacters } from './bible.js';

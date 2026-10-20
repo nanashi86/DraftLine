@@ -33,7 +33,7 @@ const SETTINGS = 'settings';
 
 /** localStorage keys from before the library (read once, for migration). */
 export const LEGACY_KEYS = ['draftline:script:v2', 'draftline:script:v2:backup', 'draftline:script:v1'];
-/** Settings key for the writer's own Structure Dictionary wording (all projects). */
+/** Settings key for the writer's own Story Glossary wording (all projects). */
 export const DICTIONARY_KEY = 'structureDictionary';
 /** Crash journal: the unsaved state written synchronously when the tab closes mid-save. */
 export const JOURNAL_KEY = 'draftline:journal:v1';
@@ -310,7 +310,7 @@ export function createProjectStore({ indexedDB = globalThis.indexedDB, now = Dat
       });
     },
 
-    /** Library-wide settings (not tied to one project), e.g. the Structure Dictionary wording. */
+    /** Library-wide settings (not tied to one project), e.g. the Story Glossary wording. */
     async getSetting(key) {
       return (await backend()).getSetting(key);
     },
@@ -379,7 +379,7 @@ export function clearJournal(storage) {
  *   1. empty library → migrate the localStorage script (or create the sample) as project one;
  *   2. a crash journal newer than its stored project → saved into it first;
  *   3. the last active project (or the most recent one).
- * Returns { project (record), migrated, recovered, dictionary (your Structure Dictionary wording), persistent }.
+ * Returns { project (record), migrated, recovered, dictionary (your Story Glossary wording), persistent }.
  */
 export async function bootLibrary({ store, storage, makeFirstDoc }) {
   let migrated = false;

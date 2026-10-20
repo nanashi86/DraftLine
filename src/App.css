@@ -273,6 +273,39 @@
 .view-split .workspace > .board { border-left: 1px solid var(--line-soft); }
 .view-split .scroller { padding-left: 24px; padding-right: 24px; }
 
+/* ---------- Characters → Dialogue filter banner (screen only; never printed) ---------- */
+.filter-banner {
+  position: sticky;
+  top: 8px;
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: fit-content;
+  max-width: 100%;
+  margin: -28px auto 12px;
+  padding: 5px 6px 5px 12px;
+  border: 1px solid color-mix(in srgb, var(--accent) 45%, var(--line-soft));
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 14%, var(--bar));
+  color: var(--text);
+  font-size: 12.5px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3);
+}
+.filter-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); flex: none; }
+.filter-clear {
+  padding: 3px 10px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--on-accent);
+  font: 600 12px var(--ui-font);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.filter-clear:hover { filter: brightness(1.08); }
+@media print { .filter-banner { display: none !important; } }
+
 /* ---------- Title page as Page 0 ---------- */
 .cover-wrap {
   width: calc(var(--in) * 8.5);
