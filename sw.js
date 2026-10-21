@@ -9,30 +9,32 @@
    • Google Fonts: cached as they're used (title-page fonts too), served from cache after that.
    • Your scripts never touch this: they live in IndexedDB. Nothing is sent anywhere. */
 
-const VERSION = "f5c13af06cb6";
+const VERSION = "75f04791103e";
 const PRECACHE = [
   "./",
+  "./Nanashi86 - signature.png",
   "./apple-touch-icon.png",
+  "./assets/FormatDoctorModal-DdxrF6Ws.js",
   "./assets/FormatDoctorModal-G3WXPKiJ.css",
-  "./assets/FormatDoctorModal-agUPddyS.js",
-  "./assets/HelpModal-BdbGK1CS.css",
-  "./assets/HelpModal-BuW9v2p9.js",
-  "./assets/HelpModal-DrbwWLu5.js",
+  "./assets/HelpModal-BCGJtXBL.css",
+  "./assets/HelpModal-NRUE0xW1.js",
+  "./assets/HelpModal-_stz1pZA.js",
   "./assets/ImportModal-Ddt7wkL7.css",
-  "./assets/ImportModal-DmWmcsJm.js",
+  "./assets/ImportModal-Ddy9tkBV.js",
+  "./assets/RenameCharacterModal-B1ombAOA.js",
   "./assets/RenameCharacterModal-DagY3wg-.css",
-  "./assets/RenameCharacterModal-icSTvb6E.js",
   "./assets/UserGuideModal-BVWC8KuI.css",
-  "./assets/UserGuideModal-UrR_3wlO.js",
+  "./assets/UserGuideModal-C4XaUKtJ.js",
   "./assets/formatting-ROOIYVNG.js",
-  "./assets/index-B2sZOTsf.js",
-  "./assets/index-DHbnz3PV.css",
+  "./assets/index-BhXOA0TM.css",
+  "./assets/index-zp6NBM9s.js",
   "./favicon.svg",
   "./icon-192.png",
   "./icon-512.png",
   "./icon-maskable-512.png",
   "./index.html",
-  "./manifest.json"
+  "./manifest.json",
+  "./nanashi86-signature.png"
 ]; // paths relative to this file, e.g. "./assets/index-abc123.js"
 const CORE_FONTS_CSS = "https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400;1,700&family=Inter:wght@400;500;600;700;800&display=swap";
 const SHELL_CACHE = `draftline-shell-${VERSION}`;

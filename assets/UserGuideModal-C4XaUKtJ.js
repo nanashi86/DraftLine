@@ -1,4 +1,4 @@
-import{K as e,q as t}from"./formatting-ROOIYVNG.js";import{A as n,C as r,D as i,E as a,F as o,I as s,L as c,M as l,N as u,O as d,P as f,R as p,S as m,T as h,V as g,_,a as v,b as y,g as b,h as ee,i as x,j as S,k as C,m as w,n as te,o as ne,r as re,s as ie,t as ae,v as oe,w as T,x as E,y as D}from"./index-B2sZOTsf.js";/* empty css                  */var O=t(),k=`# DraftLine User Guide
+import{K as e,q as t}from"./formatting-ROOIYVNG.js";import{A as n,C as r,D as i,E as a,F as o,I as s,L as c,M as l,N as u,O as d,P as f,R as p,S as m,T as h,V as g,_,a as v,b as y,g as b,h as ee,i as x,j as S,k as C,m as w,n as te,o as ne,r as re,s as ie,t as ae,v as oe,w as T,x as E,y as D}from"./index-zp6NBM9s.js";/* empty css                  */var O=t(),k=`# DraftLine User Guide
 
 DraftLine is a distraction-free screenwriting app that runs in your browser. It writes in Courier Prime at 12 pt with standard screenplay margins, saves as you type, and works offline. This guide covers everything from your first scene heading to the final PDF.
 
