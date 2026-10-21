@@ -14,12 +14,12 @@ export function isOnBar(el, bar) {
 
 /**
  * The ⋮ menu, top to bottom: View Snapshots · Margin Notes — Keyboard Shortcuts — Load Sample —
- * About DraftLine, plus Focus, Story Bible and/or Characters first (toolbar order), but only while
+ * User Guide · About DraftLine, plus Focus, Story Bible and/or Characters first (toolbar order), but only while
  * the toolbar can't show them itself (narrow windows). Snapshots and Notes show their counts.
  */
 export function moreMenuItems({
   bibleOnBar, charactersOnBar, onBible, onCharacters, onSnapshots, snapshotCount = 0, onNotes, noteCount = 0,
-  onShortcuts, onSample, onAbout, focusOnBar = true, onFocus,
+  onShortcuts, onSample, onAbout, focusOnBar = true, onFocus, onGuide,
 }) {
   const panels = [
     !focusOnBar && onFocus && { label: 'Focus', hint: 'Esc exits', onSelect: onFocus },
@@ -35,6 +35,7 @@ export function moreMenuItems({
     { divider: true },
     { label: 'Load Sample', hint: 'The Last Ferry', onSelect: onSample },
     { divider: true },
+    ...(onGuide ? [{ label: 'User Guide', hint: 'F1', onSelect: onGuide }] : []),
     { label: 'About DraftLine', onSelect: onAbout },
   ];
 }

@@ -6,8 +6,9 @@ import AutoTextarea from './AutoTextarea.jsx';
 import TabIcon from './TabIcon.jsx';
 import { RichLine } from './FormattedText.jsx';
 import {
-  BIBLE_TABS, DEFAULT_BIBLE_TAB, SYNOPSIS_ACTS, addSection, bibleTabBadge, importNotes, markdownBlocks, normalizeSynopsis,
-  removeSection, setSynopsisAct, storyNotesMarkdown, synopsisHasText, synopsisIndex, updateSection,
+  BIBLE_TABS, DEFAULT_BIBLE_TAB, SYNOPSIS_ACTS, TREATMENT, TREATMENT_TARGET, addSection, bibleTabBadge, importNotes,
+  markdownBlocks, normalizeSynopsis, removeSection, setSynopsisAct, setTreatment, storyNotesMarkdown, synopsisHasText,
+  synopsisIndex, updateSection,
 } from '../lib/bible.js';
 import StoryDna from './StoryDna.jsx';
 import { storyDnaProgress, DNA_QUESTIONS } from '../lib/storyDna.js';
@@ -58,6 +59,7 @@ function ImportPanel({ notes, onImport, onCancel }) {
           Into
           <select value={target} onChange={(e) => setTarget(e.target.value)}>
             {notes.sections.map((s) => <option key={s.id} value={s.id}>{s.title || 'Untitled section'}</option>)}
+            <option value={TREATMENT_TARGET}>{TREATMENT.label}</option>
           </select>
         </label>
         <div className="seg seg-sm" role="radiogroup" aria-label="How to import">
@@ -143,8 +145,46 @@ function SynopsisCard({ synopsis, editing, onToggle, onChange }) {
   );
 }
 
+/**
+ * Treatment: the full narrative treatment — one long Markdown text, right below the Synopsis.
+ * Edit / Done like the Synopsis; it saves as you type.
+ */
+function TreatmentCard({ text, editing, onToggle, onChange }) {
+  return (
+    <section className="pb-section pb-treatment" aria-label={TREATMENT.label}>
+      <header>
+        <span className="pb-section-title pb-fixed-title">{TREATMENT.label}</span>
+        <button type="button" className="btn pb-mini" onClick={onToggle} aria-pressed={editing}>
+          {editing ? 'Done' : 'Edit'}
+        </button>
+      </header>
+      {editing ? (
+        <AutoTextarea
+          className="pb-section-body pb-treatment-body"
+          value={text}
+          placeholder={TREATMENT.placeholder}
+          aria-label={`${TREATMENT.label} notes`}
+          onChange={(e) => onChange(e.target.value)}
+        />
+      ) : (
+        <div
+          className="pb-section-view"
+          role="button"
+          tabIndex={0}
+          title="Click to edit"
+          onClick={(e) => !e.target.closest('a') && onToggle()}
+          onKeyDown={(e) => (e.key === 'Enter' ? onToggle() : null)}
+        >
+          {text.trim() ? <MarkdownView text={text} /> : <p className="pb-md-empty">Not written yet.</p>}
+        </div>
+      )}
+    </section>
+  );
+}
+
 function StoryNotes({ notes, onChange, onUndoable, projectTitle = '' }) {
   const [synopsisEditing, setSynopsisEditing] = useState(() => !synopsisHasText(notes.synopsis));
+  const [treatmentEditing, setTreatmentEditing] = useState(() => !(notes.treatment || '').trim());
   const [copied, setCopied] = useState(false);
   const copyMarkdown = async () => {
     try {
@@ -165,6 +205,18 @@ function StoryNotes({ notes, onChange, onUndoable, projectTitle = '' }) {
       onChange={(key, text) => onChange(setSynopsisAct(notes, key, text))}
     />
   );
+  // The Synopsis and, right below it, the Treatment — together, after Pitch.
+  const fixedCards = (
+    <>
+      {synopsisCard}
+      <TreatmentCard
+        text={notes.treatment || ''}
+        editing={treatmentEditing}
+        onToggle={() => setTreatmentEditing((v) => !v)}
+        onChange={(text) => onChange(setTreatment(notes, text))}
+      />
+    </>
+  );
   const toggle = (id) => setEditing((e) => {
     const n = new Set(e);
     if (n.has(id)) n.delete(id);
@@ -179,7 +231,7 @@ function StoryNotes({ notes, onChange, onUndoable, projectTitle = '' }) {
           type="button"
           className="btn"
           onClick={copyMarkdown}
-          title="Copy every note — Logline, Tone, Timeline, Pitch, the three-act Synopsis… — as Markdown"
+          title="Copy every note — Logline, Tone, Timeline, Pitch, the three-act Synopsis, the Treatment… — as Markdown"
         >
           {copied ? 'Copied ✓' : 'Copy as Markdown'}
         </button>
@@ -205,7 +257,7 @@ function StoryNotes({ notes, onChange, onUndoable, projectTitle = '' }) {
           const isEditing = editing.has(s.id);
           return (
             <Fragment key={s.id}>
-            {i === synopsisIndex(notes.sections) && synopsisCard}
+            {i === synopsisIndex(notes.sections) && fixedCards}
             <section className="pb-section">
               <header>
                 <input
@@ -255,7 +307,7 @@ function StoryNotes({ notes, onChange, onUndoable, projectTitle = '' }) {
             </Fragment>
           );
         })}
-        {synopsisIndex(notes.sections) >= notes.sections.length && synopsisCard}
+        {synopsisIndex(notes.sections) >= notes.sections.length && fixedCards}
       </div>
       <button
         type="button"

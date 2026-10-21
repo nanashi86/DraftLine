@@ -522,3 +522,4 @@
 @media (prefers-reduced-motion: reduce) {
   .pb, .pb.is-open { transition: none; }
 }
+.pb-treatment-body { width: 100%; min-height: 160px; }

@@ -74,6 +74,7 @@ export const SHORTCUT_SECTIONS = [
       ['Alt+T', 'Characters → Dialogue (every line, one character at a time)'],
       ['Alt+B', 'Cycle Page → Split → Board'],
       ['Ctrl+/', 'Keyboard shortcuts (this list)'],
+      ['F1', 'User Guide (also Shift+? outside the script)'],
     ],
   },
 ];

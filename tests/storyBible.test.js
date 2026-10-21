@@ -2,8 +2,9 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import {
-  DEFAULT_SECTIONS, SYNOPSIS_ACTS, defaultStoryNotes, emptySynopsis, migrateStoryBible, normalizeStoryNotes, normalizeSynopsis,
-  setSynopsisAct, storyNotesMarkdown, synopsisIndex, themeLine,
+  DEFAULT_SECTIONS, SYNOPSIS_ACTS, TREATMENT, TREATMENT_TARGET, defaultStoryNotes, emptySynopsis, importNotes, migrateStoryBible,
+  normalizeStoryNotes, normalizeSynopsis, setSynopsisAct, setTreatment, splitByHeadings, storyNotesMarkdown, synopsisIndex, themeLine,
+  updateSection,
 } from '../src/lib/bible.js';
 import { renameCharacter, revertRename } from '../src/lib/renameCharacter.js';
 import { parseBackup, serializeBackup } from '../src/lib/backup.js';
@@ -182,3 +183,77 @@ describe('Story Notes: three-act Synopsis card', () => {
     assert.equal(back.storyNotes.synopsis.act2, 'Fito runs. FITO hides.');
   });
 });
+
+describe('Story Notes: Treatment card', () => {
+  const ui = readFileSync(new URL('../src/components/ProjectBibleDrawer.jsx', import.meta.url), 'utf8');
+  it('label and placeholder', () => {
+    assert.equal(TREATMENT.label, 'Treatment');
+    assert.equal(TREATMENT.placeholder, 'Write or paste your full narrative treatment here (sequence-by-sequence prose, scene breakdowns, subplots)...');
+  });
+  it('sits directly below the Synopsis, with Edit / Done like it', () => {
+    assert.match(ui, /const fixedCards = \(\s*<>\s*\{synopsisCard\}\s*<TreatmentCard/);
+    assert.match(ui, /\{i === synopsisIndex\(notes\.sections\) && fixedCards\}/);
+    assert.match(ui, /\{synopsisIndex\(notes\.sections\) >= notes\.sections\.length && fixedCards\}/);
+    const card = ui.slice(ui.indexOf('function TreatmentCard'), ui.indexOf('function StoryNotes'));
+    assert.match(card, /\{editing \? 'Done' : 'Edit'\}/);
+    assert.match(card, /<AutoTextarea[^>]*placeholder=\{TREATMENT\.placeholder\}/);
+    assert.match(card, /onChange=\{\(e\) => onChange\(e\.target\.value\)\}/);
+    assert.match(ui, /onChange=\{\(text\) => onChange\(setTreatment\(notes, text\)\)\}/, 'saves through the notes like every card');
+  });
+  it('a new project has an empty treatment; older notes load with one', () => {
+    assert.equal(defaultStoryNotes().treatment, '');
+    assert.equal(normalizeStoryNotes(v2Notes('')).treatment, '');
+    assert.equal(normalizeStoryNotes({ ...defaultStoryNotes(), treatment: 42 }).treatment, '');
+    assert.equal(normalizeStoryNotes('old free text').treatment, '');
+  });
+  it('saves input: through the library and inside .draftline backups', async () => {
+    const notes = setTreatment(defaultStoryNotes(), 'Sequence 1. Marie at the harbor.');
+    const store = createProjectStore({ indexedDB: createFakeIndexedDB() });
+    const rec = await store.saveActiveProject({ meta: { title: 'Run!' }, blocks: [makeBlock('scene', 'EXT. HARBOR')], storyNotes: notes });
+    assert.equal(toDoc(await store.getProject(rec.id)).storyNotes.treatment, 'Sequence 1. Marie at the harbor.');
+    const { record } = parseBackup(serializeBackup(rec));
+    assert.equal(toDoc(record).storyNotes.treatment, 'Sequence 1. Marie at the harbor.');
+  });
+  it('Copy as Markdown: "## Treatment" right after the Synopsis', () => {
+    let n = setSynopsisAct(defaultStoryNotes(), 'act1', 'Marie returns.');
+    n = setTreatment(n, 'Opening prose.');
+    n = updateSection(n, n.sections.find((x) => x.title === 'Scratchpad').id, { body: 'Loose ideas.' });
+    const md = storyNotesMarkdown(n, 'Run!');
+    assert.ok(md.indexOf('### Act I: Setup') < md.indexOf('## Treatment'));
+    assert.ok(md.indexOf('## Treatment') < md.indexOf('## Scratchpad'));
+    assert.match(md, /## Treatment\n\nOpening prose\.\n/);
+    // with no synopsis text, the treatment still comes out (in the same place)
+    assert.match(storyNotesMarkdown(setTreatment(defaultStoryNotes(), 'Only this.')), /^## Treatment\n\nOnly this\.\n$/);
+    assert.ok(!/Treatment/.test(storyNotesMarkdown(defaultStoryNotes())), 'an empty treatment is left out');
+  });
+  it('Import from Notes: "## Treatment" fills the card, sub-headings and all; Copy → Import round-trips', () => {
+    const text = '# Ideas\n\nA note.\n\n## Treatment\n\nOpening.\n\n### Sequence 2: The Storm\n\nWind.\n\n## Logline\n\nShe goes back.';
+    const base = defaultStoryNotes();
+    const out = importNotes(base, text, { mode: 'sections', targetId: base.sections[0].id });
+    assert.equal(out.treatment, 'Opening.\n\n### Sequence 2: The Storm\n\nWind.');
+    assert.equal(out.sections.find((x) => x.title === 'Logline').body, 'She goes back.');
+    assert.ok(!out.sections.some((x) => /Treatment|Sequence/.test(x.title)), 'no stray sections');
+    let n = setSynopsisAct(defaultStoryNotes(), 'act2', 'It falls apart.');
+    n = setTreatment(n, 'Long prose.\n\n### Part Two\n\nMore.');
+    const back = importNotes(defaultStoryNotes(), storyNotesMarkdown(n, 'Run!'), { mode: 'sections' });
+    assert.equal(back.treatment, n.treatment);
+    assert.deepEqual(back.synopsis, n.synopsis);
+    assert.deepEqual(back.sections.map((x) => x.title), DEFAULT_SECTIONS, 'no "Run! — Story Notes" section');
+  });
+  it('Import from Notes can paste straight into the Treatment (append or replace)', () => {
+    const n = setTreatment(defaultStoryNotes(), 'First.');
+    assert.equal(importNotes(n, 'Second.', { targetId: TREATMENT_TARGET, mode: 'append' }).treatment, 'First.\n\nSecond.');
+    assert.equal(importNotes(n, 'New.', { targetId: TREATMENT_TARGET, mode: 'replace' }).treatment, 'New.');
+    assert.match(ui, /<option value=\{TREATMENT_TARGET\}>\{TREATMENT\.label\}<\/option>/);
+    assert.deepEqual(splitByHeadings('## A\n\nx\n\n### B').map((p) => p.level), [2, 3]);
+  });
+  it('renaming a character reaches the treatment, and undo puts it back', () => {
+    const storyNotes = setTreatment(defaultStoryNotes(), 'FITO runs. Fito hides.');
+    const project = { blocks: [makeBlock('character', 'FITO')], beats: [], characters: [], storyNotes, storyDna: emptyStoryDna() };
+    const { project: p2, changed } = renameCharacter(project, 'FITO', 'Marc');
+    assert.equal(p2.storyNotes.treatment, 'MARC runs. Marc hides.');
+    const undone = revertRename({ beats: [], characters: [], storyNotes: p2.storyNotes, storyDna: p2.storyDna }, changed, 'undo');
+    assert.equal(undone.storyNotes.treatment, 'FITO runs. Fito hides.');
+  });
+});
+

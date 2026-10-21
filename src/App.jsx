@@ -1,5 +1,5 @@
 import {
-  useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore,
+  Suspense, lazy, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore,
 } from 'react';
 import { flushSync } from 'react-dom';
 import Editor from './components/Editor.jsx';
@@ -15,6 +15,8 @@ import BeatBoard from './components/BeatBoard.jsx';
 import Menu from './components/Menu.jsx';
 import { useHistory } from './hooks/useHistory.js';
 import HelpModal from './components/HelpModal.jsx';
+// The User Guide (and its text) loads the first time it's opened; the service worker caches it for offline use.
+const UserGuideModal = lazy(() => import('./components/UserGuideModal.jsx'));
 import LockBadge from './components/LockBadge.jsx';
 import { LOCK_COMBO, isLockShortcut } from './lib/lock.js';
 import ProjectsDrawer from './components/ProjectsDrawer.jsx';
@@ -248,6 +250,7 @@ function Workspace({ boot }) {
   const [doctorOpen, setDoctorOpen] = useState(false);
   const [fmtState, setFmtState] = useState({ b: false, i: false, u: false, s: false }); // toolbar B I U S
   const [helpKind, setHelpKind] = useState(null); // 'shortcuts' | 'about' while that dialog is open
+  const [guideOpen, setGuideOpen] = useState(false); // User Guide (⋮ → User Guide, F1)
   const [printing, setPrinting] = useState(false);
   // Page colour: Paper (default) or Midnight — on screen only; print is always black on white.
   const [canvasTheme, setCanvasTheme] = useState(() => readCanvasTheme());
@@ -1072,9 +1075,15 @@ function Workspace({ boot }) {
     const onKey = (e) => {
       const mod = e.ctrlKey || e.metaKey;
       const t = e.target;
+      const typing = t.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(t.tagName);
       if (isLockShortcut(e)) {
         e.preventDefault();
         toggleLock();
+      } else if (e.key === 'F1' || (e.key === '?' && e.shiftKey && !mod && !e.altKey && !typing)) {
+        // F1 anywhere (the browser's own help is kept out of the way); Shift+? when not typing.
+        e.preventDefault();
+        setHelpKind(null);
+        setGuideOpen(true);
       } else if (mod && e.key.toLowerCase() === 's') {
         e.preventDefault();
         saveNow().then((rec) => notify(rec ? 'Saved to Projects · use Export for files' : 'Could not save — browser storage is full or blocked'));
@@ -1378,6 +1387,7 @@ function Workspace({ boot }) {
                 onShortcuts: () => setHelpKind('shortcuts'),
                 onSample: loadSample,
                 onAbout: () => setHelpKind('about'),
+                onGuide: () => setGuideOpen(true),
                 focusOnBar: isOnBar(focusBtnRef.current, barRef.current),
                 onFocus: () => setFocusMode(true),
               })}
@@ -1678,6 +1688,12 @@ function Workspace({ boot }) {
           onExport={exportProject}
           onDelete={deleteProject}
         />
+
+        {guideOpen && (
+          <Suspense fallback={null}>
+            <UserGuideModal onClose={() => setGuideOpen(false)} />
+          </Suspense>
+        )}
 
         {helpKind && (
           <HelpModal

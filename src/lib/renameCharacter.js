@@ -177,7 +177,7 @@ function renameDna(dna, variants) {
  */
 export function renameCharacter(project, oldName, newName, categories = ALL_CATEGORIES) {
   const counts = { cues: 0, dialogue: 0, action: 0, notes: 0 };
-  const changed = { blocks: [], beats: [], characters: [], sections: [], synopsis: null, storyDna: null };
+  const changed = { blocks: [], beats: [], characters: [], sections: [], synopsis: null, treatment: null, storyDna: null };
   const o = clean(oldName);
   const n = clean(newName);
   const same = !o || !n || o === n;
@@ -267,6 +267,15 @@ export function renameCharacter(project, oldName, newName, categories = ALL_CATE
       storyNotes = { ...storyNotes, synopsis: r.obj };
     }
   }
+  // …and so does the Treatment.
+  if (!same && typeof storyNotes?.treatment === 'string' && storyNotes.treatment) {
+    const r = renameFields({ treatment: storyNotes.treatment }, ['treatment'], variants);
+    counts.notes += r.count;
+    if (on.notes && r.count) {
+      changed.treatment = [storyNotes.treatment, r.obj.treatment];
+      storyNotes = { ...storyNotes, treatment: r.obj.treatment };
+    }
+  }
 
   let storyDna = project.storyDna;
   if (!same) {
@@ -348,6 +357,9 @@ export function revertRename(state, changed, direction = 'undo') {
   }
   if (changed.synopsis && storyNotes?.synopsis === changed.synopsis[fromIdx]) {
     storyNotes = { ...storyNotes, synopsis: changed.synopsis[toIdx] };
+  }
+  if (changed.treatment && storyNotes?.treatment === changed.treatment[fromIdx]) {
+    storyNotes = { ...storyNotes, treatment: changed.treatment[toIdx] };
   }
   let { storyDna } = state;
   if (changed.storyDna && storyDna === changed.storyDna[fromIdx]) storyDna = changed.storyDna[toIdx];

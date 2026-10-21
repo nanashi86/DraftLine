@@ -1,0 +1,88 @@
+/* User Guide: HelpModal's dialog, wider, with a contents column and a readable text column. */
+.hm-modal.ug-modal {
+  width: min(1040px, calc(100vw - 32px));
+  height: min(820px, calc(100vh - 48px));
+  height: min(820px, calc(100dvh - 32px));
+  max-height: none;
+  transition: width 0.2s ease-in-out, height 0.2s ease-in-out, border-radius 0.2s ease-in-out;
+}
+.hm-modal.ug-modal.is-expanded {
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  max-width: none;
+  border-radius: 0;
+}
+.ug-head { gap: 14px; }
+.ug-head h2 { flex: none; }
+.ug-search {
+  flex: 1 1 auto;
+  min-width: 120px;
+  max-width: 360px;
+  padding: 6px 10px;
+  border: 1px solid var(--line-soft);
+  border-radius: 7px;
+  background: var(--field);
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+}
+.ug-search:focus { border-color: var(--accent); outline: none; }
+.ug-actions { display: flex; align-items: center; gap: 6px; margin-left: auto; flex: none; }
+.ug-actions .pb-expand { display: grid; place-items: center; width: 32px; height: 32px; padding: 0; color: var(--muted); }
+.ug-actions .pb-expand:hover { color: var(--text); }
+
+.ug-main { flex: 1; min-height: 0; display: grid; grid-template-columns: 210px minmax(0, 1fr); }
+.ug-toc { overflow: auto; padding: 16px 10px 20px 18px; border-right: 1px solid var(--line-soft); }
+.ug-toc .micro-label { margin: 0 6px 8px; }
+.ug-toc ol { list-style: none; margin: 0; padding: 0; }
+.ug-toc ol ol { margin: 2px 0 8px 10px; }
+.ug-toc button {
+  display: block;
+  width: 100%;
+  padding: 5px 6px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text);
+  font: 550 13px/1.35 var(--ui-font);
+  text-align: left;
+  cursor: pointer;
+}
+.ug-toc button:hover:not(:disabled) { background: var(--field); }
+.ug-toc .ug-toc-topic { font-weight: 450; font-size: 12.5px; color: var(--muted); }
+.ug-toc .ug-toc-topic:hover { color: var(--text); }
+.ug-toc .is-dim { opacity: 0.35; cursor: default; }
+
+.ug-body { overflow: auto; padding: 18px 28px 40px; scroll-padding-top: 12px; }
+.ug-body > * { max-width: 720px; }
+.ug-modal.is-expanded .ug-body > * { margin-inline: auto; }
+.ug-title { margin: 4px 0 8px; font-size: 22px; font-weight: 700; }
+.ug-count { margin: 4px 0 10px; color: var(--muted); font-size: 13px; }
+.ug-chapter h2 { margin: 26px 0 8px; padding-bottom: 6px; border-bottom: 1px solid var(--line-soft); font-size: 17px; font-weight: 650; }
+.ug-topic h3 { margin: 18px 0 6px; font-size: 14px; font-weight: 650; }
+.ug-body p, .ug-body li { font-size: 14px; line-height: 1.65; color: var(--text); }
+.ug-body p { margin: 0 0 10px; }
+.ug-body ul, .ug-body ol { margin: 0 0 12px; padding-left: 22px; }
+.ug-body li { margin: 3px 0; }
+.ug-body kbd {
+  padding: 0 5px;
+  border: 1px solid var(--line-soft);
+  border-bottom-width: 2px;
+  border-radius: 4px;
+  background: var(--field);
+  font: 600 12px/1.5 var(--ui-font);
+  white-space: nowrap;
+}
+.ug-body mark { padding: 0 1px; border-radius: 2px; background: rgba(224, 164, 88, 0.35); color: inherit; }
+
+@media (max-width: 720px) {
+  .ug-main { grid-template-columns: minmax(0, 1fr); }
+  .ug-toc { display: none; }
+  .ug-head { flex-wrap: wrap; }
+  .ug-search { order: 3; max-width: none; flex-basis: 100%; }
+  .ug-actions .pb-expand { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hm-modal.ug-modal { transition: none; }
+}

@@ -281,8 +281,9 @@ export function missingFromScript(list, speakers) {
 
 // ---- Story notes ------------------------------------------------------------------------
 //
-// { version, sections: [{ id, title, body }], synopsis: { act1, act2, act3 } }
-// The Synopsis is a structured three-act card shown right after Pitch (SYNOPSIS_AFTER).
+// { version, sections: [{ id, title, body }], synopsis: { act1, act2, act3 }, treatment }
+// The Synopsis is a structured three-act card shown right after Pitch (SYNOPSIS_AFTER); the
+// Treatment (one long free-form text, Markdown) comes right after the Synopsis.
 
 /** The Synopsis card's three acts, in order. */
 export const SYNOPSIS_ACTS = [
@@ -293,6 +294,15 @@ export const SYNOPSIS_ACTS = [
 export const SYNOPSIS_AFTER = 'Pitch';
 
 export const emptySynopsis = () => ({ act1: '', act2: '', act3: '' });
+
+/** The Treatment card: the full narrative treatment, below the Synopsis. */
+export const TREATMENT = {
+  label: 'Treatment',
+  placeholder: 'Write or paste your full narrative treatment here (sequence-by-sequence prose, scene breakdowns, subplots)...',
+};
+
+/** Set the Treatment text. */
+export const setTreatment = (notes, text) => ({ ...notes, treatment: String(text ?? '') });
 
 /** Anything stored → { act1, act2, act3 }. A plain string (an older one-box synopsis) becomes Act I. */
 export function normalizeSynopsis(v) {
@@ -319,19 +329,21 @@ export function synopsisIndex(sections) {
 
 /**
  * The Notes tab as Markdown, in on-screen order — the Synopsis (Act I / II / III) in its place
- * after Pitch. Empty sections and acts are left out.
+ * after Pitch, then the Treatment. Empty sections and acts are left out.
  */
 export function storyNotesMarkdown(notes, title = '') {
   const n = normalizeStoryNotes(notes);
   const out = [];
   if (title.trim()) out.push(`# ${title.trim()} — Story Notes`, '');
   const syn = () => {
-    if (!synopsisHasText(n.synopsis)) return;
-    out.push('## Synopsis', '');
-    for (const a of SYNOPSIS_ACTS) {
-      const t = n.synopsis[a.key].trim();
-      if (t) out.push(`### ${a.label}`, '', t, '');
+    if (synopsisHasText(n.synopsis)) {
+      out.push('## Synopsis', '');
+      for (const a of SYNOPSIS_ACTS) {
+        const t = n.synopsis[a.key].trim();
+        if (t) out.push(`### ${a.label}`, '', t, '');
+      }
     }
+    if (n.treatment.trim()) out.push(`## ${TREATMENT.label}`, '', n.treatment.trim(), '');
   };
   const at = synopsisIndex(n.sections);
   n.sections.forEach((s, i) => {
@@ -348,6 +360,7 @@ export function defaultStoryNotes() {
     version: STORY_NOTES_VERSION,
     sections: DEFAULT_SECTIONS.map((title) => ({ id: uid('sn'), title, body: '' })),
     synopsis: emptySynopsis(),
+    treatment: '',
   };
 }
 
@@ -385,7 +398,7 @@ export function migrateStoryNotes(sections) {
   const ordered = DEFAULT_SECTIONS.map((name) => presets.get(name) || { id: uid('sn'), title: name, body: '' });
   // An empty Themes card just goes; one with text stays (as your own section) until it can move.
   const kept = themes?.body.trim() ? [themes] : [];
-  return { version: STORY_NOTES_VERSION, sections: [...ordered, ...kept, ...custom], synopsis: emptySynopsis() };
+  return { version: STORY_NOTES_VERSION, sections: [...ordered, ...kept, ...custom], synopsis: emptySynopsis(), treatment: '' };
 }
 
 /** "- Exile\n- Return home" → "Exile; Return home" (Story DNA's Theme is a one-line field). */
@@ -454,8 +467,9 @@ export function normalizeStoryNotes(notes) {
   if (notes && Array.isArray(notes.sections) && notes.sections.every((s) => s && typeof s.id === 'string')) {
     const sections = notes.sections.map((s) => ({ id: s.id, title: String(s.title ?? ''), body: String(s.body ?? '') }));
     const synopsis = normalizeSynopsis(notes.synopsis);
-    if ((notes.version || 1) < STORY_NOTES_VERSION) return { ...migrateStoryNotes(sections), synopsis };
-    return { version: notes.version, sections, synopsis };
+    const treatment = typeof notes.treatment === 'string' ? notes.treatment : '';
+    if ((notes.version || 1) < STORY_NOTES_VERSION) return { ...migrateStoryNotes(sections), synopsis, treatment };
+    return { version: notes.version, sections, synopsis, treatment };
   }
   return defaultStoryNotes();
 }
@@ -483,16 +497,29 @@ export function splitByHeadings(text) {
   let cur = { title: null, lines: [] };
   for (let i = 0; i < lines.length; i++) {
     const l = lines[i];
-    const md = l.match(/^\s{0,3}#{1,3}\s+(.+?)\s*#*\s*$/);
+    const md = l.match(/^\s{0,3}(#{1,3})\s+(.+?)\s*#*\s*$/);
     const underlined = !md && l.trim() && /^\s*(=+|-{3,})\s*$/.test(lines[i + 1] || '') ? l.trim() : null;
     if (md || underlined) {
       if (cur.title !== null || cur.lines.some((x) => x.trim())) out.push(cur);
-      cur = { title: (md ? md[1] : underlined).trim(), lines: [] };
+      const level = md ? md[1].length : /=/.test(lines[i + 1]) ? 1 : 2;
+      cur = { title: (md ? md[2] : underlined).trim(), level, lines: [] };
       if (underlined) i += 1;
     } else cur.lines.push(l);
   }
   if (cur.title !== null || cur.lines.some((x) => x.trim())) out.push(cur);
-  return out.map((s) => ({ title: s.title, body: s.lines.join('\n').trim() }));
+  return out.map((s) => ({ title: s.title, level: s.level ?? 0, body: s.lines.join('\n').trim() }));
+}
+
+/** importNotes target id for the Treatment card (the "Into" list offers it beside the sections). */
+export const TREATMENT_TARGET = 'treatment';
+
+/** Which fixed card a pasted heading belongs to: 'treatment', 'synopsis', an act key, or null. */
+function fixedCardFor(title) {
+  const t = title.trim().toLowerCase().replace(/[:.]+$/, '');
+  if (t === TREATMENT.label.toLowerCase()) return 'treatment';
+  if (t === 'synopsis') return 'synopsis';
+  const act = SYNOPSIS_ACTS.find((a) => [a.label, a.short].some((l) => l.toLowerCase() === t) || t === a.label.split(':')[0].toLowerCase());
+  return act ? act.key : null;
 }
 
 /**
@@ -501,21 +528,52 @@ export function splitByHeadings(text) {
  *   mode 'replace'  — replace that section's text
  *   mode 'sections' — split at headings: a heading that matches an existing section's
  *                      title appends there, others become new sections; text before the
- *                      first heading goes to `targetId`
+ *                      first heading goes to `targetId`. "Treatment", "Synopsis" and the
+ *                      act headings fill those cards; headings nested under "Treatment"
+ *                      (### Sequence 1…) stay part of the treatment.
+ *   targetId TREATMENT_TARGET (append / replace) — the Treatment card
  */
 export function importNotes(notes, text, { targetId, mode = 'append' } = {}) {
   const clean = (text || '').replace(/\r\n?/g, '\n').trim();
   if (!clean) return notes;
   const join = (a, b) => (a.trim() ? `${a.replace(/\s+$/, '')}\n\n${b}` : b);
+  if (targetId === TREATMENT_TARGET && mode !== 'sections') {
+    const cur = notes.treatment || '';
+    return setTreatment(notes, mode === 'replace' ? clean : join(cur, clean));
+  }
   const target = notes.sections.find((s) => s.id === targetId) || notes.sections[notes.sections.length - 1];
   if (mode !== 'sections' || !target) {
     if (!target) return addSectionWith(notes, 'Imported notes', clean);
     return updateSection(notes, target.id, { body: mode === 'replace' ? clean : join(target.body, clean) });
   }
   let next = notes;
+  let treatmentLevel = 0; // inside "## Treatment": deeper headings are part of it
   for (const part of splitByHeadings(clean)) {
+    if (treatmentLevel && part.title !== null && part.level > treatmentLevel) {
+      const chunk = `${'#'.repeat(part.level)} ${part.title}${part.body ? `\n\n${part.body}` : ''}`;
+      next = setTreatment(next, join(next.treatment || '', chunk));
+      continue;
+    }
+    treatmentLevel = 0;
     if (part.title === null) {
-      if (part.body) next = updateSection(next, target.id, { body: join(next.sections.find((s) => s.id === target.id).body, part.body) });
+      if (!part.body) continue;
+      if (targetId === TREATMENT_TARGET) next = setTreatment(next, join(next.treatment || '', part.body));
+      else next = updateSection(next, target.id, { body: join(next.sections.find((s) => s.id === target.id).body, part.body) });
+      continue;
+    }
+    // Copy as Markdown's own title line ("# Run! — Story Notes") isn't a section.
+    if (/\s—\s*Story Notes$/.test(part.title) && !part.body) continue;
+    // "## Treatment", "## Synopsis" and "### Act I: Setup"… (as Copy as Markdown writes them) fill
+    // their own cards instead of becoming new sections.
+    const card = fixedCardFor(part.title);
+    if (card === 'treatment') {
+      treatmentLevel = part.level || 1;
+      if (part.body) next = setTreatment(next, join(next.treatment || '', part.body));
+      continue;
+    }
+    if (card === 'synopsis' || (card && card.startsWith('act'))) {
+      const key = card === 'synopsis' ? 'act1' : card;
+      if (part.body) next = setSynopsisAct(next, key, join(normalizeSynopsis(next.synopsis)[key], part.body));
       continue;
     }
     const want = (presetName(part.title) || part.title).toLowerCase();
