@@ -92,9 +92,9 @@ export default function HelpModal({ kind, storage, onBackup, onClose }) {
             <h3 id="hm-origin-title">Origin Story</h3>
             <p>
               I began storytelling at eight on my father’s electric typewriter. Decades later, while writing my first
-              feature, <em>What Happened to Haiti?</em>, I refused to pay bloated subscriptions and manually drafted all six
-              drafts in raw Google Docs. That grind taught me structure and what feature writers actually need. So I
-              teamed up with my AI buddies to build DraftLine: an independent, distraction-free tool with dramatic
+              feature, <em>What Happened to Haiti?</em>, I refused to pay bloated subscriptions and drafted all six
+              drafts in raw Google Docs. That grind taught me structure and what tools screenwriters truly need. So I
+              teamed up with my AI buddies to build DraftLine: a clean, independent editor with dramatic
               architecture built right in.
             </p>
           </section>
