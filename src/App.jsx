@@ -1,4 +1,6 @@
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import {
+  useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore,
+} from 'react';
 import { flushSync } from 'react-dom';
 import Editor from './components/Editor.jsx';
 import CharactersDrawer from './components/CharactersDrawer.jsx';
@@ -58,11 +60,17 @@ import { SAMPLE_SCRIPT } from './lib/sampleScript.js';
 import { effectiveZoomFor } from './lib/zoom.js';
 import { actionDensity, riskLocations, stepRisk } from './lib/pacing.js';
 import DensityNav from './components/DensityNav.jsx';
+import { createFolderSync, mergeProjectLists, saveProjectEverywhere, storageStatus } from './lib/folderSync.js';
 import './App.css';
 
 // Scripts live in IndexedDB (lib/projectStorage.js); localStorage keeps only UI prefs.
 const PREFS_KEY = 'draftline:prefs:v1';
 const SAVE_DEBOUNCE_MS = 500;
+
+// Folder sync (lib/folderSync.js): an optional linked folder — Google Drive or any local folder —
+// that gets a .draftline copy of each script after every browser save. Its settings (the folder
+// handle, Browser vs Synced Folder) live in the library's IndexedDB settings store.
+const folderSync = createFolderSync({ settings: { get: (k) => projects.getSetting(k), set: (k, v) => projects.setSetting(k, v) } });
 const ZOOM_STEPS = [0.75, 0.9, 1, 1.1, 1.25, 1.5, 1.75, 2];
 const VIEWS = [
   { id: 'page', label: 'Page', title: 'Script only' },
@@ -198,6 +206,10 @@ function Workspace({ boot }) {
   const [noteId, setNoteId] = useState(null); // the element whose margin note the Notes drawer shows
   const noteSession = useRef(null); // { id, start } — the note's text when this editing stretch began
   const [dictOverrides, setDictOverrides] = useState(boot.dictionary || {}); // Glossary wording (all projects)
+  // Folder sync: where scripts are kept (browser only, or browser + a linked folder).
+  const sync = useSyncExternalStore(folderSync.subscribe, folderSync.getState);
+  const [folderSnaps, setFolderSnaps] = useState({ projectId: null, list: [] }); // <folder>/Snapshots files
+  const [focusStorage, setFocusStorage] = useState(0); // bumped by the status bar → Projects' storage block
 
   const [lineMap, setLineMap] = useState({});
   const [activeId, setActiveId] = useState(null);
@@ -207,6 +219,14 @@ function Workspace({ boot }) {
   const charactersOpen = dock === 'characters';
   const bibleOpen = dock === 'bible';
   const snapshotsOpen = dock === 'snapshots';
+  // Snapshot files in the synced folder that this browser's copy doesn't have (another computer's,
+  // or deleted here): listed beside the rest, restorable like any snapshot.
+  const shownFolderSnaps = useMemo(() => {
+    if (!sync.active || folderSnaps.projectId !== projectId) return [];
+    const mine = new Set(revisions.map((r) => r.id));
+    return folderSnaps.list.filter((f) => !mine.has(f.rev.id)).map((f) => ({ ...f.rev, source: 'folder', fileName: f.fileName }));
+  }, [sync.active, folderSnaps, projectId, revisions]);
+  const allSnapshots = useMemo(() => [...revisions, ...shownFolderSnaps], [revisions, shownFolderSnaps]);
   const notesOpen = dock === 'notes';
   const [bibleTab, setBibleTab] = useState(DEFAULT_BIBLE_TAB); // DNA unless you pick another this session
   const [characterTab, setCharacterTab] = useState(() => characterTabFromPrefs(initialPrefs));
@@ -373,6 +393,11 @@ function Workspace({ boot }) {
   useLayoutEffect(() => {
     latest.current = {
       projectId, meta, blocks, beats, characters, storyNotes, storyDna, revisions, pages: layout.pageCount, scenes: analysis.sceneCount, dirty,
+      createdAt: saved.createdAt,
+      savedAt: saved.at,
+      // What a synced .draftline file carries beside the project (same as Backup Project).
+      fileOptions: { actMode, dictionary: dictOverrides, appVersion: pkg.version },
+      folderSnaps: shownFolderSnaps,
     };
   });
 
@@ -383,12 +408,24 @@ function Workspace({ boot }) {
       meta: s.meta, blocks: s.blocks, beats: s.beats, characters: s.characters, storyNotes: s.storyNotes, storyDna: s.storyDna,
       revisions: s.revisions,
     };
-    return projects.saveActiveProject({ id: s.projectId, ...snap, pages: s.pages, scenes: s.scenes })
-      .then(async (rec) => {
-        const ok = await projects.isPersistent();
-        clearJournal(LOCAL);
-        if (latest.current.projectId === s.projectId) setSaved({ ...snap, at: rec.updatedAt, ok });
-        return rec;
+    // The browser first (the ground truth), then — if a folder is synced — its .draftline file.
+    // "Saving…" clears as soon as the browser copy is safe; the folder write follows on its own.
+    const markSaved = async (rec) => {
+      const ok = await projects.isPersistent();
+      clearJournal(LOCAL);
+      if (latest.current.projectId === s.projectId) setSaved({ ...snap, at: rec.updatedAt, createdAt: rec.createdAt, ok });
+    };
+    let marked = null;
+    return saveProjectEverywhere({
+      store: projects,
+      sync: folderSync,
+      data: { id: s.projectId, ...snap, pages: s.pages, scenes: s.scenes },
+      options: s.fileOptions,
+      onLocal: (rec) => { marked = markSaved(rec); },
+    })
+      .then(async ({ record }) => {
+        await marked;
+        return record;
       })
       .catch(() => {
         if (latest.current.projectId === s.projectId) setSaved((prev) => ({ ...prev, ok: false }));
@@ -398,6 +435,40 @@ function Workspace({ boot }) {
 
   /** Save only if there are unsaved changes (before switching projects). */
   const flushSave = useCallback(() => (latest.current.dirty ? saveNow() : Promise.resolve(null)), [saveNow]);
+
+  // ---- Folder sync ----
+  // Start-up: bring back the linked folder (never prompts — that needs a click on the status bar).
+  useEffect(() => {
+    folderSync.init();
+  }, []);
+
+  // Whenever sync turns on (linked, allowed, chosen): if the folder has a newer copy of the open
+  // script — edited on another computer — and nothing here is unsaved, open that; then write
+  // the open script out so the folder is current.
+  const pullNewer = useRef(null);
+  useEffect(() => {
+    if (!sync.active) return;
+    const id = latest.current.projectId;
+    (async () => {
+      const there = await folderSync.readProject(id).catch(() => null);
+      const s = latest.current;
+      if (there && s.projectId === id && !s.dirty && (there.updatedAt || 0) > (s.savedAt || 0)) {
+        pullNewer.current?.(there);
+        return;
+      }
+      saveNow();
+    })();
+  }, [sync.active, sync.folderName, saveNow]);
+
+  // The Snapshots drawer open with sync on: read <folder>/Snapshots for this script.
+  useEffect(() => {
+    if (!snapshotsOpen || !sync.active) return undefined;
+    let live = true;
+    folderSync.listSnapshots(projectId).then((list) => live && setFolderSnaps({ projectId, list }));
+    return () => {
+      live = false;
+    };
+  }, [snapshotsOpen, sync.active, projectId, revisions.length]);
 
   useEffect(() => {
     if (!dirty) return undefined;
@@ -433,7 +504,41 @@ function Workspace({ boot }) {
     writeJSON(PREFS_KEY, { zoom, dock, characterTab, navOpen, view, actMode, coverVisible });
   }, [zoom, dock, characterTab, navOpen, view, actMode, coverVisible]);
 
-  const saveLabel = !saved.ok ? 'Not saved — browser storage blocked or full' : dirty ? 'Saving…' : 'Saved locally';
+  // Status bar: where the script is saved — browser, synced folder, or "click to allow folder sync".
+  const saveStatus = storageStatus({ saveOk: saved.ok, dirty, sync });
+  const onSaveStatusClick = () => {
+    if (saveStatus.action === 'permission') {
+      folderSync.requestPermission().then((ok) => notify(ok ? `Syncing to ${folderSync.getState().folderName}` : 'Folder sync is still off — the browser didn’t get permission'));
+      return;
+    }
+    setDrawerOpen(true);
+    setFocusStorage((n) => n + 1);
+  };
+  // Projects: the browser library plus scripts found only in the synced folder (newest copy wins).
+  const loadLibrary = useCallback(async () => mergeProjectLists(await projects.getAllProjects(), await folderSync.listProjects()), []);
+  const storageControls = {
+    sync,
+    onChoose: async (dest) => {
+      const ok = await folderSync.setDestination(dest);
+      if (dest === 'browser') notify('Saving to this browser only · the folder keeps its files');
+      else if (ok) notify(`Syncing to ${folderSync.getState().folderName}`);
+    },
+    onLink: async () => {
+      try {
+        if (await folderSync.link()) notify(`Linked “${folderSync.getState().folderName}” · scripts sync there as .draftline files`);
+      } catch (e) {
+        notify(e.message || 'Couldn’t link that folder');
+      }
+    },
+    onDisconnect: async () => {
+      const name = folderSync.getState().folderName;
+      await folderSync.disconnect();
+      notify(`Disconnected “${name}” · its files stay where they are`);
+    },
+    onAllow: async () => {
+      if (await folderSync.requestPermission()) notify(`Syncing to ${folderSync.getState().folderName}`);
+    },
+  };
 
   // ---- Script mutations (shared by the Editor and the Dialogue panel) ----
   const commitBlocks = useCallback((next) => {
@@ -574,21 +679,36 @@ function Workspace({ boot }) {
       return;
     }
     await flushSave();
-    const rec = await projects.getProject(id);
+    let rec = await projects.getProject(id);
+    // Synced folder: a copy there that's newer (or the only copy) is the one to open.
+    const there = await folderSync.readProject(id).catch(() => null);
+    const fromFolder = !!there && (!rec || (there.updatedAt || 0) > (rec.updatedAt || 0));
+    if (fromFolder) rec = await projects.importRecord(there);
     if (!rec) {
       notify('That script no longer exists');
       return;
     }
     applyProject(rec);
     setDrawerOpen(false);
-    notify(`Switched to “${rec.title?.trim() || 'Untitled'}”`);
+    const title = rec.title?.trim() || 'Untitled';
+    notify(fromFolder ? `Opened “${title}” from ${folderSync.getState().folderName}` : `Switched to “${title}”`);
   }, [applyProject, flushSave, notify]);
+
+  // A newer copy of the open script turned up in the folder at start-up (see the folder-sync effect).
+  useLayoutEffect(() => {
+    pullNewer.current = async (there) => {
+      const rec = await projects.importRecord(there);
+      applyProject(rec);
+      notify(`Loaded the newer copy of “${rec.title?.trim() || 'Untitled'}” from ${folderSync.getState().folderName}`);
+    };
+  });
 
   /** Save what's open, store `doc` as a new project and open it. */
   const openAsNewProject = useCallback(async (doc, message) => {
     await flushSave();
     const rec = await projects.saveActiveProject(doc);
     applyProject(rec);
+    folderSync.writeProject(rec, latest.current.fileOptions);
     setDrawerOpen(false);
     if (message) notify(message);
     return rec;
@@ -706,25 +826,35 @@ function Workspace({ boot }) {
     setRevisions((list) => addRevision(list, rev));
     setSnapshotPrompt(false);
     notify(`Snapshot saved · “${rev.label}”`);
+    // Synced folder: also <folder>/Snapshots/<slug>_<YYYY-MM-DD_HHmm>.draftline
+    folderSync.writeSnapshot(rev, { id: s.projectId, title: s.meta.title, createdAt: s.createdAt }, s.fileOptions)
+      .then((path) => path && notify(`Snapshot saved · “${rev.label}” · ${folderSync.getState().folderName}/${path}`));
     return rev;
   }, [notify]);
 
   const deleteSnapshot = useCallback((id) => {
-    const rev = getRevision(latest.current.revisions, id);
+    const s = latest.current;
+    const rev = getRevision(s.revisions, id) || getRevision(s.folderSnaps, id);
     setRevisions((list) => removeRevision(list, id));
+    // Its file in <folder>/Snapshots goes too — otherwise it would come back as a folder snapshot.
+    folderSync.removeSnapshot(id, s.projectId).then(() => {
+      setFolderSnaps((f) => ({ ...f, list: f.list.filter((x) => x.rev.id !== id) }));
+    });
     if (rev) notify(`Deleted snapshot “${rev.label}”`);
   }, [notify]);
 
   /** Put snapshot `id` back (one undo step), first snapshotting what's on screen if `keepCurrent`. */
   const restoreSnapshot = useCallback((id, keepCurrent) => {
     const s = latest.current;
-    const rev = getRevision(s.revisions, id);
+    const rev = getRevision(s.revisions, id) || getRevision(s.folderSnaps, id); // or a file in <folder>/Snapshots
     setRestoreId(null);
     if (!rev) return;
     endNoteEditing();
     let list = s.revisions;
     if (keepCurrent) {
-      list = addRevision(list, createRevision(s, { label: `Before restoring “${rev.label}”`, pages: s.pages }));
+      const before = createRevision(s, { label: `Before restoring “${rev.label}”`, pages: s.pages });
+      list = addRevision(list, before);
+      folderSync.writeSnapshot(before, { id: s.projectId, title: s.meta.title, createdAt: s.createdAt }, s.fileOptions);
     }
     const doc = revisionToDoc(rev);
     const before = { meta: s.meta, beats: s.beats, characters: s.characters, storyNotes: s.storyNotes, storyDna: s.storyDna };
@@ -762,6 +892,7 @@ function Workspace({ boot }) {
     await flushSave();
     const { record, newId } = await projects.restoreProject(parsed.record);
     applyProject(record);
+    folderSync.writeProject(record, latest.current.fileOptions);
     if (parsed.actMode) setActMode(parsed.actMode);
     const { dictionary: merged, added } = mergeBackupDictionary(dictOverrides, parsed.dictionary);
     if (added) {
@@ -802,17 +933,19 @@ function Workspace({ boot }) {
 
   const renameProject = async (id, title) => {
     if (id === projectId) setMeta((m) => ({ ...m, title }));
-    else await projects.renameProject(id, title);
+    else folderSync.writeProject(await projects.renameProject(id, title), latest.current.fileOptions);
   };
 
   const duplicateProject = async (id) => {
     if (id === projectId) await flushSave();
     const copy = await projects.duplicateProject(id);
+    folderSync.writeProject(copy, latest.current.fileOptions);
     notify(`Duplicated as “${copy.title}”`);
   };
 
   const deleteProject = async (id, title) => {
-    if (!window.confirm(`Delete “${title}”? This removes the script and its Scene Board cards from this browser and can’t be undone. Export it first if you might want it back.`)) return;
+    const where = sync.active ? ` from this browser and its .draftline file from “${sync.folderName}”` : ' from this browser';
+    if (!window.confirm(`Delete “${title}”? This removes the script and its Scene Board cards${where}, and can’t be undone. Export it first if you might want it back.`)) return;
     if (id === projectId) {
       // Move to the most recently edited other script first, then delete.
       const next = (await projects.getAllProjects()).find((p) => p.id !== id);
@@ -822,6 +955,7 @@ function Workspace({ boot }) {
     }
     try {
       await projects.deleteProject(id);
+      await folderSync.removeProject(id); // otherwise the folder copy would bring it back
       notify(`Deleted “${title}”`);
     } catch (e) {
       notify(e.message);
@@ -1380,10 +1514,15 @@ function Workspace({ boot }) {
             Format Doctor{issues.length ? ` · ${issues.length}` : ''}
           </button>
           <span className="status-spacer" />
-          <span className={`status-save${dirty ? ' is-pending' : ''}${saved.ok ? '' : ' is-error'}`} title={saved.at ? `Last saved ${timeLabel(saved.at)}` : ''}>
+          <button
+            type="button"
+            className={`status-save is-${saveStatus.tone}`}
+            onClick={onSaveStatusClick}
+            title={[saveStatus.title, saved.at ? `Last saved ${timeLabel(saved.at)}` : ''].filter(Boolean).join(' · ')}
+          >
             <span className="save-dot" aria-hidden="true" />
-            {saveLabel}
-          </span>
+            {saveStatus.label}
+          </button>
           <LockBadge locked={isLocked} onToggle={toggleLock} />
           <span>{analysis.sceneCount} scenes</span>
           {noteCount > 0 && (
@@ -1478,7 +1617,8 @@ function Workspace({ boot }) {
 
         <SnapshotsDrawer
           open={snapshotsOpen && !focusMode}
-          revisions={revisions}
+          revisions={allSnapshots}
+          folderName={sync.active ? sync.folderName : null}
           projectTitle={meta.title}
           onClose={() => setDock((d) => closeDock(d, 'snapshots'))}
           onSnapshot={() => setSnapshotPrompt(true)}
@@ -1514,9 +1654,9 @@ function Workspace({ boot }) {
             onClose={() => setSnapshotPrompt(false)}
           />
         )}
-        {restoreId && getRevision(revisions, restoreId) && (
+        {restoreId && getRevision(allSnapshots, restoreId) && (
           <RestorePrompt
-            revision={getRevision(revisions, restoreId)}
+            revision={getRevision(allSnapshots, restoreId)}
             dirty={!revisions.length || JSON.stringify(revisions[revisions.length - 1].script) !== JSON.stringify(blocks)}
             onRestore={(keep) => restoreSnapshot(restoreId, keep)}
             onClose={() => setRestoreId(null)}
@@ -1527,7 +1667,9 @@ function Workspace({ boot }) {
           open={drawerOpen}
           activeId={projectId}
           live={{ title: meta.title, author: meta.author, pages: layout.pageCount, scenes: analysis.sceneCount, updatedAt: saved.at, dirty }}
-          loadProjects={projects.getAllProjects}
+          loadProjects={loadLibrary}
+          storage={storageControls}
+          focusStorage={focusStorage}
           onClose={() => setDrawerOpen(false)}
           onSwitch={switchProject}
           onCreate={newScript}

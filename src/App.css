@@ -458,7 +458,23 @@
 .doctor-dot { width: 6px; height: 6px; border-radius: 50%; background: #6fae7d; }
 .status-doctor.has-issues { color: var(--text); border-color: var(--line-soft); }
 .status-doctor.has-issues .doctor-dot { background: #e0a458; }
-.status-save { display: inline-flex; align-items: center; gap: 6px; }
+.status-save {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 1px 6px;
+  margin: 0 -6px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+.status-save:hover { color: var(--text); background: var(--field); }
+.status-save.is-synced { color: #9fd3aa; }
+.status-save.is-warn { color: #f2c27e; }
+.status-save.is-warn .save-dot { background: #e0a458; }
 .save-dot {
   width: 6px;
   height: 6px;

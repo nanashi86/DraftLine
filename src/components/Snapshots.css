@@ -77,3 +77,4 @@
 .sn-item-actions.is-confirm span { font-size: 12.5px; color: var(--muted); margin-right: 2px; }
 .sn-danger { color: #e8836b; border-color: color-mix(in srgb, #e8836b 45%, transparent); }
 .sn-danger:hover { background: color-mix(in srgb, #e8836b 14%, transparent) !important; }
+.sn-latest.sn-folder { background: color-mix(in srgb, #6fae7d 22%, transparent); color: #9fd3aa; }

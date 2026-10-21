@@ -115,6 +115,7 @@ export function RestorePrompt({ revision, dirty, onRestore, onClose }) {
 /** View Snapshots: the slide-out list, newest first, each with Restore and Delete. */
 export function SnapshotsDrawer({
   open, revisions, projectTitle, onClose, onSnapshot, onRestore, onDelete,
+  folderName = null, // synced folder: snapshots are also files in <folder>/Snapshots
 }) {
   const panelRef = useRef(null);
   const [confirmId, setConfirmId] = useState(null);
@@ -146,6 +147,7 @@ export function SnapshotsDrawer({
           <h2>Snapshots</h2>
           <div className="pb-sub">
             {projectTitle?.trim() || 'Untitled'} · {list.length} {list.length === 1 ? 'snapshot' : 'snapshots'} · saved with this script
+            {folderName ? ` and in ${folderName}/Snapshots` : ''}
           </div>
         </div>
         <button type="button" className="btn btn-icon pb-close" onClick={onClose} aria-label="Close Snapshots" title="Close (Esc)">×</button>
@@ -165,7 +167,13 @@ export function SnapshotsDrawer({
               <li key={r.id} className="sn-item" data-revision={r.id}>
                 <div className="sn-item-text">
                   <b title={r.label}>{r.label}</b>
-                  <time dateTime={r.timestamp}>{when(r.timestamp)}{i === 0 && <span className="sn-latest">Latest</span>}</time>
+                  <time dateTime={r.timestamp}>
+                    {when(r.timestamp)}
+                    {i === 0 && <span className="sn-latest">Latest</span>}
+                    {r.source === 'folder' && (
+                      <span className="sn-latest sn-folder" title={`Found in ${folderName}/Snapshots${r.fileName ? ` (${r.fileName})` : ''} — not in this browser’s copy`}>In folder</span>
+                    )}
+                  </time>
                   <small>{revisionSummary(r)}</small>
                 </div>
                 {confirmId === r.id ? (

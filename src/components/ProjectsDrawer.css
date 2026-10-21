@@ -153,3 +153,31 @@
   .pd.is-open,
   .pd-backdrop { transition: none; }
 }
+
+/* Storage Destination: where scripts are kept (browser, or browser + a synced folder) */
+.sd { padding: 2px 18px 14px; border-bottom: 1px solid var(--line-soft); margin-bottom: 12px; display: grid; gap: 8px; }
+.sd-title { margin: 0; }
+.sd-options { display: grid; gap: 6px; }
+.sd-option {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 9px;
+  align-items: start;
+  padding: 8px 10px;
+  border: 1px solid var(--line-soft);
+  border-radius: 8px;
+  cursor: pointer;
+}
+.sd-option.is-on { border-color: color-mix(in srgb, var(--accent) 55%, var(--line-soft)); background: color-mix(in srgb, var(--accent) 7%, transparent); }
+.sd-option input { margin: 3px 0 0; accent-color: var(--accent); }
+.sd-option b { display: block; font-size: 13px; font-weight: 600; }
+.sd-option small { display: block; margin-top: 2px; color: var(--muted); font-size: 11.5px; line-height: 1.45; }
+.sd-folder { display: grid; gap: 6px; padding: 9px 10px; border-radius: 8px; background: var(--field); }
+.sd-folder.is-warn { box-shadow: inset 0 0 0 1px rgba(224, 164, 88, 0.6); }
+.sd-folder-name { display: flex; align-items: center; gap: 7px; font-size: 13px; min-width: 0; }
+.sd-folder-name span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sd-folder-name svg { flex: none; color: var(--muted); }
+.sd-folder-state { color: var(--muted); font-size: 11.5px; line-height: 1.45; }
+.sd-buttons { display: flex; flex-wrap: wrap; gap: 6px; }
+.sd-buttons .btn { padding: 4px 10px; font-size: 12px; }
+.pd-badge.is-folder { background: color-mix(in srgb, #6fae7d 22%, transparent); color: #9fd3aa; }

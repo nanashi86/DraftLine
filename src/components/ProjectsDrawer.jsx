@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Menu from './Menu.jsx';
+import StorageDestination from './StorageDestination.jsx';
 import { relativeTime } from '../lib/projectStorage.js';
 import './ProjectsDrawer.css';
 
@@ -68,6 +69,8 @@ function RenameInput({ initial, onDone }) {
  */
 export default function ProjectsDrawer({
   open, activeId, live, loadProjects, onClose, onSwitch, onCreate, onRename, onDuplicate, onExport, onDelete,
+  storage, // { sync, onChoose, onLink, onDisconnect, onAllow } — the Storage Destination block
+  focusStorage = 0, // bumped by the status bar: open on the storage settings
 }) {
   const [list, setList] = useState(null);
   const [error, setError] = useState(null);
@@ -87,6 +90,8 @@ export default function ProjectsDrawer({
     setNow(Date.now());
   }, [loadProjects]);
 
+  // Re-read when the drawer opens, and when a folder is linked, changed or allowed (its scripts join the list).
+  const syncKey = storage ? `${storage.sync.active}|${storage.sync.folderName}` : '';
   useEffect(() => {
     if (!open) return undefined;
     let live = true;
@@ -107,7 +112,18 @@ export default function ProjectsDrawer({
       clearInterval(t);
       cancelAnimationFrame(f);
     };
-  }, [open, loadProjects]);
+  }, [open, loadProjects, syncKey]);
+
+  // Opened from the status bar: show the storage settings.
+  useEffect(() => {
+    if (!open || !focusStorage) return undefined;
+    const f = requestAnimationFrame(() => {
+      const sd = panelRef.current?.querySelector('.sd');
+      sd?.scrollIntoView({ block: 'start' });
+      sd?.querySelector('input:checked')?.focus();
+    });
+    return () => cancelAnimationFrame(f);
+  }, [open, focusStorage]);
 
   useEffect(() => {
     if (!open) return undefined;
@@ -151,10 +167,23 @@ export default function ProjectsDrawer({
         <header className="pd-head">
           <div>
             <h2>Projects</h2>
-            <div className="pd-count">{list ? plural(count, 'Script') : 'Loading…'} · saved in this browser</div>
+            <div className="pd-count">
+              {list ? plural(count, 'Script') : 'Loading…'} · saved in this browser
+              {storage?.sync.active ? ` · synced to ${storage.sync.folderName}` : ''}
+            </div>
           </div>
           <button type="button" className="btn btn-icon pd-close" onClick={onClose} aria-label="Close projects" title="Close (Esc)">×</button>
         </header>
+
+        {storage && (
+          <StorageDestination
+            sync={storage.sync}
+            onChoose={storage.onChoose}
+            onLink={storage.onLink}
+            onDisconnect={storage.onDisconnect}
+            onAllow={storage.onAllow}
+          />
+        )}
 
         <div className="pd-actions">
           {creating ? (
@@ -207,6 +236,12 @@ export default function ProjectsDrawer({
                       <span className="pd-title">{title}</span>
                     )}
                     {isActive && <span className="pd-badge">Active</span>}
+                    {p.source === 'folder' && !isActive && (
+                      <span className="pd-badge is-folder" title={`Only in ${storage?.sync.folderName || 'the synced folder'} so far — open it to add it to this browser`}>In folder</span>
+                    )}
+                    {p.source === 'folder-newer' && !isActive && (
+                      <span className="pd-badge is-folder" title="The copy in the synced folder is newer (edited on another computer?) — opening the script loads it">Newer in folder</span>
+                    )}
                     <div className="pd-more" onClick={(e) => e.stopPropagation()}>
                       <Menu
                         label={<span aria-hidden="true">⋮</span>}
@@ -248,8 +283,9 @@ export default function ProjectsDrawer({
           })}
         </ul>
         <footer className="pd-foot">
-          Scripts are stored in this browser’s local database — nothing is uploaded. Export to keep files or move
-          between computers.
+          {storage?.sync.active
+            ? `Scripts are saved in this browser and as .draftline files in “${storage.sync.folderName}” — nothing is uploaded by DraftLine itself; your Drive app syncs the folder.`
+            : 'Scripts are stored in this browser’s local database — nothing is uploaded. Export to keep files or move between computers.'}
         </footer>
       </aside>
     </>

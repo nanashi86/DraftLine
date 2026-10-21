@@ -176,7 +176,7 @@ describe('Snapshots: in the app', () => {
     assert.match(app, /onSnapshots: \(\) => setDock\(\(d\) => openDock\(d, 'snapshots'\)\)/);
   });
   it('restore offers to snapshot the current draft first, and is one undo step', () => {
-    assert.match(app, /addRevision\(list, createRevision\(s, \{ label: `Before restoring “\$\{rev\.label\}”`/);
+    assert.match(app, /const before = createRevision\(s, \{ label: `Before restoring “\$\{rev\.label\}”`, pages: s\.pages \}\);\s*list = addRevision\(list, before\);/);
     assert.match(app, /set\(doc\.blocks\.length \? doc\.blocks : \[makeBlock\('scene'\)\], null, \{ undo: \(\) => applyParts\(before\), redo: \(\) => applyParts\(after\) \}\)/);
     const ui = readFileSync(new URL('../src/components/Snapshots.jsx', import.meta.url), 'utf8');
     assert.match(ui, /useState\(true\)/, 'snapshot-first is on by default');

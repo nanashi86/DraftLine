@@ -275,6 +275,23 @@ export function createProjectStore({ indexedDB = globalThis.indexedDB, now = Dat
       });
     },
 
+    /**
+     * Take in a newer copy of a project from the synced folder (folderSync.js) exactly as it is —
+     * same id, same updatedAt — replacing the browser's older copy. Returns the stored record.
+     */
+    importRecord(record) {
+      return serial(async () => {
+        const b = await backend();
+        const rec = clone(record);
+        if (!rec.id) throw new Error('That script has no id');
+        if (rec.pages == null || rec.scenes == null) Object.assign(rec, projectStats(rec.script));
+        rec.updatedAt = Number.isFinite(rec.updatedAt) ? rec.updatedAt : stamp();
+        lastStamp = Math.max(lastStamp, rec.updatedAt);
+        await b.put(rec);
+        return rec;
+      });
+    },
+
     /** A new, empty project (one blank scene heading), with the writer's author and contact. */
     createProject({ title = 'Untitled', meta = {}, blocks, beats = [], storage } = {}) {
       const script = blocks?.length ? blocks : [makeBlock('scene')];
