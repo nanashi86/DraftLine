@@ -13,6 +13,8 @@ import BeatBoard from './components/BeatBoard.jsx';
 import Menu from './components/Menu.jsx';
 import { useHistory } from './hooks/useHistory.js';
 import HelpModal from './components/HelpModal.jsx';
+import LockBadge from './components/LockBadge.jsx';
+import { LOCK_COMBO, isLockShortcut } from './lib/lock.js';
 import ProjectsDrawer from './components/ProjectsDrawer.jsx';
 import ProjectBibleDrawer from './components/ProjectBibleDrawer.jsx';
 import RenameCharacterModal from './components/RenameCharacterModal.jsx';
@@ -330,6 +332,14 @@ function Workspace({ boot }) {
     clearTimeout(toastTimer.current);
     toastTimer.current = setTimeout(() => setToast(null), 2400);
   }, []);
+
+  // ---- View Only lock (Ctrl+Alt+L or the status bar badge; lib/lock.js) ----
+  const [isLocked, setIsLocked] = useState(false);
+  const toggleLock = useCallback(() => {
+    setIsLocked(!isLocked);
+    notify(isLocked ? 'Editing on' : `View Only — the script can’t be changed · ${LOCK_COMBO} to edit`);
+  }, [isLocked, notify]);
+  const notifyLocked = useCallback(() => notify(`View Only · ${LOCK_COMBO} or the View Only badge to edit`), [notify]);
   useEffect(() => {
     if (!toast || toast !== bootMessage(boot)) return undefined;
     const t = setTimeout(() => setToast(null), boot.persistent ? 3200 : 8000);
@@ -919,7 +929,10 @@ function Workspace({ boot }) {
     const onKey = (e) => {
       const mod = e.ctrlKey || e.metaKey;
       const t = e.target;
-      if (mod && e.key.toLowerCase() === 's') {
+      if (isLockShortcut(e)) {
+        e.preventDefault();
+        toggleLock();
+      } else if (mod && e.key.toLowerCase() === 's') {
         e.preventDefault();
         saveNow().then((rec) => notify(rec ? 'Saved to Projects · use Export for files' : 'Could not save — browser storage is full or blocked'));
       } else if (e.altKey && !mod && e.code === 'KeyI') {
@@ -953,18 +966,21 @@ function Workspace({ boot }) {
         // or the board itself) — but a card's own title / synopsis text keeps the browser's text undo.
         && !['INPUT', 'SELECT'].includes(t.tagName) && !(t.tagName === 'TEXTAREA' && t.closest?.('.board'))) {
         e.preventDefault();
-        if (e.key.toLowerCase() === 'y' || e.shiftKey) redo(); else undo();
+        if (isLocked) notifyLocked();
+        else if (e.key.toLowerCase() === 'y' || e.shiftKey) redo(); else undo();
       }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [focusMode, titleOpen, importSeed, doctorOpen, renameFrom, notify, undo, redo, cycleView, saveNow, toggleDialogueTab, filter]);
+  }, [focusMode, titleOpen, importSeed, doctorOpen, renameFrom, notify, undo, redo, cycleView, saveNow, toggleDialogueTab, filter,
+    isLocked, toggleLock, notifyLocked]);
 
   const hints = activeBlock ? flowHints(activeBlock.type) : null;
   const currentSceneId = activeId ? analysis.sceneOfBlock[activeId] : null;
   const currentPage = activeId ? layout.pageOfBlock[activeId] : null;
   const navVisible = navOpen && !focusMode && showEditor;
   const elementControlsEnabled = !!activeBlock && showEditor;
+  const editControlsEnabled = elementControlsEnabled && !isLocked; // View Only dims Element and B I U S
 
   // Density: jump to skim risk `i` — scroll it to the middle and pulse it (Editor.pulseBlock).
   const densityLocations = useMemo(
@@ -1026,11 +1042,11 @@ function Workspace({ boot }) {
             </button>
             <button
               type="button"
-              className={`brand${drawerOpen ? ' is-open' : ''}`}
-              onClick={() => setDrawerOpen((o) => !o)}
-              title="Switch Project (Alt+P)"
-              aria-label="Projects"
-              aria-expanded={drawerOpen}
+              className={`brand${helpKind === 'about' ? ' is-open' : ''}`}
+              onClick={() => setHelpKind('about')}
+              title="About DraftLine"
+              aria-label="About DraftLine"
+              aria-haspopup="dialog"
             >
               <span className="brand-mark">D</span>
               <span className="brand-name">DraftLine</span>
@@ -1089,14 +1105,14 @@ function Workspace({ boot }) {
             <select
               className="type-select"
               value={elementControlsEnabled ? activeBlock.type : ''}
-              disabled={!elementControlsEnabled}
+              disabled={!editControlsEnabled}
               onChange={(e) => {
                 // "Dual Dialogue" is an action on the speech, not a type: the select keeps showing the type.
                 if (e.target.value === DUAL_SHORTCUT.action) editorRef.current?.toggleDual(activeId);
                 else editorRef.current?.setType(activeId, e.target.value);
               }}
               aria-label="Element type"
-              title="Element type (Alt+1…8) · Dual Dialogue (Alt+D)"
+              title={isLocked ? `View Only — ${LOCK_COMBO} to edit` : 'Element type (Alt+1…8) · Dual Dialogue (Alt+D)'}
             >
               {!elementControlsEnabled && <option value="">Element</option>}
               {ELEMENT_MENU.map((s) => (s.action ? (
@@ -1107,7 +1123,7 @@ function Workspace({ boot }) {
                 <option key={s.type} value={s.type}>{`${s.label}  ·  ${s.combo}`}</option>
               )))}
             </select>
-            <div className="fmt-seg" role="group" aria-label="Text formatting">
+            <div className={`fmt-seg${isLocked ? ' is-locked' : ''}`} role="group" aria-label="Text formatting">
               {STYLES.map((k) => {
                 const on = fmtState[k] && elementControlsEnabled;
                 return (
@@ -1115,7 +1131,7 @@ function Workspace({ boot }) {
                     key={k}
                     type="button"
                     className={`fmt-btn fmt-${k}${on ? ' is-on' : ''}`}
-                    disabled={!elementControlsEnabled}
+                    disabled={!editControlsEnabled}
                     onMouseDown={(e) => e.preventDefault()}
                     onClick={() => editorRef.current?.format(k)}
                     title={`${STYLE_INFO[k].label} (${STYLE_INFO[k].keys}) · Clear formatting: Ctrl+\\`}
@@ -1276,6 +1292,8 @@ function Workspace({ boot }) {
               onActiveChange={setActiveId}
               onMeasure={onMeasure}
               onNotice={notify}
+              locked={isLocked}
+              onLockedEdit={notifyLocked}
             />
           </main>
           {showBoard && (
@@ -1321,7 +1339,7 @@ function Workspace({ boot }) {
 
         <footer className="status">
           <span className="status-type">{activeBlock && showEditor ? ELEMENT_META[activeBlock.type].label : VIEWS.find((v) => v.id === view).label}</span>
-          {hints && showEditor && (
+          {hints && showEditor && !isLocked && (
             <span className="status-hints">
               <kbd>Enter</kbd> {hints.enter}
               <kbd>Tab</kbd> {hints.tab}
@@ -1340,6 +1358,7 @@ function Workspace({ boot }) {
             <span className="save-dot" aria-hidden="true" />
             {saveLabel}
           </span>
+          <LockBadge locked={isLocked} onToggle={toggleLock} />
           <span>{analysis.sceneCount} scenes</span>
           {noteCount > 0 && (
             <button
@@ -1388,8 +1407,8 @@ function Workspace({ boot }) {
             {canvasThemeInfo(canvasTheme).label}
           </button>
           <span className="status-history">
-            <button className="mini" onClick={undo} disabled={!canUndo} title="Undo script edit (Ctrl+Z)">↶</button>
-            <button className="mini" onClick={redo} disabled={!canRedo} title="Redo (Ctrl+Shift+Z)">↷</button>
+            <button className="mini" onClick={undo} disabled={!canUndo || isLocked} title="Undo script edit (Ctrl+Z)">↶</button>
+            <button className="mini" onClick={redo} disabled={!canRedo || isLocked} title="Redo (Ctrl+Shift+Z)">↷</button>
           </span>
           <span className="status-zoom">
             <button className="mini" onClick={() => zoomBy(-1)} aria-label="Zoom out">−</button>

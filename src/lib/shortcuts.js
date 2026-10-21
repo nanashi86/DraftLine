@@ -61,6 +61,7 @@ export const SHORTCUT_SECTIONS = [
       ['Ctrl+Shift+Z', 'Redo'],
       ['Ctrl+S', 'Save now (it also autosaves)'],
       ['Ctrl+P', 'Print Script / PDF'],
+      ['Ctrl+Alt+L', 'Lock / unlock the script — View Only: read, select and copy, no changes'],
     ],
   },
   {

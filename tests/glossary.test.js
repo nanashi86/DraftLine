@@ -2,8 +2,9 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import {
-  STRUCTURE_DICTIONARY, dictionaryEntry, groupHeadingAt, mergeDictionary, searchDictionary,
+  GLOSSARY_SECTIONS, STRUCTURE_DICTIONARY, dictionaryEntry, glossarySections, mergeDictionary, searchDictionary, sectionOf,
 } from '../src/lib/structureDictionary.js';
+import { PRIMARY_ROLES, SECONDARY_ROLES } from '../src/lib/bible.js';
 
 const ROLE_DEFINITIONS = {
   protagonist: 'The primary driver of the story whose goals and moral choices dictate the plot.',
@@ -22,8 +23,8 @@ describe('Glossary: screenplay roles', () => {
     for (const [id, def] of Object.entries(ROLE_DEFINITIONS)) assert.equal(dictionaryEntry(STRUCTURE_DICTIONARY, id)?.definition, def, id);
     assert.equal(dictionaryEntry(STRUCTURE_DICTIONARY, 'confidant').term, 'Confidant(e)');
   });
-  it('every role term is grouped under Character Roles and searchable', () => {
-    const roles = STRUCTURE_DICTIONARY.filter((e) => e.group === 'Character Roles');
+  it('every role term is listed under Character Roles and searchable', () => {
+    const roles = glossarySections(STRUCTURE_DICTIONARY).find((x) => x.id === 'roles').entries;
     assert.equal(roles.length, 15);
     for (const id of Object.keys(ROLE_DEFINITIONS)) assert.ok(roles.some((r) => r.id === id), id);
     assert.deepEqual(searchDictionary(STRUCTURE_DICTIONARY, 'deuteragonist').map((e) => e.id), ['deuteragonist']);
@@ -35,15 +36,54 @@ describe('Glossary: screenplay roles', () => {
     assert.equal(dictionaryEntry(merged, 'foil').starter, false);
     assert.equal(dictionaryEntry(merged, 'mentor').starter, true);
   });
-  it('the Glossary list shows a "Character Roles" heading before the group', () => {
-    const ui = readFileSync(new URL('../src/components/StoryDna.jsx', import.meta.url), 'utf8');
-    assert.match(ui, /const heading = groupHeadingAt\(shown, i\);/);
-    const at = STRUCTURE_DICTIONARY.map((_, i) => groupHeadingAt(STRUCTURE_DICTIONARY, i));
-    assert.equal(at.filter(Boolean).length, 1);
-    assert.equal(STRUCTURE_DICTIONARY[at.indexOf('Character Roles')].id, 'antagonist'); // Protagonist stays with the Blueprint terms
-    const found = searchDictionary(STRUCTURE_DICTIONARY, 'protagonist');
-    assert.equal(groupHeadingAt([dictionaryEntry(STRUCTURE_DICTIONARY, 'mentor')], 0), 'Character Roles');
-    assert.ok(found.length > 1);
-    assert.match(ui, /<li className="dict-group micro-label" aria-hidden="true">\{heading\}<\/li>/);
+});
+
+const ROLES = [
+  'Protagonist', 'Antagonist', 'Deuteragonist', 'Tritagonist', 'Supporting Character', 'Minor Character / Cameo',
+  'Catalyst / Instigator', 'Confidant(e)', 'Foil', 'Henchman / Enforcer', 'Love Interest', 'Mentor / Guide',
+  'Shadow / Mirror', 'Skeptic / Voice of Reason', 'Threshold Guardian',
+];
+const CRAFT = [
+  'Cliffhanger', 'Climax', 'Conflict / Debate', 'Deus ex machina', 'Falling Action', 'Flashback', 'Flaw', 'Foreshadowing',
+  'Goal / Desire', 'Inciting Incident', 'Love triangle', 'MacGuffin', 'Quest', 'Red herring', 'Rising Action',
+  'Text / Subtext / Context',
+];
+
+describe('Glossary: two sections — Character Roles, and Narrative & Dramatic Craft', () => {
+  const ui = readFileSync(new URL('../src/components/StoryDna.jsx', import.meta.url), 'utf8');
+  const list = ui.slice(ui.indexOf('function Dictionary('), ui.indexOf('export default function StoryDna'));
+
+  it('lists the terms in exactly the order given, Protagonist first among the roles', () => {
+    const [roles, craft] = glossarySections(mergeDictionary());
+    assert.deepEqual([roles.label, roles.total, craft.label, craft.total], ['Character Roles', 15, 'Narrative & Dramatic Craft', 16]);
+    assert.deepEqual(roles.entries.map((e) => e.term), ROLES);
+    assert.deepEqual(craft.entries.map((e) => e.term), CRAFT);
+  });
+  it('every term is in exactly one section, and nothing is left out', () => {
+    const all = GLOSSARY_SECTIONS.flatMap((x) => x.ids);
+    assert.equal(new Set(all).size, all.length);
+    assert.deepEqual([...all].sort(), STRUCTURE_DICTIONARY.map((e) => e.id).sort());
+    assert.equal(sectionOf('protagonist'), 'roles');
+    assert.equal(sectionOf('climax'), 'craft');
+  });
+  it('the role terms carry the Bios picker names, so each ⓘ opens the term you picked', () => {
+    for (const r of [...PRIMARY_ROLES, ...SECONDARY_ROLES.filter((x) => x.id !== 'none')]) {
+      assert.equal(dictionaryEntry(STRUCTURE_DICTIONARY, r.dict).term, r.label);
+    }
+  });
+  it('each section has a subheader with its term count — no 1–31 numbering on the rows', () => {
+    assert.match(list, /<h3 id=\{`dict-sec-\$\{sec\.id\}`\} className="dict-section-head micro-label">\s*\{sec\.label\}/);
+    assert.match(list, /<span className="dict-section-count">\{searching \? `\$\{sec\.entries\.length\} of \$\{sec\.total\}` : sec\.total\}<\/span>/);
+    assert.ok(!/dict-n\b|indexOf\(e\) \+ 1/.test(list), 'rows have no number');
+    assert.match(list, /<span className="pb-chev" aria-hidden="true">▸<\/span>\s*<b>\{e\.term\}<\/b>\s*\{e\.starter \?/);
+    assert.ok(!/dict-n/.test(readFileSync(new URL('../src/components/ProjectBibleDrawer.css', import.meta.url), 'utf8')));
+  });
+  it('search filters across both sections; a section with no match drops out', () => {
+    assert.deepEqual(glossarySections(STRUCTURE_DICTIONARY, 'protagonist').map((x) => x.id), ['roles', 'craft']);
+    const mentor = glossarySections(STRUCTURE_DICTIONARY, 'wisdom');
+    assert.deepEqual(mentor.map((x) => [x.id, x.entries.map((e) => e.id)]), [['roles', ['mentor']]]);
+    assert.deepEqual(glossarySections(STRUCTURE_DICTIONARY, 'cliffhanger').map((x) => x.id), ['craft']);
+    assert.deepEqual(glossarySections(STRUCTURE_DICTIONARY, 'zzzz'), []);
+    assert.match(list, /const sections = glossarySections\(dictionary, query\);/);
   });
 });

@@ -2,7 +2,8 @@
 // and Plot Devices refer to — the eight structure terms, Text / Subtext / Context, and the
 // plot devices (Foreshadowing, Flashback, Deus ex machina, MacGuffin, Quest, Cliffhanger,
 // Red herring, Love triangle), and the Character Roles a bio's Primary Role and Secondary
-// Function pick from (Protagonist … Shadow).
+// Function pick from (Protagonist … Shadow / Mirror). The Glossary lists them in two sections —
+// Character Roles, and Narrative & Dramatic Craft (GLOSSARY_SECTIONS below).
 //
 // The wording below is DraftLine's STARTER text — short, conventional definitions. It is
 // meant to be replaced by the writer's own reference (a class handout, a book): every
@@ -15,7 +16,6 @@ export const STRUCTURE_DICTIONARY = [
   {
     id: 'protagonist',
     term: 'Protagonist',
-    group: 'Character Roles',
     definition: 'The primary driver of the story whose goals and moral choices dictate the plot.',
   },
   {
@@ -112,85 +112,71 @@ export const STRUCTURE_DICTIONARY = [
   {
     id: 'antagonist',
     term: 'Antagonist',
-    group: 'Character Roles',
     definition: 'The primary obstacle or opposing force standing between the protagonist and their goal.',
   },
   {
     id: 'deuteragonist',
     term: 'Deuteragonist',
-    group: 'Character Roles',
     definition: 'The second most important character, often acting as a principal partner, rival, or counterweight.',
   },
   {
     id: 'tritagonist',
     term: 'Tritagonist',
-    group: 'Character Roles',
     definition: 'The third most significant character, often serving as a catalyst, instigator, or key moral witness.',
   },
   {
     id: 'supportingCharacter',
     term: 'Supporting Character',
-    group: 'Character Roles',
     definition: 'A recurring character who serves the main characters’ stories — revealing, helping or complicating them — without driving the plot themselves.',
   },
   {
     id: 'minorCharacter',
     term: 'Minor Character / Cameo',
-    group: 'Character Roles',
     definition: 'A brief appearance that fills a practical or atmospheric need in a scene; a cameo is often a recognizable face in a small part.',
   },
   {
     id: 'foil',
     term: 'Foil',
-    group: 'Character Roles',
     definition: 'A character whose contrasting values, background, or choices highlight and challenge the protagonist’s traits.',
   },
   {
     id: 'catalyst',
-    term: 'Catalyst',
-    group: 'Character Roles',
+    term: 'Catalyst / Instigator',
     definition: 'A character whose actions or arrival fundamentally disrupts the status quo and forces the narrative into motion.',
   },
   {
     id: 'mentor',
-    term: 'Mentor',
-    group: 'Character Roles',
+    term: 'Mentor / Guide',
     definition: 'A figure providing wisdom, instruction, or ethical boundaries to the protagonist.',
   },
   {
     id: 'confidant',
     term: 'Confidant(e)',
-    group: 'Character Roles',
     definition: 'A trusted ally who allows the protagonist’s inner thoughts and vulnerabilities to be vocalized.',
   },
   {
     id: 'loveInterest',
     term: 'Love Interest',
-    group: 'Character Roles',
     definition: 'The person the protagonist is drawn to romantically; the relationship raises the personal stakes of the plot.',
   },
   {
     id: 'skeptic',
     term: 'Skeptic / Voice of Reason',
-    group: 'Character Roles',
     definition: 'The character who doubts, questions or warns — voicing the audience’s objections and testing the protagonist’s resolve.',
   },
   {
     id: 'henchman',
     term: 'Henchman / Enforcer',
-    group: 'Character Roles',
     definition: 'The antagonist’s instrument: the muscle or operative who carries out the opposition’s will in person.',
   },
   {
     id: 'thresholdGuardian',
     term: 'Threshold Guardian',
-    group: 'Character Roles',
     definition: 'A gatekeeper who blocks the way at a crossing point and must be passed, persuaded or overcome before the story can move forward.',
   },
   {
     id: 'shadow',
-    term: 'Shadow',
-    group: 'Character Roles',
+    term: 'Shadow / Mirror',
     definition: 'A dark reflection of the protagonist showing the catastrophic outcome of their negative impulses.',
   },
 ];
@@ -220,11 +206,41 @@ export function searchDictionary(entries, query) {
 
 export const dictionaryEntry = (entries, id) => entries.find((e) => e.id === id);
 
-/** The group heading to show before entry i, if any: at the start of a run of the same group (or the group's only entry shown). */
-export function groupHeadingAt(list, i) {
-  const g = list[i]?.group;
-  if (!g || list[i - 1]?.group === g) return null;
-  const runStarts = list[i + 1]?.group === g;
-  const only = list.filter((x) => x.group === g).length === 1;
-  return runStarts || only ? g : null;
+/**
+ * The Glossary's two sections, in display order. Character Roles runs in story rank
+ * (Protagonist → Minor Character / Cameo), then the secondary functions A–Z; Narrative &
+ * Dramatic Craft is A–Z. Every entry belongs to exactly one section.
+ */
+export const GLOSSARY_SECTIONS = [
+  {
+    id: 'roles',
+    label: 'Character Roles',
+    ids: [
+      'protagonist', 'antagonist', 'deuteragonist', 'tritagonist', 'supportingCharacter', 'minorCharacter',
+      'catalyst', 'confidant', 'foil', 'henchman', 'loveInterest', 'mentor', 'shadow', 'skeptic', 'thresholdGuardian',
+    ],
+  },
+  {
+    id: 'craft',
+    label: 'Narrative & Dramatic Craft',
+    ids: [
+      'cliffhanger', 'climax', 'conflict', 'deusExMachina', 'fallingAction', 'flashback', 'flaw', 'foreshadowing', 'goal',
+      'incitingIncident', 'loveTriangle', 'macguffin', 'quest', 'redHerring', 'risingAction', 'textSubtext',
+    ],
+  },
+];
+
+/** The section an entry is listed under ('roles' | 'craft'). */
+export const sectionOf = (id) => GLOSSARY_SECTIONS.find((sec) => sec.ids.includes(id))?.id ?? 'craft';
+
+/**
+ * What the Glossary shows for a search: each section with its matching entries (in section
+ * order) and its full size, so the heading can read "3 of 15". Sections with no match drop out.
+ */
+export function glossarySections(entries, query = '') {
+  const shown = new Set(searchDictionary(entries, query).map((e) => e.id));
+  return GLOSSARY_SECTIONS.map((sec) => {
+    const all = sec.ids.map((id) => dictionaryEntry(entries, id)).filter(Boolean);
+    return { id: sec.id, label: sec.label, total: all.length, entries: all.filter((e) => shown.has(e.id)) };
+  }).filter((sec) => sec.entries.length);
 }

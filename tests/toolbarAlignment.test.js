@@ -30,15 +30,16 @@ describe('Toolbar: the top-right cluster sits on one baseline', () => {
   });
 });
 
-describe('Header: the D badge and the title ▾ open the one Projects drawer', () => {
+describe('Header: the D badge opens About; the title ▾ opens the one Projects drawer', () => {
   const id = app.slice(app.indexOf('className="bar-group g-identity"'), app.indexOf('<span className="bar-sep"'));
   it('no breadcrumb, no second project popover', () => {
     assert.ok(!/Breadcrumbs|crumb/.test(app), 'App has no breadcrumb');
     assert.ok(!/crumb/.test(css), 'no breadcrumb styles left');
     assert.ok(!existsSync(new URL('../src/components/Breadcrumbs.jsx', import.meta.url)));
   });
-  it('the badge and the title’s single chevron both toggle the Projects drawer', () => {
-    assert.match(id, /className=\{`brand\$\{drawerOpen \? ' is-open' : ''\}`\}\s*onClick=\{\(\) => setDrawerOpen\(\(o\) => !o\)\}/);
+  it('the title’s single chevron toggles the Projects drawer; the badge no longer does', () => {
+    assert.match(id, /className=\{`brand\$\{helpKind === 'about' \? ' is-open' : ''\}`\}\s*onClick=\{\(\) => setHelpKind\('about'\)\}/);
+    assert.equal((id.match(/setDrawerOpen\(\(o\) => !o\)/g) || []).length, 1, 'only the chevron opens Projects');
     assert.match(id, /className="doc-switch-btn"\s*onClick=\{\(\) => setDrawerOpen\(\(o\) => !o\)\}/);
     assert.equal((id.match(/className="doc-switch-btn"/g) || []).length, 1);
     assert.equal((app.match(/<ProjectsDrawer\b/g) || []).length, 1, 'one Projects drawer in the app');

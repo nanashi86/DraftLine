@@ -1,11 +1,11 @@
-import { Fragment, useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
+import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import AutoTextarea from './AutoTextarea.jsx';
 import {
   CONFLICT_TYPES, DNA_QUESTIONS, GENRES, addDevice, plotDeviceLayout, removeDevice, setAnswer, setDevice,
   setField, storyDnaProgress, toggleGenre,
 } from '../lib/storyDna.js';
-import { dictionaryEntry, groupHeadingAt, searchDictionary } from '../lib/structureDictionary.js';
+import { dictionaryEntry, glossarySections } from '../lib/structureDictionary.js';
 import { TIP_MAX_WIDTH, clipToViewport, placeTooltip } from '../lib/tooltip.js';
 import { DNA_VIEWS } from '../lib/bible.js';
 
@@ -280,7 +280,8 @@ function Dictionary({ dictionary, openId, setOpenId, onEdit }) {
   const [query, setQuery] = useState('');
   const [editing, setEditing] = useState(null);
   const listRef = useRef(null);
-  const shown = searchDictionary(dictionary, query);
+  const sections = glossarySections(dictionary, query);
+  const searching = !!query.trim();
 
   useEffect(() => {
     if (openId) listRef.current?.querySelector(`[data-term="${openId}"]`)?.scrollIntoView({ block: 'nearest' });
@@ -304,56 +305,58 @@ function Dictionary({ dictionary, openId, setOpenId, onEdit }) {
           definitions. Use <b>Edit</b> to paste your own reference’s wording — it’s kept for all your projects.
         </p>
       )}
-      <ol className="dict-list" ref={listRef}>
-        {shown.map((e, i) => {
-          const open = openId === e.id || !!query.trim();
-          const n = dictionary.indexOf(e) + 1;
-          // A group (Character Roles) gets a heading where its run of entries starts. Protagonist sits
-          // up top with the Blueprint terms, so a lone member there doesn't get one.
-          const heading = groupHeadingAt(shown, i);
-          return (
-            <Fragment key={e.id}>
-            {heading && <li className="dict-group micro-label" aria-hidden="true">{heading}</li>}
-            <li data-term={e.id} className={`dict-entry${open ? ' is-open' : ''}`}>
-              <button type="button" className="dict-head" onClick={() => setOpenId(openId === e.id ? null : e.id)} aria-expanded={open}>
-                <span className="pb-chev" aria-hidden="true">▸</span>
-                <span className="dict-n">{n}.</span>
-                <b>{e.term}</b>
-                {e.starter ? <span className="dict-badge">starter</span> : <span className="dict-badge is-yours">yours</span>}
-              </button>
-              {open && (
-                editing === e.id ? (
-                  <EntryEditor
-                    entry={e}
-                    onCancel={() => setEditing(null)}
-                    onReset={() => {
-                      onEdit(e.id, null);
-                      setEditing(null);
-                    }}
-                    onSave={(o) => {
-                      onEdit(e.id, o);
-                      setEditing(null);
-                    }}
-                  />
-                ) : (
-                  <div className="dict-body">
-                    <p className="dict-def">{e.definition}</p>
-                    {e.items && (
-                      <ul className="dict-items">
-                        {e.items.map((it) => <li key={it.term}><b>{it.term}</b> — {it.definition}</li>)}
-                      </ul>
+      <div className="dict-list" ref={listRef}>
+        {sections.map((sec) => (
+          <section key={sec.id} className="dict-section" data-section={sec.id} aria-labelledby={`dict-sec-${sec.id}`}>
+            <h3 id={`dict-sec-${sec.id}`} className="dict-section-head micro-label">
+              {sec.label}
+              <span className="dict-section-count">{searching ? `${sec.entries.length} of ${sec.total}` : sec.total}</span>
+            </h3>
+            <ul className="dict-entries">
+              {sec.entries.map((e) => {
+                const open = openId === e.id || searching;
+                return (
+                  <li key={e.id} data-term={e.id} className={`dict-entry${open ? ' is-open' : ''}`}>
+                    <button type="button" className="dict-head" onClick={() => setOpenId(openId === e.id ? null : e.id)} aria-expanded={open}>
+                      <span className="pb-chev" aria-hidden="true">▸</span>
+                      <b>{e.term}</b>
+                      {e.starter ? <span className="dict-badge">starter</span> : <span className="dict-badge is-yours">yours</span>}
+                    </button>
+                    {open && (
+                      editing === e.id ? (
+                        <EntryEditor
+                          entry={e}
+                          onCancel={() => setEditing(null)}
+                          onReset={() => {
+                            onEdit(e.id, null);
+                            setEditing(null);
+                          }}
+                          onSave={(o) => {
+                            onEdit(e.id, o);
+                            setEditing(null);
+                          }}
+                        />
+                      ) : (
+                        <div className="dict-body">
+                          <p className="dict-def">{e.definition}</p>
+                          {e.items && (
+                            <ul className="dict-items">
+                              {e.items.map((it) => <li key={it.term}><b>{it.term}</b> — {it.definition}</li>)}
+                            </ul>
+                          )}
+                          {e.example && <pre className="dict-example">{e.example}</pre>}
+                          <button type="button" className="btn pb-mini" onClick={() => setEditing(e.id)}>Edit</button>
+                        </div>
+                      )
                     )}
-                    {e.example && <pre className="dict-example">{e.example}</pre>}
-                    <button type="button" className="btn pb-mini" onClick={() => setEditing(e.id)}>Edit</button>
-                  </div>
-                )
-              )}
-            </li>
-            </Fragment>
-          );
-        })}
-        {!shown.length && <li className="pb-empty">Nothing matches “{query}”.</li>}
-      </ol>
+                  </li>
+                );
+              })}
+            </ul>
+          </section>
+        ))}
+        {!sections.length && <p className="pb-empty">Nothing matches “{query}”.</p>}
+      </div>
     </div>
   );
 }

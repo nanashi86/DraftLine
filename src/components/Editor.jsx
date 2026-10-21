@@ -2,6 +2,7 @@ import { memo, useCallback, useEffect, useImperativeHandle, useLayoutEffect, use
 import AutoTextarea from './AutoTextarea.jsx';
 import { hasNote } from '../lib/editorialNotes.js';
 import { linePxFor } from '../lib/zoom.js';
+import { lockedKeyAction } from '../lib/lock.js';
 import { revealAndPulse } from '../lib/reveal.js';
 import { measureTextarea } from '../lib/measure.js';
 import { backspaceAt, deleteAt } from '../lib/editing.js';
@@ -121,7 +122,7 @@ function NoteMarker({ block, open, onOpen }) {
 const Block = memo(function Block({
   block, sceneNumber, isActive, isHighlighted, isDim, isDense, marginLines, marginGaps,
   register, observe, onText, onKey, onFocusBlock,
-  noteOpen, onOpenNote,
+  noteOpen, onOpenNote, locked = false,
 }) {
   const setRef = useCallback((el) => register(block.id, el), [register, block.id]);
   const meta = ELEMENT_META[block.type];
@@ -152,7 +153,8 @@ const Block = memo(function Block({
         measureKey={block.type}
         snapToLines
         spellCheck
-        placeholder={isActive ? meta.label : ''}
+        placeholder={isActive && !locked ? meta.label : ''}
+        readOnly={locked}
         aria-label={meta.label}
         data-id={block.id}
         onChange={(e) => onText(block.id, e.target.value)}
@@ -166,7 +168,7 @@ const Block = memo(function Block({
 
 const DualRow = memo(function DualRow({
   item, activeId, highlightId, spotlight, dense, marginLines, marginGaps, register, observe, onText, onKey, onFocusBlock,
-  openNoteId, onOpenNote,
+  openNoteId, onOpenNote, locked,
 }) {
   const col = (bs) => bs.map((b) => (
     <Block
@@ -182,6 +184,7 @@ const DualRow = memo(function DualRow({
       onFocusBlock={onFocusBlock}
       noteOpen={b.id === openNoteId}
       onOpenNote={onOpenNote}
+      locked={locked}
     />
   ));
   return (
@@ -254,8 +257,12 @@ export default function Editor({
   onMeasure,
   onNotice,
   onFormatState,
+  locked = false, // View Only (lib/lock.js): read, select, copy and scroll — no changes
+  onLockedEdit, // a change was tried while locked (the app says how to unlock)
 }) {
   const blocksRef = useRef(blocks);
+  const lockedRef = useRef(locked);
+  const onLockedEditRef = useRef(onLockedEdit);
   const els = useRef(new Map());
   const sheetRef = useRef(null);
   const pendingFocus = useRef(null);
@@ -274,16 +281,18 @@ export default function Editor({
   // ---- Autocomplete ----
   const activeBlock = useMemo(() => blocks.find((b) => b.id === activeId) || null, [blocks, activeId]);
   const suggestions = useMemo(() => {
-    if (!activeBlock) return [];
+    if (!activeBlock || locked) return [];
     if (typedIn !== activeBlock.id && activeBlock.text !== '') return [];
     if (dismissed === `${activeBlock.id}:${activeBlock.text}`) return [];
     return getSuggestions(activeBlock, blocks);
-  }, [activeBlock, blocks, typedIn, dismissed]);
+  }, [activeBlock, blocks, typedIn, dismissed, locked]);
   const sig = suggestions.map((s) => s.value).join('|');
   const acIndex = acState.sig === sig ? Math.min(acState.index, suggestions.length - 1) : 0;
 
   useLayoutEffect(() => {
     blocksRef.current = blocks;
+    lockedRef.current = locked;
+    onLockedEditRef.current = onLockedEdit;
     zoomRef.current = zoom;
     onMeasureRef.current = onMeasure;
     onFormatStateRef.current = onFormatState;
@@ -371,6 +380,10 @@ export default function Editor({
   }, []);
 
   const commit = useCallback((next, focus) => {
+    if (lockedRef.current) {
+      onLockedEditRef.current?.();
+      return;
+    }
     if (focus) pendingFocus.current = focus;
     onCommit(next);
   }, [onCommit]);
@@ -385,6 +398,10 @@ export default function Editor({
   }, [commit]);
 
   const toggleDual = useCallback((id) => {
+    if (lockedRef.current) {
+      onLockedEditRef.current?.();
+      return;
+    }
     const cur = blocksRef.current;
     const idx = cur.findIndex((b) => b.id === id);
     if (idx < 0) return;
@@ -403,6 +420,10 @@ export default function Editor({
    * them) on the selection, or on the word under a bare caret. The selection is kept.
    */
   const formatAt = useCallback((id, start, end, style) => {
+    if (lockedRef.current) {
+      onLockedEditRef.current?.();
+      return;
+    }
     const cur = blocksRef.current;
     const idx = cur.findIndex((b) => b.id === id);
     if (idx < 0) return;
@@ -465,6 +486,7 @@ export default function Editor({
   }), [setTypeAt, toggleDual, formatAt, onNotice]);
 
   const handleText = useCallback((id, text) => {
+    if (lockedRef.current) return; // read-only textareas don't fire this; belt and braces
     setTypedIn(id);
     onTextChange(id, text);
   }, [onTextChange]);
@@ -483,6 +505,17 @@ export default function Editor({
     const { selectionStart: start, selectionEnd: end } = el;
     const { text } = b;
     const mod = e.ctrlKey || e.metaKey;
+
+    // View Only: only line-to-line movement and the margin note get past here.
+    if (lockedRef.current) {
+      const act = lockedKeyAction(e);
+      if (act === 'native') return;
+      if (act === 'blocked') {
+        e.preventDefault();
+        if (!e.repeat) onLockedEditRef.current?.();
+        return;
+      }
+    }
 
     // History
     if (mod && !e.altKey && e.key.toLowerCase() === 'z') {
@@ -693,7 +726,9 @@ export default function Editor({
   return (
     <div
       ref={sheetRef}
-      className="sheet"
+      className={`sheet${locked ? ' is-locked' : ''}`}
+      data-locked={locked ? 'true' : 'false'}
+      aria-readonly={locked}
       style={{
         '--in': `${linePxFor(zoom) * 6}px`,
         height: `calc(${pageCount} * (var(--in) * 11 + var(--gap)) - var(--gap))`,
@@ -730,6 +765,7 @@ export default function Editor({
               onFocusBlock={handleFocus}
               openNoteId={openNoteId}
               onOpenNote={onOpenNote}
+              locked={locked}
             />
           );
         }
@@ -752,6 +788,7 @@ export default function Editor({
             onFocusBlock={handleFocus}
             noteOpen={b.id === openNoteId}
             onOpenNote={onOpenNote}
+            locked={locked}
           />
         );
       })}

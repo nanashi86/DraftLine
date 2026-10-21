@@ -443,6 +443,24 @@
 .status-save.is-pending .save-dot { background: var(--muted); }
 .status-save.is-error { color: #e28b78; }
 .status-save.is-error .save-dot { background: #e28b78; }
+/* Edit ⇄ View Only lock: a quiet outline while editable, warm amber when locked. */
+.status-lock {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-left: -6px;
+  padding: 1px 7px;
+  border: 1px solid var(--line-soft);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  font: 11.5px var(--ui-font);
+  cursor: pointer;
+  opacity: 0.75;
+}
+.status-lock:hover { opacity: 1; color: var(--text); }
+.status-lock.is-locked { opacity: 1; background: rgba(224, 164, 88, 0.16); border-color: rgba(224, 164, 88, 0.6); color: #f2c27e; font-weight: 600; }
+.status-lock.is-locked:hover { background: rgba(224, 164, 88, 0.24); color: #f2c27e; }
 .status-history,
 .status-zoom { display: flex; align-items: center; gap: 2px; }
 .mini {
