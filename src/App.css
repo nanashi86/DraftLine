@@ -551,6 +551,57 @@ button.status-density.is-on { background: rgba(224, 164, 88, 0.22); border-color
 .density-step:hover,
 .density-step.is-open { background: rgba(224, 164, 88, 0.16); color: #f2c27e; }
 .density-step:focus-visible { outline: 2px solid #e0a458; outline-offset: -1px; }
+/* Dialogue stepper (Characters → Dialogue filter on): the density pill's shape and type, neutral. */
+.dlg-stepper { display: inline-flex; align-items: center; gap: 3px; }
+.dlg-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 1px;
+  padding: 0 2px 0 8px;
+  border: 1px solid var(--line-soft);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--muted);
+}
+.dlg-main {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 1px 4px 1px 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+.dlg-icon { flex: none; color: var(--muted); }
+.dlg-name { color: var(--text); font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; max-width: 16ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dlg-pos { font-variant-numeric: tabular-nums; }
+.dlg-main:hover .dlg-pos,
+.dlg-main.is-open .dlg-pos { color: var(--text); }
+.dlg-step,
+.dlg-clear {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 18px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+}
+.dlg-clear { border: 1px solid var(--line-soft); width: 20px; height: 20px; }
+.dlg-step:hover:not(:disabled),
+.dlg-clear:hover { background: rgba(255, 255, 255, 0.1); color: var(--text); }
+.dlg-step:disabled { opacity: 0.35; cursor: default; }
+.dlg-main:focus-visible,
+.dlg-step:focus-visible,
+.dlg-clear:focus-visible { outline: 2px solid var(--muted); outline-offset: -1px; border-radius: 999px; }
+.dlg-list.density-list .density-list-n { color: var(--muted); }
+.dlg-list.density-list .menu-item.is-current { background: rgba(255, 255, 255, 0.08); }
 /* Quick list: floats above the status bar (which clips overflow), opening upward. */
 .density-list { position: fixed; top: auto; z-index: 60; min-width: 320px; max-width: min(460px, calc(100vw - 16px)); }
 .density-list-items { max-height: min(50vh, 360px); overflow-y: auto; }

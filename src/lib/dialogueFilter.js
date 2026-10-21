@@ -23,3 +23,58 @@ export function dialogueFilter(analysis, name) {
 
 /** "Filtering dialogue: MARIE · 9 lines" */
 export const filterLabel = (f) => `Filtering dialogue: ${f.name} · ${f.lines} ${f.lines === 1 ? 'line' : 'lines'}`;
+
+// ---- The status bar's dialogue stepper (components/DialogueStepper.jsx) ----------------------
+
+const SNIPPET_MAX = 48;
+/** A speech's first words: its first dialogue line (else parenthetical), on one line, cut at a word. */
+export function speechSnippet(parts = [], max = SNIPPET_MAX) {
+  const line = (parts.find((p) => p.type === 'dialogue' && p.text?.trim()) || parts.find((p) => p.text?.trim()))?.text || '';
+  const flat = line.replace(/\s+/g, ' ').trim();
+  if (flat.length <= max) return flat;
+  const cut = flat.slice(0, max);
+  const space = cut.lastIndexOf(' ');
+  return `${(space > max * 0.6 ? cut.slice(0, space) : cut).replace(/[\s,;:.–—-]+$/, '')}…`;
+}
+
+/**
+ * Every speech of `name`, in script order: [{ id, cueId, scene, page, snippet, label }] — `id` is
+ * the block to scroll to and pulse (the first dialogue line, else the cue), `label` the list row:
+ * Sc. 12 · p. 34 — "Turn us around."
+ */
+export function dialogueStops(analysis, name, { sceneOf = {}, scenes = [], pageOf = {} } = {}) {
+  const c = name ? analysis?.characters?.get(name) : null;
+  if (!c) return [];
+  const byId = new Map(scenes.map((s) => [s.id, s]));
+  return c.entries.map((en) => {
+    const target = en.parts.find((p) => p.type === 'dialogue') || en.cue;
+    const sc = byId.get(sceneOf[en.cue.id]);
+    const page = pageOf[target.id] ?? pageOf[en.cue.id] ?? null;
+    const scene = sc?.number ?? null;
+    const snippet = speechSnippet(en.parts);
+    const where = [scene != null ? `Sc. ${scene}` : null, page != null ? `p. ${page}` : null].filter(Boolean).join(' · ') || 'Before the first scene';
+    return { id: target.id, cueId: en.cue.id, scene, page, snippet, label: snippet ? `${where} — “${snippet}”` : where };
+  });
+}
+
+/** "3 of 12" — "– of 12" before the first step. */
+export const stepperPosition = (index, total) => `${index >= 0 && index < total ? index + 1 : '–'} of ${total}`;
+
+const isEditable = (t) => !!t && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName || ''));
+
+/**
+ * The stepper's keys while a filter is on: Alt+↓ / Alt+↑ anywhere; ] / [ only when not typing in
+ * the script or a field (they're ordinary characters there). → 'next' | 'prev' | null.
+ */
+export function dialogueKeyAction(e) {
+  const mod = e.ctrlKey || e.metaKey;
+  if (e.altKey && !mod && !e.shiftKey) {
+    if (e.key === 'ArrowDown') return 'next';
+    if (e.key === 'ArrowUp') return 'prev';
+    return null;
+  }
+  if (mod || e.altKey || isEditable(e.target)) return null;
+  if (e.key === ']') return 'next';
+  if (e.key === '[') return 'prev';
+  return null;
+}

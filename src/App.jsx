@@ -7,6 +7,7 @@ import CharactersDrawer from './components/CharactersDrawer.jsx';
 import Navigator from './components/Navigator.jsx';
 import TitlePageModal from './components/TitlePageModal.jsx';
 import DeleteProjectModal from './components/DeleteProjectModal.jsx';
+import DialogueStepper from './components/DialogueStepper.jsx';
 import { applyFixes, auditScript } from './lib/formatDoctor.js';
 import TitlePageSheet from './components/TitlePageSheet.jsx';
 import PrintView from './components/PrintView.jsx';
@@ -31,7 +32,7 @@ import { addRevision, createRevision, getRevision, removeRevision } from './lib/
 import { endNoteSession, hasNote, restoreNoteVersion, setNoteText, startNote } from './lib/editorialNotes.js';
 import { renameCharacter, revertRename } from './lib/renameCharacter.js';
 import { moveCardAndScene } from './lib/sceneSync.js';
-import { dialogueFilter, filterLabel } from './lib/dialogueFilter.js';
+import { dialogueFilter, dialogueKeyAction, dialogueStops, filterLabel } from './lib/dialogueFilter.js';
 import { canvasThemeInfo, nextCanvasTheme, readCanvasTheme, writeCanvasTheme } from './lib/canvasTheme.js';
 import { mergeDictionary } from './lib/structureDictionary.js';
 import { characterTabFromPrefs, closeDock, dockFromPrefs, openDock, toggleDock } from './lib/dock.js';
@@ -1281,6 +1282,39 @@ function Workspace({ boot }) {
     () => riskLocations(density, { sceneOf: analysis.sceneOfBlock, scenes, pageOf: layout.pageOfBlock }),
     [density, analysis, scenes, layout],
   );
+  // Dialogue stepper (status bar, while the Characters → Dialogue filter is on): the filtered
+  // character's speeches in order; stepping scrolls one to the middle and pulses it.
+  const dialogueStopList = useMemo(
+    () => (filter ? dialogueStops(analysis, filter.name, { sceneOf: analysis.sceneOfBlock, scenes, pageOf: layout.pageOfBlock }) : []),
+    [filter, analysis, scenes, layout],
+  );
+  const [dialoguePos, setDialoguePos] = useState({ name: null, index: -1 });
+  const dialogueIndex = filter && dialoguePos.name === filter.name ? Math.min(dialoguePos.index, dialogueStopList.length - 1) : -1;
+  const jumpToSpeech = (i) => {
+    const target = dialogueStopList[i];
+    if (!target || !filter) return;
+    setDialoguePos({ name: filter.name, index: i });
+    if (view === 'board' && !focusMode) setView('page');
+    requestAnimationFrame(() => requestAnimationFrame(() => editorRef.current?.pulseBlock(target.id)));
+  };
+  const stepSpeech = (dir) => jumpToSpeech(stepRisk(dialogueIndex, dialogueStopList.length, dir));
+  const stepSpeechRef = useRef(stepSpeech);
+  useLayoutEffect(() => {
+    stepSpeechRef.current = stepSpeech;
+  });
+  const dialogueFilterOn = !!filter;
+  useEffect(() => {
+    if (!dialogueFilterOn) return undefined;
+    const onKey = (e) => {
+      const act = dialogueKeyAction(e);
+      if (!act) return;
+      e.preventDefault();
+      stepSpeechRef.current(act);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [dialogueFilterOn]);
+
   const jumpToRisk = (i) => {
     const target = density.list[i];
     if (!target) return;
@@ -1667,6 +1701,16 @@ function Workspace({ boot }) {
             Format Doctor{issues.length ? ` · ${issues.length}` : ''}
           </button>
           <span className="status-spacer" />
+          {filter && (
+            <DialogueStepper
+              name={filter.name}
+              stops={dialogueStopList}
+              index={dialogueIndex}
+              onStep={stepSpeech}
+              onGo={jumpToSpeech}
+              onClear={() => setSelectedChar(null)}
+            />
+          )}
           <button
             type="button"
             className={`status-save is-${saveStatus.tone}`}
