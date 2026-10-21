@@ -53,6 +53,7 @@ import { parseFDX, toFDX } from './lib/fdx.js';
 import { beatsToFountain, beatsToMarkdown, byAct, moveBeat, sampleBeats } from './lib/beats.js';
 import { SAMPLE_SCRIPT } from './lib/sampleScript.js';
 import { effectiveZoomFor } from './lib/zoom.js';
+import { actionDensity, densityLabel, densityTitle } from './lib/pacing.js';
 import './App.css';
 
 // Scripts live in IndexedDB (lib/projectStorage.js); localStorage keeps only UI prefs.
@@ -477,6 +478,9 @@ function Workspace({ boot }) {
 
   // ---- Format Doctor ----
   const issues = useMemo(() => auditScript(blocks, { skipId: activeId }), [blocks, activeId]);
+  // Action density (skim risk): long action paragraphs, from the measured lines when known.
+  const density = useMemo(() => actionDensity(blocks, lineMap), [blocks, lineMap]);
+  const [densityMode, setDensityMode] = useState(false);
   const noteCount = useMemo(() => blocks.filter((b) => hasNote(b) && b.note.trim()).length, [blocks]);
   const fixIssues = useCallback((list) => {
     if (!list.length) return;
@@ -1226,6 +1230,7 @@ function Workspace({ boot }) {
               activeId={activeId}
               highlightId={hoverId}
               spotlight={filter?.ids ?? null}
+              dense={densityMode && density.dense ? density.ids : null}
               zoom={effectiveZoom}
               hidden={!showEditor}
               onCommit={commitBlocks}
@@ -1318,6 +1323,20 @@ function Workspace({ boot }) {
             </button>
           )}
           <span>{analysis.words.toLocaleString()} words</span>
+          {density.dense > 0 ? (
+            <button
+              type="button"
+              className={`status-density is-risk${densityMode ? ' is-on' : ''}`}
+              onClick={() => setDensityMode((on) => !on)}
+              aria-pressed={densityMode}
+              title={densityTitle(density, densityMode)}
+            >
+              <span className="density-dot" aria-hidden="true" />
+              {densityLabel(density)}
+            </button>
+          ) : (
+            <span className="status-density" title={densityTitle(density)}>{densityLabel(density)}</span>
+          )}
           <span title="54 lines per page">
             {currentPage && showEditor ? `p. ${currentPage} of ${layout.pageCount}` : `${layout.pageCount} ${layout.pageCount === 1 ? 'page' : 'pages'}`}
           </span>

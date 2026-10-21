@@ -118,7 +118,7 @@ function NoteMarker({ block, open, onOpen }) {
 }
 
 const Block = memo(function Block({
-  block, sceneNumber, isActive, isHighlighted, isDim, marginLines, marginGaps,
+  block, sceneNumber, isActive, isHighlighted, isDim, isDense, marginLines, marginGaps,
   register, observe, onText, onKey, onFocusBlock,
   noteOpen, onOpenNote,
 }) {
@@ -128,7 +128,7 @@ const Block = memo(function Block({
     <div
       ref={observe}
       data-key={observe ? block.id : undefined}
-      className={`el el-${block.type}${isActive ? ' is-active' : ''}${isHighlighted ? ' is-highlighted' : ''}${isDim ? ' is-dim' : ''}${hasNote(block) ? ' has-note' : ''}${noteOpen ? ' is-note-open' : ''}${hasMarks(block.marks) ? ' has-fmt' : ''}`}
+      className={`el el-${block.type}${isActive ? ' is-active' : ''}${isHighlighted ? ' is-highlighted' : ''}${isDim ? ' is-dim' : ''}${isDense ? ' is-dense' : ''}${hasNote(block) ? ' has-note' : ''}${noteOpen ? ' is-note-open' : ''}${hasMarks(block.marks) ? ' has-fmt' : ''}`}
       style={observe ? marginStyle(marginLines, marginGaps) : undefined}
     >
       {sceneNumber != null && (
@@ -164,7 +164,7 @@ const Block = memo(function Block({
 });
 
 const DualRow = memo(function DualRow({
-  item, activeId, highlightId, spotlight, marginLines, marginGaps, register, observe, onText, onKey, onFocusBlock,
+  item, activeId, highlightId, spotlight, dense, marginLines, marginGaps, register, observe, onText, onKey, onFocusBlock,
   openNoteId, onOpenNote,
 }) {
   const col = (bs) => bs.map((b) => (
@@ -174,6 +174,7 @@ const DualRow = memo(function DualRow({
       isActive={b.id === activeId}
       isHighlighted={b.id === highlightId}
       isDim={!!spotlight && !spotlight.has(b.id)}
+      isDense={!!dense && dense.has(b.id)}
       register={register}
       onText={onText}
       onKey={onKey}
@@ -238,6 +239,7 @@ export default function Editor({
   sceneNumbers,
   activeId,
   highlightId,
+  dense = null, // Density Mode: Set of dense action block ids to mark in the gutter (lib/pacing.js)
   spotlight = null, // Set of block ids to keep bright (Characters → Dialogue filter); the rest dim
   zoom,
   hidden = false,
@@ -713,6 +715,7 @@ export default function Editor({
               activeId={activeId}
               highlightId={highlightId}
               spotlight={spotlight}
+              dense={dense}
               marginLines={pl.marginLines}
               marginGaps={pl.marginGaps}
               register={register}
@@ -734,6 +737,7 @@ export default function Editor({
             isActive={b.id === activeId}
             isHighlighted={b.id === highlightId}
             isDim={!!spotlight && !spotlight.has(b.id)}
+            isDense={!!dense && dense.has(b.id)}
             marginLines={pl.marginLines}
             marginGaps={pl.marginGaps}
             register={register}

@@ -299,3 +299,16 @@
 .is-note-open .el-input { box-shadow: inset 2px 0 0 #f2d15c; }
 .focus-mode .note-add { display: none; }
 .focus-mode .note-mark { opacity: 0.5; }
+
+/* ---- Density Mode: a faint mark beside action paragraphs past 4 lines (lib/pacing.js).
+   Drawn outside the text column so it never changes wrapping, line counts or pagination;
+   the print view and exports never see it. ---- */
+.sheet .el.is-dense::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: calc(var(--in) * -0.3); /* outside the active-line rule (-0.2in), inside the scene numbers */
+  border-left: 2px solid rgba(217, 83, 47, 0.4);
+  pointer-events: none;
+}
