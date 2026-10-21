@@ -126,7 +126,7 @@ export const STRUCTURE_DICTIONARY = [
   },
   {
     id: 'supportingCharacter',
-    term: 'Supporting Character',
+    term: 'Supporting',
     definition: 'A recurring character who serves the main characters’ stories — revealing, helping or complicating them — without driving the plot themselves.',
   },
   {

@@ -106,7 +106,7 @@ export const PRIMARY_ROLES = [
   { id: 'antagonist', label: 'Antagonist', dict: 'antagonist' },
   { id: 'deuteragonist', label: 'Deuteragonist', dict: 'deuteragonist' },
   { id: 'tritagonist', label: 'Tritagonist', dict: 'tritagonist' },
-  { id: 'supporting', label: 'Supporting Character', dict: 'supportingCharacter' },
+  { id: 'supporting', label: 'Supporting', dict: 'supportingCharacter' },
   { id: 'minor', label: 'Minor / Cameo', dict: 'minorCharacter' },
 ];
 export const SECONDARY_ROLES = [

@@ -39,7 +39,7 @@ describe('Glossary: screenplay roles', () => {
 });
 
 const ROLES = [
-  'Protagonist', 'Antagonist', 'Deuteragonist', 'Tritagonist', 'Supporting Character', 'Minor / Cameo',
+  'Protagonist', 'Antagonist', 'Deuteragonist', 'Tritagonist', 'Supporting', 'Minor / Cameo',
   'Catalyst', 'Confidant(e)', 'Foil', 'Henchman / Enforcer', 'Love Interest', 'Mentor / Guide',
   'Shadow / Mirror', 'Skeptic / Voice of Reason', 'Threshold Guardian',
 ];

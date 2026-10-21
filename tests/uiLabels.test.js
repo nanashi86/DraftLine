@@ -110,16 +110,17 @@ describe('Beat Board: Populate from Script menu', () => {
 });
 
 describe('Character bio labels', () => {
-  it('Bios read "Age / Timeline", "Physical Description" and "Minor / Cameo" — no older wording left on screen', async () => {
+  it('Bios read "Age / Timeline", "Physical Description", "Supporting" and "Minor / Cameo" — no older wording left on screen', async () => {
     const { CHARACTER_FIELDS, PRIMARY_ROLES, SECONDARY_ROLES } = await import('../src/lib/bible.js');
     const labels = CHARACTER_FIELDS.map((f) => f.label);
     assert.ok(labels.includes('Age / Timeline'));
     assert.ok(labels.includes('Physical Description'));
     assert.ok(PRIMARY_ROLES.some((r) => r.label === 'Minor / Cameo'));
+    assert.ok(PRIMARY_ROLES.some((r) => r.label === 'Supporting'));
     assert.ok(SECONDARY_ROLES.some((r) => r.label === 'Catalyst'));
     for (const f of [...uiSources, join(root, 'lib', 'bible.js'), join(root, 'lib', 'structureDictionary.js')]) {
       const src = readFileSync(f, 'utf8').replace(/^\s*(\/\/|\*|\/\*).*$/gm, '');
-      assert.ok(!/Timeline ages|'Minor Character \/ Cameo'|Catalyst \/ Instigator/.test(src), f);
+      assert.ok(!/Timeline ages|'Minor Character \/ Cameo'|Catalyst \/ Instigator|'Supporting Character'/.test(src), f);
     }
   });
 });

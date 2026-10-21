@@ -25,7 +25,7 @@ describe('Character roles: the data model', () => {
   });
   it('Primary Role and Secondary Function offer exactly the listed options', () => {
     assert.deepEqual(PRIMARY_ROLES.map((r) => r.label), [
-      'Protagonist', 'Antagonist', 'Deuteragonist', 'Tritagonist', 'Supporting Character', 'Minor / Cameo',
+      'Protagonist', 'Antagonist', 'Deuteragonist', 'Tritagonist', 'Supporting', 'Minor / Cameo',
     ]);
     assert.deepEqual(SECONDARY_ROLES.map((r) => r.label), [
       'None', 'Foil', 'Catalyst', 'Mentor / Guide', 'Confidant(e)', 'Love Interest', 'Skeptic / Voice of Reason',
@@ -138,6 +138,15 @@ describe('Character bios: Physical Description, Age / Timeline, Minor / Cameo, C
     assert.equal(dictionaryEntry(STRUCTURE_DICTIONARY, 'minorCharacter').term, 'Minor / Cameo');
     assert.deepEqual(splitLegacyRole('Minor Character / Cameo'), { primaryRole: 'minor', secondaryRole: 'none', relationship: '' });
     assert.deepEqual(splitLegacyRole('Minor Character / Cameo · the ferry cook'), { primaryRole: 'minor', secondaryRole: 'none', relationship: 'the ferry cook' });
+  });
+  it('"Supporting" — the label in the dropdown, the bio header and the Glossary; older bios carry over', () => {
+    assert.equal(PRIMARY_ROLES.find((r) => r.id === 'supporting').label, 'Supporting');
+    assert.equal(roleSummary({ primaryRole: 'supporting', secondaryRole: 'mentor' }), 'Supporting (Mentor / Guide)');
+    assert.equal(dictionaryEntry(STRUCTURE_DICTIONARY, 'supportingCharacter').term, 'Supporting');
+    // Saved picks are the id 'supporting', so they show the new label as they are; old free-text roles convert.
+    assert.equal(normalizeCharacter({ id: 'x', name: 'X', primaryRole: 'supporting' }).primaryRole, 'supporting');
+    assert.deepEqual(splitLegacyRole('Supporting Character · Fito’s uncle'), { primaryRole: 'supporting', secondaryRole: 'none', relationship: 'Fito’s uncle' });
+    assert.equal(bioCard({ id: 'x', name: 'TONY', role: 'Supporting Character', age: '40' }).meta, 'Supporting · 40');
   });
   it('"Catalyst" in Secondary Function, with its definition as the (i) tooltip', () => {
     const cat = SECONDARY_ROLES.find((r) => r.id === 'catalyst');
