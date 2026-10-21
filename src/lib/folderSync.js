@@ -28,6 +28,7 @@ export const DESTINATION_KEY = 'draftline_storage_destination'; // 'browser' | '
 export const FILES_KEY = 'draftline_synced_files'; // { [projectId]: fileName } — files DraftLine wrote
 /** Snapshot files live in this subfolder (visible in Explorer / Finder / Drive, unlike a dot-folder). */
 export const SNAPSHOT_DIR = 'Snapshots';
+export const TRASH_DIR = 'Trash'; // deleted scripts' files go here, not away (only top-level files are scripts)
 const RW = { mode: 'readwrite' };
 
 /** Can this browser link a folder at all? */
@@ -69,6 +70,15 @@ export function snapshotFileName(title, date, exists = () => false) {
   for (let n = 2; exists(name); n += 1) name = `${stem}_${n}${BACKUP_EXT}`;
   return name;
 }
+
+/** "<file stem>_deleted_<YYYY-MM-DD_HHmm>.draftline" in Trash; "_2", "_3"… if that's taken. */
+export function trashFileName(name, date, exists = () => false) {
+  const stem = `${name.replace(new RegExp(`\\${BACKUP_EXT}$`, 'i'), '')}_deleted_${snapshotStamp(date)}`;
+  let out = `${stem}${BACKUP_EXT}`;
+  for (let n = 2; exists(out); n += 1) out = `${stem}_${n}${BACKUP_EXT}`;
+  return out;
+}
+export const trashPath = (name) => `${TRASH_DIR}/${name}`;
 
 /** Where a snapshot file goes, relative to the linked folder. */
 export const snapshotPath = (name) => `${SNAPSHOT_DIR}/${name}`;
@@ -343,6 +353,27 @@ export function createFolderSync({ settings, win = globalThis, now = () => Date.
     }
   }
 
+  async function trashDir() {
+    return handle.getDirectoryHandle(TRASH_DIR, { create: true });
+  }
+
+  /**
+   * Move one top-level file into Trash/: copy it, read the copy back to check it matches, and only
+   * then remove the original. Throws (leaving the original exactly where it was) if any step fails.
+   */
+  async function moveToTrash(name) {
+    const fh = await handle.getFileHandle(name);
+    const { text } = await readText(fh);
+    const dir = await trashDir();
+    const taken = new Set((await listFiles(dir)).map(([n]) => n));
+    const dest = trashFileName(name, now(), (n) => taken.has(n));
+    await writeText(dir, dest, text);
+    const back = await readText(await dir.getFileHandle(dest));
+    if (back.text !== text) throw new Error(`The copy of ${name} in ${TRASH_DIR} didn't match`);
+    await handle.removeEntry(name);
+    return trashPath(dest);
+  }
+
   async function adopt(h, permission) {
     handle = h;
     index.clear();
@@ -469,21 +500,37 @@ export function createFolderSync({ settings, win = globalThis, now = () => Date.
       return f ? f.record : null;
     },
 
-    /** Remove project `id`'s files (deleting the script in DraftLine). */
-    async removeProject(id) {
-      if (!isActive()) return 0;
+    /**
+     * Take project `id`'s files out of the folder (deleting the script in DraftLine), so they don't
+     * bring it back. They're moved into Trash/, never deleted — unless `hard` is true, which only
+     * the writer's explicit second confirmation passes (after a move failed).
+     * Resolves { trashed: [paths], removed: n, failed: [file names left in place] }.
+     */
+    async removeProject(id, { hard = false } = {}) {
+      const result = { trashed: [], removed: 0, failed: [] };
+      if (!isActive()) return result;
       await scan().catch(() => []);
-      let n = 0;
       for (const [name, pid] of [...index]) {
         if (pid !== id) continue;
-        await handle.removeEntry(name).then(() => { n += 1; }, () => {});
-        index.delete(name);
-        cache.delete(name);
+        try {
+          if (hard) {
+            await handle.removeEntry(name);
+            result.removed += 1;
+          } else {
+            result.trashed.push(await moveToTrash(name));
+          }
+          index.delete(name);
+          cache.delete(name);
+        } catch {
+          result.failed.push(name);
+        }
       }
-      const { [id]: _gone, ...rest } = owned; // eslint-disable-line no-unused-vars
-      owned = rest;
-      settings.set(FILES_KEY, owned)?.catch?.(() => {});
-      return n;
+      if (!result.failed.length) {
+        const { [id]: _gone, ...rest } = owned; // eslint-disable-line no-unused-vars
+        owned = rest;
+        settings.set(FILES_KEY, owned)?.catch?.(() => {});
+      }
+      return result;
     },
 
     /** Snapshot → Snapshots/<slug>_<YYYY-MM-DD_HHmm>.draftline. Resolves the path, or null. */

@@ -1,9 +1,12 @@
 import { describe, it } from 'node:test';
+import { readFileSync } from 'node:fs';
 import assert from 'node:assert/strict';
 import {
-  DESTINATION_KEY, FILES_KEY, HANDLE_KEY, SNAPSHOT_DIR, createFolderSync, isFolderSyncSupported, mergeProjectLists, projectFileName,
+  DESTINATION_KEY, FILES_KEY, HANDLE_KEY, SNAPSHOT_DIR, TRASH_DIR, createFolderSync, isFolderSyncSupported, mergeProjectLists, projectFileName,
   saveProjectEverywhere, scriptSlug, snapshotFileName, snapshotFileText, snapshotFromFileText, snapshotPath, snapshotStamp, storageStatus,
+  trashFileName,
 } from '../src/lib/folderSync.js';
+import { DELETE_WORD, deleteWarning, isDeleteConfirmed } from '../src/lib/deleteConfirm.js';
 import { createProjectStore, toDoc } from '../src/lib/projectStorage.js';
 import { parseBackup } from '../src/lib/backup.js';
 import { createRevision } from '../src/lib/revisions.js';
@@ -318,7 +321,79 @@ describe('Folder sync: wired into the app', async () => {
     assert.match(app, /if \(saveStatus\.action === 'permission'\) \{\s*folderSync\.requestPermission\(\)/);
     assert.match(app, /setDrawerOpen\(true\);\s*setFocusStorage\(\(n\) => n \+ 1\);/);
   });
-  it('deleting a script removes its folder file too (or the folder would bring it back)', () => {
-    assert.match(app, /await projects\.deleteProject\(id\);\s*await folderSync\.removeProject\(id\);/);
+  it('deleting a script takes its folder file out too (or the folder would bring it back) — after the typed confirmation', () => {
+    assert.match(app, /await projects\.deleteProject\(d\.id\);\s*const folder = await folderSync\.removeProject\(d\.id\);/);
+  });
+});
+
+describe('Deleting a script: typed confirmation, Trash instead of erasing', () => {
+  const app = readFileSync(new URL('../src/App.jsx', import.meta.url), 'utf8');
+  const modal = readFileSync(new URL('../src/components/DeleteProjectModal.jsx', import.meta.url), 'utf8');
+
+  it('only exactly "DELETE" (capitals, spaces around ignored) enables Permanently Delete', () => {
+    assert.equal(DELETE_WORD, 'DELETE');
+    for (const t of ['DELETE', '  DELETE ']) assert.ok(isDeleteConfirmed(t), t);
+    for (const t of ['', 'delete', 'Delete', 'DELET', 'DELETE!', 'DEL ETE', null, undefined]) assert.equal(isDeleteConfirmed(t), false, String(t));
+  });
+  it('the dialog: title, warning, a type-DELETE field, Cancel, and a red button disabled until confirmed', () => {
+    assert.equal(deleteWarning('The Last Ferry', { synced: true }),
+      "This will permanently remove 'The Last Ferry' from this browser and delete the .draftline file from your synced drive folder.");
+    assert.equal(deleteWarning('The Last Ferry'), "This will permanently remove 'The Last Ferry' from this browser.");
+    assert.match(modal, /<h2 id="dp-title">Delete Screenplay\?<\/h2>/);
+    assert.match(modal, /const ok = isDeleteConfirmed\(typed\) && !busy;/);
+    assert.match(modal, /<button type="submit" className="btn dp-delete" disabled=\{!ok\}>\{busy \? 'Deleting…' : 'Permanently Delete'\}<\/button>/);
+    assert.match(modal, /<button type="button" className="btn dp-cancel" onClick=\{onCancel\} disabled=\{busy\}>Cancel<\/button>/);
+    assert.match(modal, /if \(stage === 'confirm' && ok\) onConfirm\(\);/, 'Enter does nothing until DELETE is typed');
+    const css = readFileSync(new URL('../src/components/DeleteProjectModal.css', import.meta.url), 'utf8');
+    assert.match(css, /\.dp-modal \.dp-delete \{[^}]*background: #b5402c;/, 'red, and specific enough to beat .btn');
+    assert.match(css, /\.dp-modal \.dp-delete:disabled \{[^}]*cursor: not-allowed;/);
+  });
+  it('the app: the Projects menu only opens the dialog — nothing is deleted on click', () => {
+    const open = /const deleteProject = async \(id, title\) => \{([\s\S]*?)\n {2}\};/.exec(app)[1];
+    assert.ok(!/deleteProject\(|removeProject|confirm\(/.test(open), 'no deletion and no window.confirm before the dialog');
+    assert.match(open, /setPendingDelete\(\{ id, title, stage: 'confirm', failed: \[\], busy: false \}\);/);
+    assert.ok(!/window\.confirm\(`Delete/.test(app));
+    assert.match(app, /onConfirm=\{confirmDelete\}/);
+    assert.match(app, /onDelete=\{deleteProject\}/);
+  });
+  it('the folder file is moved into Trash/ (verified copy first), not erased', async () => {
+    const { dir, sync } = await linked({ clock: () => 7 });
+    const store = createProjectStore({ indexedDB: createFakeIndexedDB() });
+    const { record } = await saveProjectEverywhere({ store, sync, data: doc('The Last Ferry') });
+    const keep = (await saveProjectEverywhere({ store, sync, data: doc('Run!') })).record;
+    const name = Object.keys(dir.$.files()).find((f) => /^the-last-ferry/i.test(f));
+    const text = dir.$.files()[name];
+    const r = await sync.removeProject(record.id);
+    assert.deepEqual([r.removed, r.failed], [0, []]);
+    assert.equal(r.trashed.length, 1);
+    assert.match(r.trashed[0], new RegExp(`^${TRASH_DIR}/${name.replace(/\.draftline$/, '')}_deleted_\\d{4}-\\d\\d-\\d\\d_\\d{4}\\.draftline$`));
+    const files = dir.$.files();
+    assert.equal(files[name], undefined, 'gone from the top level, so it won’t come back');
+    assert.equal(files[r.trashed[0]], text, 'the whole file, unchanged, in Trash');
+    const order = dir.$.log.map(([k, p]) => `${k} ${p}`);
+    assert.ok(order.indexOf(`write ${r.trashed[0]}`) < order.indexOf(`remove ${name}`), 'copied before the original is removed');
+    assert.deepEqual((await sync.listProjects()).map((f) => f.record.id), [keep.id], 'Trash is never read back in');
+  });
+  it('Trash names never overwrite: a second deletion of the same name gets _2', () => {
+    const taken = new Set(['the-last-ferry_deleted_2026-10-21_1540.draftline']);
+    assert.equal(trashFileName('the-last-ferry.draftline', new Date(2026, 9, 21, 15, 40), (n) => taken.has(n)), 'the-last-ferry_deleted_2026-10-21_1540_2.draftline');
+  });
+  it('if the move fails, the original stays put and nothing is erased — hard deletion only when asked', async () => {
+    const { dir, sync } = await linked();
+    const store = createProjectStore({ indexedDB: createFakeIndexedDB() });
+    const { record } = await saveProjectEverywhere({ store, sync, data: doc('Run!') });
+    const name = Object.keys(dir.$.files())[0];
+    dir.$.root.failWrites = new Error('disk full');
+    const r = await sync.removeProject(record.id);
+    assert.deepEqual([r.trashed, r.removed, r.failed], [[], 0, [name]]);
+    assert.ok(dir.$.files()[name], 'still there');
+    assert.ok(!dir.$.log.some(([k]) => k === 'remove'), 'nothing removed');
+    const hard = await sync.removeProject(record.id, { hard: true });
+    assert.deepEqual([hard.removed, hard.failed], [1, []]);
+    assert.equal(dir.$.files()[name], undefined);
+    assert.match(modal, /Couldn’t move the file to Trash/);
+    assert.match(app, /if \(folder\.failed\.length\) \{\s*setPendingDelete\(\{ \.\.\.d, stage: 'hard', failed: folder\.failed, busy: false \}\);/);
+    assert.match(app, /folderSync\.removeProject\(d\.id, \{ hard: true \}\)/, 'only from the second confirmation');
+    assert.equal((app.match(/hard: true/g) || []).length, 1);
   });
 });

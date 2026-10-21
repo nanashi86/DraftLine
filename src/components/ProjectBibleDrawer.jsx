@@ -145,7 +145,7 @@ function ActsCard({ label, className, acts, value, editing, onToggle, onChange }
   );
 }
 
-function StoryNotes({ notes, onChange, onUndoable, projectTitle = '', actMode = 3, onActModeChange }) {
+function StoryNotes({ notes, onChange, onUndoable, projectTitle = '', actMode = 3, onActModeChange, onRealignActs }) {
   const [synopsisEditing, setSynopsisEditing] = useState(() => !synopsisHasText(notes.synopsis));
   const [treatmentEditing, setTreatmentEditing] = useState(() => !treatmentHasText(notes.treatment));
   const [copied, setCopied] = useState(false);
@@ -201,6 +201,16 @@ function StoryNotes({ notes, onChange, onUndoable, projectTitle = '', actMode = 
               </button>
             ))}
           </div>
+        )}
+        {onRealignActs && actMode === 4 && (
+          <button
+            type="button"
+            className="btn btn-sm pb-realign"
+            onClick={onRealignActs}
+            title="Re-split Act 2A / 2B in the Synopsis and Treatment: Act 2B starts at the first paragraph naming the first Act 2B scene on the Scene Board, or the midpoint. Text only moves between the two."
+          >
+            Auto-Align Acts
+          </button>
         )}
         <span className="pb-tools-spacer" />
         <button
@@ -309,7 +319,7 @@ function StoryNotes({ notes, onChange, onUndoable, projectTitle = '', actMode = 
  * project in place, so it autosaves with the script and switches with it in Projects.
  */
 export default function ProjectBibleDrawer({
-  open, onClose, projectTitle, storyNotes, onStoryNotesChange, actMode = 3, onActModeChange,
+  open, onClose, projectTitle, storyNotes, onStoryNotesChange, actMode = 3, onActModeChange, onRealignActs,
   storyDna, onStoryDnaChange, dictionary, onDictionaryEdit, tab = DEFAULT_BIBLE_TAB, onTabChange, glossaryTerm = null,
 }) {
   const [undo, setUndo] = useState(null); // { message, restore }
@@ -383,6 +393,7 @@ export default function ProjectBibleDrawer({
             projectTitle={projectTitle}
             actMode={actMode}
             onActModeChange={onActModeChange}
+            onRealignActs={onRealignActs}
             onChange={onStoryNotesChange}
             onUndoable={(message, prev) => setUndo({ message, restore: () => onStoryNotesChange(prev) })}
           />

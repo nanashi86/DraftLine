@@ -414,10 +414,12 @@ export function setSynopsisAct(notes, key, text) {
 //          1. where it was joined (the remembered boundary, if those words are still there);
 //          2. a marker the writer typed — a "### Act 2B" or "## Midpoint" heading, a "---" rule or
 //             "[ACT 2B]" (dropped from the text);
-//          3. the Scene Board: before the first paragraph naming the location (or title) of the
-//             first Act 2B card's scene, e.g. "MORNE CALVAIRE";
-//          4. before the first paragraph with a midpoint keyword (MIDPOINT_KEYWORDS);
-//          5. the paragraph break nearest the middle.
+//          3. before the first paragraph that names the first Act 2B card's scene location (or
+//             title) on the Scene Board, e.g. "MORNE CALVAIRE", or has a midpoint keyword
+//             (MIDPOINT_KEYWORDS) — whichever paragraph comes first;
+//          4. the paragraph break nearest the middle.
+//        Paragraphs are separated by blank lines; text written with single line breaks only is
+//        taken line by line.
 //        Splits fall between paragraphs — nothing is added to the text. Act 2B is never left empty
 //        while Act II has words. (Nothing moves if 2B already has text.)
 
@@ -469,10 +471,10 @@ export function act2bAnchors({ beats = [], blocks = [] } = {}) {
   return [...new Set(out.filter((a) => a.length >= 3))];
 }
 
-/** Paragraphs of `t` with where each starts: [{ start, text }]. */
+/** Paragraphs of `t` with where each starts: [{ start, text }] — blank-line separated, else one per line. */
 function paragraphs(t) {
   const out = [];
-  const re = /\n[ \t]*\n+/g;
+  const re = /\n[ \t]*\n/.test(t) ? /\n[ \t]*\n+/g : /\n+/g;
   let start = 0;
   for (const m of t.matchAll(re)) {
     out.push({ start, text: t.slice(start, m.index) });
@@ -490,9 +492,18 @@ function splitBeforeParagraph(t, test) {
 }
 
 /**
- * Act II → [Act 2A, Act 2B]: at a typed marker, else before the paragraph naming a Scene Board
- * anchor (`anchors`, see act2bAnchors), else before the first with a midpoint keyword, else near
- * the middle.
+ * Before the first paragraph (after the first) naming a Scene Board anchor or holding a midpoint
+ * keyword → [2A, 2B]; null when none does.
+ */
+export function splitAtStoryTurn(text, { anchors = [], keywords = MIDPOINT_KEYWORDS } = {}) {
+  const t = String(text || '').trim();
+  const res = anchors.map(wordRe);
+  return splitBeforeParagraph(t, (p) => res.some((re) => re.test(p)) || Boolean(keywords?.test(p)));
+}
+
+/**
+ * Act II → [Act 2A, Act 2B]: at a typed marker, else before the first paragraph naming a Scene
+ * Board anchor (`anchors`, see act2bAnchors) or holding a midpoint keyword, else near the middle.
  */
 export function splitAct2(text, { anchors = [], keywords = MIDPOINT_KEYWORDS } = {}) {
   const t = String(text || '').trim();
@@ -510,16 +521,8 @@ export function splitAct2(text, { anchors = [], keywords = MIDPOINT_KEYWORDS } =
     if (after) return [before, after];
     return before ? splitAct2(before, { anchors, keywords }) : ['', '']; // marker at the very end
   }
-  for (const a of anchors) {
-    const re = wordRe(a);
-    const hit = splitBeforeParagraph(t, (p) => re.test(p));
-    if (hit) return hit;
-  }
-  if (keywords) {
-    const hit = splitBeforeParagraph(t, (p) => keywords.test(p));
-    if (hit) return hit;
-  }
-  return splitNearMiddle(t);
+  const hit = splitAtStoryTurn(t, { anchors, keywords });
+  return hit || splitNearMiddle(t);
 }
 
 /** [Act 2A, Act 2B] → Act II: the two trimmed halves with a blank line between (empty halves add nothing). */
@@ -562,6 +565,35 @@ export function convertActs(acts, from, to, split = null, hints = {}) {
   }
   if (!v.act2b.trim()) return v;
   return { ...v, act2: joinAct2(v.act2, v.act2b), act2b: '' };
+}
+
+/**
+ * "Auto-Align Acts" (4 acts): re-split each card's Act 2A + 2B as one Act II, using the Scene
+ * Board and midpoint keywords (see splitAct2) — text only moves between 2A and 2B, nothing is
+ * added or lost. Returns { notes, changed: ['synopsis', …] } (the same notes object if nothing moved).
+ */
+export function realignActs(notes, story = {}) {
+  const n = normalizeStoryNotes(notes);
+  const hints = { anchors: act2bAnchors(story) };
+  const changed = [];
+  const next = {};
+  for (const card of SPLIT_CARDS) {
+    const v = n[card];
+    const whole = joinAct2(v.act2, v.act2b);
+    if (!whole) continue;
+    const [a, b] = splitAct2(whole, hints);
+    if (a !== v.act2.trim() || b !== v.act2b.trim()) {
+      next[card] = { ...v, act2: a, act2b: b };
+      changed.push(card);
+    }
+  }
+  if (!changed.length) return { notes, changed };
+  const out = { ...n, ...next };
+  const splits = { ...n.actSplits };
+  for (const c of changed) delete splits[c]; // a remembered join no longer applies
+  if (Object.keys(splits).length) out.actSplits = splits;
+  else delete out.actSplits;
+  return { notes: out, changed };
 }
 
 /** A valid remembered boundary, or null. */

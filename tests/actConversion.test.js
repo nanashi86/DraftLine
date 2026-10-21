@@ -2,7 +2,7 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import {
-  ACT2B_MARKER, MIDPOINT_KEYWORDS, act2Split, act2bAnchors, slugLocation, convertActs, convertNotesActs, defaultStoryNotes, joinAct2, normalizeStoryNotes, restoreSplit, splitAct2,
+  ACT2B_MARKER, MIDPOINT_KEYWORDS, act2Split, act2bAnchors, realignActs, slugLocation, splitAtStoryTurn, convertActs, convertNotesActs, defaultStoryNotes, joinAct2, normalizeStoryNotes, restoreSplit, splitAct2,
 } from '../src/lib/bible.js';
 
 const acts = (o) => ({ act1: '', act2: '', act2b: '', act3: '', ...o });
@@ -126,11 +126,17 @@ describe('3 → 4: Act 2B found from the Scene Board, then the midpoint', () => 
     assert.deepEqual(act2bAnchors({ beats: [{ act: 1, title: 'x' }] }), [], 'no Act 2B card');
     assert.equal(slugLocation('INT./EXT. FERRY - WHEELHOUSE - CONTINUOUS'), 'FERRY - WHEELHOUSE');
     assert.equal(slugLocation('The letter'), '');
+    // Without the midpoint words, the anchor alone decides.
+    assert.deepEqual(splitAct2(text, { anchors: act2bAnchors(board), keywords: null }), [ACT2.slice(0, 4).join('\n\n'), ACT2[4]]);
+  });
+  it('anchors and midpoint words together: whichever paragraph comes FIRST starts Act 2B — Synopsis and Treatment', () => {
     const four = convertNotesActs(notes(), 3, 4, board);
     for (const card of ['synopsis', 'treatment']) {
-      assert.equal(four[card].act2, ACT2.slice(0, 4).join('\n\n'));
-      assert.equal(four[card].act2b, ACT2[4], 'split right before the paragraph naming Morne Calvaire');
+      assert.equal(four[card].act2, ACT2.slice(0, 2).join('\n\n'), card);
+      assert.ok(four[card].act2b.startsWith('A BMW tears through the market'), card);
     }
+    const anchorFirst = [ACT2[0], 'Dawn at Morne Calvaire.', ACT2[2]].join('\n\n');
+    assert.deepEqual(splitAct2(anchorFirst, { anchors: ['MORNE CALVAIRE'] }), [ACT2[0], `Dawn at Morne Calvaire.\n\n${ACT2[2]}`]);
   });
   it('midpoint keywords: the Carlo / hit-and-run paragraph starts Act 2B', () => {
     for (const k of ['Carlo', 'a hit and run', 'the BMW', 'nephew of Cassandre']) assert.ok(MIDPOINT_KEYWORDS.test(k), k);
@@ -140,6 +146,12 @@ describe('3 → 4: Act 2B found from the Scene Board, then the midpoint', () => 
     assert.ok(four.synopsis.act2b.startsWith('A BMW tears through the market'));
     const noMatch = { beats: [{ act: 2, title: 'Somewhere else entirely' }], blocks: [] };
     assert.equal(convertNotesActs(notes(), 3, 4, noMatch).synopsis.act2b, ACT2.slice(2).join('\n\n'), 'anchor not in the text: keywords next');
+  });
+  it('a Treatment written with single line breaks splits by line at the Carlo / hit-and-run line', () => {
+    const lines = ACT2.join('\n');
+    const four = convertNotesActs({ ...defaultStoryNotes(), treatment: acts({ act2: lines }) }, 3, 4);
+    assert.equal(four.treatment.act2, ACT2.slice(0, 2).join('\n'));
+    assert.equal(four.treatment.act2b, ACT2.slice(2).join('\n'));
   });
   it('fallback: the paragraph break nearest the middle; no headers ever added', () => {
     const plain = 'One.\n\nTwo.\n\nThree.\n\nFour.';
@@ -151,6 +163,7 @@ describe('3 → 4: Act 2B found from the Scene Board, then the midpoint', () => 
   it('splits between paragraphs only, never before the first; whole words for anchors', () => {
     assert.equal(splitAct2('Carlo arrives.\n\nNothing here.', { anchors: [] })[1], 'Nothing here.', 'a keyword in the first paragraph doesn’t empty 2A: falls through');
     assert.deepEqual(splitAct2('A.\n\nAt the Gallery.\n\nAt the gala.', { anchors: ['GALA'], keywords: null }), ['A.\n\nAt the Gallery.', 'At the gala.']);
+    assert.deepEqual(splitAtStoryTurn('Nothing.\n\nStill nothing.'), null);
   });
   it('a remembered join and a typed marker still come first', () => {
     const t = 'Rising.\n\n---\n\nThe BMW at Morne Calvaire.\n\nMore.';
@@ -158,5 +171,38 @@ describe('3 → 4: Act 2B found from the Scene Board, then the midpoint', () => 
     const four = { ...defaultStoryNotes(), synopsis: acts({ act2: 'Before Carlo.\n\nStill 2A.', act2b: 'Real 2B.' }) };
     const back = convertNotesActs(convertNotesActs(four, 4, 3), 3, 4, board);
     assert.deepEqual([back.synopsis.act2, back.synopsis.act2b], ['Before Carlo.\n\nStill 2A.', 'Real 2B.']);
+  });
+});
+
+describe('Auto-Align Acts (Notes, 4 acts): re-split existing 2A / 2B without losing a word', () => {
+  const two = ['Jean-Luc takes the job.', 'He meets Cassandre at the gala.', 'A BMW tears through the market: a hit and run. Carlo drove.', 'The family closes ranks.'];
+  const misplaced = { ...defaultStoryNotes(),
+    synopsis: acts({ act1: 'Setup.', act2: two.slice(0, 3).join('\n\n'), act2b: two[3], act3: 'End.' }),
+    treatment: acts({ act2: two[0], act2b: two.slice(1).join('\n\n') }) };
+  it('moves the Carlo / hit-and-run paragraph to the top of Act 2B in both cards', () => {
+    const { notes, changed } = realignActs(misplaced);
+    assert.deepEqual(changed, ['synopsis', 'treatment']);
+    for (const card of ['synopsis', 'treatment']) {
+      assert.equal(notes[card].act2, two.slice(0, 2).join('\n\n'), card);
+      assert.equal(notes[card].act2b, two.slice(2).join('\n\n'), card);
+    }
+    assert.equal(notes.synopsis.act1, 'Setup.');
+    assert.equal(notes.synopsis.act3, 'End.');
+    assert.deepEqual(notes.sections, misplaced.sections, 'other notes untouched');
+  });
+  it('already aligned (or nothing to go on): the same notes object back', () => {
+    const { notes } = realignActs(misplaced);
+    const again = realignActs(notes);
+    assert.equal(again.notes, notes);
+    assert.deepEqual(again.changed, []);
+    const blank = defaultStoryNotes();
+    assert.equal(realignActs(blank).notes, blank);
+  });
+  it('the button: Notes toolbar, 4 acts only, wired to the Scene Board and script', () => {
+    const ui = readFileSync(new URL('../src/components/ProjectBibleDrawer.jsx', import.meta.url), 'utf8');
+    assert.match(ui, /\{onRealignActs && actMode === 4 && \(\s*<button[\s\S]*?onClick=\{onRealignActs\}[\s\S]*?>\s*Auto-Align Acts\s*<\/button>/);
+    const app = readFileSync(new URL('../src/App.jsx', import.meta.url), 'utf8');
+    assert.match(app, /const r = realignActs\(storyNotes, \{ beats, blocks \}\);/);
+    assert.match(app, /onRealignActs=\{realignStoryActs\}/);
   });
 });

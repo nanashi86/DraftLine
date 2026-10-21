@@ -17,7 +17,7 @@ The top bar holds your script's title, file actions (New, Open, Import, Title Pa
 
 ### Projects and browser storage
 
-Every script lives in your **Projects** library ({{key:Alt+P}}, or the ▾ beside the title). From there you can create, switch, rename, duplicate, export or delete scripts.
+Every script lives in your **Projects** library ({{key:Alt+P}}, or the ▾ beside the title). From there you can create, switch, rename, duplicate, export or delete scripts. Deleting asks first: the **Delete Screenplay?** dialog only deletes once you type **DELETE** and press **Permanently Delete**; **Cancel** leaves everything as it was.
 
 By default, scripts are saved in this browser's own database (IndexedDB) on this computer. Saving is automatic, about half a second after you stop typing. {{key:Ctrl+S}} saves immediately. Nothing is uploaded and no account is needed.
 
@@ -37,7 +37,7 @@ From then on, every save goes to the browser first (instant and offline-safe) an
 - **After a browser restart**, the browser may ask again before DraftLine can write to the folder. The status bar then says **Click to allow folder sync**. One click resumes syncing.
 - **If the folder can't be written** (an unplugged drive, for example), your work is still safe in the browser and the status bar says **Folder sync paused**.
 - **Change Folder…** links a different folder. **Disconnect** stops syncing and leaves the files where they are. Choosing **Browser Storage (IndexedDB)** pauses syncing but remembers the folder.
-- **Deleting a script** in DraftLine also deletes its file in the linked folder, so it doesn't come back.
+- **Deleting a script** in DraftLine also takes its file out of the linked folder, so it doesn't come back. The file isn't erased: it's moved into a **Trash** folder inside the linked folder, renamed with the date it was deleted, so you can recover it there. If it can't be moved, DraftLine leaves it where it is and asks whether to delete it permanently.
 - **Two computers, one script:** the most recent save wins. DraftLine doesn't merge edits made on two computers at the same time.
 
 Safari, Firefox and phone browsers can't link folders. There, DraftLine uses browser storage only; use backups to move scripts.
@@ -155,7 +155,7 @@ The **Glossary** defines every story term in two sections, {{glossary.sections}}
 - **Synopsis**: in 3 acts, {{acts.labels.3}}; in 4 acts, {{acts.labels.4}}.
 - **Treatment**: your full narrative treatment, sequence-by-sequence prose, scene breakdowns and subplots, in the same acts. It adapts to the active 3- or 4-act view. Write each act there, or paste it in with Import from Notes.
 
-Switching never loses text, and never adds any. Going from 4 acts to 3 joins Act 2A and Act 2B into Act II with a blank line between them; DraftLine quietly remembers where Act 2B began, so switching back splits them exactly where they were, even if you've added to Act II meanwhile. Otherwise, going from 3 acts to 4 splits Act II at a `### Act 2B` or `## Midpoint` heading, a `---` line or an `[ACT 2B]` tag if you've put one in, or else at the paragraph break nearest the middle. (If Act 2B already has text, going to 4 acts leaves both as they are.)
+Switching never loses text, and never adds any. Going from 4 acts to 3 joins Act 2A and Act 2B into Act II with a blank line between them; DraftLine quietly remembers where Act 2B began, so switching back splits them exactly where they were, even if you've added to Act II meanwhile. Otherwise, going from 3 acts to 4 splits Act II at a `### Act 2B` or `## Midpoint` heading, a `---` line or an `[ACT 2B]` tag if you've put one in. Failing that, Act 2B starts at the first paragraph that names the location of the first Act 2B scene on the Scene Board, or mentions the story's midpoint, whichever comes first, and otherwise at the paragraph break nearest the middle. (If Act 2B already has text, going to 4 acts leaves both as they are.) In 4 acts, **Auto-Align Acts** re-splits an existing Act 2A and Act 2B the same way, in both the Synopsis and the Treatment; text only moves between the two.
 
 ### Copying and importing notes
 

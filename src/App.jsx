@@ -6,6 +6,7 @@ import Editor from './components/Editor.jsx';
 import CharactersDrawer from './components/CharactersDrawer.jsx';
 import Navigator from './components/Navigator.jsx';
 import TitlePageModal from './components/TitlePageModal.jsx';
+import DeleteProjectModal from './components/DeleteProjectModal.jsx';
 import { applyFixes, auditScript } from './lib/formatDoctor.js';
 import TitlePageSheet from './components/TitlePageSheet.jsx';
 import PrintView from './components/PrintView.jsx';
@@ -34,7 +35,7 @@ import { dialogueFilter, filterLabel } from './lib/dialogueFilter.js';
 import { canvasThemeInfo, nextCanvasTheme, readCanvasTheme, writeCanvasTheme } from './lib/canvasTheme.js';
 import { mergeDictionary } from './lib/structureDictionary.js';
 import { characterTabFromPrefs, closeDock, dockFromPrefs, openDock, toggleDock } from './lib/dock.js';
-import { ACT_STRUCTURES, DEFAULT_ACT_STRUCTURE, DEFAULT_BIBLE_TAB, convertNotesActs } from './lib/bible.js';
+import { ACT_STRUCTURES, DEFAULT_ACT_STRUCTURE, DEFAULT_BIBLE_TAB, convertNotesActs, realignActs } from './lib/bible.js';
 import {
   DICTIONARY_KEY, EMPTY_META, bootLibrary, clearJournal, projects, revisionToDoc, toDoc, toRecord, writeJournal,
 } from './lib/projectStorage.js';
@@ -66,7 +67,7 @@ import DensityNav from './components/DensityNav.jsx';
 import { MILESTONES, MILESTONE_TOAST_MS, finishedSentence, milestonesReached } from './lib/milestones.js';
 import { createNoirAudio } from './lib/noirAudio.js';
 import { NOIR_CLASS, NOIR_COMBO, noirGenrePicked, noirKeyAction } from './lib/noir.js';
-import { createFolderSync, mergeProjectLists, saveProjectEverywhere, storageStatus } from './lib/folderSync.js';
+import { TRASH_DIR, createFolderSync, mergeProjectLists, saveProjectEverywhere, storageStatus } from './lib/folderSync.js';
 import './App.css';
 
 // Scripts live in IndexedDB (lib/projectStorage.js); localStorage keeps only UI prefs.
@@ -253,6 +254,16 @@ function Workspace({ boot }) {
     setStoryNotes((notes) => convertNotesActs(notes, actMode, next, { beats, blocks }));
     setActMode(next);
   }, [actMode, beats, blocks]);
+  // Notes → Auto-Align Acts (4 acts): re-split Act 2A / 2B from the Scene Board and the midpoint.
+  const realignStoryActs = () => {
+    const r = realignActs(storyNotes, { beats, blocks });
+    if (!r.changed.length) {
+      notify('Act 2A and 2B already start where the Scene Board and midpoint say');
+      return;
+    }
+    setStoryNotes(r.notes);
+    notify(`Re-aligned Act 2A / 2B in the ${r.changed.map((c) => (c === 'synopsis' ? 'Synopsis' : 'Treatment')).join(' and ')}`);
+  };
   const [coverVisible, setCoverVisible] = useState(initialPrefs.coverVisible ?? false); // Page 0 above the script
   const [specStamp, setSpecStamp] = useState(initialPrefs.specStamp === true); // Title Page → Spec stamp (screen only)
   const [scrollerWidth, setScrollerWidth] = useState(0);
@@ -978,23 +989,57 @@ function Workspace({ boot }) {
     notify(`Duplicated as “${copy.title}”`);
   };
 
+  // Deleting a script: nothing happens until the "Delete Screenplay?" dialog is confirmed by typing
+  // DELETE. The folder copy goes into the folder's Trash/; if that move fails, the dialog asks
+  // before erasing anything (DeleteProjectModal's 'hard' stage).
+  const [pendingDelete, setPendingDelete] = useState(null); // { id, title, stage, failed, busy }
   const deleteProject = async (id, title) => {
-    const where = sync.active ? ` from this browser and its .draftline file from “${sync.folderName}”` : ' from this browser';
-    if (!window.confirm(`Delete “${title}”? This removes the script and its Scene Board cards${where}, and can’t be undone. Export it first if you might want it back.`)) return;
-    if (id === projectId) {
-      // Move to the most recently edited other script first, then delete.
-      const next = (await projects.getAllProjects()).find((p) => p.id !== id);
-      if (!next) return;
-      await flushSave();
-      applyProject(next);
+    const others = (await projects.getAllProjects()).filter((p) => p.id !== id);
+    if (!others.length) {
+      notify('This is your only script — create another before deleting it.');
+      return;
     }
+    setPendingDelete({ id, title, stage: 'confirm', failed: [], busy: false });
+  };
+  const confirmDelete = async () => {
+    const d = pendingDelete;
+    if (!d || d.busy) return;
+    setPendingDelete({ ...d, busy: true });
     try {
-      await projects.deleteProject(id);
-      await folderSync.removeProject(id); // otherwise the folder copy would bring it back
-      notify(`Deleted “${title}”`);
+      if (d.id === projectId) {
+        // Move to the most recently edited other script first, then delete.
+        const next = (await projects.getAllProjects()).find((p) => p.id !== d.id);
+        if (!next) throw new Error('This is your only script — create another before deleting it.');
+        await flushSave();
+        applyProject(next);
+      }
+      await projects.deleteProject(d.id);
+      const folder = await folderSync.removeProject(d.id); // otherwise the folder copy would bring it back
+      if (folder.failed.length) {
+        setPendingDelete({ ...d, stage: 'hard', failed: folder.failed, busy: false });
+        return;
+      }
+      setPendingDelete(null);
+      notify(folder.trashed.length
+        ? `Deleted “${d.title}” — its file is in ${TRASH_DIR} in “${sync.folderName}”`
+        : `Deleted “${d.title}”`);
     } catch (e) {
+      setPendingDelete(null);
       notify(e.message);
     }
+  };
+  const hardDelete = async () => {
+    const d = pendingDelete;
+    if (!d || d.busy) return;
+    setPendingDelete({ ...d, busy: true });
+    const folder = await folderSync.removeProject(d.id, { hard: true }).catch(() => ({ failed: d.failed, removed: 0 }));
+    setPendingDelete(null);
+    notify(folder.failed.length ? `Couldn’t delete ${folder.failed.join(', ')} — it’s still in “${sync.folderName}”` : `Deleted “${d.title}” and its file`);
+  };
+  const cancelDelete = () => {
+    const d = pendingDelete;
+    setPendingDelete(null);
+    if (d?.stage === 'hard') notify(`Kept ${d.failed.join(', ')} in “${sync.folderName}” — “${d.title}” will come back from it`);
   };
 
   const openFile = async (e) => {
@@ -1708,6 +1753,20 @@ function Workspace({ boot }) {
         )}
         {toast && <div className="toast" role="status">{toast}</div>}
         {milestone && <div className="milestone-toast" role="status" key={milestone}>{milestone}</div>}
+        {pendingDelete && (
+          <DeleteProjectModal
+            key={`${pendingDelete.id}-${pendingDelete.stage}`}
+            title={pendingDelete.title}
+            synced={sync.active}
+            folderName={sync.folderName}
+            stage={pendingDelete.stage}
+            failed={pendingDelete.failed}
+            busy={pendingDelete.busy}
+            onConfirm={confirmDelete}
+            onHardDelete={hardDelete}
+            onCancel={cancelDelete}
+          />
+        )}
         <CueBioCard root={scrollerEl} characters={characters} onEdit={editBio} disabled={!showEditor || printing} />
 
         <ProjectBibleDrawer
@@ -1721,6 +1780,7 @@ function Workspace({ boot }) {
           onStoryNotesChange={setStoryNotes}
           actMode={actMode}
           onActModeChange={changeActMode}
+          onRealignActs={realignStoryActs}
           storyDna={storyDna}
           onStoryDnaChange={changeStoryDna}
           dictionary={dictionary}
