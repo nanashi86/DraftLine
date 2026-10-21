@@ -33,9 +33,9 @@ describe('About DraftLine', () => {
     const block = about.slice(about.indexOf('className="hm-origin"'), about.indexOf('</section>'));
     const story = text(block.slice(block.indexOf('<p>'))).trim();
     assert.equal(story, 'I began storytelling at eight on my father’s electric typewriter. Decades later, while writing '
-      + 'my first feature, What Happened to Haiti?, I refused to pay bloated subscriptions and manually drafted all six '
-      + 'drafts in raw Google Docs. That grind taught me structure and what feature writers actually need. So I teamed '
-      + 'up with my AI buddies to build DraftLine: an independent, distraction-free tool with dramatic architecture '
+      + 'my first feature, What Happened to Haiti?, I refused to pay bloated subscriptions and drafted all six '
+      + 'drafts in raw Google Docs. That grind taught me structure and what tools screenwriters truly need. So I teamed '
+      + 'up with my AI buddies to build DraftLine: a clean, independent editor with dramatic architecture '
       + 'built right in.');
     assert.match(block, /<h3 id="hm-origin-title">Origin Story<\/h3>/);
     assert.match(block, /my first\s+feature, <em>What Happened to Haiti\?<\/em>, I refused/, 'the screenplay title is italic');
@@ -60,5 +60,25 @@ describe('About DraftLine', () => {
     // The dialog must not share the pane's class, or the whole dialog (header included) scrolls instead.
     assert.match(jsx, /className=\{`hm-modal is-\$\{kind\}`\}/);
     assert.match(css, /\.hm-modal\.is-about \{ width/);
+  });
+});
+
+describe('About: Storage reflects folder sync', () => {
+  const src = readFileSync(new URL('../src/components/HelpModal.jsx', import.meta.url), 'utf8');
+  const app = readFileSync(new URL('../src/App.jsx', import.meta.url), 'utf8');
+  it('synced: "Synced folder (<name>) · Dual-saved locally"; otherwise the browser library with its script count', () => {
+    assert.match(src, /: storage\.sync\?\.active\s*\? `Synced folder \(\$\{storage\.sync\.folderName\}\) · Dual-saved locally`/);
+    assert.match(src, /: 'Project library in this browser \(IndexedDB\)'\}/);
+    assert.match(src, /\{!storage\.sync\?\.active && !storage\.sync\?\.needsPermission && lib\.count != null\s*&& ` · \$\{lib\.count\} \$\{lib\.count === 1 \? 'script' : 'scripts'\}`\}/);
+    assert.match(app, /countProjects: \(\) => projects\.getAllProjects\(\)\.then\(\(l\) => l\.length\), sync \}\}/);
+  });
+  it('the note explains browser storage and synced folders', () => {
+    const note = src.slice(src.lastIndexOf('<p className="hm-note">'), src.lastIndexOf('</p>')).replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim();
+    assert.equal(note, 'Everything runs locally: nothing is uploaded and no account is needed, so writing works offline. The only '
+      + 'network use is loading Google Fonts (cached after the first visit). By default, scripts belong to this browser profile. '
+      + 'If you link a local or Google Drive folder, your scripts and snapshots save directly to disk with every edit. Without '
+      + 'folder sync, clearing browser site data removes local drafts — so use Export (.draftline / .fountain / .fdx) or Backup '
+      + 'Project to keep offline copies.');
+    assert.ok(!/Your scripts belong to this browser on/.test(src));
   });
 });

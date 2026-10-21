@@ -114,8 +114,15 @@ export default function HelpModal({ kind, storage, onBackup, onClose }) {
             <div>
               <dt>Storage</dt>
               <dd>
-                {storage.ok ? 'Project library in this browser (IndexedDB)' : 'Not saving — browser storage is blocked or full'}
-                {lib.count != null && ` · ${lib.count} ${lib.count === 1 ? 'script' : 'scripts'}`}
+                {!storage.ok
+                  ? 'Not saving — browser storage is blocked or full'
+                  : storage.sync?.active
+                    ? `Synced folder (${storage.sync.folderName}) · Dual-saved locally`
+                    : storage.sync?.needsPermission
+                      ? `Synced folder (${storage.sync.folderName}) · paused until you allow access (click the status bar) · Saved locally`
+                      : 'Project library in this browser (IndexedDB)'}
+                {!storage.sync?.active && !storage.sync?.needsPermission && lib.count != null
+                  && ` · ${lib.count} ${lib.count === 1 ? 'script' : 'scripts'}`}
               </dd>
             </div>
             <div><dt>Last saved</dt><dd>{storage.savedAt ? new Date(storage.savedAt).toLocaleString() : 'Not yet'}</dd></div>
@@ -138,13 +145,18 @@ export default function HelpModal({ kind, storage, onBackup, onClose }) {
                 </dd>
               </div>
             )}
-            <div><dt>Network</dt><dd>{navigator.onLine ? 'Online' : 'Offline'} — your script never leaves this computer</dd></div>
+            <div><dt>Network</dt><dd>
+                {navigator.onLine ? 'Online' : 'Offline'} — {storage.sync?.active
+                  ? `DraftLine uploads nothing — if “${storage.sync.folderName}” is a Drive folder, your Drive app syncs it`
+                  : 'your script never leaves this computer'}
+              </dd></div>
           </dl>
           <p className="hm-note">
             Everything runs locally: nothing is uploaded and no account is needed, so writing works offline. The only
-            network use is loading Google Fonts (cached after the first visit). Your scripts belong to this browser on
-            this computer — clearing its site data removes them — so use Export (.draftline / .fountain / .fdx) to keep
-            real files, and .draftline backups to move projects between browsers and machines with full fidelity.
+            network use is loading Google Fonts (cached after the first visit). By default, scripts belong to this browser
+            profile. If you link a local or Google Drive folder, your scripts and snapshots save directly to disk with every
+            edit. Without folder sync, clearing browser site data removes local drafts — so use
+            Export (.draftline / .fountain / .fdx) or Backup Project to keep offline copies.
           </p>
         </div>
       )}

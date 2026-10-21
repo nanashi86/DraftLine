@@ -1682,7 +1682,7 @@ function Workspace({ boot }) {
         {helpKind && (
           <HelpModal
             kind={helpKind}
-            storage={{ ok: saved.ok, savedAt: saved.at, bytes: JSON.stringify({ meta, blocks, beats, characters, storyNotes, storyDna }).length, countProjects: () => projects.getAllProjects().then((l) => l.length) }}
+            storage={{ ok: saved.ok, savedAt: saved.at, bytes: JSON.stringify({ meta, blocks, beats, characters, storyNotes, storyDna }).length, countProjects: () => projects.getAllProjects().then((l) => l.length), sync }}
             onBackup={backupProject}
             onClose={() => setHelpKind(null)}
           />
