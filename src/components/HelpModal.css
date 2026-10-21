@@ -87,21 +87,6 @@
 }
 .hm-origin p { margin: 0; font-size: 13.5px; line-height: 1.7; max-width: 62ch; }
 .hm-origin i { font-style: italic; }
-/* The creator's sign-off under the story: no background, border or shadow on the dark modal. */
-.about-origin-signature { display: flex; justify-content: flex-end; margin-top: 12px; }
-.nanashi-sig-img {
-  display: block;
-  height: 64px;
-  width: auto;
-  object-fit: contain;
-  border: 0;
-  background: none;
-  box-shadow: none;
-  opacity: 0.88;
-  transition: opacity 0.2s ease, transform 0.2s ease;
-}
-.nanashi-sig-img:hover { opacity: 1; transform: scale(1.03); }
-@media (prefers-reduced-motion: reduce) { .nanashi-sig-img { transition: none; } .nanashi-sig-img:hover { transform: none; } }
 .hm-about > p { margin: 12px 0 0; }
 .hm-brand { display: flex; align-items: center; gap: 12px; }
 .hm-brand .brand-mark { width: 40px; height: 40px; font-size: 22px; border-radius: 9px; }

@@ -97,15 +97,6 @@ export default function HelpModal({ kind, storage, onBackup, onClose }) {
               teamed up with my AI buddies to build DraftLine: a clean, independent editor with dramatic
               architecture built right in.
             </p>
-            <div className="about-origin-signature">
-              {/* From public/; BASE_URL keeps the path right under GitHub Pages' /DraftLine/. */}
-              <img
-                src={`${import.meta.env.BASE_URL}nanashi86-signature.png`}
-                alt="NANASHI86 Signature"
-                className="nanashi-sig-img"
-                draggable="false"
-              />
-            </div>
           </section>
           {onBackup && (
             <div className="hm-backup">
