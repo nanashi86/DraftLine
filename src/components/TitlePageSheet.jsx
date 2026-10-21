@@ -2,6 +2,7 @@ import { basedOnLine } from '../lib/fountain.js';
 import { DEFAULT_CREDIT, draftLines, titleStyle, titleTypography } from '../lib/titleFonts.js';
 import { RichLine } from './FormattedText.jsx';
 import { SPEC_STAMP_TEXT } from '../lib/specStamp.js';
+import { AUTHOR_PLACEHOLDER, CONTACT_PLACEHOLDER } from '../lib/authorDefaults.js';
 import './TitlePageSheet.css';
 
 /**
@@ -13,11 +14,18 @@ import './TitlePageSheet.css';
 /** The Spec Stamp (Title Page → "Spec stamp"): an on-screen joke, never printed (PrintView doesn't pass it). */
 export { SPEC_STAMP_TEXT };
 
-export default function TitlePageSheet({ meta, className = '', specStamp = false }) {
+/**
+ * `placeholders` (the on-screen cover and the Title Page preview, never print): an empty author or
+ * contact shows Chilli Palmer's, faint — placeholder text, not part of the script.
+ */
+export default function TitlePageSheet({ meta, className = '', specStamp = false, placeholders = false }) {
   const { size } = titleTypography(meta);
   const titleCss = { ...titleStyle(meta), fontSize: `calc(var(--in) * ${size / 72})` };
   const credit = (meta.credit ?? DEFAULT_CREDIT).trim();
-  const author = meta.author?.trim();
+  const typedAuthor = meta.author?.trim();
+  const author = typedAuthor || (placeholders ? AUTHOR_PLACEHOLDER : '');
+  const typedContact = meta.contact?.trim();
+  const contact = typedContact || (placeholders ? CONTACT_PLACEHOLDER : '');
   const draft = draftLines(meta); // version above date; a blank one simply isn't rendered
 
   return (
@@ -28,7 +36,7 @@ export default function TitlePageSheet({ meta, className = '', specStamp = false
         {author && (
           <>
             {credit && <div className="ts-credit"><RichLine text={credit} /></div>}
-            <div className="ts-author"><RichLine text={author} /></div>
+            <div className={`ts-author${typedAuthor ? '' : ' is-placeholder'}`}><RichLine text={author} /></div>
           </>
         )}
         {meta.basedOn?.trim() && <div className="ts-source"><RichLine text={basedOnLine(meta.basedOn)} /></div>}
@@ -36,9 +44,9 @@ export default function TitlePageSheet({ meta, className = '', specStamp = false
       {/* No phone auto-linking or translating here (see also index.html's format-detection meta). Keyed
           by its text, so a changed contact gets a fresh element: anything a browser extension injected
           into the old one (click-to-call links, icons) goes with it instead of lingering. */}
-      {meta.contact?.trim() && (
-        <div key={meta.contact.trim()} className="ts-contact" data-no-autolink="true" translate="no">
-          <RichLine text={meta.contact.trim()} />
+      {contact && (
+        <div key={contact} className={`ts-contact${typedContact ? '' : ' is-placeholder'}`} data-no-autolink="true" translate="no">
+          <RichLine text={contact} />
         </div>
       )}
       {draft.length > 0 && (

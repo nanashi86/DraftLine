@@ -20,7 +20,7 @@ import { ACTION_LINE_LIMIT } from '../lib/pacing.js';
 import { LOCK_COMBO } from '../lib/lock.js';
 import { SNAPSHOT_DIR } from '../lib/folderSync.js';
 import { SPEC_STAMP_ANGLE, SPEC_STAMP_TEXT } from '../lib/specStamp.js';
-import { DEFAULT_AUTHOR } from '../lib/authorDefaults.js';
+import { AUTHOR_PLACEHOLDER } from '../lib/authorDefaults.js';
 import { LATE_NIGHT_HOURS, MILESTONES, PAGE_MILESTONES, SESSION_WORD_GOAL } from '../lib/milestones.js';
 import { NOIR_COMBO, isNoirGenre } from '../lib/noir.js';
 
@@ -58,7 +58,7 @@ export const FEATURES = {
   // Editor Curiosities & Secrets (the guide's last chapter)
   curiosities: {
     stamp: { text: SPEC_STAMP_TEXT, angle: SPEC_STAMP_ANGLE },
-    defaultAuthor: DEFAULT_AUTHOR,
+    defaultAuthor: AUTHOR_PLACEHOLDER,
     milestones: MILESTONES,
     wordGoal: SESSION_WORD_GOAL,
     lateNight: LATE_NIGHT_HOURS,

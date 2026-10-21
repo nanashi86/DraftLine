@@ -2,7 +2,7 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import {
-  ACT2B_MARKER, act2Split, convertActs, convertNotesActs, defaultStoryNotes, joinAct2, normalizeStoryNotes, restoreSplit, splitAct2,
+  ACT2B_MARKER, MIDPOINT_KEYWORDS, act2Split, act2bAnchors, slugLocation, convertActs, convertNotesActs, defaultStoryNotes, joinAct2, normalizeStoryNotes, restoreSplit, splitAct2,
 } from '../src/lib/bible.js';
 
 const acts = (o) => ({ act1: '', act2: '', act2b: '', act3: '', ...o });
@@ -99,8 +99,64 @@ describe('Switching acts converts the Synopsis and the Treatment', () => {
   });
   it('the app converts on either switch (Notes or Scene Board), then changes the view', () => {
     const app = readFileSync(new URL('../src/App.jsx', import.meta.url), 'utf8');
-    assert.match(app, /const changeActMode = useCallback\(\(next\) => \{\s*if \(!ACT_STRUCTURES\.includes\(next\) \|\| next === actMode\) return;\s*setStoryNotes\(\(notes\) => convertNotesActs\(notes, actMode, next\)\);\s*setActMode\(next\);/);
+    assert.match(app, /const changeActMode = useCallback\(\(next\) => \{\s*if \(!ACT_STRUCTURES\.includes\(next\) \|\| next === actMode\) return;\s*setStoryNotes\(\(notes\) => convertNotesActs\(notes, actMode, next, \{ beats, blocks \}\)\);\s*setActMode\(next\);\s*\}, \[actMode, beats, blocks\]\);/);
     assert.equal((app.match(/onActModeChange=\{changeActMode\}/g) || []).length, 2);
     assert.ok(!/onActModeChange=\{setActMode\}/.test(app));
+  });
+});
+
+describe('3 → 4: Act 2B found from the Scene Board, then the midpoint', () => {
+  const ACT2 = [
+    'Jean-Luc returns to Pétion-Ville and takes the job.',
+    'He meets Cassandre at the gala; sparks and suspicion.',
+    'A BMW tears through the market: a hit and run. The driver is Carlo, nephew of Cassandre.',
+    'Jean-Luc digs in; the family closes ranks.',
+    'At Morne Calvaire, he finds the car burned out.',
+  ];
+  const text = ACT2.join('\n\n');
+  const notes = (t = text) => ({ ...defaultStoryNotes(), synopsis: acts({ act2: t }), treatment: acts({ act2: t }) });
+  const board = {
+    beats: [{ id: 'a', act: 1, title: 'The gala' }, { id: 'b', act: 2, title: 'Burned out', sceneId: 's9' }, { id: 'c', act: 2, title: 'Later' }],
+    blocks: [{ id: 's1', type: 'scene', text: 'INT. GALA - NIGHT' }, { id: 's9', type: 'scene', text: 'EXT. MORNE CALVAIRE - NIGHT' }],
+  };
+
+  it('scene anchor: the first Act 2B card’s scene location (or its own heading / title)', () => {
+    assert.deepEqual(act2bAnchors(board), ['MORNE CALVAIRE', 'Burned out']);
+    assert.deepEqual(act2bAnchors({ beats: [{ act: 2, title: 'EXT. MORNE CALVAIRE - DAY' }] }), ['MORNE CALVAIRE']);
+    assert.deepEqual(act2bAnchors({ beats: [{ act: 1, title: 'x' }] }), [], 'no Act 2B card');
+    assert.equal(slugLocation('INT./EXT. FERRY - WHEELHOUSE - CONTINUOUS'), 'FERRY - WHEELHOUSE');
+    assert.equal(slugLocation('The letter'), '');
+    const four = convertNotesActs(notes(), 3, 4, board);
+    for (const card of ['synopsis', 'treatment']) {
+      assert.equal(four[card].act2, ACT2.slice(0, 4).join('\n\n'));
+      assert.equal(four[card].act2b, ACT2[4], 'split right before the paragraph naming Morne Calvaire');
+    }
+  });
+  it('midpoint keywords: the Carlo / hit-and-run paragraph starts Act 2B', () => {
+    for (const k of ['Carlo', 'a hit and run', 'the BMW', 'nephew of Cassandre']) assert.ok(MIDPOINT_KEYWORDS.test(k), k);
+    const four = convertNotesActs(notes(), 3, 4); // no Scene Board anchor
+    assert.equal(four.synopsis.act2, ACT2.slice(0, 2).join('\n\n'));
+    assert.equal(four.synopsis.act2b, ACT2.slice(2).join('\n\n'));
+    assert.ok(four.synopsis.act2b.startsWith('A BMW tears through the market'));
+    const noMatch = { beats: [{ act: 2, title: 'Somewhere else entirely' }], blocks: [] };
+    assert.equal(convertNotesActs(notes(), 3, 4, noMatch).synopsis.act2b, ACT2.slice(2).join('\n\n'), 'anchor not in the text: keywords next');
+  });
+  it('fallback: the paragraph break nearest the middle; no headers ever added', () => {
+    const plain = 'One.\n\nTwo.\n\nThree.\n\nFour.';
+    assert.deepEqual(splitAct2(plain, { anchors: ['Nowhere'] }), ['One.\n\nTwo.', 'Three.\n\nFour.']);
+    const four = convertNotesActs(notes(), 3, 4, board);
+    assert.equal(`${four.synopsis.act2}\n\n${four.synopsis.act2b}`, text, 'only split — not a character added or lost');
+    assert.ok(!/ACT\s*2B/i.test(four.synopsis.act2 + four.synopsis.act2b));
+  });
+  it('splits between paragraphs only, never before the first; whole words for anchors', () => {
+    assert.equal(splitAct2('Carlo arrives.\n\nNothing here.', { anchors: [] })[1], 'Nothing here.', 'a keyword in the first paragraph doesn’t empty 2A: falls through');
+    assert.deepEqual(splitAct2('A.\n\nAt the Gallery.\n\nAt the gala.', { anchors: ['GALA'], keywords: null }), ['A.\n\nAt the Gallery.', 'At the gala.']);
+  });
+  it('a remembered join and a typed marker still come first', () => {
+    const t = 'Rising.\n\n---\n\nThe BMW at Morne Calvaire.\n\nMore.';
+    assert.deepEqual(splitAct2(t, { anchors: ['MORNE CALVAIRE'] }), ['Rising.', 'The BMW at Morne Calvaire.\n\nMore.']);
+    const four = { ...defaultStoryNotes(), synopsis: acts({ act2: 'Before Carlo.\n\nStill 2A.', act2b: 'Real 2B.' }) };
+    const back = convertNotesActs(convertNotesActs(four, 4, 3), 3, 4, board);
+    assert.deepEqual([back.synopsis.act2, back.synopsis.act2b], ['Before Carlo.\n\nStill 2A.', 'Real 2B.']);
   });
 });

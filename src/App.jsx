@@ -250,9 +250,9 @@ function Workspace({ boot }) {
   // joins them (remembering the boundary out of sight), in the Synopsis and the Treatment (lib/bible.js convertNotesActs).
   const changeActMode = useCallback((next) => {
     if (!ACT_STRUCTURES.includes(next) || next === actMode) return;
-    setStoryNotes((notes) => convertNotesActs(notes, actMode, next));
+    setStoryNotes((notes) => convertNotesActs(notes, actMode, next, { beats, blocks }));
     setActMode(next);
-  }, [actMode]);
+  }, [actMode, beats, blocks]);
   const [coverVisible, setCoverVisible] = useState(initialPrefs.coverVisible ?? false); // Page 0 above the script
   const [specStamp, setSpecStamp] = useState(initialPrefs.specStamp === true); // Title Page → Spec stamp (screen only)
   const [scrollerWidth, setScrollerWidth] = useState(0);
@@ -1531,7 +1531,7 @@ function Workspace({ boot }) {
                     ×
                   </button>
                 </div>
-                <TitlePageSheet meta={meta} className="cover-sheet" specStamp={specStamp} />
+                <TitlePageSheet meta={meta} className="cover-sheet" specStamp={specStamp} placeholders />
               </div>
             )}
             <Editor

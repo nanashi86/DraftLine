@@ -58,4 +58,7 @@
   mix-blend-mode: multiply;
   z-index: 1;
 }
+/* Chilli Palmer's placeholder author / contact (empty fields, on screen only). */
+.title-sheet .is-placeholder { opacity: 0.35; }
 @media print { .ts-spec-stamp { display: none !important; } }
+@media print { .title-sheet .is-placeholder { display: none !important; } }

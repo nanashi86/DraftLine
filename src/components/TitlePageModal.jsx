@@ -13,17 +13,17 @@ import {
   titleStyle,
   titleTypography,
 } from '../lib/titleFonts.js';
-import { DEFAULT_AUTHOR, DEFAULT_CONTACT, contactAfterAuthorChange, titlePageSeed } from '../lib/authorDefaults.js';
+import { AUTHOR_PLACEHOLDER, CONTACT_PLACEHOLDER, contactAfterAuthorChange, titlePageSeed } from '../lib/authorDefaults.js';
 import './TitlePageModal.css';
 
 const FIELDS = [
   { key: 'title', label: 'Title', placeholder: 'The Last Ferry' },
   { key: 'credit', label: 'Credit / Subtitle', placeholder: DEFAULT_CREDIT, list: 'tp-credits' },
-  { key: 'author', label: 'Author', placeholder: DEFAULT_AUTHOR },
+  { key: 'author', label: 'Author', placeholder: AUTHOR_PLACEHOLDER },
   { key: 'basedOn', label: 'Based on', placeholder: 'the novel by …  (optional)' },
   { key: 'draftVersion', label: 'Draft Version', placeholder: 'e.g. First Draft, Sixth & Final Draft', list: 'tp-versions' },
   { key: 'draftDate', label: 'Draft date', placeholder: 'e.g. October 19, 2026' },
-  { key: 'contact', label: 'Contact / Copyright', placeholder: DEFAULT_CONTACT, multiline: true },
+  { key: 'contact', label: 'Contact / Copyright', placeholder: CONTACT_PLACEHOLDER, multiline: true },
 ];
 
 /** Form for the title page, with a live miniature of how it will print. */
@@ -196,7 +196,7 @@ export default function TitlePageModal({ meta, onSave, onClose, onViewCover, spe
 
         <div className="tp-preview" aria-hidden="true">
           <div className="tp-mini">
-            <TitlePageSheet meta={form} specStamp={specStamp} />
+            <TitlePageSheet meta={form} specStamp={specStamp} placeholders />
           </div>
         </div>
       </form>

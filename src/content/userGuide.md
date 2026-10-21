@@ -246,7 +246,7 @@ Tick **Spec stamp** in the Title Page dialog for a faded crimson stamp across th
 
 ### Chilli Palmer
 
-A brand-new script's title page is credited to **{{curiosities.defaultAuthor}}**, with a 555 number and a Palmer Films address, in homage to *Get Shorty*. Save the Title Page with your own name and contact once, and every new script starts with yours instead.
+A brand-new script's title page starts blank, with **{{curiosities.defaultAuthor}}**, a 555 number and a Palmer Films address showing faintly as placeholders, in homage to *Get Shorty*. They're never saved or printed. Save the Title Page with your own name and contact once, and every new script starts with yours instead.
 
 ### Writing pace milestones
 

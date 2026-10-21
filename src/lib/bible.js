@@ -410,12 +410,16 @@ export function setSynopsisAct(notes, key, text) {
 // 4 → 3: Act 2A and Act 2B are joined into Act II with a plain blank line — nothing is added to the
 //        prose. Where 2B began is kept out of sight in the notes (`actSplits`): its offset, plus a
 //        few words either side, so the boundary can still be found after edits elsewhere.
-// 3 → 4: Act II becomes Act 2A + Act 2B, split
-//          1. where it was joined (the remembered boundary, if those words are still there), else
-//          2. at a marker the writer typed — a "### Act 2B" or "## Midpoint" heading, a "---" rule
-//             or "[ACT 2B]" (dropped from the text), else
-//          3. at the paragraph break nearest the middle.
-//        Act 2B is never left empty while Act II has words. (Nothing moves if 2B already has text.)
+// 3 → 4: Act II becomes Act 2A + Act 2B, split at the first of these that applies:
+//          1. where it was joined (the remembered boundary, if those words are still there);
+//          2. a marker the writer typed — a "### Act 2B" or "## Midpoint" heading, a "---" rule or
+//             "[ACT 2B]" (dropped from the text);
+//          3. the Scene Board: before the first paragraph naming the location (or title) of the
+//             first Act 2B card's scene, e.g. "MORNE CALVAIRE";
+//          4. before the first paragraph with a midpoint keyword (MIDPOINT_KEYWORDS);
+//          5. the paragraph break nearest the middle.
+//        Splits fall between paragraphs — nothing is added to the text. Act 2B is never left empty
+//        while Act II has words. (Nothing moves if 2B already has text.)
 
 /** A split marker the writer can type into Act II. */
 export const ACT2B_MARKER = /(?:###?\s*(?:ACT\s*2B|MIDPOINT)|---|\[ACT\s*2B\])/i;
@@ -437,22 +441,85 @@ function splitNearMiddle(text) {
   return [t, '']; // one word: nowhere to split
 }
 
-/** Act II → [Act 2A, Act 2B] at a typed marker if there is one, else near the middle. */
-export function splitAct2(text) {
+/** Words that mark the story's midpoint, used when no marker or Scene Board anchor splits Act II. */
+export const MIDPOINT_KEYWORDS = /(?:carlo|hit and run|bmw|nephew of cassandre)/i;
+
+const TIME_OF_DAY = /\s+[-–—]\s+(?:DAY|NIGHT|MORNING|EVENING|AFTERNOON|DAWN|DUSK|SUNRISE|SUNSET|LATER|CONTINUOUS|MOMENTS LATER|SAME|SAME TIME|NOON|MIDNIGHT)\b.*$/i;
+const SLUG_PREFIX = /^(?:INT\.?\/EXT\.?|EXT\.?\/INT\.?|I\/E\.?|INT\.|EXT\.|EST\.)\s*/i;
+
+/** "EXT. MORNE CALVAIRE - NIGHT" → "MORNE CALVAIRE" ('' when it isn't a scene heading). */
+export function slugLocation(heading) {
+  const h = String(heading || '').trim();
+  if (!SLUG_PREFIX.test(h)) return '';
+  return h.replace(SLUG_PREFIX, '').replace(TIME_OF_DAY, '').trim();
+}
+
+/**
+ * What to look for in Act II to find where Act 2B starts: from the Scene Board's first Act 2B card,
+ * its linked scene's location, else its own heading's location, else its title.
+ */
+export function act2bAnchors({ beats = [], blocks = [] } = {}) {
+  const card = (beats || []).find((b) => b && b.act === 2);
+  if (!card) return [];
+  const out = [];
+  const scene = card.sceneId && (blocks || []).find((b) => b.id === card.sceneId);
+  if (scene) out.push(slugLocation(scene.text));
+  const title = String(card.title || '').trim();
+  out.push(slugLocation(title) || title);
+  return [...new Set(out.filter((a) => a.length >= 3))];
+}
+
+/** Paragraphs of `t` with where each starts: [{ start, text }]. */
+function paragraphs(t) {
+  const out = [];
+  const re = /\n[ \t]*\n+/g;
+  let start = 0;
+  for (const m of t.matchAll(re)) {
+    out.push({ start, text: t.slice(start, m.index) });
+    start = m.index + m[0].length;
+  }
+  out.push({ start, text: t.slice(start) });
+  return out;
+}
+const wordRe = (phrase) => new RegExp(`(?:^|[^\\p{L}\\p{N}])${phrase.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\s+/g, '\\s+')}(?:$|[^\\p{L}\\p{N}])`, 'iu');
+
+/** Split before the first paragraph after the first that matches `test`, or null. */
+function splitBeforeParagraph(t, test) {
+  const p = paragraphs(t).slice(1).find((x) => test(x.text));
+  return p ? [t.slice(0, p.start).trim(), t.slice(p.start).trim()] : null;
+}
+
+/**
+ * Act II → [Act 2A, Act 2B]: at a typed marker, else before the paragraph naming a Scene Board
+ * anchor (`anchors`, see act2bAnchors), else before the first with a midpoint keyword, else near
+ * the middle.
+ */
+export function splitAct2(text, { anchors = [], keywords = MIDPOINT_KEYWORDS } = {}) {
   const t = String(text || '').trim();
   if (!t) return ['', ''];
   const m = ACT2B_MARKER.exec(t);
-  if (!m) return splitNearMiddle(t);
-  // A heading marker takes its whole line ("### Act 2B: Fall & Crisis"); "---" and "[ACT 2B]" only themselves.
-  let end = m.index + m[0].length;
-  if (m[0].startsWith('#')) {
-    const nl = t.indexOf('\n', end);
-    end = nl < 0 ? t.length : nl;
+  if (m) {
+    // A heading marker takes its whole line ("### Act 2B: Fall & Crisis"); "---" and "[ACT 2B]" only themselves.
+    let end = m.index + m[0].length;
+    if (m[0].startsWith('#')) {
+      const nl = t.indexOf('\n', end);
+      end = nl < 0 ? t.length : nl;
+    }
+    const before = t.slice(0, m.index).trim();
+    const after = t.slice(end).trim();
+    if (after) return [before, after];
+    return before ? splitAct2(before, { anchors, keywords }) : ['', '']; // marker at the very end
   }
-  const before = t.slice(0, m.index).trim();
-  const after = t.slice(end).trim();
-  if (after) return [before, after];
-  return before ? splitNearMiddle(before) : ['', '']; // marker at the very end: split what's there
+  for (const a of anchors) {
+    const re = wordRe(a);
+    const hit = splitBeforeParagraph(t, (p) => re.test(p));
+    if (hit) return hit;
+  }
+  if (keywords) {
+    const hit = splitBeforeParagraph(t, (p) => keywords.test(p));
+    if (hit) return hit;
+  }
+  return splitNearMiddle(t);
 }
 
 /** [Act 2A, Act 2B] → Act II: the two trimmed halves with a blank line between (empty halves add nothing). */
@@ -484,13 +551,13 @@ export function restoreSplit(text, split) {
   return hits.length === 1 ? cut(hits[0].index + hits[0][0].length) : null;
 }
 
-/** One card's acts { act1, act2, act2b, act3 } converted from `from` acts to `to` acts. */
-export function convertActs(acts, from, to, split = null) {
+/** One card's acts { act1, act2, act2b, act3 } converted from `from` acts to `to` acts (`hints`: splitAct2's). */
+export function convertActs(acts, from, to, split = null, hints = {}) {
   const v = normalizeSynopsis(acts);
   if (Number(from) === Number(to)) return v;
   if (Number(to) === 4) {
     if (v.act2b.trim() || !v.act2.trim()) return v;
-    const [a, b] = restoreSplit(v.act2, split) || splitAct2(v.act2);
+    const [a, b] = restoreSplit(v.act2, split) || splitAct2(v.act2, hints);
     return { ...v, act2: a, act2b: b };
   }
   if (!v.act2b.trim()) return v;
@@ -511,10 +578,12 @@ export function normalizeActSplits(x) {
 
 /**
  * The notes after switching the act structure: Synopsis and Treatment both converted, with
- * `actSplits` remembering (4 → 3) or using up (3 → 4) where each Act 2B began.
+ * `actSplits` remembering (4 → 3) or using up (3 → 4) where each Act 2B began. `story`
+ * ({ beats, blocks }) lets 3 → 4 find Act 2B from the Scene Board.
  */
-export function convertNotesActs(notes, from, to) {
+export function convertNotesActs(notes, from, to, story = {}) {
   if (Number(from) === Number(to)) return notes;
+  const hints = { anchors: act2bAnchors(story) }; // story: { beats, blocks } — the Scene Board and script
   const n = normalizeStoryNotes(notes);
   const splits = { ...n.actSplits };
   const next = {};
@@ -525,7 +594,7 @@ export function convertNotesActs(notes, from, to) {
       if (at) splits[card] = at;
       next[card] = convertActs(before, from, to);
     } else {
-      next[card] = convertActs(before, from, to, splits[card]);
+      next[card] = convertActs(before, from, to, splits[card], hints);
       if (next[card].act2b !== before.act2b || !before.act2.trim()) delete splits[card];
     }
   }

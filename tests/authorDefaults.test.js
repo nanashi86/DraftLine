@@ -2,7 +2,7 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { createFakeIndexedDB, createFakeStorage } from './helpers/fakeIndexedDB.js';
 import {
-  AUTHOR_KEY, CONTACT_KEY, ERIC_CONTACT, DEFAULT_AUTHOR, DEFAULT_CONTACT, authorDefaults, newProjectMeta, rememberAuthorDefaults, titlePageSeed,
+  AUTHOR_KEY, AUTHOR_PLACEHOLDER, CONTACT_KEY, CONTACT_PLACEHOLDER, ERIC_CONTACT, authorDefaults, newProjectMeta, rememberAuthorDefaults, titlePageSeed,
 } from '../src/lib/authorDefaults.js';
 import { EMPTY_META, createProjectStore, toDoc } from '../src/lib/projectStorage.js';
 
@@ -10,24 +10,24 @@ const CONTACT = 'Chilli Palmer\n555-012-3456\ngetshorty@palmerfilms.com';
 const CREATOR = 'Eric Lemaire\n339-545-0929 (Mobile)\n617-549-5955 (WhatsApp)\nelemaire86@gmail.com';
 
 describe('author & contact defaults', () => {
-  it('are Chilli Palmer (Get Shorty) and his 555 contact block; the creator’s block is kept for the easter egg', () => {
-    assert.equal(DEFAULT_AUTHOR, 'Chilli Palmer');
-    assert.equal(DEFAULT_CONTACT, CONTACT);
+  it('Chilli Palmer (Get Shorty) and his 555 block are placeholders only; the creator’s block is kept for the easter egg', () => {
+    assert.equal(AUTHOR_PLACEHOLDER, 'Chilli Palmer');
+    assert.equal(CONTACT_PLACEHOLDER, CONTACT);
     assert.equal(ERIC_CONTACT, CREATOR);
     assert.equal(AUTHOR_KEY, 'draftline_user_author');
     assert.equal(CONTACT_KEY, 'draftline_user_contact');
   });
 
-  it('fill a new project when nothing is remembered (or storage is missing / empty / blocked)', () => {
+  it('a new project starts with an empty author and contact when nothing is remembered (or storage is missing / empty / blocked)', () => {
     const blocked = { getItem() { throw new Error('blocked'); }, setItem() { throw new Error('blocked'); } };
     const empty = createFakeStorage();
     empty.setItem(AUTHOR_KEY, '  ');
     for (const storage of [createFakeStorage(), null, empty, blocked]) {
-      assert.deepEqual(authorDefaults(storage), { author: DEFAULT_AUTHOR, contact: CONTACT });
+      assert.deepEqual(authorDefaults(storage), { author: '', contact: '' });
       const m = newProjectMeta({ title: 'Run!' }, storage);
       assert.equal(m.title, 'Run!');
-      assert.equal(m.author, DEFAULT_AUTHOR);
-      assert.equal(m.contact, CONTACT);
+      assert.equal(m.author, '');
+      assert.equal(m.contact, '');
     }
     assert.equal(rememberAuthorDefaults({ author: 'X', contact: 'Y' }, blocked), false);
   });
@@ -38,10 +38,9 @@ describe('author & contact defaults', () => {
     assert.equal(storage.getItem(AUTHOR_KEY), 'E. Lemaire Jr.');
     assert.equal(storage.getItem(CONTACT_KEY), 'Agent: K. Moss\nkmoss@example.com');
     assert.deepEqual(authorDefaults(storage), { author: 'E. Lemaire Jr.', contact: 'Agent: K. Moss\nkmoss@example.com' });
-    // A cleared author falls back to the default author — whose own contact applies: a contact saved
-    // without an author isn't anyone's, so it isn't carried over.
+    // A cleared author: back to empty — a contact saved without an author isn't anyone's, so it isn't carried over.
     rememberAuthorDefaults({ author: '', contact: 'Only contact' }, storage);
-    assert.deepEqual(authorDefaults(storage), { author: DEFAULT_AUTHOR, contact: CONTACT });
+    assert.deepEqual(authorDefaults(storage), { author: '', contact: '' });
   });
 
   it('stay editable: an explicit author or contact — even an empty one — wins over the defaults', () => {
@@ -56,8 +55,8 @@ describe('author & contact defaults', () => {
     const store = createProjectStore({ indexedDB: createFakeIndexedDB(), now: () => 1 });
     const storage = createFakeStorage();
     const rec = await store.createProject({ title: 'New One', storage });
-    assert.equal(rec.author, DEFAULT_AUTHOR);
-    assert.equal(rec.contact, CONTACT);
+    assert.equal(rec.author, '', 'empty — Chilli Palmer is only a placeholder');
+    assert.equal(rec.contact, '');
     rememberAuthorDefaults({ author: 'Saved Name', contact: 'saved@example.com' }, storage);
     const next = toDoc(await store.createProject({ title: 'Next', storage }));
     assert.equal(next.meta.author, 'Saved Name');
@@ -83,11 +82,16 @@ describe('author & contact defaults', () => {
     }
   });
 
-  it('suggest themselves in the Title Page form only when the script has neither', () => {
-    const seed = titlePageSeed({ ...EMPTY_META, title: 'Run!' }, createFakeStorage());
+  it('suggest themselves in the Title Page form only when remembered and the script has neither', () => {
+    const empty = titlePageSeed({ ...EMPTY_META, title: 'Run!' }, createFakeStorage());
+    assert.equal(empty.suggested, false, 'nothing remembered: empty fields, placeholders show');
+    assert.equal(empty.meta.author, '');
+    const storage = createFakeStorage();
+    rememberAuthorDefaults({ author: 'Jane Doe', contact: 'jane@example.com' }, storage);
+    const seed = titlePageSeed({ ...EMPTY_META, title: 'Run!' }, storage);
     assert.equal(seed.suggested, true);
-    assert.equal(seed.meta.author, DEFAULT_AUTHOR);
-    assert.equal(seed.meta.contact, CONTACT);
+    assert.equal(seed.meta.author, 'Jane Doe');
+    assert.equal(seed.meta.contact, 'jane@example.com');
     assert.equal(seed.meta.title, 'Run!');
   });
 });

@@ -33,7 +33,27 @@ describe('Title page contact: no phone auto-linking', () => {
   });
   it('the contact block opts out of auto-linking and translation, and is rebuilt (keyed) when its text changes', () => {
     assert.match(read('components/TitlePageSheet.jsx'),
-      /<div key=\{meta\.contact\.trim\(\)\} className="ts-contact" data-no-autolink="true" translate="no">\s*<RichLine text=\{meta\.contact\.trim\(\)\} \/>/);
+      /<div key=\{contact\} className=\{`ts-contact\$\{typedContact \? '' : ' is-placeholder'\}`\} data-no-autolink="true" translate="no">\s*<RichLine text=\{contact\} \/>/);
+  });
+});
+
+describe('Title page placeholders: Chilli Palmer, faint, on screen only', () => {
+  it('an empty author / contact shows the placeholder, marked is-placeholder; typed text replaces it', () => {
+    const sheet = read('components/TitlePageSheet.jsx');
+    assert.match(sheet, /const author = typedAuthor \|\| \(placeholders \? AUTHOR_PLACEHOLDER : ''\);/);
+    assert.match(sheet, /const contact = typedContact \|\| \(placeholders \? CONTACT_PLACEHOLDER : ''\);/);
+    assert.match(sheet, /className=\{`ts-author\$\{typedAuthor \? '' : ' is-placeholder'\}`\}/);
+    const css = read('components/TitlePageSheet.css');
+    assert.match(css, /\.title-sheet \.is-placeholder \{ opacity: 0\.35; \}/);
+    assert.match(css, /@media print \{ \.title-sheet \.is-placeholder \{ display: none !important; \} \}/);
+  });
+  it('only the on-screen cover and the dialog preview ask for them — print never does', () => {
+    assert.match(read('App.jsx'), /<TitlePageSheet meta=\{meta\} className="cover-sheet" specStamp=\{specStamp\} placeholders \/>/);
+    assert.match(read('components/TitlePageModal.jsx'), /<TitlePageSheet meta=\{form\} specStamp=\{specStamp\} placeholders \/>/);
+    assert.ok(!/placeholders/.test(read('components/PrintView.jsx')));
+    const modal = read('components/TitlePageModal.jsx');
+    assert.match(modal, /\{ key: 'author', label: 'Author', placeholder: AUTHOR_PLACEHOLDER \}/);
+    assert.match(modal, /\{ key: 'contact', label: 'Contact \/ Copyright', placeholder: CONTACT_PLACEHOLDER, multiline: true \}/);
   });
 });
 
@@ -55,7 +75,7 @@ describe('Spec stamp on the title page', () => {
   it('a "Spec stamp" switch in the Title Page dialog, remembered; on screen only — never printed', () => {
     assert.match(read('components/TitlePageModal.jsx'), /<input type="checkbox" checked=\{specStamp\} onChange=\{\(e\) => onSpecStampChange\(e\.target\.checked\)\} \/>\s*Spec stamp/);
     const app = read('App.jsx');
-    assert.match(app, /<TitlePageSheet meta=\{meta\} className="cover-sheet" specStamp=\{specStamp\} \/>/);
+    assert.match(app, /<TitlePageSheet meta=\{meta\} className="cover-sheet" specStamp=\{specStamp\} placeholders \/>/);
     assert.match(app, /writeJSON\(PREFS_KEY, \{[^}]*specStamp \}\)/);
     assert.ok(!/specStamp/.test(read('components/PrintView.jsx')), 'the print view never gets it');
     assert.match(css, /@media print \{ \.ts-spec-stamp \{ display: none !important; \} \}/);
