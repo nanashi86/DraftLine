@@ -2,16 +2,18 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { createFakeIndexedDB, createFakeStorage } from './helpers/fakeIndexedDB.js';
 import {
-  AUTHOR_KEY, CONTACT_KEY, DEFAULT_AUTHOR, DEFAULT_CONTACT, authorDefaults, newProjectMeta, rememberAuthorDefaults, titlePageSeed,
+  AUTHOR_KEY, CONTACT_KEY, ERIC_CONTACT, DEFAULT_AUTHOR, DEFAULT_CONTACT, authorDefaults, newProjectMeta, rememberAuthorDefaults, titlePageSeed,
 } from '../src/lib/authorDefaults.js';
 import { EMPTY_META, createProjectStore, toDoc } from '../src/lib/projectStorage.js';
 
-const CONTACT = 'Eric Lemaire\n339-545-0929 (Mobile)\n617-549-5955 (WhatsApp)\nelemaire86@gmail.com';
+const CONTACT = 'Chilli Palmer\n555-012-3456\ngetshorty@palmerfilms.com';
+const CREATOR = 'Eric Lemaire\n339-545-0929 (Mobile)\n617-549-5955 (WhatsApp)\nelemaire86@gmail.com';
 
 describe('author & contact defaults', () => {
-  it('are Eric Lemaire and his four-line contact block', () => {
-    assert.equal(DEFAULT_AUTHOR, 'Eric Lemaire');
+  it('are Chilli Palmer (Get Shorty) and his 555 contact block; the creator’s block is kept for the easter egg', () => {
+    assert.equal(DEFAULT_AUTHOR, 'Chilli Palmer');
     assert.equal(DEFAULT_CONTACT, CONTACT);
+    assert.equal(ERIC_CONTACT, CREATOR);
     assert.equal(AUTHOR_KEY, 'draftline_user_author');
     assert.equal(CONTACT_KEY, 'draftline_user_contact');
   });

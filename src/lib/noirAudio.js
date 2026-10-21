@@ -36,6 +36,19 @@ export function pinkNoise(length, random = Math.random) {
   return out;
 }
 
+/**
+ * Make noise loop without a seam: given `length + fade` samples, returns `length` samples whose
+ * first `fade` are crossfaded with the overflow, so the last sample runs straight into the first.
+ */
+export function seamlessLoop(data, length, fade) {
+  const out = data.slice(0, length);
+  for (let i = 0; i < fade; i += 1) {
+    const t = i / fade;
+    out[i] = data[i] * t + data[length + i] * (1 - t);
+  }
+  return out;
+}
+
 /** Vinyl crackle: silence with a few micro-impulses a second, each a click decaying over ~1 ms. */
 export function crackleTrack(length, sampleRate, { perSecond = NOIR_AUDIO.crackle.perSecond, random = Math.random } = {}) {
   const out = new Float32Array(length);
@@ -82,7 +95,9 @@ export function createNoirAudio({
     master.connect(ctx.destination);
 
     // Rain: pink noise → low-pass → level, with the LFO gently swelling the level.
-    const rain = loopedBuffer(ctx, pinkNoise(Math.round(ctx.sampleRate * config.rain.seconds), random));
+    const rainLength = Math.round(ctx.sampleRate * config.rain.seconds);
+    const seam = Math.round(ctx.sampleRate * 0.08); // 80 ms crossfade where the loop wraps
+    const rain = loopedBuffer(ctx, seamlessLoop(pinkNoise(rainLength + seam, random), rainLength, seam));
     const lowpass = ctx.createBiquadFilter();
     lowpass.type = 'lowpass';
     lowpass.frequency.value = config.rain.lowpass;

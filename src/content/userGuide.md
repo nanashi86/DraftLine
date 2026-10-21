@@ -155,7 +155,7 @@ The **Glossary** defines every story term in two sections, {{glossary.sections}}
 - **Synopsis**: in 3 acts, {{acts.labels.3}}; in 4 acts, {{acts.labels.4}}.
 - **Treatment**: your full narrative treatment, sequence-by-sequence prose, scene breakdowns and subplots, in the same acts. It adapts to the active 3- or 4-act view. Write each act there, or paste it in with Import from Notes.
 
-Switching never loses text. Going from 3 acts to 4 splits Act II in two: at a `### Act 2B` or `## Midpoint` heading, a `---` line or an `[ACT 2B]` tag if you've put one in, otherwise at the paragraph break nearest the middle. Going from 4 acts to 3 joins Act 2A and Act 2B into Act II with a `### ACT 2B` line between them, so switching back splits them exactly where they were. (If Act 2B already has text, going to 4 acts leaves both as they are.)
+Switching never loses text, and never adds any. Going from 4 acts to 3 joins Act 2A and Act 2B into Act II with a blank line between them; DraftLine quietly remembers where Act 2B began, so switching back splits them exactly where they were, even if you've added to Act II meanwhile. Otherwise, going from 3 acts to 4 splits Act II at a `### Act 2B` or `## Midpoint` heading, a `---` line or an `[ACT 2B]` tag if you've put one in, or else at the paragraph break nearest the middle. (If Act 2B already has text, going to 4 acts leaves both as they are.)
 
 ### Copying and importing notes
 
@@ -235,3 +235,28 @@ Once cards are linked to scenes, each act column shows how many pages its scenes
 ### Printing and PDF
 
 **Export → Print Script / PDF** ({{key:Ctrl+P}}) prints exactly what the editor shows: Courier Prime 12 pt, standard margins and the same page breaks. The title page prints first, unnumbered, and page numbers start on page 2. Choose **Save as PDF** in the print dialog for a PDF. Margin notes, highlights and the Midnight page colour never print.
+
+## Editor Curiosities & Secrets
+
+A few small surprises DraftLine keeps up its sleeve. None of them changes your script, and none of them ever prints.
+
+### Spec Stamp
+
+Tick **Spec stamp** in the Title Page dialog for a faded crimson stamp across the title page, tilted {{curiosities.stampAngle}}: {{curiosities.stampText}} It shows on screen only, and DraftLine remembers whether it's on.
+
+### Chilli Palmer
+
+A brand-new script's title page is credited to **{{curiosities.defaultAuthor}}**, with a 555 number and a Palmer Films address, in homage to *Get Shorty*. Save the Title Page with your own name and contact once, and every new script starts with yours instead.
+
+### Writing pace milestones
+
+A small note pops up in the corner of the window, once per session, when your own typing gets you there:
+
+- **{{curiosities.wordGoal}} words** written this session: {{milestones.words500}}
+- **Late at night**, finishing a sentence between {{curiosities.lateNight}}: {{milestones.lateNight}}
+- **Page {{curiosities.page90}}**: {{milestones.page90}}
+- **Page {{curiosities.page120}}**: {{milestones.page120}}
+
+### Film Noir mode
+
+Press {{curiosities.noirCombo}} or select **{{curiosities.noirGenre}}** under Story DNA → Genre to transform the workspace into 1940s monochrome complete with blind shadows, vintage grading, and ambient rain audio. Press `Esc` to exit.

@@ -12,13 +12,17 @@ import {
   actsFor, treatmentActHeading,
 } from '../lib/bible.js';
 import { PACING_TARGETS, PACING_TOLERANCE, STRUCTURES, TAGS } from '../lib/beats.js';
-import { CONFLICT_TYPES, DEFAULT_DEVICES, DNA_QUESTIONS, PLOT_DEVICES } from '../lib/storyDna.js';
+import { CONFLICT_TYPES, DEFAULT_DEVICES, DNA_QUESTIONS, GENRES, PLOT_DEVICES } from '../lib/storyDna.js';
 import { GLOSSARY_SECTIONS } from '../lib/structureDictionary.js';
 import { DUAL_SHORTCUT, ELEMENT_SHORTCUTS, SHORTCUTS } from '../lib/shortcuts.js';
 import { CANVAS_THEMES } from '../lib/canvasTheme.js';
 import { ACTION_LINE_LIMIT } from '../lib/pacing.js';
 import { LOCK_COMBO } from '../lib/lock.js';
 import { SNAPSHOT_DIR } from '../lib/folderSync.js';
+import { SPEC_STAMP_ANGLE, SPEC_STAMP_TEXT } from '../lib/specStamp.js';
+import { DEFAULT_AUTHOR } from '../lib/authorDefaults.js';
+import { LATE_NIGHT_HOURS, MILESTONES, PAGE_MILESTONES, SESSION_WORD_GOAL } from '../lib/milestones.js';
+import { NOIR_COMBO, isNoirGenre } from '../lib/noir.js';
 
 /** The app's colour tokens (src/index.css :root, BeatBoard.css). tests check the CSS still matches. */
 export const COLOR_TOKENS = {
@@ -51,6 +55,16 @@ export const FEATURES = {
   lock: { combo: LOCK_COMBO },
   sync: { snapshotDir: SNAPSHOT_DIR },
   colors: COLOR_TOKENS,
+  // Editor Curiosities & Secrets (the guide's last chapter)
+  curiosities: {
+    stamp: { text: SPEC_STAMP_TEXT, angle: SPEC_STAMP_ANGLE },
+    defaultAuthor: DEFAULT_AUTHOR,
+    milestones: MILESTONES,
+    wordGoal: SESSION_WORD_GOAL,
+    lateNight: LATE_NIGHT_HOURS,
+    pages: PAGE_MILESTONES,
+    noir: { combo: NOIR_COMBO, genre: GENRES.find(isNoirGenre) },
+  },
 };
 
 // ---- Wording helpers -------------------------------------------------------------------------
@@ -98,6 +112,18 @@ export function guideValues(f = FEATURES) {
   v['themes'] = f.canvasThemes.map((t) => `${bold(t.label)} (${t.hint.charAt(0).toLowerCase()}${t.hint.slice(1)})`).join(' or ');
   for (const e of f.elements) v[`element.${e.type}`] = `${bold(e.label)} (\`${e.combo}\`)`;
   v['element.dual'] = `\`${DUAL_SHORTCUT.combo}\``;
+  const cur = f.curiosities;
+  v['curiosities.stampText'] = `“${cur.stamp.text}”`;
+  v['curiosities.stampAngle'] = `${cur.stamp.angle}°`;
+  v['curiosities.defaultAuthor'] = cur.defaultAuthor;
+  v['curiosities.wordGoal'] = String(cur.wordGoal);
+  const hour = (h) => (h === 0 ? 'midnight' : `${h}:00 AM`);
+  v['curiosities.lateNight'] = `${hour(cur.lateNight[0])} and ${hour(cur.lateNight[1])}`;
+  for (const [id, page] of cur.pages) v[`curiosities.${id}`] = String(page);
+  const quoted = (s) => (/^[“"]/.test(s) ? s : `“${s}”`);
+  for (const [id, text] of Object.entries(cur.milestones)) v[`milestones.${id}`] = quoted(text);
+  v['curiosities.noirCombo'] = `\`${cur.noir.combo}\``;
+  v['curiosities.noirGenre'] = cur.noir.genre;
   v['acts.roman'] = acts.structures.includes(3) ? [1, 2, 3].map((n) => `Act ${roman(n)}`).join(', ') : '';
   return v;
 }

@@ -1,6 +1,7 @@
 import { basedOnLine } from '../lib/fountain.js';
 import { DEFAULT_CREDIT, draftLines, titleStyle, titleTypography } from '../lib/titleFonts.js';
 import { RichLine } from './FormattedText.jsx';
+import { SPEC_STAMP_TEXT } from '../lib/specStamp.js';
 import './TitlePageSheet.css';
 
 /**
@@ -10,7 +11,7 @@ import './TitlePageSheet.css';
  * Fields may use Markdown emphasis (**bold**, *italic*, _underline_, ~~strike~~).
  */
 /** The Spec Stamp (Title Page → "Spec stamp"): an on-screen joke, never printed (PrintView doesn't pass it). */
-export const SPEC_STAMP_TEXT = 'THIS IS A SPEC SCRIPT. DO NOT SHOW TO HARVEY.';
+export { SPEC_STAMP_TEXT };
 
 export default function TitlePageSheet({ meta, className = '', specStamp = false }) {
   const { size } = titleTypography(meta);
@@ -32,7 +33,14 @@ export default function TitlePageSheet({ meta, className = '', specStamp = false
         )}
         {meta.basedOn?.trim() && <div className="ts-source"><RichLine text={basedOnLine(meta.basedOn)} /></div>}
       </div>
-      {meta.contact?.trim() && <div className="ts-contact"><RichLine text={meta.contact.trim()} /></div>}
+      {/* No phone auto-linking or translating here (see also index.html's format-detection meta). Keyed
+          by its text, so a changed contact gets a fresh element: anything a browser extension injected
+          into the old one (click-to-call links, icons) goes with it instead of lingering. */}
+      {meta.contact?.trim() && (
+        <div key={meta.contact.trim()} className="ts-contact" data-no-autolink="true" translate="no">
+          <RichLine text={meta.contact.trim()} />
+        </div>
+      )}
       {draft.length > 0 && (
         <div className="ts-draft">
           {draft.map((line, i) => <div key={i}><RichLine text={line} /></div>)}

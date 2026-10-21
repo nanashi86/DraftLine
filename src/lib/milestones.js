@@ -1,4 +1,4 @@
-// Writing milestones: small corner toasts that fire once per session, and the "FADE OUT." bell.
+// Writing milestones: small corner toasts that fire once per session.
 //
 // Only the writer's own typing counts: every check compares the state just before an edit with
 // the state just after it, so opening a 100-page script never "reaches page 90", and pasting a
@@ -39,28 +39,4 @@ export function milestonesReached({ prev, next, sentence = false, now = new Date
   if (sentence && isLateNight(now)) out.push('lateNight');
   for (const [id, page] of PAGE_MILESTONES) if (prev.pages < page && next.pages >= page) out.push(id);
   return out.filter((id) => !fired.has(id));
-}
-
-// ---- "FADE OUT." ---------------------------------------------------------------------------------
-
-export const ENDING_MIN_PAGE = 80;
-const ENDING_RE = /\bFADE OUT\.|\bTHE END\b/;
-
-/** A line that ends a screenplay: a Transition (or Centered, or any all-caps line) saying FADE OUT. / THE END. */
-export function isEndingLine(block) {
-  const text = String(block?.text || '').trim();
-  if (!ENDING_RE.test(text.toUpperCase())) return false;
-  if (block.type === 'transition' || block.type === 'centered') return true;
-  return text === text.toUpperCase() && /[A-Z]/.test(text);
-}
-
-/**
- * Ending lines this edit just completed, on page ENDING_MIN_PAGE or later, not chimed for yet:
- * → block ids. `pageOf` is layout.pageOfBlock (1-based).
- */
-export function newEndings(prevBlocks, nextBlocks, pageOf, chimed = new Set()) {
-  const before = new Map((prevBlocks || []).map((b) => [b.id, b]));
-  return (nextBlocks || [])
-    .filter((b) => isEndingLine(b) && !isEndingLine(before.get(b.id)) && !chimed.has(b.id) && (pageOf?.[b.id] || 0) >= ENDING_MIN_PAGE)
-    .map((b) => b.id);
 }

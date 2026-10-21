@@ -13,17 +13,17 @@ import {
   titleStyle,
   titleTypography,
 } from '../lib/titleFonts.js';
-import { contactAfterAuthorChange, titlePageSeed } from '../lib/authorDefaults.js';
+import { DEFAULT_AUTHOR, DEFAULT_CONTACT, contactAfterAuthorChange, titlePageSeed } from '../lib/authorDefaults.js';
 import './TitlePageModal.css';
 
 const FIELDS = [
   { key: 'title', label: 'Title', placeholder: 'The Last Ferry' },
   { key: 'credit', label: 'Credit / Subtitle', placeholder: DEFAULT_CREDIT, list: 'tp-credits' },
-  { key: 'author', label: 'Author', placeholder: 'Your name' },
+  { key: 'author', label: 'Author', placeholder: DEFAULT_AUTHOR },
   { key: 'basedOn', label: 'Based on', placeholder: 'the novel by …  (optional)' },
   { key: 'draftVersion', label: 'Draft Version', placeholder: 'e.g. First Draft, Sixth & Final Draft', list: 'tp-versions' },
   { key: 'draftDate', label: 'Draft date', placeholder: 'e.g. October 19, 2026' },
-  { key: 'contact', label: 'Contact / Copyright', placeholder: 'Name\nEmail · Phone\n© 2026', multiline: true },
+  { key: 'contact', label: 'Contact / Copyright', placeholder: DEFAULT_CONTACT, multiline: true },
 ];
 
 /** Form for the title page, with a live miniature of how it will print. */
@@ -47,7 +47,7 @@ export default function TitlePageModal({ meta, onSave, onClose, onViewCover, spe
   // The contact follows the author (lib/authorDefaults.js) until the writer edits it themselves.
   const [contactState, setContactState] = useState(() => ({
     auto: seed.suggested && seed.meta.contact ? seed.meta.contact : null, // what the form filled in itself
-    touched: false, // the writer typed in or cleared the contact: never change it for them again
+    touched: false, // the writer typed in or cleared the contact (lib/authorDefaults.js says when it's still replaced)
   }));
 
   useEffect(() => {

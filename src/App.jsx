@@ -63,10 +63,9 @@ import { SAMPLE_SCRIPT } from './lib/sampleScript.js';
 import { effectiveZoomFor } from './lib/zoom.js';
 import { actionDensity, riskLocations, stepRisk } from './lib/pacing.js';
 import DensityNav from './components/DensityNav.jsx';
-import { MILESTONES, MILESTONE_TOAST_MS, finishedSentence, milestonesReached, newEndings } from './lib/milestones.js';
-import { typewriterBell } from './lib/sounds.js';
+import { MILESTONES, MILESTONE_TOAST_MS, finishedSentence, milestonesReached } from './lib/milestones.js';
 import { createNoirAudio } from './lib/noirAudio.js';
-import { NOIR_CLASS, NOIR_COMBO, NOIR_SEARCH_SELECTOR, isNoirQuery, noirKeyAction } from './lib/noir.js';
+import { NOIR_CLASS, NOIR_COMBO, noirGenrePicked, noirKeyAction } from './lib/noir.js';
 import { createFolderSync, mergeProjectLists, saveProjectEverywhere, storageStatus } from './lib/folderSync.js';
 import './App.css';
 
@@ -248,7 +247,7 @@ function Workspace({ boot }) {
   const [zoom, setZoom] = useState(initialPrefs.zoom ?? 1);
   const [actMode, setActMode] = useState(ACT_STRUCTURES.includes(initialPrefs.actMode) ? initialPrefs.actMode : DEFAULT_ACT_STRUCTURE);
   // Switching 3 ⇄ 4 acts (Scene Board or Notes: it's one setting) splits Act II into 2A / 2B, or
-  // joins them with a "### ACT 2B" line, in the Synopsis and the Treatment (lib/bible.js convertActs).
+  // joins them (remembering the boundary out of sight), in the Synopsis and the Treatment (lib/bible.js convertNotesActs).
   const changeActMode = useCallback((next) => {
     if (!ACT_STRUCTURES.includes(next) || next === actMode) return;
     setStoryNotes((notes) => convertNotesActs(notes, actMode, next));
@@ -383,7 +382,6 @@ function Workspace({ boot }) {
   // this script; each milestone shows once per session, in a corner toast for 3.5 s.
   const lastEdit = useRef({ at: 0, sentence: false });
   const milestonesFired = useRef(new Set());
-  const endingsChimed = useRef(new Set());
   const writingSession = useRef(null); // { projectId, startWords, words, pages, blocks }
   const milestoneQueue = useRef([]);
   const milestoneShowing = useRef(false);
@@ -1104,7 +1102,7 @@ function Workspace({ boot }) {
     };
   }, []);
 
-  // Milestones and the bell, checked after each edit (layout and word count are up to date here).
+  // Milestones, checked after each edit (layout and word count are up to date here).
   useEffect(() => {
     const now = { projectId, words: analysis.words, pages: layout.pageCount, blocks };
     const s = writingSession.current;
@@ -1127,16 +1125,13 @@ function Workspace({ boot }) {
         milestoneQueue.current.push(...ids.map((id) => MILESTONES[id]));
         if (idle) setTimeout(showNextMilestone, 0);
       }
-      const endings = newEndings(s.blocks, blocks, layout.pageOfBlock, endingsChimed.current);
-      if (endings.length) {
-        endings.forEach((id) => endingsChimed.current.add(id));
-        typewriterBell();
-      }
     }
     writingSession.current = { ...s, words: now.words, pages: now.pages, blocks };
-  }, [projectId, analysis.words, layout.pageCount, layout.pageOfBlock, blocks, showNextMilestone]);
+  }, [projectId, analysis.words, layout.pageCount, blocks, showNextMilestone]);
 
-  // ---- Film Noir mode (lib/noir.js): Ctrl+Shift+Alt+N, or "noir" in a drawer's search box ----
+  // ---- Film Noir mode (lib/noir.js): Ctrl+Shift+Alt+N, or picking the Noir genre in Story DNA ----
+  // Noir is a view: turning it on or off touches only this state, the sound and the root class —
+  // never storyDna (a Noir genre stays picked after you leave).
   const [noir, setNoir] = useState(false);
   const noirRef = useRef(false); // read by the listeners below
   const noirAudio = useRef(null); // rain + vinyl (lib/noirAudio.js), made on first use
@@ -1156,18 +1151,18 @@ function Workspace({ boot }) {
       e.stopImmediatePropagation();
       setNoirMode(act === 'on');
     };
-    const onInput = (e) => {
-      if (!noirRef.current && e.target?.matches?.(NOIR_SEARCH_SELECTOR) && isNoirQuery(e.target.value)) setNoirMode(true);
-    };
     window.addEventListener('keydown', onKey, true);
-    document.addEventListener('input', onInput, true);
     return () => {
       window.removeEventListener('keydown', onKey, true);
-      document.removeEventListener('input', onInput, true);
       noirAudio.current?.dispose();
       noirAudio.current = null;
     };
   }, [setNoirMode]);
+  // Story DNA edits: picking the Noir genre (a click, so sound is allowed) also turns Noir on.
+  const changeStoryDna = useCallback((next) => {
+    if (noirGenrePicked(storyDna, next) && !noirRef.current) setNoirMode(true);
+    setStoryDna(next);
+  }, [storyDna, setNoirMode]);
 
   // ---- Global shortcuts ----
   useEffect(() => {
@@ -1727,7 +1722,7 @@ function Workspace({ boot }) {
           actMode={actMode}
           onActModeChange={changeActMode}
           storyDna={storyDna}
-          onStoryDnaChange={setStoryDna}
+          onStoryDnaChange={changeStoryDna}
           dictionary={dictionary}
           onDictionaryEdit={editDictionary}
           glossaryTerm={glossaryTerm}

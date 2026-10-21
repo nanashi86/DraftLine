@@ -407,16 +407,20 @@ export function setSynopsisAct(notes, key, text) {
 
 // ---- Switching 3 ⇄ 4 acts: the Act II text is split / joined (Synopsis and Treatment alike) ----
 //
-// 3 → 4: Act II becomes Act 2A + Act 2B. A split marker in the text decides where — a "### Act 2B"
-//        or "## Midpoint" heading, a "---" rule or "[ACT 2B]" — and is dropped; without one, the
-//        text is split at the paragraph break nearest its middle. Act 2B is never left empty
-//        while Act II has words. (Nothing to do if Act 2B already has text.)
-// 4 → 3: Act 2A and Act 2B are joined into Act II with a "### ACT 2B" line between them — the
-//        marker the next 3 → 4 switch splits at, so going back restores the exact split.
+// 4 → 3: Act 2A and Act 2B are joined into Act II with a plain blank line — nothing is added to the
+//        prose. Where 2B began is kept out of sight in the notes (`actSplits`): its offset, plus a
+//        few words either side, so the boundary can still be found after edits elsewhere.
+// 3 → 4: Act II becomes Act 2A + Act 2B, split
+//          1. where it was joined (the remembered boundary, if those words are still there), else
+//          2. at a marker the writer typed — a "### Act 2B" or "## Midpoint" heading, a "---" rule
+//             or "[ACT 2B]" (dropped from the text), else
+//          3. at the paragraph break nearest the middle.
+//        Act 2B is never left empty while Act II has words. (Nothing moves if 2B already has text.)
 
-/** Where Act II splits into 2A / 2B: a heading, a rule or a bracket tag. */
+/** A split marker the writer can type into Act II. */
 export const ACT2B_MARKER = /(?:###?\s*(?:ACT\s*2B|MIDPOINT)|---|\[ACT\s*2B\])/i;
-export const ACT2B_JOIN = '### ACT 2B';
+const SPLIT_CONTEXT = 32; // characters remembered either side of the boundary
+export const SPLIT_CARDS = ['synopsis', 'treatment'];
 
 /** Split text at the boundary nearest its middle: a blank line, else a line break, a sentence end, a space. */
 function splitNearMiddle(text) {
@@ -433,7 +437,7 @@ function splitNearMiddle(text) {
   return [t, '']; // one word: nowhere to split
 }
 
-/** Act II's text → [Act 2A, Act 2B], at a marker if there is one, else near the middle. */
+/** Act II → [Act 2A, Act 2B] at a typed marker if there is one, else near the middle. */
 export function splitAct2(text) {
   const t = String(text || '').trim();
   if (!t) return ['', ''];
@@ -451,36 +455,87 @@ export function splitAct2(text) {
   return before ? splitNearMiddle(before) : ['', '']; // marker at the very end: split what's there
 }
 
-/** [Act 2A, Act 2B] → Act II, keeping the boundary as "### ACT 2B" (empty halves add nothing). */
+/** [Act 2A, Act 2B] → Act II: the two trimmed halves with a blank line between (empty halves add nothing). */
 export function joinAct2(a, b) {
+  return [String(a || '').trim(), String(b || '').trim()].filter(Boolean).join('\n\n');
+}
+
+/** Where 2B begins in joinAct2(a, b): { at, head, tail } — or null when 2B is empty. */
+export function act2Split(a, b) {
   const A = String(a || '').trim();
   const B = String(b || '').trim();
-  if (!B) return A;
-  return A ? `${A}\n\n${ACT2B_JOIN}\n\n${B}` : `${ACT2B_JOIN}\n\n${B}`;
+  if (!B) return null;
+  return { at: A ? A.length + 2 : 0, head: A.slice(-SPLIT_CONTEXT), tail: B.slice(0, SPLIT_CONTEXT) };
+}
+
+const escapeRe = (x) => x.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+/** Act II split at a remembered boundary → [2A, 2B], or null when those words aren't there any more. */
+export function restoreSplit(text, split) {
+  const t = String(text || '').trim();
+  if (!split || typeof split.tail !== 'string' || !split.tail || !t) return null;
+  const head = String(split.head || '');
+  const fits = (at) => at >= 0 && at <= t.length && t.slice(0, at).trimEnd().endsWith(head) && t.slice(at).trimStart().startsWith(split.tail);
+  const cut = (at) => [t.slice(0, at).trim(), t.slice(at).trim()];
+  if (Number.isInteger(split.at) && fits(split.at)) return cut(split.at);
+  // Text was added or removed before the boundary: look for the same words, once.
+  const re = new RegExp(`${head ? `${escapeRe(head)}\\s*` : '^'}(?=${escapeRe(split.tail)})`, 'g');
+  const hits = [...t.matchAll(re)];
+  return hits.length === 1 ? cut(hits[0].index + hits[0][0].length) : null;
 }
 
 /** One card's acts { act1, act2, act2b, act3 } converted from `from` acts to `to` acts. */
-export function convertActs(acts, from, to) {
+export function convertActs(acts, from, to, split = null) {
   const v = normalizeSynopsis(acts);
   if (Number(from) === Number(to)) return v;
   if (Number(to) === 4) {
     if (v.act2b.trim() || !v.act2.trim()) return v;
-    const [a, b] = splitAct2(v.act2);
+    const [a, b] = restoreSplit(v.act2, split) || splitAct2(v.act2);
     return { ...v, act2: a, act2b: b };
   }
-  if (!v.act2b.trim()) return { ...v, act2b: '' };
+  if (!v.act2b.trim()) return v;
   return { ...v, act2: joinAct2(v.act2, v.act2b), act2b: '' };
 }
 
-/** The notes after switching the act structure: Synopsis and Treatment both converted. */
+/** A valid remembered boundary, or null. */
+const validSplit = (x) => (x && typeof x === 'object' && Number.isInteger(x.at) && x.at >= 0 && typeof x.head === 'string' && typeof x.tail === 'string' && x.tail
+  ? { at: x.at, head: x.head, tail: x.tail } : null);
+export function normalizeActSplits(x) {
+  const out = {};
+  for (const card of SPLIT_CARDS) {
+    const v = validSplit(x?.[card]);
+    if (v) out[card] = v;
+  }
+  return out;
+}
+
+/**
+ * The notes after switching the act structure: Synopsis and Treatment both converted, with
+ * `actSplits` remembering (4 → 3) or using up (3 → 4) where each Act 2B began.
+ */
 export function convertNotesActs(notes, from, to) {
   if (Number(from) === Number(to)) return notes;
   const n = normalizeStoryNotes(notes);
-  const synopsis = convertActs(n.synopsis, from, to);
-  const treatment = convertActs(n.treatment, from, to);
+  const splits = { ...n.actSplits };
+  const next = {};
+  for (const card of SPLIT_CARDS) {
+    const before = n[card];
+    if (Number(to) === 3) {
+      const at = act2Split(before.act2, before.act2b);
+      if (at) splits[card] = at;
+      next[card] = convertActs(before, from, to);
+    } else {
+      next[card] = convertActs(before, from, to, splits[card]);
+      if (next[card].act2b !== before.act2b || !before.act2.trim()) delete splits[card];
+    }
+  }
   const same = (a, b) => ACT_KEYS.every((k) => a[k] === b[k]);
-  if (same(synopsis, n.synopsis) && same(treatment, n.treatment)) return notes; // nothing to move: not an edit
-  return { ...n, synopsis, treatment };
+  const sameSplits = JSON.stringify(splits) === JSON.stringify(n.actSplits || {});
+  if (SPLIT_CARDS.every((c) => same(next[c], n[c])) && sameSplits) return notes; // nothing to move: not an edit
+  const out = { ...n, ...next };
+  if (Object.keys(splits).length) out.actSplits = splits;
+  else delete out.actSplits;
+  return out;
 }
 
 /** Where the Synopsis card goes among the sections: right after Pitch, else at the end. */
@@ -636,8 +691,10 @@ export function normalizeStoryNotes(notes) {
     const sections = notes.sections.map((s) => ({ id: s.id, title: String(s.title ?? ''), body: String(s.body ?? '') }));
     const synopsis = normalizeSynopsis(notes.synopsis);
     const treatment = normalizeTreatment(notes.treatment);
-    if ((notes.version || 1) < STORY_NOTES_VERSION) return { ...migrateStoryNotes(sections), synopsis, treatment };
-    return { version: notes.version, sections, synopsis, treatment };
+    const splits = normalizeActSplits(notes.actSplits); // where a joined Act II splits again (convertNotesActs)
+    const extra = Object.keys(splits).length ? { actSplits: splits } : {};
+    if ((notes.version || 1) < STORY_NOTES_VERSION) return { ...migrateStoryNotes(sections), synopsis, treatment, ...extra };
+    return { version: notes.version, sections, synopsis, treatment, ...extra };
   }
   return defaultStoryNotes();
 }

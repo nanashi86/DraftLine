@@ -9,7 +9,7 @@ export const GENRES = [
 ];
 
 const GENRE_ALIASES = {
-  noir: 'Noir', noire: 'Noir', 'sci-fi': 'Science Fiction', scifi: 'Science Fiction', 'sci fi': 'Science Fiction', sf: 'Science Fiction',
+  noir: 'Noir', noire: 'Noir', 'film noir': 'Noir', 'film-noir': 'Noir', 'sci-fi': 'Science Fiction', scifi: 'Science Fiction', 'sci fi': 'Science Fiction', sf: 'Science Fiction',
 };
 /** Names stored by earlier versions → today's ("Noire" was a misspelling of Noir). */
 const LEGACY_GENRES = { Noire: 'Noir' };

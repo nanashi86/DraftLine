@@ -5,6 +5,7 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { guideHtml, highlight, inlineTokens, parseGuide, searchGuide, slug } from '../src/lib/userGuide.js';
+import { NOIR_COMBO } from '../src/lib/noir.js';
 import { SHORTCUTS } from '../src/lib/shortcuts.js';
 import { PRIMARY_ROLES, SECONDARY_ROLES, CHARACTER_FIELDS, TREATMENT } from '../src/lib/bible.js';
 import { DNA_QUESTIONS } from '../src/lib/storyDna.js';
@@ -20,10 +21,11 @@ const headings = guide.chapters.flatMap((c) => [c.title, ...c.topics.map((t) => 
 const hasHeading = (re) => headings.some((h) => re.test(h));
 
 describe('User Guide covers the app', () => {
-  it('has the six chapters', () => {
+  it('has the seven chapters, the curiosities last', () => {
     assert.equal(guide.title, 'DraftLine User Guide');
     assert.deepEqual(guide.chapters.map((c) => c.title), [
       'Workspace & Storage', 'Screenplay Editor', 'Story Bible', 'Characters', 'Scene Board & Pacing', 'Export & Deliverables',
+      'Editor Curiosities & Secrets',
     ]);
   });
   for (const [feature, re] of [
@@ -62,7 +64,7 @@ describe('User Guide matches the app’s own names', () => {
     const quoted = [...md.matchAll(/`((?:Ctrl|Alt|Shift)\+[^`]+|F1)`/g)].map((m) => m[1]);
     assert.ok(quoted.length > 15);
     for (const k of quoted) {
-      if (/^Shift\+(Tab|Enter)$|^Ctrl\+\/$|^F1$/.test(k)) continue;
+      if (/^Shift\+(Tab|Enter)$|^Ctrl\+\/$|^F1$/.test(k) || k === NOIR_COMBO) continue; // Noir: a secret, not in the shortcut list
       assert.ok(SHORTCUTS[k], `the guide mentions ${k}, which isn't a shortcut`);
     }
   });

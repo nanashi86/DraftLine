@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { NOIR_AUDIO, createNoirAudio, crackleTrack, pinkNoise } from '../src/lib/noirAudio.js';
+import { NOIR_AUDIO, createNoirAudio, crackleTrack, pinkNoise, seamlessLoop } from '../src/lib/noirAudio.js';
 
 /** A recording stand-in for AudioContext. */
 function fakeAudio() {
@@ -107,6 +107,19 @@ describe('Film Noir audio (Web Audio): rain + vinyl', () => {
     audio.dispose();
     assert.equal(f.contexts[0].state, 'closed');
     audio.stop(); // harmless
+  });
+  it('the rain loops without a seam: the last sample runs straight into the first', () => {
+    let x = 1;
+    const random = () => ((x = (x * 16807) % 2147483647) / 2147483647);
+    const raw = pinkNoise(4000 + 400, random);
+    const loop = seamlessLoop(raw, 4000, 400);
+    assert.equal(loop.length, 4000);
+    assert.equal(loop[0], raw[4000], 'wrap point continues the same noise');
+    assert.equal(loop[3999], raw[3999]);
+    assert.equal(loop[400], raw[400], 'after the crossfade: untouched');
+    const step = (a, b) => Math.abs(a - b);
+    const typical = Array.from({ length: 3999 }, (_, i) => step(loop[i], loop[i + 1])).sort((a, b) => a - b)[3998];
+    assert.ok(step(loop[3999], loop[0]) <= typical, 'no jump bigger than any ordinary step');
   });
   it('without Web Audio: silently nothing', () => {
     const audio = createNoirAudio({ AudioContextClass: undefined });

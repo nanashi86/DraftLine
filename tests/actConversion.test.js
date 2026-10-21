@@ -1,7 +1,9 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { ACT2B_MARKER, convertActs, convertNotesActs, defaultStoryNotes, joinAct2, splitAct2 } from '../src/lib/bible.js';
+import {
+  ACT2B_MARKER, act2Split, convertActs, convertNotesActs, defaultStoryNotes, joinAct2, normalizeStoryNotes, restoreSplit, splitAct2,
+} from '../src/lib/bible.js';
 
 const acts = (o) => ({ act1: '', act2: '', act2b: '', act3: '', ...o });
 
@@ -34,21 +36,52 @@ describe('3 → 4 acts: Act II splits into Act 2A and Act 2B', () => {
   });
 });
 
-describe('4 → 3 acts: Act 2A and Act 2B join into Act II', () => {
-  it('as `${act2a}\\n\\n### ACT 2B\\n\\n${act2b}` (trimmed)', () => {
-    assert.equal(joinAct2('  The storm. \n', '\nThe fall.  '), 'The storm.\n\n### ACT 2B\n\nThe fall.');
-    assert.deepEqual(convertActs(acts({ act2: 'Two A.', act2b: 'Two B.' }), 4, 3), acts({ act2: 'Two A.\n\n### ACT 2B\n\nTwo B.' }));
+describe('4 → 3 acts: Act 2A and Act 2B join into Act II, with nothing added to the prose', () => {
+  it('a plain blank line between the trimmed halves — no "ACT 2B" text', () => {
+    assert.equal(joinAct2('  The storm. \n', '\nThe fall.  '), 'The storm.\n\nThe fall.');
+    assert.deepEqual(convertActs(acts({ act2: 'Two A.', act2b: 'Two B.' }), 4, 3), acts({ act2: 'Two A.\n\nTwo B.' }));
     assert.deepEqual(convertActs(acts({ act2: 'Only 2A.' }), 4, 3), acts({ act2: 'Only 2A.' }), 'nothing in 2B: nothing added');
-    assert.equal(joinAct2('', 'Only 2B.'), '### ACT 2B\n\nOnly 2B.');
+    assert.equal(joinAct2('', 'Only 2B.'), 'Only 2B.');
+    for (const t of [joinAct2('A.\n\nMore.', 'B.'), convertNotesActs({ ...defaultStoryNotes(), synopsis: acts({ act2: 'A.', act2b: 'B.' }) }, 4, 3).synopsis.act2]) {
+      assert.ok(!/ACT\s*2B/i.test(t), t);
+    }
   });
-  it('round trip: 4 → 3 → 4 restores the exact split, multi-paragraph halves included', () => {
-    const four = acts({ act1: 'Setup.', act2: 'Escalation.\n\nMore escalation.\n\n- a list', act2b: 'Fall.\n\nCrisis, then worse.', act3: 'End.' });
-    assert.deepEqual(convertActs(convertActs(four, 4, 3), 3, 4), four);
-    const only2b = acts({ act2b: 'Fall.' });
-    assert.deepEqual(convertActs(convertActs(only2b, 4, 3), 3, 4), only2b);
-    const three = acts({ act2: 'A one.\n\nA two.\n\nB one.\n\nB two.' });
-    const split = convertActs(three, 3, 4);
-    assert.deepEqual(convertActs(split, 4, 3).act2, 'A one.\n\nA two.\n\n### ACT 2B\n\nB one.\n\nB two.', 'no text lost');
+  it('the boundary is kept out of sight: offset plus the words either side', () => {
+    assert.deepEqual(act2Split('Two A.', 'Two B.'), { at: 8, head: 'Two A.', tail: 'Two B.' });
+    assert.deepEqual(act2Split('', 'Only 2B.'), { at: 0, head: '', tail: 'Only 2B.' });
+    assert.equal(act2Split('Only 2A.', '  '), null);
+    const long = 'x'.repeat(100);
+    assert.equal(act2Split(long, long).head.length, 32, 'only a few words, not a copy of the act');
+  });
+});
+
+describe('3 → 4 after a join: the remembered split comes back exactly', () => {
+  const four = { ...defaultStoryNotes(),
+    synopsis: acts({ act1: 'Setup.', act2: 'Escalation.\n\nMore escalation.\n\n- a list', act2b: 'Fall.\n\nCrisis, then worse.', act3: 'End.' }),
+    treatment: acts({ act2: 'Sequence A.', act2b: 'Sequence B.\n\nAnd C.' }) };
+  it('round trip 4 → 3 → 4, both cards, multi-paragraph halves included; the metadata is then used up', () => {
+    const three = convertNotesActs(four, 4, 3);
+    assert.deepEqual(Object.keys(three.actSplits), ['synopsis', 'treatment']);
+    const back = convertNotesActs(three, 3, 4);
+    assert.deepEqual(back.synopsis, four.synopsis);
+    assert.deepEqual(back.treatment, four.treatment);
+    assert.equal(back.actSplits, undefined);
+  });
+  it('survives edits elsewhere in Act II (found by its words), and saves with the project', () => {
+    const three = convertNotesActs(four, 4, 3);
+    const edited = { ...three, synopsis: { ...three.synopsis, act2: `A new opening paragraph.\n\n${three.synopsis.act2}\n\nA new last line.` } };
+    const back = convertNotesActs(edited, 3, 4);
+    assert.equal(back.synopsis.act2, 'A new opening paragraph.\n\nEscalation.\n\nMore escalation.\n\n- a list');
+    assert.equal(back.synopsis.act2b, 'Fall.\n\nCrisis, then worse.\n\nA new last line.');
+    assert.deepEqual(normalizeStoryNotes(three).actSplits, three.actSplits, 'kept by normalizeStoryNotes (storage, backups)');
+    assert.equal(normalizeStoryNotes({ ...three, actSplits: { synopsis: { at: 'x' } } }).actSplits, undefined, 'junk dropped');
+  });
+  it('the boundary’s words gone: falls back to a typed marker, then the middle', () => {
+    assert.equal(restoreSplit('Totally rewritten.', { at: 5, head: 'Two A.', tail: 'Two B.' }), null);
+    const three = convertNotesActs(four, 4, 3);
+    const rewritten = { ...three, synopsis: { ...three.synopsis, act2: 'New A.\n\nNew B.' } };
+    assert.deepEqual([convertNotesActs(rewritten, 3, 4).synopsis.act2, convertNotesActs(rewritten, 3, 4).synopsis.act2b], ['New A.', 'New B.']);
+    assert.equal(restoreSplit('Same. Same. Same.', { at: 99, head: 'Same.', tail: 'Same.' }), null, 'ambiguous: not guessed');
   });
 });
 
@@ -58,7 +91,7 @@ describe('Switching acts converts the Synopsis and the Treatment', () => {
     const four = convertNotesActs(notes, 3, 4);
     assert.deepEqual([four.synopsis.act2, four.synopsis.act2b, four.treatment.act2, four.treatment.act2b], ['S-a.', 'S-b.', 'T-a.', 'T-b.']);
     const three = convertNotesActs(four, 4, 3);
-    assert.equal(three.synopsis.act2, 'S-a.\n\n### ACT 2B\n\nS-b.');
+    assert.equal(three.synopsis.act2, 'S-a.\n\nS-b.');
     assert.equal(three.treatment.act2b, '');
     const blank = defaultStoryNotes();
     assert.equal(convertNotesActs(blank, 3, 4), blank);

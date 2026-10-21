@@ -1,11 +1,13 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import {
-  ENDING_MIN_PAGE, MILESTONES, MILESTONE_TOAST_MS, SESSION_WORD_GOAL, finishedSentence, isEndingLine, isLateNight, milestonesReached, newEndings,
+  MILESTONES, MILESTONE_TOAST_MS, SESSION_WORD_GOAL, finishedSentence, isLateNight, milestonesReached,
 } from '../src/lib/milestones.js';
-import { NOIR_CLASS, NOIR_SEARCH_SELECTOR, isNoirQuery, isNoirShortcut, noirKeyAction } from '../src/lib/noir.js';
-import { typewriterBell } from '../src/lib/sounds.js';
+import * as milestones from '../src/lib/milestones.js';
+import * as noirLib from '../src/lib/noir.js';
+import { NOIR_CLASS, isNoirGenre, isNoirShortcut, noirGenrePicked, noirKeyAction } from '../src/lib/noir.js';
+import { emptyStoryDna, genresFromText, toggleGenre } from '../src/lib/storyDna.js';
 import { GUIDE_VALUES } from '../src/config/features.js';
 import { fillGuide } from '../src/lib/userGuide.js';
 import { SHORTCUTS } from '../src/lib/shortcuts.js';
@@ -25,14 +27,30 @@ describe('User Guide: 3- and 4-act wording (item 1)', () => {
   });
 });
 
+describe('Title page contact: no phone auto-linking', () => {
+  it('index.html turns off telephone detection', () => {
+    assert.match(readFileSync(new URL('../index.html', import.meta.url), 'utf8'), /<meta name="format-detection" content="telephone=no" \/>/);
+  });
+  it('the contact block opts out of auto-linking and translation, and is rebuilt (keyed) when its text changes', () => {
+    assert.match(read('components/TitlePageSheet.jsx'),
+      /<div key=\{meta\.contact\.trim\(\)\} className="ts-contact" data-no-autolink="true" translate="no">\s*<RichLine text=\{meta\.contact\.trim\(\)\} \/>/);
+  });
+});
+
 describe('Spec stamp on the title page', () => {
   const sheet = read('components/TitlePageSheet.jsx');
   const css = read('components/TitlePageSheet.css');
   it('says the line, as a crimson stamp at -18°, uppercase bold typewriter, never in the way', () => {
-    assert.match(sheet, /export const SPEC_STAMP_TEXT = 'THIS IS A SPEC SCRIPT\. DO NOT SHOW TO HARVEY\.';/);
+    assert.match(read('lib/specStamp.js'), /export const SPEC_STAMP_TEXT = 'THIS IS A SPEC SCRIPT\. DO NOT SHOW TO HARVEY\.';/);
+    assert.match(sheet, /import \{ SPEC_STAMP_TEXT \} from '\.\.\/lib\/specStamp\.js';/);
     assert.match(sheet, /\{specStamp && <div className="ts-spec-stamp" aria-hidden="true">\{SPEC_STAMP_TEXT\}<\/div>\}/);
     const rule = /\.ts-spec-stamp \{([^}]*)\}/.exec(css)[1];
     for (const d of ['rotate(-18deg)', 'color: rgba(176, 37, 37, 0.38)', 'border: 2px solid rgba(176, 37, 37, 0.38)', 'mix-blend-mode: multiply', 'pointer-events: none', 'text-transform: uppercase', 'font: 700', "'Courier Prime'"]) assert.ok(rule.includes(d), d);
+  });
+  it('keeps its verified size, angle and ink: 78% wide, -18°, 0.3in Courier, crimson at 0.38, multiplied', () => {
+    const rule = /\.ts-spec-stamp \{([^}]*)\}/.exec(read('components/TitlePageSheet.css'))[1];
+    for (const d of ['width: 78%', 'transform: translate(-50%, -50%) rotate(-18deg)', 'font: 700 calc(var(--in) * 0.3) / 1.25',
+      'color: rgba(176, 37, 37, 0.38)', 'border: 2px solid rgba(176, 37, 37, 0.38)', 'mix-blend-mode: multiply']) assert.ok(rule.includes(d), d);
   });
   it('a "Spec stamp" switch in the Title Page dialog, remembered; on screen only — never printed', () => {
     assert.match(read('components/TitlePageModal.jsx'), /<input type="checkbox" checked=\{specStamp\} onChange=\{\(e\) => onSpecStampChange\(e\.target\.checked\)\} \/>\s*Spec stamp/);
@@ -85,38 +103,13 @@ describe('Milestone toasts', () => {
   });
 });
 
-describe('FADE OUT. — the typewriter bell', () => {
-  const blocks = (text, type = 'transition') => [{ id: 'end', type, text }];
-  it('a Transition, Centered or all-caps line saying FADE OUT. or THE END', () => {
-    assert.ok(isEndingLine({ type: 'transition', text: 'FADE OUT.' }));
-    assert.ok(isEndingLine({ type: 'centered', text: 'THE END' }));
-    assert.ok(isEndingLine({ type: 'action', text: 'FADE OUT.' }));
-    assert.ok(!isEndingLine({ type: 'action', text: 'She fades out. The end of hope.' }));
-    assert.ok(!isEndingLine({ type: 'transition', text: 'FADE OUT' }), 'the period makes it FADE OUT.');
-  });
-  it('rings once, when the line is completed on page 80 or later', () => {
-    assert.equal(ENDING_MIN_PAGE, 80);
-    assert.deepEqual(newEndings(blocks('FADE OUT'), blocks('FADE OUT.'), { end: 95 }), ['end']);
-    assert.deepEqual(newEndings(blocks('FADE OUT'), blocks('FADE OUT.'), { end: 79 }), []);
-    assert.deepEqual(newEndings(blocks('FADE OUT.'), blocks('FADE OUT.'), { end: 95 }), [], 'already there: no ring');
-    assert.deepEqual(newEndings(blocks('FADE OUT'), blocks('FADE OUT.'), { end: 95 }, new Set(['end'])), [], 'once');
-    assert.deepEqual(newEndings([], blocks('THE END', 'centered'), { end: 102 }), ['end']);
-  });
-  it('a synthesised ~2 kHz triangle with exponential decay (Web Audio, no sound files)', () => {
-    const made = [];
-    const param = () => ({ setValueAtTime: (v) => made.push(['set', v]), exponentialRampToValueAtTime: (v, t) => made.push(['ramp', v, t]), value: 0 });
-    const node = () => ({ connect: (n) => n, gain: param(), frequency: param() });
-    const ctx = {
-      currentTime: 0, destination: {},
-      createGain: () => node(),
-      createOscillator: () => { const o = { ...node(), start() {}, stop() {}, set type(t) { made.push(['type', t]); } }; return o; },
-    };
-    assert.equal(typewriterBell({ ctx }), true);
-    assert.ok(made.some(([k, v]) => k === 'type' && v === 'triangle'));
-    assert.ok(made.some(([k, v]) => k === 'set' && v === 2000));
-    assert.ok(made.some(([k, v, t]) => k === 'ramp' && v === 0.0001 && t > 1));
-    assert.equal(typewriterBell({ ctx: null }), false, 'no Web Audio: silently nothing');
-    assert.match(read('App.jsx'), /if \(endings\.length\) \{\s*endings\.forEach\(\(id\) => endingsChimed\.current\.add\(id\)\);\s*typewriterBell\(\);/);
+describe('The End bell is gone', () => {
+  it('no bell, no sound module, no ending-line watcher', () => {
+    assert.ok(!existsSync(new URL('../src/lib/sounds.js', import.meta.url)), 'sounds.js removed');
+    for (const name of ['newEndings', 'isEndingLine', 'ENDING_MIN_PAGE']) assert.equal(milestones[name], undefined, name);
+    const app = read('App.jsx');
+    assert.ok(!/typewriterBell|newEndings|endingsChimed|sounds\.js/.test(app));
+    assert.ok(!/bell/i.test(read('content/userGuide.md')), 'not in the guide');
   });
 });
 
@@ -132,9 +125,38 @@ describe('Film Noir mode', () => {
     assert.equal(noirKeyAction({ key: 'Escape', code: 'Escape' }, false), null, 'Esc is left alone when it’s off');
     assert.equal(noirKeyAction(key({}), true), null);
   });
-  it('typing "noir" into a drawer search box turns it on', () => {
-    assert.ok(isNoirQuery('noir') && isNoirQuery(' NOIR ') && !isNoirQuery('noirish'));
-    for (const sel of ['input[type="search"]', '.pb-search', 'input[placeholder^="Filter"]']) assert.ok(NOIR_SEARCH_SELECTOR.includes(sel), sel);
+  it('typing "noir" into a search box no longer does anything', () => {
+    for (const gone of ['NOIR_SEARCH_SELECTOR', 'isNoirQuery', 'NOIR_WORD']) assert.equal(noirLib[gone], undefined, gone);
+    const app = read('App.jsx');
+    assert.ok(!/addEventListener\('input'|isNoirQuery|NOIR_SEARCH_SELECTOR/.test(app));
+  });
+  it('picking the Noir genre (or "Film Noir") in Story DNA turns it on — only when newly picked', () => {
+    assert.ok(isNoirGenre('Noir') && isNoirGenre('film noir') && isNoirGenre('Film-Noir') && !isNoirGenre('Noirish') && !isNoirGenre('Drama'));
+    const before = emptyStoryDna();
+    const picked = toggleGenre(before, 'Noir', true);
+    assert.equal(noirGenrePicked(before, picked), true);
+    assert.equal(noirGenrePicked(picked, toggleGenre(picked, 'Drama', true)), false, 'already Noir: another genre doesn’t re-trigger');
+    assert.equal(noirGenrePicked(picked, toggleGenre(picked, 'Noir', false)), false, 'unpicking never turns it on');
+    assert.deepEqual(genresFromText('Film Noir, Crime').genres, ['Crime', 'Noir'], '"Film Noir" is the Noir genre');
+    const app = read('App.jsx');
+    assert.match(app, /const changeStoryDna = useCallback\(\(next\) => \{\s*if \(noirGenrePicked\(storyDna, next\) && !noirRef\.current\) setNoirMode\(true\);\s*setStoryDna\(next\);\s*\}, \[storyDna, setNoirMode\]\);/);
+    assert.match(app, /onStoryDnaChange=\{changeStoryDna\}/);
+  });
+  it('leaving Noir (Esc, the keys, the chip) never touches the script’s Story DNA — "Noir" stays in genres', () => {
+    const app = read('App.jsx');
+    const body = /const setNoirMode = useCallback\(\(on\) => \{([\s\S]*?)\n {2}\}, \[\]\);/.exec(app)[1];
+    assert.ok(!/storyDna|setStoryDna|genres|toggleGenre/i.test(body), 'setNoirMode only sets the view, the sound and the class');
+    assert.match(body, /noirRef\.current = on;\s*setNoir\(on\);/);
+    // Every way out goes through setNoirMode(false) and nothing else.
+    assert.match(app, /e\.preventDefault\(\);\s*e\.stopImmediatePropagation\(\);\s*setNoirMode\(act === 'on'\);\s*\};/);
+    assert.match(app, /className="status-noir" onClick=\{\(\) => setNoirMode\(false\)\}/);
+    // The only Story DNA write tied to Noir is the one that passes the writer's own change through unchanged.
+    const writes = [...app.matchAll(/setStoryDna\(([^)]*)\)/g)].map((m) => m[1]);
+    assert.ok(writes.every((w) => /^(next|doc\.storyDna|next\.storyDna|after\.storyDna|x\.storyDna)$/.test(w.trim())), writes.join(' | '));
+    const kept = toggleGenre(emptyStoryDna(), 'Noir', true);
+    const snapshot = JSON.stringify(kept);
+    for (const act of [noirKeyAction({ key: 'Escape', code: 'Escape' }, true), noirKeyAction(key({ ctrlKey: true, shiftKey: true, altKey: true }), true)]) assert.equal(act, 'off');
+    assert.equal(JSON.stringify(kept), snapshot);
   });
   it('the app: capture-phase keys (Esc leaves Noir first), the root class, rain while on, a status chip that turns it off', () => {
     const app = read('App.jsx');
