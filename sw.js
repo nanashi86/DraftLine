@@ -9,24 +9,24 @@
    • Google Fonts: cached as they're used (title-page fonts too), served from cache after that.
    • Your scripts never touch this: they live in IndexedDB. Nothing is sent anywhere. */
 
-const VERSION = "9224400177b0";
+const VERSION = "f545466a6b91";
 const PRECACHE = [
   "./",
   "./apple-touch-icon.png",
-  "./assets/FormatDoctorModal-D8bPD_PF.js",
+  "./assets/FormatDoctorModal-CDt_6zby.js",
   "./assets/FormatDoctorModal-G3WXPKiJ.css",
   "./assets/HelpModal-BdbGK1CS.css",
   "./assets/HelpModal-BuW9v2p9.js",
-  "./assets/HelpModal-F_PnqeS-.js",
+  "./assets/HelpModal-DkUfC11p.js",
   "./assets/ImportModal-Ddt7wkL7.css",
-  "./assets/ImportModal-odVfsf_3.js",
-  "./assets/RenameCharacterModal-BEXtEGjf.js",
+  "./assets/ImportModal-otsCbcZ_.js",
   "./assets/RenameCharacterModal-DagY3wg-.css",
+  "./assets/RenameCharacterModal-FrtWaKuC.js",
+  "./assets/UserGuideModal-0hj6TtWR.js",
   "./assets/UserGuideModal-BVWC8KuI.css",
-  "./assets/UserGuideModal-n7tWXk8r.js",
   "./assets/formatting-ROOIYVNG.js",
-  "./assets/index-BbcMEcCH.js",
-  "./assets/index-EkzYDbJw.css",
+  "./assets/index-CZkbBw5h.js",
+  "./assets/index-OQgSNqKL.css",
   "./favicon.svg",
   "./icon-192.png",
   "./icon-512.png",

@@ -1,4 +1,4 @@
-import{K as e,q as t}from"./formatting-ROOIYVNG.js";import{A as n,C as r,D as i,E as a,N as o,O as s,S as c,T as l,_ as u,b as d,c as f,g as p,h as m,k as h,l as g,m as _,n as v,p as y,r as b,t as x,u as S,v as C,w,x as T,y as E}from"./index-BbcMEcCH.js";/* empty css                  */var D=t(),ee=`# DraftLine User Guide
+import{K as e,q as t}from"./formatting-ROOIYVNG.js";import{A as n,C as r,D as i,E as a,N as o,O as s,S as c,T as l,_ as u,b as d,c as f,g as p,h as m,k as h,l as g,m as _,n as v,p as y,r as b,t as x,u as S,v as C,w,x as T,y as E}from"./index-CZkbBw5h.js";/* empty css                  */var D=t(),ee=`# DraftLine User Guide
 
 DraftLine is a distraction-free screenwriting app that runs in your browser. It writes in Courier Prime at 12 pt with standard screenplay margins, saves as you type, and works offline. This guide covers everything from your first scene heading to the final PDF.
 
@@ -155,7 +155,7 @@ The **Glossary** defines every story term in two sections, {{glossary.sections}}
 - **Synopsis**: in 3 acts, {{acts.labels.3}}; in 4 acts, {{acts.labels.4}}.
 - **Treatment**: your full narrative treatment, sequence-by-sequence prose, scene breakdowns and subplots, in the same acts. It adapts to the active 3- or 4-act view. Write each act there, or paste it in with Import from Notes.
 
-Switching never moves or loses text: Act II is Act 2A in the 4-act view, and an Act 2B you've written stays on show under Act II in the 3-act view.
+Switching never loses text. Going from 3 acts to 4 splits Act II in two: at a \`### Act 2B\` or \`## Midpoint\` heading, a \`---\` line or an \`[ACT 2B]\` tag if you've put one in, otherwise at the paragraph break nearest the middle. Going from 4 acts to 3 joins Act 2A and Act 2B into Act II with a \`### ACT 2B\` line between them, so switching back splits them exactly where they were. (If Act 2B already has text, going to 4 acts leaves both as they are.)
 
 ### Copying and importing notes
 
@@ -197,7 +197,7 @@ The **Scene Board** (formerly the Beat Board; **Board** or **Split** view) lays 
 
 ### Acts and cards
 
-- Switch between **3 Acts** ({{board.columns.3}}, with a Midpoint divider in Act 2) and **4 Acts** ({{board.columns.4}}). Switching never moves or loses a card.
+- Switch between **3 Acts** ({{board.columns.3}}, with a Midpoint divider in Act 2) and **4 Acts** ({{board.columns.4}}). Switching never moves or loses a card. It's the same setting as the act switch in Notes, so it also splits or joins Act II of the Synopsis and Treatment (see Synopsis & Treatment).
 - Each card has a headline, a synopsis and colour tags: {{board.tags}}. Click a tag in the legend to show only those cards.
 - **+ Add Card** adds a card to a column. Drag cards by their grip to reorder them or move them between acts.
 
