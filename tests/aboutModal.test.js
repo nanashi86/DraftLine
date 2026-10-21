@@ -31,7 +31,7 @@ describe('About DraftLine', () => {
 
   it('the Origin Story reads exactly as written', () => {
     const block = about.slice(about.indexOf('className="hm-origin"'), about.indexOf('</section>'));
-    const story = text(block.slice(block.indexOf('<p>'))).trim();
+    const story = text(block.slice(block.indexOf('<p>'), block.indexOf('</p>'))).trim(); // the paragraph, not the signature after it
     assert.equal(story, 'I began storytelling at eight on my father’s electric typewriter. Decades later, while writing '
       + 'my first feature, What Happened to Haiti?, I refused to pay bloated subscriptions and drafted all six '
       + 'drafts in raw Google Docs. That grind taught me structure and what tools screenwriters truly need. So I teamed '
@@ -80,5 +80,31 @@ describe('About: Storage reflects folder sync', () => {
       + 'folder sync, clearing browser site data removes local drafts — so use Export (.draftline / .fountain / .fdx) or Backup '
       + 'Project to keep offline copies.');
     assert.ok(!/Your scripts belong to this browser on/.test(src));
+  });
+});
+
+describe('About → Origin Story: the creator’s signature', () => {
+  it('signs off under the paragraph ending “built right in.”, inside the Origin Story block', () => {
+    const origin = jsx.slice(jsx.indexOf('<section className="hm-origin"'), jsx.indexOf('</section>', jsx.indexOf('<section className="hm-origin"')));
+    assert.match(origin, /architecture built right in\.\s*<\/p>\s*<div className="about-origin-signature">/);
+    assert.match(origin, /<img\s+src=\{`\$\{import\.meta\.env\.BASE_URL\}nanashi86-signature\.png`\}\s+alt="NANASHI86 Signature"\s+className="nanashi-sig-img"/,
+      'BASE_URL, so it loads under GitHub Pages’ /DraftLine/ too');
+  });
+  it('minimal styling: right-aligned, 64px tall, 0.88 → 1 on hover, no background / border / shadow', () => {
+    assert.match(css, /\.about-origin-signature \{ display: flex; justify-content: flex-end; margin-top: 12px; \}/);
+    const img = /\.nanashi-sig-img \{([^}]*)\}/.exec(css)[1];
+    for (const d of ['height: 64px', 'width: auto', 'object-fit: contain', 'opacity: 0.88', 'transition: opacity 0.2s ease, transform 0.2s ease',
+      'border: 0', 'background: none', 'box-shadow: none']) assert.ok(img.includes(d), d);
+    assert.match(css, /\.nanashi-sig-img:hover \{ opacity: 1; transform: scale\(1\.03\); \}/);
+  });
+  it('the image is in public/, a transparent PNG cropped to the mark (so 64px is the mark, not padding)', () => {
+    const png = readFileSync(new URL('../public/nanashi86-signature.png', import.meta.url));
+    assert.equal(png.subarray(1, 4).toString('latin1'), 'PNG');
+    const w = png.readUInt32BE(16);
+    const h = png.readUInt32BE(20);
+    const colorType = png[25];
+    assert.equal(colorType, 6, 'RGBA: transparent background');
+    assert.ok(h >= 128 && h <= 256, `sharp on high-DPI screens at 64px (${w}×${h})`);
+    assert.ok(png.length < 60_000, `small (${png.length} bytes)`);
   });
 });
