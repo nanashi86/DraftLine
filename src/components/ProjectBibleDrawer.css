@@ -523,3 +523,5 @@
   .pb, .pb.is-open { transition: none; }
 }
 .pb-treatment .pb-act-body { min-height: 110px; } /* same type and spacing as the Synopsis; a little more room for full prose */
+.pb-tools-spacer { flex: 1; }
+.pb-act-mode .seg-btn { padding: 3px 9px; font-size: 12px; }

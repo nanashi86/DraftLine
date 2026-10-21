@@ -6,22 +6,23 @@ import Editor from './components/Editor.jsx';
 import CharactersDrawer from './components/CharactersDrawer.jsx';
 import Navigator from './components/Navigator.jsx';
 import TitlePageModal from './components/TitlePageModal.jsx';
-import ImportModal from './components/ImportModal.jsx';
-import FormatDoctorModal from './components/FormatDoctorModal.jsx';
 import { applyFixes, auditScript } from './lib/formatDoctor.js';
 import TitlePageSheet from './components/TitlePageSheet.jsx';
 import PrintView from './components/PrintView.jsx';
 import BeatBoard from './components/BeatBoard.jsx';
 import Menu from './components/Menu.jsx';
 import { useHistory } from './hooks/useHistory.js';
-import HelpModal from './components/HelpModal.jsx';
 // The User Guide (and its text) loads the first time it's opened; the service worker caches it for offline use.
 const UserGuideModal = lazy(() => import('./components/UserGuideModal.jsx'));
+// So do the occasional dialogs — About / Shortcuts, Import, Format Doctor, Rename — keeping the app's first load small.
+const HelpModal = lazy(() => import('./components/HelpModal.jsx'));
+const ImportModal = lazy(() => import('./components/ImportModal.jsx'));
+const FormatDoctorModal = lazy(() => import('./components/FormatDoctorModal.jsx'));
+const RenameCharacterModal = lazy(() => import('./components/RenameCharacterModal.jsx'));
 import LockBadge from './components/LockBadge.jsx';
 import { LOCK_COMBO, isLockShortcut } from './lib/lock.js';
 import ProjectsDrawer from './components/ProjectsDrawer.jsx';
 import ProjectBibleDrawer from './components/ProjectBibleDrawer.jsx';
-import RenameCharacterModal from './components/RenameCharacterModal.jsx';
 import NotesDrawer from './components/NotesDrawer.jsx';
 import CueBioCard from './components/CueBioCard.jsx';
 import { RestorePrompt, SnapshotPrompt, SnapshotsDrawer } from './components/Snapshots.jsx';
@@ -33,7 +34,7 @@ import { dialogueFilter, filterLabel } from './lib/dialogueFilter.js';
 import { canvasThemeInfo, nextCanvasTheme, readCanvasTheme, writeCanvasTheme } from './lib/canvasTheme.js';
 import { mergeDictionary } from './lib/structureDictionary.js';
 import { characterTabFromPrefs, closeDock, dockFromPrefs, openDock, toggleDock } from './lib/dock.js';
-import { DEFAULT_BIBLE_TAB } from './lib/bible.js';
+import { ACT_STRUCTURES, DEFAULT_ACT_STRUCTURE, DEFAULT_BIBLE_TAB, convertNotesActs } from './lib/bible.js';
 import {
   DICTIONARY_KEY, EMPTY_META, bootLibrary, clearJournal, projects, revisionToDoc, toDoc, toRecord, writeJournal,
 } from './lib/projectStorage.js';
@@ -62,6 +63,10 @@ import { SAMPLE_SCRIPT } from './lib/sampleScript.js';
 import { effectiveZoomFor } from './lib/zoom.js';
 import { actionDensity, riskLocations, stepRisk } from './lib/pacing.js';
 import DensityNav from './components/DensityNav.jsx';
+import { MILESTONES, MILESTONE_TOAST_MS, finishedSentence, milestonesReached, newEndings } from './lib/milestones.js';
+import { typewriterBell } from './lib/sounds.js';
+import { createNoirAudio } from './lib/noirAudio.js';
+import { NOIR_CLASS, NOIR_COMBO, NOIR_SEARCH_SELECTOR, isNoirQuery, noirKeyAction } from './lib/noir.js';
 import { createFolderSync, mergeProjectLists, saveProjectEverywhere, storageStatus } from './lib/folderSync.js';
 import './App.css';
 
@@ -241,8 +246,16 @@ function Workspace({ boot }) {
   const [selectedChar, setSelectedChar] = useState(null);
   const [hoverId, setHoverId] = useState(null);
   const [zoom, setZoom] = useState(initialPrefs.zoom ?? 1);
-  const [actMode, setActMode] = useState(initialPrefs.actMode === 3 ? 3 : 4);
+  const [actMode, setActMode] = useState(ACT_STRUCTURES.includes(initialPrefs.actMode) ? initialPrefs.actMode : DEFAULT_ACT_STRUCTURE);
+  // Switching 3 ⇄ 4 acts (Scene Board or Notes: it's one setting) splits Act II into 2A / 2B, or
+  // joins them with a "### ACT 2B" line, in the Synopsis and the Treatment (lib/bible.js convertActs).
+  const changeActMode = useCallback((next) => {
+    if (!ACT_STRUCTURES.includes(next) || next === actMode) return;
+    setStoryNotes((notes) => convertNotesActs(notes, actMode, next));
+    setActMode(next);
+  }, [actMode]);
   const [coverVisible, setCoverVisible] = useState(initialPrefs.coverVisible ?? false); // Page 0 above the script
+  const [specStamp, setSpecStamp] = useState(initialPrefs.specStamp === true); // Title Page → Spec stamp (screen only)
   const [scrollerWidth, setScrollerWidth] = useState(0);
   const [focusMode, setFocusMode] = useState(false);
   const [titleOpen, setTitleOpen] = useState(false);
@@ -363,6 +376,24 @@ function Workspace({ boot }) {
     setToast(msg);
     clearTimeout(toastTimer.current);
     toastTimer.current = setTimeout(() => setToast(null), 2400);
+  }, []);
+
+  // ---- Writing milestones & the FADE OUT. bell (lib/milestones.js) ----
+  // Only your own edits count (an edit sets lastEdit), measured from where this session started on
+  // this script; each milestone shows once per session, in a corner toast for 3.5 s.
+  const lastEdit = useRef({ at: 0, sentence: false });
+  const milestonesFired = useRef(new Set());
+  const endingsChimed = useRef(new Set());
+  const writingSession = useRef(null); // { projectId, startWords, words, pages, blocks }
+  const milestoneQueue = useRef([]);
+  const milestoneShowing = useRef(false);
+  const [milestone, setMilestone] = useState(null);
+  // Show queued milestones one after another, 3.5 s each.
+  const showNextMilestone = useCallback(function next() {
+    const msg = milestoneQueue.current.shift() || null;
+    milestoneShowing.current = !!msg;
+    setMilestone(msg);
+    if (msg) setTimeout(next, MILESTONE_TOAST_MS);
   }, []);
 
   // ---- View Only lock (Ctrl+Alt+L or the status bar badge; lib/lock.js) ----
@@ -504,8 +535,8 @@ function Workspace({ boot }) {
   }, [meta.title]);
 
   useEffect(() => {
-    writeJSON(PREFS_KEY, { zoom, dock, characterTab, navOpen, view, actMode, coverVisible });
-  }, [zoom, dock, characterTab, navOpen, view, actMode, coverVisible]);
+    writeJSON(PREFS_KEY, { zoom, dock, characterTab, navOpen, view, actMode, coverVisible, specStamp });
+  }, [zoom, dock, characterTab, navOpen, view, actMode, coverVisible, specStamp]);
 
   // Status bar: where the script is saved — browser, synced folder, or "click to allow folder sync".
   const saveStatus = storageStatus({ saveOk: saved.ok, dirty, sync });
@@ -545,10 +576,13 @@ function Workspace({ boot }) {
 
   // ---- Script mutations (shared by the Editor and the Dialogue panel) ----
   const commitBlocks = useCallback((next) => {
+    lastEdit.current = { ...lastEdit.current, at: Date.now() };
     set(next.length ? next : [makeBlock('action')]);
   }, [set]);
 
   const updateBlockText = useCallback((id, text) => {
+    const before = latest.current?.blocks.find((b) => b.id === id)?.text ?? '';
+    lastEdit.current = { at: Date.now(), sentence: lastEdit.current.sentence || finishedSentence(before, text) };
     set((prev) => prev.map((b) => (b.id === id ? { ...b, text } : b)), `text:${id}`);
   }, [set]);
 
@@ -1070,6 +1104,71 @@ function Workspace({ boot }) {
     };
   }, []);
 
+  // Milestones and the bell, checked after each edit (layout and word count are up to date here).
+  useEffect(() => {
+    const now = { projectId, words: analysis.words, pages: layout.pageCount, blocks };
+    const s = writingSession.current;
+    if (!s || s.projectId !== projectId) {
+      writingSession.current = { ...now, startWords: analysis.words };
+      return;
+    }
+    if (Date.now() - lastEdit.current.at < 1500) {
+      const ids = milestonesReached({
+        prev: { sessionWords: s.words - s.startWords, pages: s.pages },
+        next: { sessionWords: now.words - s.startWords, pages: now.pages },
+        sentence: lastEdit.current.sentence,
+        now: new Date(),
+        fired: milestonesFired.current,
+      });
+      lastEdit.current.sentence = false;
+      if (ids.length) {
+        ids.forEach((id) => milestonesFired.current.add(id));
+        const idle = milestoneQueue.current.length === 0 && !milestoneShowing.current;
+        milestoneQueue.current.push(...ids.map((id) => MILESTONES[id]));
+        if (idle) setTimeout(showNextMilestone, 0);
+      }
+      const endings = newEndings(s.blocks, blocks, layout.pageOfBlock, endingsChimed.current);
+      if (endings.length) {
+        endings.forEach((id) => endingsChimed.current.add(id));
+        typewriterBell();
+      }
+    }
+    writingSession.current = { ...s, words: now.words, pages: now.pages, blocks };
+  }, [projectId, analysis.words, layout.pageCount, layout.pageOfBlock, blocks, showNextMilestone]);
+
+  // ---- Film Noir mode (lib/noir.js): Ctrl+Shift+Alt+N, or "noir" in a drawer's search box ----
+  const [noir, setNoir] = useState(false);
+  const noirRef = useRef(false); // read by the listeners below
+  const noirAudio = useRef(null); // rain + vinyl (lib/noirAudio.js), made on first use
+  const setNoirMode = useCallback((on) => {
+    // Started from the key press / typing that asked for it; stopping fades out and suspends.
+    if (on) (noirAudio.current ??= createNoirAudio()).start();
+    else noirAudio.current?.stop();
+    noirRef.current = on;
+    setNoir(on);
+  }, []);
+  useEffect(() => {
+    // Capture phase, so Esc leaves Noir before anything else hears it (one Esc, one thing).
+    const onKey = (e) => {
+      const act = noirKeyAction(e, noirRef.current);
+      if (!act) return;
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      setNoirMode(act === 'on');
+    };
+    const onInput = (e) => {
+      if (!noirRef.current && e.target?.matches?.(NOIR_SEARCH_SELECTOR) && isNoirQuery(e.target.value)) setNoirMode(true);
+    };
+    window.addEventListener('keydown', onKey, true);
+    document.addEventListener('input', onInput, true);
+    return () => {
+      window.removeEventListener('keydown', onKey, true);
+      document.removeEventListener('input', onInput, true);
+      noirAudio.current?.dispose();
+      noirAudio.current = null;
+    };
+  }, [setNoirMode]);
+
   // ---- Global shortcuts ----
   useEffect(() => {
     const onKey = (e) => {
@@ -1181,6 +1280,7 @@ function Workspace({ boot }) {
           dock && !focusMode ? 'dock-open' : '',
           navVisible ? 'nav-open' : '',
           focusMode ? 'focus-mode' : '',
+          noir ? NOIR_CLASS : '',
         ].filter(Boolean).join(' ')}
         data-canvas={canvasTheme}
       >
@@ -1436,7 +1536,7 @@ function Workspace({ boot }) {
                     ×
                   </button>
                 </div>
-                <TitlePageSheet meta={meta} className="cover-sheet" />
+                <TitlePageSheet meta={meta} className="cover-sheet" specStamp={specStamp} />
               </div>
             )}
             <Editor
@@ -1475,7 +1575,7 @@ function Workspace({ boot }) {
               onExport={exportOutline}
               compact={view === 'split'}
               actMode={actMode}
-              onActModeChange={setActMode}
+              onActModeChange={changeActMode}
               scenes={boardScenes}
               pageCount={layout.pageCount}
               onJump={jumpTo}
@@ -1534,6 +1634,11 @@ function Workspace({ boot }) {
             {saveStatus.label}
           </button>
           <LockBadge locked={isLocked} onToggle={toggleLock} />
+          {noir && (
+            <button type="button" className="status-noir" onClick={() => setNoirMode(false)} title={`Film Noir — ${NOIR_COMBO} or Esc to leave`}>
+              <span aria-hidden="true">🌧</span> Noir Active · Esc to exit
+            </button>
+          )}
           <span>{analysis.sceneCount} scenes</span>
           {noteCount > 0 && (
             <button
@@ -1607,6 +1712,7 @@ function Workspace({ boot }) {
           </div>
         )}
         {toast && <div className="toast" role="status">{toast}</div>}
+        {milestone && <div className="milestone-toast" role="status" key={milestone}>{milestone}</div>}
         <CueBioCard root={scrollerEl} characters={characters} onEdit={editBio} disabled={!showEditor || printing} />
 
         <ProjectBibleDrawer
@@ -1618,6 +1724,8 @@ function Workspace({ boot }) {
           projectTitle={meta.title}
           storyNotes={storyNotes}
           onStoryNotesChange={setStoryNotes}
+          actMode={actMode}
+          onActModeChange={changeActMode}
           storyDna={storyDna}
           onStoryDnaChange={setStoryDna}
           dictionary={dictionary}
@@ -1695,6 +1803,7 @@ function Workspace({ boot }) {
           </Suspense>
         )}
 
+        <Suspense fallback={null}>
         {helpKind && (
           <HelpModal
             kind={helpKind}
@@ -1736,9 +1845,12 @@ function Workspace({ boot }) {
             onClose={() => setRenameFrom(null)}
           />
         )}
+        </Suspense>
         {titleOpen && (
           <TitlePageModal
             meta={meta}
+            specStamp={specStamp}
+            onSpecStampChange={setSpecStamp}
             onClose={() => setTitleOpen(false)}
             onSave={(next) => {
               setMeta((m) => ({ ...m, ...next }));

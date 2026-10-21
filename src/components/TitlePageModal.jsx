@@ -27,7 +27,7 @@ const FIELDS = [
 ];
 
 /** Form for the title page, with a live miniature of how it will print. */
-export default function TitlePageModal({ meta, onSave, onClose, onViewCover }) {
+export default function TitlePageModal({ meta, onSave, onClose, onViewCover, specStamp = false, onSpecStampChange }) {
   const dialogRef = useRef(null);
   // A title page with no author and no contact yet starts from the writer's defaults.
   const [seed] = useState(() => titlePageSeed(meta));
@@ -175,6 +175,12 @@ export default function TitlePageModal({ meta, onSave, onClose, onViewCover }) {
             {DRAFT_VERSIONS.map((v) => <option key={v} value={v} />)}
           </datalist>
           <div className="tp-actions">
+            {onSpecStampChange && (
+              <label className="tp-stamp" title="A rubber stamp across the title page — on screen only, never printed">
+                <input type="checkbox" checked={specStamp} onChange={(e) => onSpecStampChange(e.target.checked)} />
+                Spec stamp
+              </label>
+            )}
             <button
               type="button"
               className="btn btn-outline tp-cover-btn"
@@ -190,7 +196,7 @@ export default function TitlePageModal({ meta, onSave, onClose, onViewCover }) {
 
         <div className="tp-preview" aria-hidden="true">
           <div className="tp-mini">
-            <TitlePageSheet meta={form} />
+            <TitlePageSheet meta={form} specStamp={specStamp} />
           </div>
         </div>
       </form>

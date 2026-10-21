@@ -1,7 +1,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { holdPrintTitle } from '../src/lib/printTitle.js';
+import { holdPrintTitle, printInNewWindow } from '../src/lib/printTitle.js';
 import { PRINT_TITLE, guideHtml, parseGuide } from '../src/lib/userGuide.js';
 
 /** A window with a document title and listeners we can fire. */
@@ -82,3 +82,58 @@ describe('User Guide print: "DraftLine - User Guide.pdf"', () => {
     assert.ok(!/restoreTitle\(\)|held\.restore\(\)|setTimeout\(done/.test(fn));
   });
 });
+
+/** A popup window that records what happens to it. */
+function fakePopup({ readyState = 'complete' } = {}) {
+  const calls = [];
+  const doc = {
+    readyState, title: '', html: '',
+    open: () => calls.push('open'), write: (h) => { doc.html += h; calls.push('write'); }, close: () => calls.push('doc.close'),
+  };
+  const w = {
+    document: doc, calls, onafterprint: null,
+    focus: () => calls.push('focus'), print: () => calls.push('print'), close: () => calls.push('close'),
+    addEventListener: (t, f) => { if (t === 'load') w.load = f; },
+  };
+  return w;
+}
+const tick = (ms) => new Promise((r) => setTimeout(r, ms));
+
+describe('User Guide print: its own window, titled "DraftLine - User Guide"', () => {
+  const html = guideHtml(parseGuide('# G\n\n## A\n\nText.'), { title: PRINT_TITLE });
+  it('opens a blank 800×900 window, writes the guide into it, titles it, then focuses and prints', async () => {
+    const w = fakePopup();
+    let args;
+    const got = printInNewWindow({ openWindow: (...a) => { args = a; return w; }, html, title: PRINT_TITLE });
+    assert.equal(got, w);
+    assert.deepEqual(args, ['', '_blank', 'width=800,height=900']);
+    assert.match(w.document.html, /^<!doctype html>[^]*<title>DraftLine - User Guide<\/title>[^]*<h2>A<\/h2>/);
+    assert.equal(w.document.title, PRINT_TITLE);
+    assert.deepEqual(w.calls, ['open', 'write', 'doc.close']);
+    await tick(80);
+    assert.deepEqual(w.calls.slice(3), ['focus', 'print']);
+  });
+  it('closes itself after printing (afterprint), once', () => {
+    const w = fakePopup();
+    printInNewWindow({ openWindow: () => w, html, title: PRINT_TITLE });
+    w.onafterprint();
+    w.onafterprint();
+    assert.equal(w.calls.filter((c) => c === 'close').length, 1);
+  });
+  it('waits for the page to load before printing, but never forever', async () => {
+    const w = fakePopup({ readyState: 'loading' });
+    printInNewWindow({ openWindow: () => w, html, title: PRINT_TITLE });
+    await tick(80);
+    assert.ok(!w.calls.includes('print'));
+    w.load();
+    await tick(80);
+    assert.equal(w.calls.filter((c) => c === 'print').length, 1);
+  });
+  it('popup blocked → null, so the modal prints in place instead', () => {
+    assert.equal(printInNewWindow({ openWindow: () => null, html, title: PRINT_TITLE }), null);
+    assert.equal(printInNewWindow({ openWindow: () => { throw new Error('blocked'); }, html, title: PRINT_TITLE }), null);
+    const ui = readFileSync(new URL('../src/components/UserGuideModal.jsx', import.meta.url), 'utf8');
+    assert.match(ui, /if \(printInNewWindow\(\{ openWindow: \(\.\.\.a\) => window\.open\(\.\.\.a\), html, title: PRINT_TITLE \}\)\) return;\s*printInFrame\(html, returnFocusTo\);/);
+  });
+});
+

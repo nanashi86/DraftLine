@@ -9,7 +9,12 @@ import { SHORTCUTS } from '../src/lib/shortcuts.js';
 import { PRIMARY_ROLES, SECONDARY_ROLES, CHARACTER_FIELDS, TREATMENT } from '../src/lib/bible.js';
 import { DNA_QUESTIONS } from '../src/lib/storyDna.js';
 
-const md = readFileSync(new URL('../src/content/userGuide.md', import.meta.url), 'utf8');
+import { GUIDE_VALUES } from '../src/config/features.js';
+import { fillGuide } from '../src/lib/userGuide.js';
+
+// The guide as the app shows it: its {{placeholders}} filled from the feature config.
+const source = readFileSync(new URL('../src/content/userGuide.md', import.meta.url), 'utf8');
+const md = fillGuide(source, GUIDE_VALUES, { shortcuts: SHORTCUTS }).text;
 const guide = parseGuide(md);
 const headings = guide.chapters.flatMap((c) => [c.title, ...c.topics.map((t) => t.title)]);
 const hasHeading = (re) => headings.some((h) => re.test(h));

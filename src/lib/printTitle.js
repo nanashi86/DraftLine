@@ -46,3 +46,50 @@ export function holdPrintTitle({ topWindow, frameWindow, title, onDone }) {
   };
   return { restore, armFallback, saved };
 }
+
+/**
+ * Print `html` from its own window — the most reliable way to get "<title>.pdf": the print dialog
+ * belongs to a top-level page whose only title is `title`, whatever the app's tab (or installed
+ * app window) is called. The window closes itself after printing. Returns the window, or null when
+ * the browser blocked the popup (the caller then falls back to printing in place).
+ *   openWindow — window.open (injectable for tests)
+ */
+export function printInNewWindow({ openWindow, html, title, features = 'width=800,height=900' }) {
+  let w = null;
+  try {
+    w = openWindow('', '_blank', features);
+  } catch {
+    w = null;
+  }
+  if (!w || !w.document) return null;
+  const doc = w.document;
+  doc.open();
+  doc.write(html);
+  doc.close();
+  doc.title = title;
+  let closed = false;
+  const close = () => {
+    if (closed) return;
+    closed = true;
+    try {
+      w.close();
+    } catch {
+      /* already gone */
+    }
+  };
+  w.onafterprint = close;
+  let printed = false;
+  const go = () => {
+    if (printed) return;
+    printed = true;
+    w.focus();
+    w.print();
+  };
+  // Print once the page (and its styles) has loaded; written documents are often complete already.
+  if (doc.readyState === 'complete') setTimeout(go, 50);
+  else {
+    w.addEventListener?.('load', () => setTimeout(go, 50), { once: true });
+    setTimeout(go, 1500); // in case load never fires
+  }
+  return w;
+}

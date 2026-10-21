@@ -2,7 +2,7 @@
 
 DraftLine is a distraction-free screenwriting app that runs in your browser. It writes in Courier Prime at 12 pt with standard screenplay margins, saves as you type, and works offline. This guide covers everything from your first scene heading to the final PDF.
 
-Press `F1` at any time to open this guide. `Ctrl+/` shows every keyboard shortcut. On a Mac, read `Ctrl` as `⌘` and `Alt` as `⌥`.
+Press {{key:F1}} at any time to open this guide. {{key:Ctrl+/}} shows every keyboard shortcut. On a Mac, read `Ctrl` as `⌘` and `Alt` as `⌥`.
 
 ## Workspace & Storage
 
@@ -10,16 +10,16 @@ Press `F1` at any time to open this guide. `Ctrl+/` shows every keyboard shortcu
 
 The top bar holds your script's title, file actions (New, Open, Import, Title Page), the Element picker, the B / I / U / S formatting buttons, the view switch (**Page**, **Split**, **Board**) and the Export menu. Story Bible and Characters open as panels on the right. The status bar at the bottom shows the current element, where your work is saved, scene and word counts, page count, page colour, undo / redo and zoom.
 
-- **Page** shows the script. **Split** shows the script beside the Scene Board. **Board** shows the Scene Board alone. `Alt+B` cycles through them.
-- **Focus** hides everything but the page. Press `Esc` to come back.
-- The **Scenes** sidebar (`Alt+S`) lists every scene with its length in eighths of a page. Click one to jump to it, or type to find a scene.
+- **Page** shows the script. **Split** shows the script beside the Scene Board. **Board** shows the Scene Board alone. {{key:Alt+B}} cycles through them.
+- **Focus** hides everything but the page. Press {{key:Esc}} to come back.
+- The **Scenes** sidebar ({{key:Alt+S}}) lists every scene with its length in eighths of a page. Click one to jump to it, or type to find a scene.
 - Narrow windows tuck File actions into a **File ▾** menu, and panels you can't see on the bar move into the **⋮** menu.
 
 ### Projects and browser storage
 
-Every script lives in your **Projects** library (`Alt+P`, or the ▾ beside the title). From there you can create, switch, rename, duplicate, export or delete scripts.
+Every script lives in your **Projects** library ({{key:Alt+P}}, or the ▾ beside the title). From there you can create, switch, rename, duplicate, export or delete scripts.
 
-By default, scripts are saved in this browser's own database (IndexedDB) on this computer. Saving is automatic, about half a second after you stop typing. `Ctrl+S` saves immediately. Nothing is uploaded and no account is needed.
+By default, scripts are saved in this browser's own database (IndexedDB) on this computer. Saving is automatic, about half a second after you stop typing. {{key:Ctrl+S}} saves immediately. Nothing is uploaded and no account is needed.
 
 Browser storage belongs to this browser profile. Clearing the browser's site data removes those scripts, so keep backups (see below) or link a folder.
 
@@ -47,9 +47,9 @@ Safari, Firefox and phone browsers can't link folders. There, DraftLine uses bro
 A snapshot is a named checkpoint of the whole project: script, title page, Scene Board and Story Bible.
 
 - Click the camera button (**Snapshot**) in the top bar, give it a label (or keep the date and time), and save.
-- **⋮ → View Snapshots** lists them, newest first. **Restore** puts a snapshot back. It offers to snapshot your current draft first (on by default), and `Ctrl+Z` undoes the restore.
+- **⋮ → View Snapshots** lists them, newest first. **Restore** puts a snapshot back. It offers to snapshot your current draft first (on by default), and {{key:Ctrl+Z}} undoes the restore.
 - Snapshots are saved with the script and included in backups.
-- With Folder Sync on, each snapshot is also written to `Snapshots/Your-Title_YYYY-MM-DD_HHmm.draftline` inside the linked folder. Snapshots found only in that folder (from another computer, for example) show **In folder** and can be restored like any other.
+- With Folder Sync on, each snapshot is also written to `{{sync.snapshotDir}}/Your-Title_YYYY-MM-DD_HHmm.draftline` inside the linked folder. Snapshots found only in that folder (from another computer, for example) show **In folder** and can be restored like any other.
 
 ### Backups
 
@@ -63,16 +63,16 @@ About DraftLine (**⋮ → About DraftLine**) has a **Backup Project** button to
 
 A screenplay is made of elements, each with its own margins:
 
-- **Scene Heading** (`Alt+1`): INT. / EXT., location and time of day.
-- **Format Cue** (`Alt+2`): MONTAGE, SERIES OF SHOTS, INTERCUT and their END cues.
-- **Action** (`Alt+3`): what we see and hear.
-- **Character** (`Alt+4`): the name above a speech.
-- **Parenthetical** (`Alt+5`): (beat), (whispering), and so on.
-- **Dialogue** (`Alt+6`): what the character says.
-- **Transition** (`Alt+7`): CUT TO:, DISSOLVE TO:.
-- **Centered** (`Alt+8`): centred text such as THE END.
+- {{element.scene}}: INT. / EXT., location and time of day.
+- {{element.format_cue}}: MONTAGE, SERIES OF SHOTS, INTERCUT and their END cues.
+- {{element.action}}: what we see and hear.
+- {{element.character}}: the name above a speech.
+- {{element.parenthetical}}: (beat), (whispering), and so on.
+- {{element.dialogue}}: what the character says.
+- {{element.transition}}: CUT TO:, DISSOLVE TO:.
+- {{element.centered}}: centred text such as THE END.
 
-The Element picker in the top bar shows the current element and changes it. `Alt+D` makes a speech **dual dialogue**, side by side with the one before it.
+The Element picker in the top bar shows the current element and changes it. {{element.dual}} makes a speech **dual dialogue**, side by side with the one before it.
 
 ### The Tab & Enter flow
 
@@ -89,20 +89,20 @@ You rarely need the mouse. **Enter** moves on to the element that usually comes 
 
 - In Action with text, Tab starts a **Character** cue.
 - In Dialogue with text, Tab inserts a **Parenthetical**.
-- On an empty line, Tab cycles Action → Character → Transition → Scene Heading → Action. `Shift+Tab` goes backwards.
+- On an empty line, Tab cycles Action → Character → Transition → Scene Heading → Action. {{key:Shift+Tab}} goes backwards.
 - Pressing Enter on an empty Character, Dialogue or Parenthetical line steps back out to Action.
 - Typing `(` at the start of an empty Dialogue line turns it into a Parenthetical.
-- `Shift+Enter` adds a line break inside Action or Dialogue.
+- {{key:Shift+Enter}} adds a line break inside Action or Dialogue.
 
 The status bar always shows what Enter and Tab will do next.
 
 ### Autocomplete
 
-Scene Headings suggest INT. / EXT., locations you've used and times of day. Character cues suggest names already in the script. Use ↑ ↓ to pick, then Enter or Tab to accept. `Esc` dismisses the list.
+Scene Headings suggest INT. / EXT., locations you've used and times of day. Character cues suggest names already in the script. Use ↑ ↓ to pick, then Enter or Tab to accept. {{key:Esc}} dismisses the list.
 
 ### Formatting
 
-Select text and press `Ctrl+B` (bold), `Ctrl+I` (italic), `Ctrl+U` (underline) or `Ctrl+Shift+X` (strikethrough). With nothing selected, formatting applies to the word at the cursor. `Ctrl+\` clears formatting. The toolbar's **B I U S** buttons do the same.
+Select text and press {{key:Ctrl+B}} (bold), {{key:Ctrl+I}} (italic), {{key:Ctrl+U}} (underline) or {{key:Ctrl+Shift+X}} (strikethrough). With nothing selected, formatting applies to the word at the cursor. {{key:Ctrl+\}} clears formatting. The toolbar's **B I U S** buttons do the same.
 
 ### Title page
 
@@ -110,70 +110,69 @@ Select text and press `Ctrl+B` (bold), `Ctrl+I` (italic), `Ctrl+U` (underline) o
 
 ### Margin notes
 
-`Alt+N` opens a private margin note for the current line. Selected words are quoted into the note. Notes open in the Notes drawer (**⋮ → Margin Notes**) and are never printed or exported.
+{{key:Alt+N}} opens a private margin note for the current line. Selected words are quoted into the note. Notes open in the Notes drawer (**⋮ → Margin Notes**) and are never printed or exported.
 
 ### View Only lock
 
-`Ctrl+Alt+L`, or the **Edit** badge in the status bar, locks the script. While it shows **View Only** you can read, scroll, select and copy, and character bio cards still appear, but nothing can be typed, deleted, formatted or undone. The Element picker and B / I / U / S are dimmed. Press `Ctrl+Alt+L` again (or click the badge) to edit.
+{{lock.combo}}, or the **Edit** badge in the status bar, locks the script. While it shows **View Only** you can read, scroll, select and copy, and character bio cards still appear, but nothing can be typed, deleted, formatted or undone. The Element picker and B / I / U / S are dimmed. Press {{lock.combo}} again (or click the badge) to edit.
 
 ### Checking your pages
 
 - **Format Doctor** (status bar) finds elements that are probably tagged wrong, such as a scene heading or a character cue typed as Action, dialogue with no character above it, or empty elements, and fixes each in one click (or all at once).
-- **Density** (status bar) flags Action paragraphs that run past four lines, or that are walls of text. Click it to highlight them, then step through each one with ‹ ›, or open the list with ▴.
+- **Density** (status bar) flags Action paragraphs that run past {{density.lines}} lines, or that are walls of text. Click it to highlight them, then step through each one with ‹ ›, or open the list with ▴.
 - **Hover a character cue** to see that character's bio card. Click **Edit in Bios →** to open their bio.
 
 ### Page colour and zoom
 
-The status bar switches the page between **Paper** (ivory, black ink) and **Midnight** (a dark page with light ink, on screen only; printing stays black on white). The zoom controls sit at the far right. The page shrinks to fit when panels are open.
+The status bar switches the page colour: {{themes}}. The zoom controls sit at the far right. The page shrinks to fit when panels are open.
 
 ## Story Bible
 
-The Story Bible (`Alt+I`) keeps everything about the story that isn't the script. It's saved with the project and switches with it in Projects. The ⤢ button in the panel's header expands it to the full window; `Esc` collapses it again.
+The Story Bible ({{key:Alt+I}}) keeps everything about the story that isn't the script. It's saved with the project and switches with it in Projects. The ⤢ button in the panel's header expands it to the full window; {{key:Esc}} collapses it again.
 
 ### DNA: Blueprint
 
-The **Blueprint** walks through the spine of the story in eight questions:
+The **Blueprint** walks through the spine of the story in {{dna.count}} questions:
 
-1. **Protagonist**: Who is it about?
-2. **Inciting Incident**: What happens that starts the story?
-3. **Goal / Desire**: What do they want?
-4. **Flaw**: What must they overcome to get it?
-5. **Conflict / Debate**: Why can't they get it? (with the conflict type: Individual vs. Individual, Nature, Society, Technology, Supernatural or Self)
-6. **Rising Action**: What did they do about it?
-7. **Climax**: Why doesn't that work?
-8. **Falling Action**: How does it end?
+{{dna.questions}}
 
-It also records genre, theme and **Plot Devices**. Foreshadowing and Flashback are always listed. You can add Deus ex machina, MacGuffin, Quest, Cliffhanger, Red herring and Love triangle, each with Yes / No and notes. The ⓘ beside any term shows its definition.
+The Conflict question also records its type: Individual vs. {{dna.conflictTypes}}.
+
+It also records genre, theme and **Plot Devices**. {{dna.defaultDevices}} are always listed. You can add {{dna.optionalDevices}}, each with Yes / No and notes. The ⓘ beside any term shows its definition.
 
 ### DNA: Glossary
 
-The **Glossary** defines every story term in two sections, **Character Roles** and **Narrative & Dramatic Craft**. Search filters both at once. Definitions marked **starter** are DraftLine's; click **Edit** to paste your own reference's wording. Your wording is kept for all your projects, and **Reset to starter text** brings the original back.
+The **Glossary** defines every story term in two sections, {{glossary.sections}}. Search filters both at once. Definitions marked **starter** are DraftLine's; click **Edit** to paste your own reference's wording. Your wording is kept for all your projects, and **Reset to starter text** brings the original back.
 
 ### Notes
 
-**Notes** holds free-form cards: **Logline**, **Tone**, **Timeline**, **Pitch** and a **Scratchpad**. Rename, remove or add your own sections. Every card has **Edit** / **Done** and saves as you type. Cards accept Markdown: headings, lists, quotes, **bold** and *italic*.
+**Notes** holds free-form cards: {{notes.sections}}. Rename, remove or add your own sections. Every card has **Edit** / **Done** and saves as you type. Cards accept Markdown: headings, lists, quotes, **bold** and *italic*.
 
 ### Synopsis & Treatment
 
-- **Synopsis**: three acts (Act I: Setup, Act II: Confrontation, Act III: Resolution), right after Pitch.
-- **Treatment**: right below the Synopsis, the same three acts at full length, for your narrative treatment: sequence-by-sequence prose, scene breakdowns and subplots. Write each act there, or paste it in with Import from Notes.
+{{acts.cards}} sit right after {{notes.fixedAfter}}, written act by act, in {{acts.structures}}, the same switch as the Scene Board's (the **3 Acts** / **4 Acts** buttons above the notes change both).
+
+- **Synopsis**: in 3 acts, {{acts.labels.3}}; in 4 acts, {{acts.labels.4}}.
+- **Treatment**: your full narrative treatment, sequence-by-sequence prose, scene breakdowns and subplots, in the same acts. It adapts to the active 3- or 4-act view. Write each act there, or paste it in with Import from Notes.
+
+Switching never loses text. Going from 3 acts to 4 splits Act II in two: at a `### Act 2B` or `## Midpoint` heading, a `---` line or an `[ACT 2B]` tag if you've put one in, otherwise at the paragraph break nearest the middle. Going from 4 acts to 3 joins Act 2A and Act 2B into Act II with a `### ACT 2B` line between them, so switching back splits them exactly where they were. (If Act 2B already has text, going to 4 acts leaves both as they are.)
 
 ### Copying and importing notes
 
-- **Copy as Markdown** copies every note, in order, ready to paste into a document.
-- **Import from Notes** pastes text from Docs, Word, Notion or Apple Notes into a section (or straight into one act of the Treatment), appended or replacing what's there. **Split by headings** turns each heading into a section. Under a `## Treatment` or `## Synopsis` heading, act headings such as `### ACT I: SETUP` fill that act, and any other sub-headings stay inside the act they follow, so Copy as Markdown output imports straight back.
+- **Copy as Markdown** copies every note, in order, ready to paste into a document. The acts come out in the active view: the Treatment as {{acts.headings.3}} in 3 acts, or {{acts.headings.4}} in 4 acts.
+- **Import from Notes** pastes text from Docs, Word, Notion or Apple Notes into a section (or straight into one act of the Treatment), appended or replacing what's there. **Split by headings** turns each heading into a section. Under a `## Treatment` or `## Synopsis` heading, act headings fill that act: both traditional Roman numerals and 4-act numbers are recognized, such as {{acts.importExamples}}. Any other sub-headings stay inside the act they follow, so Copy as Markdown output imports straight back.
 
 ## Characters
 
-Characters (`Alt+C`) has two tabs, **Bios** and **Dialogue**.
+Characters ({{key:Alt+C}}) has two tabs, **Bios** and **Dialogue**.
 
 ### Bios
 
 Each bio has:
 
 - **Name**
-- **Primary Role**: Protagonist, Antagonist, Deuteragonist, Tritagonist, Supporting or Minor / Cameo.
-- **Secondary Function**: an archetype such as Foil, Catalyst, Mentor / Guide, Confidant(e), Love Interest, Skeptic / Voice of Reason, Henchman / Enforcer, Threshold Guardian or Shadow / Mirror.
+- **Primary Role**: {{roles.primary}}.
+- **Secondary Function**: an archetype such as {{roles.secondary}}.
 - **Relationship**: free text, for example "Brother-in-law to Fito, manages textile warehouse".
 - **Age / Timeline**: for example "10 in 1986, 45 in 2021".
 - **Physical Description**: how they look, for example "Tall, lean, weathered hands, always wearing a faded denim jacket".
@@ -190,7 +189,7 @@ DraftLine reads the character cues in your script. Anyone who speaks but has no 
 
 ### Dialogue
 
-The **Dialogue** tab (`Alt+T`) gathers every line one character speaks, in script order, with its scene and page. Pick a character at the top. You can edit lines right there (changes go straight into the script), filter the lines, show the line before each speech for context (**Cue context**), and jump to any line in the script with **Go ↗**. Picking a character also highlights their speeches in the script.
+The **Dialogue** tab ({{key:Alt+T}}) gathers every line one character speaks, in script order, with its scene and page. Pick a character at the top. You can edit lines right there (changes go straight into the script), filter the lines, show the line before each speech for context (**Cue context**), and jump to any line in the script with **Go ↗**. Picking a character also highlights their speeches in the script.
 
 ## Scene Board & Pacing
 
@@ -198,22 +197,22 @@ The **Scene Board** (formerly the Beat Board; **Board** or **Split** view) lays 
 
 ### Acts and cards
 
-- Switch between **3 Acts** (Act 1 · Act 2 with a Midpoint divider · Act 3) and **4 Acts** (Act 1 · Act 2A · Act 2B · Act 3). Switching never moves or loses a card.
-- Each card has a headline, a synopsis and colour tags: **Plot**, **Subplot**, **Character** and **Theme**. Click a tag in the legend to show only those cards.
+- Switch between **3 Acts** ({{board.columns.3}}, with a Midpoint divider in Act 2) and **4 Acts** ({{board.columns.4}}). Switching never moves or loses a card. It's the same setting as the act switch in Notes, so it also splits or joins Act II of the Synopsis and Treatment (see Synopsis & Treatment).
+- Each card has a headline, a synopsis and colour tags: {{board.tags}}. Click a tag in the legend to show only those cards.
 - **+ Add Card** adds a card to a column. Drag cards by their grip to reorder them or move them between acts.
 
 ### Linking cards to scenes
 
 **Populate from Script** fills the board from your script, one card per scene, linked to that scene:
 
-- **Auto-Distribute (% Targets)** places scenes by page: about 25 / 50 / 25% for 3 acts, or 25% each for 4 acts.
+- **Auto-Distribute (% Targets)** places scenes by page: about {{board.targets.3}} for 3 acts, or {{board.targets.4}} for 4 acts.
 - **Manual Scene Ranges…** lets you say which scenes belong to each act (for example 1–12, 13–40, 41–55).
 
 Moving a linked card also moves its scene in the script (one undo step).
 
 ### Pacing distribution
 
-Once cards are linked to scenes, each act column shows how many pages its scenes add up to and what share of the script that is, for example "24 pgs · 25%". A coloured status dot appears when an act runs more than 7 points above or below its usual share (3 acts: 25 / 50 / 25%; 4 acts: 25% each). Hover the badge for details.
+Once cards are linked to scenes, each act column shows how many pages its scenes add up to and what share of the script that is, for example "24 pgs · 25%". A coloured status dot appears when an act runs more than {{board.tolerance}} points above or below its usual share (3 acts: {{board.targets.3}}; 4 acts: {{board.targets.4}}). Hover the badge for details.
 
 ### Outline export
 
@@ -235,4 +234,4 @@ Once cards are linked to scenes, each act column shows how many pages its scenes
 
 ### Printing and PDF
 
-**Export → Print Script / PDF** (`Ctrl+P`) prints exactly what the editor shows: Courier Prime 12 pt, standard margins and the same page breaks. The title page prints first, unnumbered, and page numbers start on page 2. Choose **Save as PDF** in the print dialog for a PDF. Margin notes, highlights and the Midnight page colour never print.
+**Export → Print Script / PDF** ({{key:Ctrl+P}}) prints exactly what the editor shows: Courier Prime 12 pt, standard margins and the same page breaks. The title page prints first, unnumbered, and page numbers start on page 2. Choose **Save as PDF** in the print dialog for a PDF. Margin notes, highlights and the Midnight page colour never print.

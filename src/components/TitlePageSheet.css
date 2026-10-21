@@ -33,3 +33,29 @@
 }
 .ts-contact { left: calc(var(--in) * 1.5); max-width: calc(var(--in) * 3.5); }
 .ts-draft { right: var(--in); max-width: calc(var(--in) * 2.75); text-align: right; }
+
+/* Spec Stamp: a faded crimson rubber stamp across the page, behind nothing you can click.
+   Screen only — the print view never renders it, and print hides it besides. */
+.title-sheet { isolation: isolate; } /* so the stamp can sit behind the text, on the paper */
+.ts-spec-stamp {
+  position: absolute;
+  left: 50%;
+  top: 46%;
+  width: 78%;
+  transform: translate(-50%, -50%) rotate(-18deg);
+  padding: calc(var(--in) * 0.12) calc(var(--in) * 0.18);
+  border: 2px solid rgba(176, 37, 37, 0.38);
+  border-radius: calc(var(--in) * 0.06);
+  color: rgba(176, 37, 37, 0.38);
+  font: 700 calc(var(--in) * 0.3) / 1.25 'Courier Prime', 'Courier New', monospace;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-align: center;
+  pointer-events: none;
+  user-select: none;
+  /* Over the title page, but multiplied: black type stays black where the ink crosses it, and the
+     red only tints the paper. */
+  mix-blend-mode: multiply;
+  z-index: 1;
+}
+@media print { .ts-spec-stamp { display: none !important; } }

@@ -281,39 +281,102 @@ export function missingFromScript(list, speakers) {
 
 // ---- Story notes ------------------------------------------------------------------------
 //
-// { version, sections: [{ id, title, body }], synopsis: { act1, act2, act3 }, treatment: { act1, act2, act3 } }
-// The Synopsis is a structured three-act card shown right after Pitch (SYNOPSIS_AFTER); the
-// Treatment — the same three acts, at full length — comes right after the Synopsis.
+// { version, sections: [{ id, title, body }], synopsis: { act1, act2, act2b, act3 }, treatment: { …same… } }
+// The Synopsis is a structured act card shown right after Pitch (SYNOPSIS_AFTER); the Treatment —
+// the same acts, at full length — comes right after the Synopsis.
+//
+// Both follow the Scene Board's 3 / 4-act switch (ACT_STRUCTURES). Four slots are stored, so a
+// switch never moves or loses text:
+//   3 acts: Act I (act1) · Act II (act2) · Act III (act3)
+//   4 acts: Act 1 (act1) · Act 2A (act2) · Act 2B (act2b) · Act 3 (act3)
+// Act II's text is Act 2A's in the 4-act view; Act 2B written there stays on show in the 3-act
+// view too (under Act II), so nothing is ever hidden.
 
-/** The Synopsis card's three acts, in order. */
-export const SYNOPSIS_ACTS = [
-  { key: 'act1', label: 'Act I: Setup', short: 'Act I (Setup)', placeholder: 'Act I setup, world-building, inciting incident...' },
-  { key: 'act2', label: 'Act II: Confrontation', short: 'Act II (Confrontation)', placeholder: 'Act II escalating stakes, midpoint reversal, all-hope-is-lost moment...' },
-  { key: 'act3', label: 'Act III: Resolution', short: 'Act III (Resolution)', placeholder: 'Act III climax, ultimate confrontation, and resolution...' },
-];
+/** The act structures the Synopsis, Treatment and Scene Board offer. */
+export const ACT_STRUCTURES = [3, 4];
+export const DEFAULT_ACT_STRUCTURE = 4;
+export const ACT_KEYS = ['act1', 'act2', 'act2b', 'act3'];
+
+// Labels per structure — the 4-act names are the Scene Board's (beats.js ACTS).
+const ACT_LABELS = {
+  3: {
+    act1: ['Act I: Setup', 'Act I (Setup)'],
+    act2: ['Act II: Confrontation', 'Act II (Confrontation)'],
+    act2b: ['Act II (cont.): Fall & Crisis', 'Act II, cont. (Fall & Crisis)'],
+    act3: ['Act III: Resolution', 'Act III (Resolution)'],
+  },
+  4: {
+    act1: ['Act 1: Setup', 'Act 1 (Setup)'],
+    act2: ['Act 2A: Escalation to Midpoint', 'Act 2A (Escalation to Midpoint)'],
+    act2b: ['Act 2B: Fall & Crisis', 'Act 2B (Fall & Crisis)'],
+    act3: ['Act 3: Climax & Resolution', 'Act 3 (Climax & Resolution)'],
+  },
+};
+const PLACEHOLDERS = {
+  synopsis: {
+    3: {
+      act1: 'Act I setup, world-building, inciting incident...',
+      act2: 'Act II escalating stakes, midpoint reversal, all-hope-is-lost moment...',
+      act2b: 'The fall after the midpoint, the crisis...',
+      act3: 'Act III climax, ultimate confrontation, and resolution...',
+    },
+    4: {
+      act1: 'Act 1 setup, world-building, inciting incident...',
+      act2: 'Act 2A rising stakes, up to the midpoint reversal...',
+      act2b: 'Act 2B the fall after the midpoint, the crisis, the all-hope-is-lost moment...',
+      act3: 'Act 3 climax, ultimate confrontation, and resolution...',
+    },
+  },
+  treatment: {
+    3: {
+      act1: 'Act I in full: the world, the characters, the inciting incident — sequence by sequence...',
+      act2: 'Act II in full: escalating stakes, subplots, the midpoint reversal, the all-hope-is-lost moment...',
+      act2b: 'The fall after the midpoint, in full...',
+      act3: 'Act III in full: the climax, the final confrontation, and the resolution...',
+    },
+    4: {
+      act1: 'Act 1 in full: the world, the characters, the inciting incident — sequence by sequence...',
+      act2: 'Act 2A in full: rising stakes and subplots, up to the midpoint reversal...',
+      act2b: 'Act 2B in full: the fall after the midpoint, the crisis, the all-hope-is-lost moment...',
+      act3: 'Act 3 in full: the climax, the final confrontation, and the resolution...',
+    },
+  },
+};
+
+const actStructure = (mode) => (ACT_STRUCTURES.includes(Number(mode)) ? Number(mode) : 3);
+
+/**
+ * The act boxes a card shows: card 'synopsis' | 'treatment', structure 3 | 4, and the card's
+ * value — in the 3-act view Act 2B appears (under Act II) only when it has text.
+ * → [{ key, label, short, placeholder }]
+ */
+export function actsFor(card, mode, value) {
+  const m = actStructure(mode);
+  const keys = m === 4 ? ACT_KEYS : ACT_KEYS.filter((k) => k !== 'act2b' || (value?.act2b || '').trim());
+  return keys.map((key) => ({ key, label: ACT_LABELS[m][key][0], short: ACT_LABELS[m][key][1], placeholder: PLACEHOLDERS[card][m][key] }));
+}
+
+/** The Synopsis card's three acts (the 3-act view, nothing in 2B). */
+export const SYNOPSIS_ACTS = actsFor('synopsis', 3, null);
 export const SYNOPSIS_AFTER = 'Pitch';
 
-export const emptySynopsis = () => ({ act1: '', act2: '', act3: '' });
+export const emptySynopsis = () => ({ act1: '', act2: '', act2b: '', act3: '' });
 
-/** The Treatment card: the full narrative treatment, below the Synopsis, in the Synopsis's three acts. */
+/** The Treatment card: the full narrative treatment, below the Synopsis, in the Synopsis's acts. */
 export const TREATMENT = {
   label: 'Treatment',
   placeholder: 'Write or paste your full narrative treatment here (sequence-by-sequence prose, scene breakdowns, subplots)...',
 };
 
-/** The Treatment's acts: the Synopsis's keys and labels, with prompts for full-length prose. */
-export const TREATMENT_ACTS = [
-  { key: 'act1', label: 'Act I: Setup', short: 'Act I (Setup)', placeholder: 'Act I in full: the world, the characters, the inciting incident — sequence by sequence...' },
-  { key: 'act2', label: 'Act II: Confrontation', short: 'Act II (Confrontation)', placeholder: 'Act II in full: escalating stakes, subplots, the midpoint reversal, the all-hope-is-lost moment...' },
-  { key: 'act3', label: 'Act III: Resolution', short: 'Act III (Resolution)', placeholder: 'Act III in full: the climax, the final confrontation, and the resolution...' },
-];
+/** The Treatment's acts in the 3-act view (full-length prompts). */
+export const TREATMENT_ACTS = actsFor('treatment', 3, null);
 
-/** "ACT I: SETUP" — how an act is headed in Copy as Markdown's Treatment. */
+/** "ACT I: SETUP", "ACT 2A: ESCALATION TO MIDPOINT" — how an act is headed in Copy as Markdown's Treatment. */
 export const treatmentActHeading = (a) => a.label.toUpperCase();
 
 /**
- * Anything stored → { act1, act2, act3 }. A plain string (a one-box treatment from before the
- * acts) becomes Act I, word for word.
+ * Anything stored → { act1, act2, act2b, act3 }. A plain string (a one-box treatment from before
+ * the acts) becomes Act I, word for word.
  */
 export const normalizeTreatment = (v) => normalizeSynopsis(v);
 
@@ -321,25 +384,103 @@ export const treatmentHasText = (t) => synopsisHasText(t);
 
 /** Set one Treatment act (the others are untouched). */
 export function setTreatmentAct(notes, key, text) {
-  if (!TREATMENT_ACTS.some((a) => a.key === key)) return notes;
+  if (!ACT_KEYS.includes(key)) return notes;
   return { ...notes, treatment: { ...normalizeTreatment(notes.treatment), [key]: String(text ?? '') } };
 }
 
-/** Anything stored → { act1, act2, act3 }. A plain string (an older one-box synopsis) becomes Act I. */
+/** Anything stored → { act1, act2, act2b, act3 }. A plain string (an older one-box synopsis) becomes Act I. */
 export function normalizeSynopsis(v) {
   if (typeof v === 'string') return { ...emptySynopsis(), act1: v };
   if (!v || typeof v !== 'object') return emptySynopsis();
   const out = emptySynopsis();
-  for (const { key } of SYNOPSIS_ACTS) out[key] = typeof v[key] === 'string' ? v[key] : '';
+  for (const key of ACT_KEYS) out[key] = typeof v[key] === 'string' ? v[key] : '';
   return out;
 }
 
-export const synopsisHasText = (s) => SYNOPSIS_ACTS.some(({ key }) => (s?.[key] || '').trim());
+export const synopsisHasText = (s) => ACT_KEYS.some((key) => (s?.[key] || '').trim());
 
 /** Set one act's text (the others are untouched). */
 export function setSynopsisAct(notes, key, text) {
-  if (!SYNOPSIS_ACTS.some((a) => a.key === key)) return notes;
+  if (!ACT_KEYS.includes(key)) return notes;
   return { ...notes, synopsis: { ...normalizeSynopsis(notes.synopsis), [key]: text } };
+}
+
+// ---- Switching 3 ⇄ 4 acts: the Act II text is split / joined (Synopsis and Treatment alike) ----
+//
+// 3 → 4: Act II becomes Act 2A + Act 2B. A split marker in the text decides where — a "### Act 2B"
+//        or "## Midpoint" heading, a "---" rule or "[ACT 2B]" — and is dropped; without one, the
+//        text is split at the paragraph break nearest its middle. Act 2B is never left empty
+//        while Act II has words. (Nothing to do if Act 2B already has text.)
+// 4 → 3: Act 2A and Act 2B are joined into Act II with a "### ACT 2B" line between them — the
+//        marker the next 3 → 4 switch splits at, so going back restores the exact split.
+
+/** Where Act II splits into 2A / 2B: a heading, a rule or a bracket tag. */
+export const ACT2B_MARKER = /(?:###?\s*(?:ACT\s*2B|MIDPOINT)|---|\[ACT\s*2B\])/i;
+export const ACT2B_JOIN = '### ACT 2B';
+
+/** Split text at the boundary nearest its middle: a blank line, else a line break, a sentence end, a space. */
+function splitNearMiddle(text) {
+  const t = text.trim();
+  const mid = t.length / 2;
+  for (const re of [/\n[ \t]*\n/g, /\n/g, /(?<=[.!?]["'”’)\]]*)\s+/g, /\s+/g]) {
+    let best = null;
+    for (const m of t.matchAll(re)) {
+      const centre = m.index + m[0].length / 2;
+      if (!best || Math.abs(centre - mid) < Math.abs(best.index + best[0].length / 2 - mid)) best = m;
+    }
+    if (best) return [t.slice(0, best.index).trim(), t.slice(best.index + best[0].length).trim()];
+  }
+  return [t, '']; // one word: nowhere to split
+}
+
+/** Act II's text → [Act 2A, Act 2B], at a marker if there is one, else near the middle. */
+export function splitAct2(text) {
+  const t = String(text || '').trim();
+  if (!t) return ['', ''];
+  const m = ACT2B_MARKER.exec(t);
+  if (!m) return splitNearMiddle(t);
+  // A heading marker takes its whole line ("### Act 2B: Fall & Crisis"); "---" and "[ACT 2B]" only themselves.
+  let end = m.index + m[0].length;
+  if (m[0].startsWith('#')) {
+    const nl = t.indexOf('\n', end);
+    end = nl < 0 ? t.length : nl;
+  }
+  const before = t.slice(0, m.index).trim();
+  const after = t.slice(end).trim();
+  if (after) return [before, after];
+  return before ? splitNearMiddle(before) : ['', '']; // marker at the very end: split what's there
+}
+
+/** [Act 2A, Act 2B] → Act II, keeping the boundary as "### ACT 2B" (empty halves add nothing). */
+export function joinAct2(a, b) {
+  const A = String(a || '').trim();
+  const B = String(b || '').trim();
+  if (!B) return A;
+  return A ? `${A}\n\n${ACT2B_JOIN}\n\n${B}` : `${ACT2B_JOIN}\n\n${B}`;
+}
+
+/** One card's acts { act1, act2, act2b, act3 } converted from `from` acts to `to` acts. */
+export function convertActs(acts, from, to) {
+  const v = normalizeSynopsis(acts);
+  if (Number(from) === Number(to)) return v;
+  if (Number(to) === 4) {
+    if (v.act2b.trim() || !v.act2.trim()) return v;
+    const [a, b] = splitAct2(v.act2);
+    return { ...v, act2: a, act2b: b };
+  }
+  if (!v.act2b.trim()) return { ...v, act2b: '' };
+  return { ...v, act2: joinAct2(v.act2, v.act2b), act2b: '' };
+}
+
+/** The notes after switching the act structure: Synopsis and Treatment both converted. */
+export function convertNotesActs(notes, from, to) {
+  if (Number(from) === Number(to)) return notes;
+  const n = normalizeStoryNotes(notes);
+  const synopsis = convertActs(n.synopsis, from, to);
+  const treatment = convertActs(n.treatment, from, to);
+  const same = (a, b) => ACT_KEYS.every((k) => a[k] === b[k]);
+  if (same(synopsis, n.synopsis) && same(treatment, n.treatment)) return notes; // nothing to move: not an edit
+  return { ...n, synopsis, treatment };
 }
 
 /** Where the Synopsis card goes among the sections: right after Pitch, else at the end. */
@@ -352,21 +493,21 @@ export function synopsisIndex(sections) {
  * The Notes tab as Markdown, in on-screen order — the Synopsis (Act I / II / III) in its place
  * after Pitch, then the Treatment. Empty sections and acts are left out.
  */
-export function storyNotesMarkdown(notes, title = '') {
+export function storyNotesMarkdown(notes, title = '', mode = 3) {
   const n = normalizeStoryNotes(notes);
   const out = [];
   if (title.trim()) out.push(`# ${title.trim()} — Story Notes`, '');
   const syn = () => {
     if (synopsisHasText(n.synopsis)) {
       out.push('## Synopsis', '');
-      for (const a of SYNOPSIS_ACTS) {
+      for (const a of actsFor('synopsis', mode, n.synopsis)) {
         const t = n.synopsis[a.key].trim();
         if (t) out.push(`### ${a.label}`, '', t, '');
       }
     }
     if (treatmentHasText(n.treatment)) {
       out.push(`## ${TREATMENT.label}`, '');
-      for (const a of TREATMENT_ACTS) {
+      for (const a of actsFor('treatment', mode, n.treatment)) {
         const t = n.treatment[a.key].trim();
         if (t) out.push(`### ${treatmentActHeading(a)}`, '', t, '');
       }
@@ -538,18 +679,27 @@ export function splitByHeadings(text) {
 }
 
 /** importNotes targets for the Treatment's acts (the "Into" list offers them beside the sections). */
-export const TREATMENT_TARGETS = TREATMENT_ACTS.map((a) => ({ id: `treatment:${a.key}`, key: a.key, label: `${TREATMENT.label} — ${a.short}` }));
-const treatmentTargetKey = (id) => TREATMENT_TARGETS.find((t) => t.id === id)?.key ?? null;
+export const treatmentTargets = (mode = 3, value = null) => actsFor('treatment', mode, value)
+  .map((a) => ({ id: `treatment:${a.key}`, key: a.key, label: `${TREATMENT.label} — ${a.short}` }));
+export const TREATMENT_TARGETS = treatmentTargets(3);
+const treatmentTargetKey = (id) => {
+  const m = /^treatment:(act1|act2|act2b|act3)$/.exec(id || '');
+  return m ? m[1] : null;
+};
 
 /** Which fixed card a pasted heading names: 'treatment', 'synopsis', an act key, or null. */
 function fixedCardFor(title) {
   const t = title.trim().toLowerCase().replace(/[:.]+$/, '').replace(/\s+/g, ' ');
   if (t === TREATMENT.label.toLowerCase()) return 'treatment';
   if (t === 'synopsis') return 'synopsis';
-  const roman = ['i', 'ii', 'iii'];
-  const act = SYNOPSIS_ACTS.find((a, i) => [a.label, a.short].some((l) => l.toLowerCase() === t)
-    || t === `act ${roman[i]}` || t === `act ${i + 1}`);
-  return act ? act.key : null;
+  // "Act I", "ACT II: CONFRONTATION", "Act 1", "Act 2A", "ACT 2B: FALL & CRISIS", "Act III (Resolution)"…
+  // — the act, then nothing or a ":" / "(" / dash and a name (so "Act 1 notes" stays a section).
+  const m = /^act\s+(iii|ii|i|[123])([ab])?(?:\s*(?:[:(–—-].*|\(cont\.\).*))?$/.exec(t);
+  if (!m) return null;
+  const n = { i: 1, ii: 2, iii: 3 }[m[1]] || Number(m[1]);
+  if (n === 1) return m[2] ? null : 'act1';
+  if (n === 3) return m[2] ? null : 'act3';
+  return m[2] === 'b' || /\(cont\.\)/.test(t) ? 'act2b' : 'act2';
 }
 
 /**

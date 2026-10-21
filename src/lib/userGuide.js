@@ -5,6 +5,31 @@
 // Markdown read here: # / ## / ### headings, paragraphs, "- " and "1. " lists, and inline
 // **bold**, *italic* and `code` (keyboard shortcuts).
 
+/** Plain keys the guide may show with {{key:…}} besides the shortcut list's combos. */
+const PLAIN_KEYS = ['Esc', 'Enter', 'Tab'];
+
+/**
+ * Fill the guide's placeholders from the app's feature config (config/features.js):
+ *   {{name}}        → values[name]
+ *   {{key:Ctrl+S}}  → `Ctrl+S` — and it must be a real shortcut (or a plain key)
+ * Returns { text, missing }: `missing` lists placeholders with no value and unknown keys (left in the
+ * text as-is, so they show up instead of vanishing); tests require it to be empty.
+ */
+export function fillGuide(md, values = {}, { shortcuts = null } = {}) {
+  const missing = [];
+  const text = String(md || '').replace(/\{\{\s*([^{}]+?)\s*\}\}/g, (whole, name) => {
+    if (name.startsWith('key:')) {
+      const combo = name.slice(4).trim();
+      if (shortcuts && !shortcuts[combo] && !PLAIN_KEYS.includes(combo)) missing.push(name);
+      return `\`${combo}\``;
+    }
+    if (Object.prototype.hasOwnProperty.call(values, name)) return values[name];
+    missing.push(name);
+    return whole;
+  });
+  return { text, missing };
+}
+
 const fold = (s) => String(s || '').normalize('NFD').replace(/\p{M}/gu, '').toLowerCase();
 
 /** "Folder Sync (Google Drive / Local Disk)" → "folder-sync-google-drive-local-disk". */

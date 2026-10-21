@@ -144,13 +144,13 @@ describe('User Guide: menu and modal', () => {
   it('the modal: rendered from the Markdown file, with search, expand and Print / Save PDF', () => {
     const ui = readFileSync(join(root, 'components', 'UserGuideModal.jsx'), 'utf8');
     assert.match(ui, /import userGuideMarkdown from '\.\.\/content\/userGuide\.md\?raw';/);
-    assert.match(ui, /const GUIDE = parseGuide\(userGuideMarkdown\);/);
+    assert.match(ui, /const GUIDE = parseGuide\(fillGuide\(userGuideMarkdown, GUIDE_VALUES, \{ shortcuts: SHORTCUTS \}\)\.text\);/);
     assert.match(ui, /className=\{`hm-modal ug-modal/, 'styled like the other help dialogs');
     assert.match(ui, /aria-label="Search the User Guide"/);
     assert.match(ui, /searchGuide\(GUIDE, query\)/);
     assert.match(ui, /<ExpandToggle expanded=\{expanded\}/);
     assert.match(ui, />\s*Print \/ Save PDF\s*</);
-    assert.match(ui, /frame\.srcdoc = guideHtml\(GUIDE/, 'prints the guide alone, not the script');
+    assert.match(ui, /const html = guideHtml\(GUIDE, \{ version: pkg\.version, title: PRINT_TITLE \}\);/, 'prints the guide alone, not the script');
     assert.ok(!/dangerouslySetInnerHTML/.test(ui), 'rendered as React elements, never raw HTML');
   });
 });

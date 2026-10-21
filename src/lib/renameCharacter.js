@@ -260,7 +260,7 @@ export function renameCharacter(project, oldName, newName, categories = ALL_CATE
   }
   // The three-act Synopsis card lives on the notes too.
   if (!same && storyNotes?.synopsis && typeof storyNotes.synopsis === 'object') {
-    const r = renameFields(storyNotes.synopsis, ['act1', 'act2', 'act3'], variants);
+    const r = renameFields(storyNotes.synopsis, ['act1', 'act2', 'act2b', 'act3'], variants);
     counts.notes += r.count;
     if (on.notes && r.count) {
       changed.synopsis = [storyNotes.synopsis, r.obj];
@@ -269,8 +269,8 @@ export function renameCharacter(project, oldName, newName, categories = ALL_CATE
   }
   // …and so does the Treatment: the same three acts (an older one-box treatment is read as Act I).
   if (!same && storyNotes?.treatment) {
-    const acts = typeof storyNotes.treatment === 'string' ? { act1: storyNotes.treatment, act2: '', act3: '' } : storyNotes.treatment;
-    const r = renameFields(acts, ['act1', 'act2', 'act3'], variants);
+    const acts = typeof storyNotes.treatment === 'string' ? { act1: storyNotes.treatment, act2: '', act2b: '', act3: '' } : storyNotes.treatment;
+    const r = renameFields(acts, ['act1', 'act2', 'act2b', 'act3'], variants);
     counts.notes += r.count;
     if (on.notes && r.count) {
       changed.treatment = [storyNotes.treatment, r.obj];

@@ -9,7 +9,10 @@ import './TitlePageSheet.css';
  * canvas, the printed / PDF cover (--in: 1in) and the miniature in the Title Page modal.
  * Fields may use Markdown emphasis (**bold**, *italic*, _underline_, ~~strike~~).
  */
-export default function TitlePageSheet({ meta, className = '' }) {
+/** The Spec Stamp (Title Page → "Spec stamp"): an on-screen joke, never printed (PrintView doesn't pass it). */
+export const SPEC_STAMP_TEXT = 'THIS IS A SPEC SCRIPT. DO NOT SHOW TO HARVEY.';
+
+export default function TitlePageSheet({ meta, className = '', specStamp = false }) {
   const { size } = titleTypography(meta);
   const titleCss = { ...titleStyle(meta), fontSize: `calc(var(--in) * ${size / 72})` };
   const credit = (meta.credit ?? DEFAULT_CREDIT).trim();
@@ -18,6 +21,7 @@ export default function TitlePageSheet({ meta, className = '' }) {
 
   return (
     <section className={`title-sheet ${className}`} aria-label="Title page">
+      {specStamp && <div className="ts-spec-stamp" aria-hidden="true">{SPEC_STAMP_TEXT}</div>}
       <div className="ts-center">
         <div className="ts-title" style={titleCss}><RichLine text={meta.title?.trim() || 'Untitled'} /></div>
         {author && (

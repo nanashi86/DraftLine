@@ -1,13 +1,17 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import userGuideMarkdown from '../content/userGuide.md?raw';
 import ExpandToggle from './ExpandToggle.jsx';
-import { PRINT_TITLE, guideHtml, highlight, inlineTokens, parseGuide, searchGuide } from '../lib/userGuide.js';
-import { holdPrintTitle } from '../lib/printTitle.js';
+import { PRINT_TITLE, fillGuide, guideHtml, highlight, inlineTokens, parseGuide, searchGuide } from '../lib/userGuide.js';
+import { GUIDE_VALUES } from '../config/features.js';
+import { SHORTCUTS } from '../lib/shortcuts.js';
+import { holdPrintTitle, printInNewWindow } from '../lib/printTitle.js';
 import pkg from '../../package.json';
 import './HelpModal.css';
 import './UserGuideModal.css';
 
-const GUIDE = parseGuide(userGuideMarkdown);
+// The guide's {{placeholders}} are filled from the app's own feature definitions (config/features.js),
+// so act structures, note cards, roles, shortcuts… always match the app.
+const GUIDE = parseGuide(fillGuide(userGuideMarkdown, GUIDE_VALUES, { shortcuts: SHORTCUTS }).text);
 
 /** Inline Markdown as React elements (never HTML), with search words marked. */
 function Inline({ text, query }) {
@@ -33,16 +37,23 @@ function Blocks({ blocks, query }) {
 }
 
 /**
- * Print / Save PDF: the guide alone, in a hidden frame — the script's own print view is untouched.
- * The page and the frame are titled "DraftLine - User Guide" until the print dialog is over, so
- * Save as PDF suggests "DraftLine - User Guide.pdf" (lib/printTitle.js); then the script's title
- * comes back and the frame goes.
+ * Print / Save PDF: the guide alone, in its own small window titled "DraftLine - User Guide", so
+ * Chrome's Save as PDF suggests "DraftLine - User Guide.pdf" whatever the app's tab or installed
+ * app window is called. The window closes after printing (lib/printTitle.js).
+ * Popups blocked: it prints from a hidden frame in place, with the page titled the same way until
+ * the print dialog is over (holdPrintTitle).
  */
 function printGuide(returnFocusTo) {
+  const html = guideHtml(GUIDE, { version: pkg.version, title: PRINT_TITLE });
+  if (printInNewWindow({ openWindow: (...a) => window.open(...a), html, title: PRINT_TITLE })) return;
+  printInFrame(html, returnFocusTo);
+}
+
+function printInFrame(html, returnFocusTo) {
   const frame = document.createElement('iframe');
   frame.setAttribute('aria-hidden', 'true');
   frame.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0;visibility:hidden';
-  frame.srcdoc = guideHtml(GUIDE, { version: pkg.version, title: PRINT_TITLE });
+  frame.srcdoc = html;
   frame.onload = () => {
     const held = holdPrintTitle({
       topWindow: window,

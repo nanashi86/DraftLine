@@ -6,7 +6,7 @@ import AutoTextarea from './AutoTextarea.jsx';
 import TabIcon from './TabIcon.jsx';
 import { RichLine } from './FormattedText.jsx';
 import {
-  BIBLE_TABS, DEFAULT_BIBLE_TAB, SYNOPSIS_ACTS, TREATMENT, TREATMENT_ACTS, TREATMENT_TARGETS, addSection, bibleTabBadge,
+  ACT_STRUCTURES, BIBLE_TABS, DEFAULT_BIBLE_TAB, TREATMENT, actsFor, addSection, bibleTabBadge, treatmentTargets,
   importNotes, markdownBlocks, normalizeSynopsis, normalizeTreatment, removeSection, setSynopsisAct, setTreatmentAct,
   storyNotesMarkdown, synopsisHasText, synopsisIndex, treatmentHasText, updateSection,
 } from '../lib/bible.js';
@@ -36,7 +36,7 @@ function MarkdownView({ text }) {
   );
 }
 
-function ImportPanel({ notes, onImport, onCancel }) {
+function ImportPanel({ notes, onImport, onCancel, actMode = 3 }) {
   const [text, setText] = useState('');
   const [target, setTarget] = useState(notes.sections[notes.sections.length - 1]?.id || '');
   const [mode, setMode] = useState('append');
@@ -59,7 +59,7 @@ function ImportPanel({ notes, onImport, onCancel }) {
           Into
           <select value={target} onChange={(e) => setTarget(e.target.value)}>
             {notes.sections.map((s) => <option key={s.id} value={s.id}>{s.title || 'Untitled section'}</option>)}
-            {TREATMENT_TARGETS.map((t) => <option key={t.id} value={t.id}>{t.label}</option>)}
+            {treatmentTargets(actMode, notes.treatment).map((t) => <option key={t.id} value={t.id}>{t.label}</option>)}
           </select>
         </label>
         <div className="seg seg-sm" role="radiogroup" aria-label="How to import">
@@ -145,13 +145,13 @@ function ActsCard({ label, className, acts, value, editing, onToggle, onChange }
   );
 }
 
-function StoryNotes({ notes, onChange, onUndoable, projectTitle = '' }) {
+function StoryNotes({ notes, onChange, onUndoable, projectTitle = '', actMode = 3, onActModeChange }) {
   const [synopsisEditing, setSynopsisEditing] = useState(() => !synopsisHasText(notes.synopsis));
   const [treatmentEditing, setTreatmentEditing] = useState(() => !treatmentHasText(notes.treatment));
   const [copied, setCopied] = useState(false);
   const copyMarkdown = async () => {
     try {
-      await navigator.clipboard.writeText(storyNotesMarkdown(notes, projectTitle));
+      await navigator.clipboard.writeText(storyNotesMarkdown(notes, projectTitle, actMode));
       setCopied(true);
       setTimeout(() => setCopied(false), 1600);
     } catch {
@@ -166,7 +166,7 @@ function StoryNotes({ notes, onChange, onUndoable, projectTitle = '' }) {
       <ActsCard
         label="Synopsis"
         className="pb-synopsis"
-        acts={SYNOPSIS_ACTS}
+        acts={actsFor('synopsis', actMode, notes.synopsis)}
         value={normalizeSynopsis(notes.synopsis)}
         editing={synopsisEditing}
         onToggle={() => setSynopsisEditing((v) => !v)}
@@ -175,7 +175,7 @@ function StoryNotes({ notes, onChange, onUndoable, projectTitle = '' }) {
       <ActsCard
         label={TREATMENT.label}
         className="pb-treatment"
-        acts={TREATMENT_ACTS}
+        acts={actsFor('treatment', actMode, notes.treatment)}
         value={normalizeTreatment(notes.treatment)}
         editing={treatmentEditing}
         onToggle={() => setTreatmentEditing((v) => !v)}
@@ -193,6 +193,16 @@ function StoryNotes({ notes, onChange, onUndoable, projectTitle = '' }) {
   return (
     <div className="pb-pane">
       <div className="pb-tools is-end">
+        {onActModeChange && (
+          <div className="seg seg-sm pb-act-mode" role="radiogroup" aria-label="Acts in the Synopsis and Treatment" title="Synopsis and Treatment in 3 or 4 acts — the same switch as the Scene Board's">
+            {ACT_STRUCTURES.map((n) => (
+              <button key={n} type="button" role="radio" aria-checked={actMode === n} className={`seg-btn${actMode === n ? ' is-on' : ''}`} onClick={() => onActModeChange(n)}>
+                {n} Acts
+              </button>
+            ))}
+          </div>
+        )}
+        <span className="pb-tools-spacer" />
         <button
           type="button"
           className="btn"
@@ -209,6 +219,7 @@ function StoryNotes({ notes, onChange, onUndoable, projectTitle = '' }) {
       {importing && (
         <ImportPanel
           notes={notes}
+          actMode={actMode}
           onCancel={() => setImporting(false)}
           onImport={(text, opts) => {
             onUndoable('Imported notes', notes);
@@ -298,7 +309,7 @@ function StoryNotes({ notes, onChange, onUndoable, projectTitle = '' }) {
  * project in place, so it autosaves with the script and switches with it in Projects.
  */
 export default function ProjectBibleDrawer({
-  open, onClose, projectTitle, storyNotes, onStoryNotesChange,
+  open, onClose, projectTitle, storyNotes, onStoryNotesChange, actMode = 3, onActModeChange,
   storyDna, onStoryDnaChange, dictionary, onDictionaryEdit, tab = DEFAULT_BIBLE_TAB, onTabChange, glossaryTerm = null,
 }) {
   const [undo, setUndo] = useState(null); // { message, restore }
@@ -370,6 +381,8 @@ export default function ProjectBibleDrawer({
           <StoryNotes
             notes={storyNotes}
             projectTitle={projectTitle}
+            actMode={actMode}
+            onActModeChange={onActModeChange}
             onChange={onStoryNotesChange}
             onUndoable={(message, prev) => setUndo({ message, restore: () => onStoryNotesChange(prev) })}
           />

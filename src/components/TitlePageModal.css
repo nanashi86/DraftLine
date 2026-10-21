@@ -89,3 +89,6 @@
 
 /* Miniature cover: the real title page at 30px per inch (255 x 330). */
 .tp-mini { --in: 30px; box-shadow: var(--paper-shadow); }
+
+.tp-stamp { display: inline-flex; align-items: center; gap: 6px; margin-right: 6px; color: var(--muted); font-size: 12px; cursor: pointer; }
+.tp-stamp input { accent-color: var(--accent); margin: 0; }
