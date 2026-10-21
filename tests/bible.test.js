@@ -15,7 +15,7 @@ const names = (list) => list.map((c) => c.name).join(',');
 describe('Character Bios: CRUD', () => {
   it('adds, updates and removes characters, with every bio field', () => {
     let { list, character } = addCharacter([], { name: 'MARIE' });
-    assert.deepEqual(Object.keys(character).sort(), ['age', 'backstory', 'id', 'name', 'primaryRole', 'relationship', 'secondaryRole', 'traits']);
+    assert.deepEqual(Object.keys(character).sort(), ['age', 'backstory', 'description', 'id', 'name', 'primaryRole', 'relationship', 'secondaryRole', 'traits']);
     assert.deepEqual([character.primaryRole, character.secondaryRole, character.relationship], ['', 'none', '']);
     ({ list } = addCharacter(list, { name: 'THEO' }));
     list = updateCharacter(list, character.id, {

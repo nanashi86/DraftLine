@@ -10,7 +10,13 @@ export const CHARACTER_FIELDS = [
   { key: 'name', label: 'Name', placeholder: 'MARIE CINEUS' },
   // (Primary Role and Secondary Function — two picklists — come right after Name.)
   { key: 'relationship', label: 'Relationship', placeholder: 'e.g., Brother-in-law to Fito, manages textile warehouse' },
-  { key: 'age', label: 'Age / Timeline ages', placeholder: '10 in 1986, 45 in 2021' },
+  { key: 'age', label: 'Age / Timeline', placeholder: '10 in 1986, 45 in 2021' },
+  {
+    key: 'description',
+    label: 'Physical Description',
+    placeholder: 'e.g., Tall, lean, weathered hands, always wearing a faded denim jacket...',
+    multiline: true,
+  },
   { key: 'traits', label: 'Traits', placeholder: 'Stubborn, funny under pressure, never cries in public', multiline: true },
   { key: 'backstory', label: 'Backstory / Motivation', placeholder: 'What happened before page 1 — and what she wants now', multiline: true },
 ];
@@ -101,12 +107,12 @@ export const PRIMARY_ROLES = [
   { id: 'deuteragonist', label: 'Deuteragonist', dict: 'deuteragonist' },
   { id: 'tritagonist', label: 'Tritagonist', dict: 'tritagonist' },
   { id: 'supporting', label: 'Supporting Character', dict: 'supportingCharacter' },
-  { id: 'minor', label: 'Minor Character / Cameo', dict: 'minorCharacter' },
+  { id: 'minor', label: 'Minor / Cameo', dict: 'minorCharacter' },
 ];
 export const SECONDARY_ROLES = [
   { id: 'none', label: 'None', dict: null },
   { id: 'foil', label: 'Foil', dict: 'foil' },
-  { id: 'catalyst', label: 'Catalyst / Instigator', dict: 'catalyst' },
+  { id: 'catalyst', label: 'Catalyst', dict: 'catalyst' },
   { id: 'mentor', label: 'Mentor / Guide', dict: 'mentor' },
   { id: 'confidant', label: 'Confidant(e)', dict: 'confidant' },
   { id: 'loveInterest', label: 'Love Interest', dict: 'loveInterest' },
@@ -133,7 +139,8 @@ const PRIMARY_WORDS = [
   ['deuteragonist', /\bdeuteragonist\b/i],
   ['tritagonist', /\btritagonist\b/i],
   ['supporting', /\bsupporting(?: character| role)?\b/i],
-  ['minor', /\b(?:minor(?: character| role)?|cameo|bit part)\b/i],
+  // "Minor Character / Cameo" (the old label) as a whole, so no stray "Cameo" is left as a relationship.
+  ['minor', /\b(?:minor(?: character| role)?(?:\s*\/\s*cameo)?|cameo|bit part)\b/i],
 ];
 const SECONDARY_WORDS = [
   ['foil', /\bfoil\b/i],
@@ -187,6 +194,7 @@ export function normalizeCharacter(c) {
     secondaryRole: secondaryRole(rest.secondaryRole) ? rest.secondaryRole : 'none',
     relationship: typeof rest.relationship === 'string' ? rest.relationship : '',
     age: typeof rest.age === 'string' ? rest.age : '',
+    description: typeof rest.description === 'string' ? rest.description : '', // Physical Description
     traits: typeof rest.traits === 'string' ? rest.traits : '',
     backstory: typeof rest.backstory === 'string' ? rest.backstory : '',
   };
@@ -203,7 +211,8 @@ export const normalizeCharacters = (list) => (Array.isArray(list) ? list.map(nor
 
 export function newCharacter(fields = {}) {
   return normalizeCharacter({
-    id: uid('ch'), name: '', primaryRole: '', secondaryRole: 'none', relationship: '', age: '', traits: '', backstory: '', ...fields,
+    id: uid('ch'), name: '', primaryRole: '', secondaryRole: 'none', relationship: '', age: '', description: '', traits: '', backstory: '',
+    ...fields,
   });
 }
 

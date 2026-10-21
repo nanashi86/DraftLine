@@ -5,7 +5,8 @@
 //       { id, title, author, credit, basedOn, draftVersion, draftDate, contact,
 //         titleFont, titleSize, titleBold, script, beats, characters, storyNotes, storyDna,
 //         pages, scenes, createdAt, updatedAt }
-//       characters — the Project Bible's bios [{ id, name, role, age, traits, backstory }]
+//       characters — the Project Bible's bios [{ id, name, primaryRole, secondaryRole, relationship, age,
+//                    description, traits, backstory }] (older ones: a free-text `role`)
 //       storyNotes — the Bible's notes { sections: [{ id, title, body }] } (see bible.js)
 //       storyDna   — the Bible's story blueprint (see storyDna.js)
 //     store "settings"  (keyPath "key")  — { key: 'activeProjectId', value }

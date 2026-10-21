@@ -12,7 +12,7 @@ const ROLE_DEFINITIONS = {
   deuteragonist: 'The second most important character, often acting as a principal partner, rival, or counterweight.',
   tritagonist: 'The third most significant character, often serving as a catalyst, instigator, or key moral witness.',
   foil: 'A character whose contrasting values, background, or choices highlight and challenge the protagonist’s traits.',
-  catalyst: 'A character whose actions or arrival fundamentally disrupts the status quo and forces the narrative into motion.',
+  catalyst: 'A character whose action, death, or arrival triggers the central conflict or forces the protagonist out of the status quo.',
   mentor: 'A figure providing wisdom, instruction, or ethical boundaries to the protagonist.',
   confidant: 'A trusted ally who allows the protagonist’s inner thoughts and vulnerabilities to be vocalized.',
   shadow: 'A dark reflection of the protagonist showing the catastrophic outcome of their negative impulses.',
@@ -39,8 +39,8 @@ describe('Glossary: screenplay roles', () => {
 });
 
 const ROLES = [
-  'Protagonist', 'Antagonist', 'Deuteragonist', 'Tritagonist', 'Supporting Character', 'Minor Character / Cameo',
-  'Catalyst / Instigator', 'Confidant(e)', 'Foil', 'Henchman / Enforcer', 'Love Interest', 'Mentor / Guide',
+  'Protagonist', 'Antagonist', 'Deuteragonist', 'Tritagonist', 'Supporting Character', 'Minor / Cameo',
+  'Catalyst', 'Confidant(e)', 'Foil', 'Henchman / Enforcer', 'Love Interest', 'Mentor / Guide',
   'Shadow / Mirror', 'Skeptic / Voice of Reason', 'Threshold Guardian',
 ];
 const CRAFT = [

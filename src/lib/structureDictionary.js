@@ -131,7 +131,7 @@ export const STRUCTURE_DICTIONARY = [
   },
   {
     id: 'minorCharacter',
-    term: 'Minor Character / Cameo',
+    term: 'Minor / Cameo',
     definition: 'A brief appearance that fills a practical or atmospheric need in a scene; a cameo is often a recognizable face in a small part.',
   },
   {
@@ -141,8 +141,8 @@ export const STRUCTURE_DICTIONARY = [
   },
   {
     id: 'catalyst',
-    term: 'Catalyst / Instigator',
-    definition: 'A character whose actions or arrival fundamentally disrupts the status quo and forces the narrative into motion.',
+    term: 'Catalyst',
+    definition: 'A character whose action, death, or arrival triggers the central conflict or forces the protagonist out of the status quo.',
   },
   {
     id: 'mentor',
@@ -208,7 +208,7 @@ export const dictionaryEntry = (entries, id) => entries.find((e) => e.id === id)
 
 /**
  * The Glossary's two sections, in display order. Character Roles runs in story rank
- * (Protagonist → Minor Character / Cameo), then the secondary functions A–Z; Narrative &
+ * (Protagonist → Minor / Cameo), then the secondary functions A–Z; Narrative &
  * Dramatic Craft is A–Z. Every entry belongs to exactly one section.
  */
 export const GLOSSARY_SECTIONS = [

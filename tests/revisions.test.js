@@ -24,7 +24,7 @@ function doc() {
       { id: 's2', type: 'scene', text: 'INT. CHURCH - CONTINUOUS' },
     ],
     beats: [{ id: 'b1', act: 0, title: 'The chase', synopsis: '', tags: ['plot', 'theme'], sceneId: 's1' }],
-    characters: [{ id: 'ch1', name: 'FITO', primaryRole: 'protagonist', secondaryRole: 'none', relationship: '', age: '10', traits: '', backstory: '' }],
+    characters: [{ id: 'ch1', name: 'FITO', primaryRole: 'protagonist', secondaryRole: 'none', relationship: '', age: '10', description: '', traits: '', backstory: '' }],
     storyNotes: defaultStoryNotes(),
     storyDna: setAnswer(emptyStoryDna(), 'protagonist', 'Fito'),
   };

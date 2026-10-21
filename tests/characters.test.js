@@ -20,15 +20,15 @@ describe('Character roles: the data model', () => {
     const c = newCharacter({ name: 'FITO' });
     assert.deepEqual([c.primaryRole, c.secondaryRole, c.relationship], ['', 'none', '']);
     assert.ok(!('role' in c));
-    assert.deepEqual(CHARACTER_FIELDS.map((f) => f.key), ['name', 'relationship', 'age', 'traits', 'backstory']);
+    assert.deepEqual(CHARACTER_FIELDS.map((f) => f.key), ['name', 'relationship', 'age', 'description', 'traits', 'backstory']);
     assert.equal(CHARACTER_FIELDS.find((f) => f.key === 'relationship').placeholder, 'e.g., Brother-in-law to Fito, manages textile warehouse');
   });
   it('Primary Role and Secondary Function offer exactly the listed options', () => {
     assert.deepEqual(PRIMARY_ROLES.map((r) => r.label), [
-      'Protagonist', 'Antagonist', 'Deuteragonist', 'Tritagonist', 'Supporting Character', 'Minor Character / Cameo',
+      'Protagonist', 'Antagonist', 'Deuteragonist', 'Tritagonist', 'Supporting Character', 'Minor / Cameo',
     ]);
     assert.deepEqual(SECONDARY_ROLES.map((r) => r.label), [
-      'None', 'Foil', 'Catalyst / Instigator', 'Mentor / Guide', 'Confidant(e)', 'Love Interest', 'Skeptic / Voice of Reason',
+      'None', 'Foil', 'Catalyst', 'Mentor / Guide', 'Confidant(e)', 'Love Interest', 'Skeptic / Voice of Reason',
       'Henchman / Enforcer', 'Threshold Guardian', 'Shadow / Mirror',
     ]);
   });
@@ -105,3 +105,47 @@ describe('Character roles: the Bios form', () => {
     assert.match(read('components/StoryDna.jsx'), /if \(showTerm\?\.id\) \{\s*setOpenId\(showTerm\.id\);\s*setView\('dictionary'\);/);
   });
 });
+
+describe('Character bios: Physical Description, Age / Timeline, Minor / Cameo, Catalyst', () => {
+  it('"Age / Timeline", then "Physical Description" (multi-line), then "Traits"', () => {
+    const keys = CHARACTER_FIELDS.map((f) => f.key);
+    assert.equal(keys.indexOf('description'), keys.indexOf('age') + 1);
+    assert.equal(keys.indexOf('traits'), keys.indexOf('description') + 1);
+    const age = CHARACTER_FIELDS.find((f) => f.key === 'age');
+    const d = CHARACTER_FIELDS.find((f) => f.key === 'description');
+    assert.equal(age.label, 'Age / Timeline');
+    assert.deepEqual([d.label, d.placeholder, d.multiline], [
+      'Physical Description', 'e.g., Tall, lean, weathered hands, always wearing a faded denim jacket...', true,
+    ]);
+  });
+  it('the description is a bio field: new bios have it, older bios get it, it edits and saves like the rest', () => {
+    assert.equal(newCharacter({ name: 'FITO' }).description, '');
+    assert.equal(normalizeCharacter({ id: 'x', name: 'OLD' }).description, '');
+    assert.equal(normalizeCharacter({ id: 'x', name: 'X', description: 'Tall.' }).description, 'Tall.');
+    let { list, character } = addCharacter([], { name: 'FITO' });
+    list = updateCharacter(list, character.id, { description: 'Small for ten, scab on one knee' });
+    assert.equal(list[0].description, 'Small for ten, scab on one knee');
+    const ui = read('components/CharactersDrawer.jsx');
+    assert.match(ui, /CHARACTER_FIELDS\.map\(/, 'the form is built from CHARACTER_FIELDS');
+  });
+  it('renaming a character renames them in the description too', () => {
+    const c = newCharacter({ name: 'MARIE', description: 'Looks like Fito’s mother at that age' });
+    const { project } = renameCharacter({ blocks: [], beats: [], characters: [c] }, 'FITO', 'Marc');
+    assert.equal(project.characters[0].description, 'Looks like Marc’s mother at that age');
+  });
+  it('"Minor / Cameo" everywhere — saved picks are ids, so older bios show the new label', () => {
+    assert.equal(roleSummary({ primaryRole: 'minor', secondaryRole: 'none' }), 'Minor / Cameo');
+    assert.equal(dictionaryEntry(STRUCTURE_DICTIONARY, 'minorCharacter').term, 'Minor / Cameo');
+    assert.deepEqual(splitLegacyRole('Minor Character / Cameo'), { primaryRole: 'minor', secondaryRole: 'none', relationship: '' });
+    assert.deepEqual(splitLegacyRole('Minor Character / Cameo · the ferry cook'), { primaryRole: 'minor', secondaryRole: 'none', relationship: 'the ferry cook' });
+  });
+  it('"Catalyst" in Secondary Function, with its definition as the (i) tooltip', () => {
+    const cat = SECONDARY_ROLES.find((r) => r.id === 'catalyst');
+    assert.equal(cat.label, 'Catalyst');
+    assert.equal(SECONDARY_ROLES.filter((r) => /catalyst/i.test(r.label)).length, 1, 'one Catalyst option');
+    assert.equal(dictionaryEntry(STRUCTURE_DICTIONARY, cat.dict).definition,
+      'A character whose action, death, or arrival triggers the central conflict or forces the protagonist out of the status quo.');
+    assert.equal(roleSummary({ primaryRole: 'tritagonist', secondaryRole: 'catalyst' }), 'Tritagonist (Catalyst)');
+  });
+});
+
