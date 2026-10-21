@@ -494,3 +494,31 @@
 }
 .pb-roles select:focus { border-color: var(--accent); outline: none; }
 .pb-char-meta { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* ---- Expanded: the drawer widens over the whole workspace (between the toolbar and the status
+   bar), content held to a readable centred column (lib/panelExpand.js · EXPANDED_READING_WIDTH). */
+.pb-head-actions { display: flex; align-items: center; gap: 2px; flex: none; }
+.pb-expand { display: grid; place-items: center; width: 30px; height: 30px; padding: 0; color: var(--muted); }
+.pb-expand:hover { color: var(--text); }
+.pb {
+  --pb-gutter: 0px;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), width 0.2s ease-in-out, max-width 0.2s ease-in-out, visibility 0s linear 0.2s;
+}
+.pb.is-open { transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), width 0.2s ease-in-out, max-width 0.2s ease-in-out, visibility 0s; }
+.pb.is-expanded {
+  width: 100vw;
+  max-width: none;
+  border-left: 0;
+  z-index: 25; /* over the scene list (20), under the toolbar and its menus (30) and Projects (40) */
+  --pb-gutter: max(0px, calc((100vw - 960px) / 2));
+}
+.pb.is-expanded .pb-head { padding-left: calc(18px + var(--pb-gutter)); padding-right: calc(18px + var(--pb-gutter)); }
+.pb.is-expanded .pb-tabs { padding-left: calc(14px + var(--pb-gutter)); padding-right: calc(14px + var(--pb-gutter)); }
+.pb.is-expanded .pb-scroll,
+.pb.is-expanded .pb-dialogue { padding-left: var(--pb-gutter); padding-right: var(--pb-gutter); }
+@media (max-width: 720px) {
+  .pb-head-actions .pb-expand { display: none; } /* the drawer is already full width */
+}
+@media (prefers-reduced-motion: reduce) {
+  .pb, .pb.is-open { transition: none; }
+}

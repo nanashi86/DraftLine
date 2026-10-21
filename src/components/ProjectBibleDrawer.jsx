@@ -1,4 +1,7 @@
 import { Fragment, useEffect, useRef, useState } from 'react';
+import ExpandToggle from './ExpandToggle.jsx';
+import { useExpandedPanel } from '../hooks/useExpandedPanel.js';
+import { escapeAction } from '../lib/panelExpand.js';
 import AutoTextarea from './AutoTextarea.jsx';
 import TabIcon from './TabIcon.jsx';
 import { RichLine } from './FormattedText.jsx';
@@ -282,18 +285,21 @@ export default function ProjectBibleDrawer({
 }) {
   const [undo, setUndo] = useState(null); // { message, restore }
   const panelRef = useRef(null);
+  // Expanded over the whole workspace (lib/panelExpand.js, hooks/useExpandedPanel.js).
+  const [expanded, setExpanded] = useExpandedPanel(open);
 
   useEffect(() => {
     if (!open) return undefined;
     const onKey = (e) => {
       if (e.key === 'Escape' && !e.defaultPrevented && panelRef.current?.contains(document.activeElement)) {
         e.preventDefault();
-        onClose();
+        if (escapeAction(expanded) === 'collapse') setExpanded(false); // first Esc collapses, the next one closes
+        else onClose();
       }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [open, onClose]);
+  }, [open, onClose, expanded, setExpanded]);
 
   useEffect(() => {
     if (!undo) return undefined;
@@ -304,7 +310,7 @@ export default function ProjectBibleDrawer({
   return (
     <aside
       ref={panelRef}
-      className={`pb${open ? ' is-open' : ''}`}
+      className={`pb${open ? ' is-open' : ''}${expanded ? ' is-expanded' : ''}`}
       aria-label="Story Bible"
       aria-hidden={!open}
       inert={open ? undefined : true}
@@ -314,7 +320,10 @@ export default function ProjectBibleDrawer({
           <h2>Story Bible</h2>
           <div className="pb-sub">{projectTitle?.trim() || 'Untitled'} · saved with this script</div>
         </div>
-        <button type="button" className="btn btn-icon pb-close" onClick={onClose} aria-label="Close the Story Bible" title="Close (Esc)">×</button>
+        <div className="pb-head-actions">
+          <ExpandToggle expanded={expanded} onToggle={() => setExpanded((x) => !x)} />
+          <button type="button" className="btn btn-icon pb-close" onClick={onClose} aria-label="Close the Story Bible" title="Close (Esc)">×</button>
+        </div>
       </header>
 
       <div className="pb-tabs" role="tablist" aria-label="Story Bible sections">
