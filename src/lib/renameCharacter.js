@@ -134,7 +134,7 @@ function renameFields(obj, fields, variants) {
 }
 
 const BEAT_FIELDS = ['title', 'synopsis'];
-const BIO_FIELDS = ['name', 'role', 'age', 'traits', 'backstory'];
+const BIO_FIELDS = ['name', 'relationship', 'role', 'age', 'traits', 'backstory'];
 
 function renameDna(dna, variants) {
   if (!dna || typeof dna !== 'object') return { dna, count: 0 };
@@ -313,7 +313,7 @@ export function renamePreview(project, oldName, newName, limit = 3) {
   }
   for (const [before, after] of [...changed.beats, ...changed.characters]) {
     if (out.notes.length >= limit) break;
-    const f = ['name', 'title', 'synopsis', 'traits', 'backstory'].find((k) => before[k] !== after[k]);
+    const f = ['name', 'title', 'synopsis', 'relationship', 'traits', 'backstory'].find((k) => before[k] !== after[k]);
     if (f) out.notes.push(excerpt(before[f], after[f]));
   }
   return out;

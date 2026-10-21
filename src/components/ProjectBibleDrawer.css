@@ -474,3 +474,22 @@
 .pb-tabs { gap: 0; padding: 0 8px; }
 .pb-tab { gap: 0; padding: 9px 7px 8px; font-size: 12.5px; }
 .pb-tab b { padding: 0 5px; margin-left: 5px; }
+
+/* Characters → Bios: Primary Role | Secondary Function, side by side */
+.pb-roles { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.pb-role-label { display: inline-flex; align-items: center; gap: 6px; }
+.pb-roles select {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 6px 8px;
+  border: 1px solid var(--line-soft);
+  border-radius: 6px;
+  background: var(--field);
+  color: var(--text);
+  font: 13px var(--ui-font);
+  cursor: pointer;
+}
+.pb-roles select:focus { border-color: var(--accent); outline: none; }
+.pb-char-meta { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* Glossary: a heading before a group of terms (Character Roles) */
+.dict-group { list-style: none; margin: 14px 4px 4px; }

@@ -8,7 +8,8 @@ import { normalizeStoryDna } from './storyDna.js';
 
 export const CHARACTER_FIELDS = [
   { key: 'name', label: 'Name', placeholder: 'MARIE CINEUS' },
-  { key: 'role', label: 'Role / Relationship', placeholder: 'Protagonist · Theo’s older sister' },
+  // (Primary Role and Secondary Function — two picklists — come right after Name.)
+  { key: 'relationship', label: 'Relationship', placeholder: 'e.g., Brother-in-law to Fito, manages textile warehouse' },
   { key: 'age', label: 'Age / Timeline ages', placeholder: '10 in 1986, 45 in 2021' },
   { key: 'traits', label: 'Traits', placeholder: 'Stubborn, funny under pressure, never cries in public', multiline: true },
   { key: 'backstory', label: 'Backstory / Motivation', placeholder: 'What happened before page 1 — and what she wants now', multiline: true },
@@ -91,8 +92,119 @@ export { GENRES, genresFromText, toggleGenre } from './storyDna.js';
 
 // ---- Characters -------------------------------------------------------------------------
 
+// A bio's place in the story: a Primary Role (where they rank) and a Secondary Function (what
+// they do for the protagonist), each with its Glossary entry (`dict`), plus free-text
+// Relationship. Stored as ids: { primaryRole: 'deuteragonist', secondaryRole: 'foil', relationship }.
+export const PRIMARY_ROLES = [
+  { id: 'protagonist', label: 'Protagonist', dict: 'protagonist' },
+  { id: 'antagonist', label: 'Antagonist', dict: 'antagonist' },
+  { id: 'deuteragonist', label: 'Deuteragonist', dict: 'deuteragonist' },
+  { id: 'tritagonist', label: 'Tritagonist', dict: 'tritagonist' },
+  { id: 'supporting', label: 'Supporting Character', dict: 'supportingCharacter' },
+  { id: 'minor', label: 'Minor Character / Cameo', dict: 'minorCharacter' },
+];
+export const SECONDARY_ROLES = [
+  { id: 'none', label: 'None', dict: null },
+  { id: 'foil', label: 'Foil', dict: 'foil' },
+  { id: 'catalyst', label: 'Catalyst / Instigator', dict: 'catalyst' },
+  { id: 'mentor', label: 'Mentor / Guide', dict: 'mentor' },
+  { id: 'confidant', label: 'Confidant(e)', dict: 'confidant' },
+  { id: 'loveInterest', label: 'Love Interest', dict: 'loveInterest' },
+  { id: 'skeptic', label: 'Skeptic / Voice of Reason', dict: 'skeptic' },
+  { id: 'henchman', label: 'Henchman / Enforcer', dict: 'henchman' },
+  { id: 'thresholdGuardian', label: 'Threshold Guardian', dict: 'thresholdGuardian' },
+  { id: 'shadow', label: 'Shadow / Mirror', dict: 'shadow' },
+];
+export const primaryRole = (id) => PRIMARY_ROLES.find((r) => r.id === id) || null;
+export const secondaryRole = (id) => SECONDARY_ROLES.find((r) => r.id === id && r.id !== 'none') || null;
+
+/** "Deuteragonist (Foil)", "Protagonist", "(Mentor / Guide)" or "". */
+export function roleSummary(c) {
+  const p = primaryRole(c?.primaryRole);
+  const s = secondaryRole(c?.secondaryRole);
+  if (p && s) return `${p.label} (${s.label})`;
+  return p ? p.label : s ? `(${s.label})` : '';
+}
+
+// Words in an older free-text "Role / Relationship" that name a role.
+const PRIMARY_WORDS = [
+  ['protagonist', /\b(?:protagonist|lead|main character|hero(?:ine)?)\b/i],
+  ['antagonist', /\b(?:antagonist|villain)\b/i],
+  ['deuteragonist', /\bdeuteragonist\b/i],
+  ['tritagonist', /\btritagonist\b/i],
+  ['supporting', /\bsupporting(?: character| role)?\b/i],
+  ['minor', /\b(?:minor(?: character| role)?|cameo|bit part)\b/i],
+];
+const SECONDARY_WORDS = [
+  ['foil', /\bfoil\b/i],
+  ['catalyst', /\b(?:catalyst|instigator)\b/i],
+  ['mentor', /\b(?:mentor|guide)\b/i],
+  ['confidant', /\bconfidante?\b/i],
+  ['loveInterest', /\blove interest\b/i],
+  ['skeptic', /\b(?:skeptic|voice of reason)\b/i],
+  ['henchman', /\b(?:henchman|henchmen|enforcer)\b/i],
+  ['thresholdGuardian', /\bthreshold guardian\b/i],
+  ['shadow', /\bshadow\b/i],
+];
+
+/**
+ * An older free-text role ("Protagonist · Theo’s older sister") → { primaryRole, secondaryRole,
+ * relationship }: role words found become the picks, the rest is kept as the relationship.
+ */
+export function splitLegacyRole(text) {
+  let rest = String(text || '');
+  let primary = '';
+  let secondary = 'none';
+  for (const [id, re] of PRIMARY_WORDS) {
+    if (re.test(rest)) {
+      primary = id;
+      rest = rest.replace(re, ' ');
+      break;
+    }
+  }
+  for (const [id, re] of SECONDARY_WORDS) {
+    if (re.test(rest)) {
+      secondary = id;
+      rest = rest.replace(re, ' ');
+      break;
+    }
+  }
+  const relationship = rest
+    .replace(/\(\s*\)/g, ' ')
+    .replace(/\s{2,}/g, ' ')
+    .replace(/^[\s·,;:/|–—-]+|[\s·,;:/|–—-]+$/g, '')
+    .replace(/\s+([·,;])/g, '$1')
+    .trim();
+  return { primaryRole: primary, secondaryRole: secondary, relationship };
+}
+
+/** A stored bio in today's shape: picks validated, a legacy `role` split into picks + relationship. */
+export function normalizeCharacter(c) {
+  const { role, ...rest } = c;
+  const out = {
+    ...rest,
+    primaryRole: primaryRole(rest.primaryRole) ? rest.primaryRole : '',
+    secondaryRole: secondaryRole(rest.secondaryRole) ? rest.secondaryRole : 'none',
+    relationship: typeof rest.relationship === 'string' ? rest.relationship : '',
+    age: typeof rest.age === 'string' ? rest.age : '',
+    traits: typeof rest.traits === 'string' ? rest.traits : '',
+    backstory: typeof rest.backstory === 'string' ? rest.backstory : '',
+  };
+  if (typeof role === 'string' && role.trim()) {
+    const legacy = splitLegacyRole(role);
+    if (!out.primaryRole) out.primaryRole = legacy.primaryRole;
+    if (out.secondaryRole === 'none') out.secondaryRole = legacy.secondaryRole;
+    if (!out.relationship.trim()) out.relationship = legacy.relationship;
+  }
+  return out;
+}
+
+export const normalizeCharacters = (list) => (Array.isArray(list) ? list.map(normalizeCharacter) : []);
+
 export function newCharacter(fields = {}) {
-  return { id: uid('ch'), name: '', role: '', age: '', traits: '', backstory: '', ...fields };
+  return normalizeCharacter({
+    id: uid('ch'), name: '', primaryRole: '', secondaryRole: 'none', relationship: '', age: '', traits: '', backstory: '', ...fields,
+  });
 }
 
 export function validCharacters(list) {

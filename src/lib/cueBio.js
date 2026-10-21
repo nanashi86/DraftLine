@@ -2,6 +2,7 @@
 // character's bio from Characters → Bios. Only characters with a bio get a card.
 
 import { characterName } from './screenplay.js';
+import { normalizeCharacter, roleSummary } from './bible.js';
 
 export const CUE_CARD_DELAY = 300; // ms of hovering before the card appears
 export const CUE_CARD_GRACE = 160; // ms to move the pointer from the cue onto the card
@@ -22,15 +23,17 @@ const clip = (text, n) => {
 
 /**
  * What the card shows, or null when the bio has nothing beyond a name (no card — no noise):
- * { id, name, meta ("Protagonist · 45"), summary (traits), excerpt (backstory) }.
+ * { id, name, meta ("Deuteragonist (Foil) · 45"), relationship, summary (traits), excerpt (backstory) }.
  */
-export function bioCard(c) {
-  if (!c) return null;
-  const meta = [c.role, c.age].map((s) => String(s || '').trim()).filter(Boolean).join(' · ');
+export function bioCard(raw) {
+  if (!raw) return null;
+  const c = normalizeCharacter(raw); // older bios had one free-text `role`
+  const meta = [roleSummary(c), c.age].map((s) => String(s || '').trim()).filter(Boolean).join(' · ');
+  const relationship = clip(c.relationship, 120);
   const summary = clip(c.traits, 140);
   const excerpt = clip(c.backstory, 180);
-  if (!meta && !summary && !excerpt) return null;
-  return { id: c.id, name: String(c.name || '').trim(), meta, summary, excerpt };
+  if (!meta && !relationship && !summary && !excerpt) return null;
+  return { id: c.id, name: String(c.name || '').trim(), meta, relationship, summary, excerpt };
 }
 
 /**

@@ -22,7 +22,7 @@ import { ELEMENT_META, buildItems, makeBlock, paginate } from './screenplay.js';
 import { migrateBlock } from './formatting.js';
 import { normalizeBeats, validBeats } from './beats.js';
 import { normalizeRevisions, revisionRecord } from './revisions.js';
-import { migrateStoryBible, normalizeStoryNotes, validCharacters } from './bible.js';
+import { migrateStoryBible, normalizeCharacters, normalizeStoryNotes, validCharacters } from './bible.js';
 import { normalizeStoryDna } from './storyDna.js';
 import { newProjectMeta } from './authorDefaults.js';
 import { DEFAULT_CREDIT, DEFAULT_TITLE_BOLD, DEFAULT_TITLE_FONT, DEFAULT_TITLE_SIZE } from './titleFonts.js';
@@ -110,7 +110,7 @@ export function toDoc(rec) {
     meta,
     blocks: validBlocks(rec.script) ? rec.script.map(migrateBlock) : [],
     beats: validBeats(rec.beats) ? normalizeBeats(rec.beats) : [],
-    characters: validCharacters(rec.characters) ? rec.characters : [],
+    characters: validCharacters(rec.characters) ? normalizeCharacters(rec.characters) : [],
     // Notes from before Theme moved to Story DNA hand their Themes text over (bible.js).
     ...pickBible(migrateStoryBible(rec.storyNotes, rec.storyDna)),
     revisions: normalizeRevisions(rec.revisions),

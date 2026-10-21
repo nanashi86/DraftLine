@@ -278,7 +278,7 @@ function StoryNotes({ notes, onChange, onUndoable, projectTitle = '' }) {
  */
 export default function ProjectBibleDrawer({
   open, onClose, projectTitle, storyNotes, onStoryNotesChange,
-  storyDna, onStoryDnaChange, dictionary, onDictionaryEdit, tab = DEFAULT_BIBLE_TAB, onTabChange,
+  storyDna, onStoryDnaChange, dictionary, onDictionaryEdit, tab = DEFAULT_BIBLE_TAB, onTabChange, glossaryTerm = null,
 }) {
   const [undo, setUndo] = useState(null); // { message, restore }
   const panelRef = useRef(null);
@@ -338,7 +338,7 @@ export default function ProjectBibleDrawer({
 
       <div className="pb-scroll" role="tabpanel">
         {tab === 'dna' ? (
-          <StoryDna dna={storyDna} onChange={onStoryDnaChange} dictionary={dictionary} onDictionaryEdit={onDictionaryEdit} />
+          <StoryDna dna={storyDna} onChange={onStoryDnaChange} dictionary={dictionary} onDictionaryEdit={onDictionaryEdit} showTerm={glossaryTerm} />
         ) : (
           <StoryNotes
             notes={storyNotes}

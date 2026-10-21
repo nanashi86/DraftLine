@@ -1,11 +1,11 @@
-import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
+import { Fragment, useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import AutoTextarea from './AutoTextarea.jsx';
 import {
   CONFLICT_TYPES, DNA_QUESTIONS, GENRES, addDevice, plotDeviceLayout, removeDevice, setAnswer, setDevice,
   setField, storyDnaProgress, toggleGenre,
 } from '../lib/storyDna.js';
-import { dictionaryEntry, searchDictionary } from '../lib/structureDictionary.js';
+import { dictionaryEntry, groupHeadingAt, searchDictionary } from '../lib/structureDictionary.js';
 import { TIP_MAX_WIDTH, clipToViewport, placeTooltip } from '../lib/tooltip.js';
 import { DNA_VIEWS } from '../lib/bible.js';
 
@@ -14,7 +14,7 @@ import { DNA_VIEWS } from '../lib/bible.js';
  * The definition is drawn in a fixed layer (a portal on <body>) and placed with
  * placeTooltip, so the drawer's edges and scrolling can never clip it.
  */
-function InfoTip({ entry, onOpen }) {
+export function InfoTip({ entry, onOpen }) {
   const [open, setOpen] = useState(false);
   const btnRef = useRef(null);
   const popRef = useRef(null);
@@ -305,11 +305,16 @@ function Dictionary({ dictionary, openId, setOpenId, onEdit }) {
         </p>
       )}
       <ol className="dict-list" ref={listRef}>
-        {shown.map((e) => {
+        {shown.map((e, i) => {
           const open = openId === e.id || !!query.trim();
           const n = dictionary.indexOf(e) + 1;
+          // A group (Character Roles) gets a heading where its run of entries starts. Protagonist sits
+          // up top with the Blueprint terms, so a lone member there doesn't get one.
+          const heading = groupHeadingAt(shown, i);
           return (
-            <li key={e.id} data-term={e.id} className={`dict-entry${open ? ' is-open' : ''}`}>
+            <Fragment key={e.id}>
+            {heading && <li className="dict-group micro-label" aria-hidden="true">{heading}</li>}
+            <li data-term={e.id} className={`dict-entry${open ? ' is-open' : ''}`}>
               <button type="button" className="dict-head" onClick={() => setOpenId(openId === e.id ? null : e.id)} aria-expanded={open}>
                 <span className="pb-chev" aria-hidden="true">▸</span>
                 <span className="dict-n">{n}.</span>
@@ -344,6 +349,7 @@ function Dictionary({ dictionary, openId, setOpenId, onEdit }) {
                 )
               )}
             </li>
+            </Fragment>
           );
         })}
         {!shown.length && <li className="pb-empty">Nothing matches “{query}”.</li>}
@@ -353,9 +359,18 @@ function Dictionary({ dictionary, openId, setOpenId, onEdit }) {
 }
 
 /** Story DNA tab: [ Blueprint | Glossary ]. */
-export default function StoryDna({ dna, onChange, dictionary, onDictionaryEdit }) {
+export default function StoryDna({ dna, onChange, dictionary, onDictionaryEdit, showTerm = null }) {
   const [view, setView] = useState('blueprint');
   const [openId, setOpenId] = useState(null);
+  // A term opened from elsewhere (Characters → Bios role ⓘ): switch to the Glossary, open it.
+  const [shownTerm, setShownTerm] = useState(showTerm);
+  if (showTerm !== shownTerm) {
+    setShownTerm(showTerm);
+    if (showTerm?.id) {
+      setOpenId(showTerm.id);
+      setView('dictionary');
+    }
+  }
   const openTerm = (id) => {
     setOpenId(id);
     setView('dictionary');

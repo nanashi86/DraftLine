@@ -15,12 +15,15 @@ const names = (list) => list.map((c) => c.name).join(',');
 describe('Character Bios: CRUD', () => {
   it('adds, updates and removes characters, with every bio field', () => {
     let { list, character } = addCharacter([], { name: 'MARIE' });
-    assert.deepEqual(Object.keys(character).sort(), ['age', 'backstory', 'id', 'name', 'role', 'traits']);
+    assert.deepEqual(Object.keys(character).sort(), ['age', 'backstory', 'id', 'name', 'primaryRole', 'relationship', 'secondaryRole', 'traits']);
+    assert.deepEqual([character.primaryRole, character.secondaryRole, character.relationship], ['', 'none', '']);
     ({ list } = addCharacter(list, { name: 'THEO' }));
-    list = updateCharacter(list, character.id, { role: 'Protagonist', age: '10 in 1986, 45 in 2021', traits: 'Stubborn', backstory: 'Left Jacmel at 17.' });
+    list = updateCharacter(list, character.id, {
+      primaryRole: 'protagonist', relationship: 'Theo’s older sister', age: '10 in 1986, 45 in 2021', traits: 'Stubborn', backstory: 'Left Jacmel at 17.',
+    });
     assert.deepEqual(
-      [list[0].role, list[0].age, list[0].traits, list[0].backstory],
-      ['Protagonist', '10 in 1986, 45 in 2021', 'Stubborn', 'Left Jacmel at 17.'],
+      [list[0].primaryRole, list[0].relationship, list[0].age, list[0].traits, list[0].backstory],
+      ['protagonist', 'Theo’s older sister', '10 in 1986, 45 in 2021', 'Stubborn', 'Left Jacmel at 17.'],
     );
     assert.equal(updateCharacter(list, 'nope', { name: 'X' }), list, 'unknown id changes nothing');
     list = removeCharacter(list, character.id);

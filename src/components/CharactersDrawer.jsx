@@ -1,16 +1,60 @@
-import { useEffect, useRef, useState } from 'react';
+import { Fragment, useEffect, useRef, useState } from 'react';
 import AutoTextarea from './AutoTextarea.jsx';
 import TabIcon from './TabIcon.jsx';
 import DialogueTuner from './DialogueTuner.jsx';
+import { InfoTip } from './StoryDna.jsx';
 import {
-  CHARACTER_FIELDS, CHARACTER_TABS, DEFAULT_CHARACTER_TAB, addCharacter, bibleTabBadge, filterCharacters,
-  missingFromScript, moveCharacter, removeCharacter, sortCharacters, updateCharacter,
+  CHARACTER_FIELDS, CHARACTER_TABS, DEFAULT_CHARACTER_TAB, PRIMARY_ROLES, SECONDARY_ROLES, addCharacter, bibleTabBadge,
+  filterCharacters, missingFromScript, moveCharacter, primaryRole, removeCharacter, roleSummary, secondaryRole, sortCharacters,
+  updateCharacter,
 } from '../lib/bible.js';
+import { dictionaryEntry } from '../lib/structureDictionary.js';
 import './ProjectBibleDrawer.css';
 
 // ---- Character Bios -----------------------------------------------------------------------
 
-function CharacterCard({ c, open, canMove, onToggle, onChange, onMove, onDelete, onRename, autoFocus }) {
+/**
+ * The (i) beside a role picker: the chosen role's Glossary definition — or, before one is chosen,
+ * a summary of every option — and a click opens it in Story Bible → Glossary.
+ */
+function roleTipEntry(dictionary, roles, chosen, term, intro) {
+  const pick = chosen?.dict ? dictionaryEntry(dictionary, chosen.dict) : null;
+  if (pick) return pick;
+  const items = roles.filter((r) => r.dict).map((r) => dictionaryEntry(dictionary, r.dict)).filter(Boolean);
+  if (!items.length) return null;
+  return { id: items[0].id, term, definition: intro, items };
+}
+
+function RolePickers({ c, onChange, dictionary, onOpenTerm }) {
+  const p = primaryRole(c.primaryRole);
+  const s = secondaryRole(c.secondaryRole);
+  const tips = dictionary?.length && onOpenTerm;
+  return (
+    <div className="pb-roles">
+      <label className="pb-field">
+        <span className="pb-role-label">
+          Primary Role
+          {tips && <InfoTip entry={roleTipEntry(dictionary, PRIMARY_ROLES, p, 'Primary Role', 'Where the character ranks in the story — from the protagonist who drives it to a one-scene cameo.')} onOpen={onOpenTerm} />}
+        </span>
+        <select value={c.primaryRole || ''} onChange={(e) => onChange({ primaryRole: e.target.value })} aria-label="Primary Role">
+          <option value="">Choose…</option>
+          {PRIMARY_ROLES.map((r) => <option key={r.id} value={r.id}>{r.label}</option>)}
+        </select>
+      </label>
+      <label className="pb-field">
+        <span className="pb-role-label">
+          Secondary Function
+          {tips && <InfoTip entry={roleTipEntry(dictionary, SECONDARY_ROLES, s, 'Secondary Function', 'What the character does for the protagonist’s story — reflect, disrupt, guide, listen, tempt, block…')} onOpen={onOpenTerm} />}
+        </span>
+        <select value={c.secondaryRole || 'none'} onChange={(e) => onChange({ secondaryRole: e.target.value })} aria-label="Secondary Function">
+          {SECONDARY_ROLES.map((r) => <option key={r.id} value={r.id}>{r.label}</option>)}
+        </select>
+      </label>
+    </div>
+  );
+}
+
+function CharacterCard({ c, open, canMove, onToggle, onChange, onMove, onDelete, onRename, autoFocus, dictionary, onOpenTerm }) {
   const nameRef = useRef(null);
   useEffect(() => {
     if (autoFocus) nameRef.current?.focus();
@@ -22,7 +66,9 @@ function CharacterCard({ c, open, canMove, onToggle, onChange, onMove, onDelete,
         <button type="button" className="pb-char-toggle" onClick={onToggle} aria-expanded={open}>
           <span className="pb-chev" aria-hidden="true">▸</span>
           <span className="pb-char-name">{name || 'Unnamed character'}</span>
-          <span className="pb-char-meta">{[c.role.trim(), c.age.trim()].filter(Boolean).join(' · ')}</span>
+          <span className="pb-char-meta" title={c.age?.trim() ? `Age: ${c.age.trim()}` : undefined}>
+            {roleSummary(c) ? <><span aria-hidden="true">· </span>{roleSummary(c)}</> : (c.age?.trim() || '')}
+          </span>
         </button>
         {onRename && name && (
           <button
@@ -45,7 +91,9 @@ function CharacterCard({ c, open, canMove, onToggle, onChange, onMove, onDelete,
       {open && (
         <div className="pb-char-body">
           {CHARACTER_FIELDS.map((f) => (
-            <label key={f.key} className="pb-field">
+            <Fragment key={f.key}>
+            {f.key === 'relationship' && <RolePickers c={c} onChange={onChange} dictionary={dictionary} onOpenTerm={onOpenTerm} />}
+            <label className="pb-field">
               <span>{f.label}</span>
               {f.multiline ? (
                 <AutoTextarea
@@ -62,6 +110,7 @@ function CharacterCard({ c, open, canMove, onToggle, onChange, onMove, onDelete,
                 />
               )}
             </label>
+            </Fragment>
           ))}
           <div className="pb-char-foot">
             <button type="button" className="btn pb-danger" onClick={onDelete}>Delete character</button>
@@ -72,7 +121,7 @@ function CharacterCard({ c, open, canMove, onToggle, onChange, onMove, onDelete,
   );
 }
 
-function CharacterBios({ characters, onChange, speakers, onUndoable, onRename, reveal = null }) {
+function CharacterBios({ characters, onChange, speakers, onUndoable, onRename, reveal = null, dictionary, onOpenTerm }) {
   const [query, setQuery] = useState('');
   const [openId, setOpenId] = useState(null);
   const [focusId, setFocusId] = useState(null);
@@ -158,6 +207,8 @@ function CharacterBios({ characters, onChange, speakers, onUndoable, onRename, r
               onChange={(patch) => onChange(updateCharacter(characters, c.id, patch))}
               onMove={(dir) => onChange(moveCharacter(characters, c.id, dir))}
               onRename={onRename}
+              dictionary={dictionary}
+              onOpenTerm={onOpenTerm}
               onDelete={() => {
                 onUndoable(`Deleted ${c.name.trim() || 'character'}`, characters);
                 onChange(removeCharacter(characters, c.id));
@@ -179,7 +230,7 @@ function CharacterBios({ characters, onChange, speakers, onUndoable, onRename, r
  */
 export default function CharactersDrawer({
   open, onClose, tab = DEFAULT_CHARACTER_TAB, onTabChange, characters, onCharactersChange, speakers,
-  onRenameCharacter, revealBio = null, dialogue,
+  onRenameCharacter, revealBio = null, dialogue, dictionary = [], onOpenGlossary,
 }) {
   const [undo, setUndo] = useState(null); // { message, restore }
   const panelRef = useRef(null);
@@ -247,6 +298,8 @@ export default function CharactersDrawer({
       ) : (
         <div className="pb-scroll" role="tabpanel">
           <CharacterBios
+            dictionary={dictionary}
+            onOpenTerm={onOpenGlossary}
             characters={characters}
             onChange={onCharactersChange}
             speakers={speakers}

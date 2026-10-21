@@ -614,6 +614,13 @@ function Workspace({ boot }) {
   // ---- Rename a character everywhere (one undo step) ----
   const [renameFrom, setRenameFrom] = useState(null); // the name being renamed, while the review is open
   const [revealBio, setRevealBio] = useState(null); // { id } — a bio the Characters drawer should open to
+  const [glossaryTerm, setGlossaryTerm] = useState(null); // { id } — a term Story Bible → Glossary should open
+  /** A role's (i) in Characters → Bios: Story Bible → DNA → Glossary, at that term. */
+  const openGlossary = useCallback((id) => {
+    setBibleTab('dna');
+    setDock('bible');
+    setGlossaryTerm({ id });
+  }, []);
   /** Cue bio card → "Edit in Bios →": Characters, Bios tab, that character's card open. */
   const editBio = useCallback((id) => {
     setCharacterTab('bios');
@@ -1299,6 +1306,8 @@ function Workspace({ boot }) {
           speakers={speakers}
           onRenameCharacter={setRenameFrom}
           revealBio={revealBio}
+          dictionary={dictionary}
+          onOpenGlossary={openGlossary}
           dialogue={{
             analysis,
             pageOfBlock: layout.pageOfBlock,
@@ -1419,6 +1428,7 @@ function Workspace({ boot }) {
           onStoryDnaChange={setStoryDna}
           dictionary={dictionary}
           onDictionaryEdit={editDictionary}
+          glossaryTerm={glossaryTerm}
         />
 
         <SnapshotsDrawer

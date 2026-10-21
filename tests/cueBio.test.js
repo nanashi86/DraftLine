@@ -30,7 +30,7 @@ describe('Cue → bio: name normalization', () => {
 describe('Cue → bio: what the card shows', () => {
   it('name, role · age, traits as the summary, a backstory excerpt, and the bio id for Edit in Bios', () => {
     assert.deepEqual(bioCard(marie), {
-      id: 'c1', name: 'Marie', meta: 'Protagonist · 45', summary: 'Stubborn, funny under pressure.', excerpt: 'Left Haiti at ten.',
+      id: 'c1', name: 'Marie', meta: 'Protagonist · 45', relationship: '', summary: 'Stubborn, funny under pressure.', excerpt: 'Left Haiti at ten.',
     });
   });
   it('long text is trimmed at a word with an ellipsis', () => {

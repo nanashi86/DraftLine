@@ -154,14 +154,16 @@ describe('right dock (Story Bible / Characters)', () => {
 });
 
 describe('Story Glossary', () => {
-  it('has the 17 terms, in order, with the conflict types and the text/subtext example', () => {
+  it('has the 31 terms, in order — story terms, plot devices, then character roles — with the conflict types and the text/subtext example', () => {
     assert.deepEqual(STRUCTURE_DICTIONARY.map((e) => e.term), [
       'Protagonist', 'Inciting Incident', 'Goal / Desire', 'Flaw', 'Conflict / Debate', 'Rising Action', 'Climax',
       'Falling Action', 'Text / Subtext / Context', 'Foreshadowing', 'Flashback',
       'Deus ex machina', 'MacGuffin', 'Quest', 'Cliffhanger', 'Red herring', 'Love triangle',
+      'Antagonist', 'Deuteragonist', 'Tritagonist', 'Supporting Character', 'Minor Character / Cameo', 'Foil', 'Catalyst',
+      'Mentor', 'Confidant(e)', 'Love Interest', 'Skeptic / Voice of Reason', 'Henchman / Enforcer', 'Threshold Guardian', 'Shadow',
     ]);
     for (const e of STRUCTURE_DICTIONARY) assert.ok(e.definition.length > 40, `${e.term} has a real definition`);
-    assert.equal(new Set(STRUCTURE_DICTIONARY.map((e) => e.id)).size, 17);
+    assert.equal(new Set(STRUCTURE_DICTIONARY.map((e) => e.id)).size, 31);
     assert.deepEqual(dictionaryEntry(STRUCTURE_DICTIONARY, 'conflict').items.map((i) => i.term), CONFLICT_TYPES);
     assert.match(dictionaryEntry(STRUCTURE_DICTIONARY, 'textSubtext').example, /gun/);
     assert.match(dictionaryEntry(STRUCTURE_DICTIONARY, 'textSubtext').example, /drink/);
@@ -176,7 +178,7 @@ describe('Story Glossary', () => {
   it('searches terms, definitions, examples and conflict types', () => {
     assert.deepEqual(searchDictionary(STRUCTURE_DICTIONARY, 'supernatural').map((e) => e.id), ['conflict']);
     assert.deepEqual(searchDictionary(STRUCTURE_DICTIONARY, 'GUN').map((e) => e.id), ['textSubtext']);
-    assert.equal(searchDictionary(STRUCTURE_DICTIONARY, '  ').length, 17);
+    assert.equal(searchDictionary(STRUCTURE_DICTIONARY, '  ').length, 31);
     assert.deepEqual(searchDictionary(STRUCTURE_DICTIONARY, 'false clue').map((e) => e.id), ['redHerring']);
     assert.deepEqual(searchDictionary(STRUCTURE_DICTIONARY, 'deus').map((e) => e.id), ['deusExMachina']);
   });

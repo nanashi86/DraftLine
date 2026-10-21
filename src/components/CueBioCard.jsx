@@ -131,6 +131,7 @@ export default function CueBioCard({ root, characters, onEdit, disabled = false 
     >
       <div className="cue-card-name">{card.name}</div>
       {card.meta && <div className="cue-card-meta">{card.meta}</div>}
+      {card.relationship && <div className="cue-card-meta cue-card-rel">{card.relationship}</div>}
       {card.summary && <p className="cue-card-summary">{card.summary}</p>}
       {card.excerpt && <p className="cue-card-excerpt">{card.excerpt}</p>}
       <button
