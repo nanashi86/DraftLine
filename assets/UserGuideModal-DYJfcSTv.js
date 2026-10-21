@@ -1,4 +1,4 @@
-import{K as e,q as t}from"./formatting-ROOIYVNG.js";import{A as n,C as r,D as i,E as a,F as o,I as s,L as c,M as l,N as u,O as d,P as f,R as p,S as m,T as h,V as g,a as _,b as v,c as y,h as b,i as ee,j as x,k as S,m as C,n as w,o as te,p as ne,r as re,s as ie,t as ae,v as oe,w as T,x as E,y as D}from"./index-DVE_8L4e.js";/* empty css                  */var O=t(),k=`# DraftLine User Guide
+import{K as e,q as t}from"./formatting-ROOIYVNG.js";import{A as n,C as r,D as i,E as a,F as o,I as s,L as c,M as l,N as u,O as d,P as f,R as p,S as m,T as h,V as g,a as _,b as v,c as y,h as b,i as ee,j as x,k as S,m as C,n as w,o as te,p as ne,r as re,s as ie,t as ae,v as oe,w as T,x as E,y as D}from"./index-wYARrLQ3.js";/* empty css                  */var O=t(),k=`# DraftLine User Guide
 
 DraftLine is a distraction-free screenwriting app that runs in your browser. It writes in Courier Prime at 12 pt with standard screenplay margins, saves as you type, and works offline. This guide covers everything from your first scene heading to the final PDF.
 
@@ -246,7 +246,7 @@ Tick **Spec stamp** in the Title Page dialog for a faded crimson stamp across th
 
 ### Chilli Palmer
 
-A brand-new script's title page is credited to **{{curiosities.defaultAuthor}}**, with a 555 number and a Palmer Films address, in homage to *Get Shorty*. Save the Title Page with your own name and contact once, and every new script starts with yours instead.
+A brand-new script's title page starts blank, with **{{curiosities.defaultAuthor}}**, a 555 number and a Palmer Films address showing faintly as placeholders, in homage to *Get Shorty*. They're never saved or printed. Save the Title Page with your own name and contact once, and every new script starts with yours instead.
 
 ### Writing pace milestones
 
