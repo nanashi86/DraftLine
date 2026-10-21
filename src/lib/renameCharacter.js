@@ -1,4 +1,4 @@
-// Rename a character across a project: cues, dialogue, action, Beat Board and Bible.
+// Rename a character across a project: cues, dialogue, action, Scene Board and Bible.
 //
 // Matching is whole-name and case-aware, so renaming FITO → MARC changes
 //   FITO (V.O.)            → MARC (V.O.)            (cue; extensions, caret and spacing kept)
@@ -19,7 +19,7 @@ export const RENAME_CATEGORIES = [
   { id: 'cues', label: 'Character cues', hint: 'Speaking cues — (V.O.), (O.S.), (CONT’D) … are kept' },
   { id: 'dialogue', label: 'Spoken dialogue mentions', hint: 'The name inside dialogue and parentheticals' },
   { id: 'action', label: 'Action & description mentions', hint: 'ALL CAPS and Title Case in action, scene headings and other direction' },
-  { id: 'notes', label: 'Beat Board & Story Bible', hint: 'Beat cards, character bios, Story Notes and Story DNA' },
+  { id: 'notes', label: 'Scene Board & Story Bible', hint: 'Scene cards, character bios, Story Notes and Story DNA' },
 ];
 export const ALL_CATEGORIES = Object.freeze({ cues: true, dialogue: true, action: true, notes: true });
 
@@ -177,7 +177,7 @@ function renameDna(dna, variants) {
  */
 export function renameCharacter(project, oldName, newName, categories = ALL_CATEGORIES) {
   const counts = { cues: 0, dialogue: 0, action: 0, notes: 0 };
-  const changed = { blocks: [], beats: [], characters: [], sections: [], storyDna: null };
+  const changed = { blocks: [], beats: [], characters: [], sections: [], synopsis: null, storyDna: null };
   const o = clean(oldName);
   const n = clean(newName);
   const same = !o || !n || o === n;
@@ -258,6 +258,15 @@ export function renameCharacter(project, oldName, newName, categories = ALL_CATE
     });
     if (any) storyNotes = { ...storyNotes, sections };
   }
+  // The three-act Synopsis card lives on the notes too.
+  if (!same && storyNotes?.synopsis && typeof storyNotes.synopsis === 'object') {
+    const r = renameFields(storyNotes.synopsis, ['act1', 'act2', 'act3'], variants);
+    counts.notes += r.count;
+    if (on.notes && r.count) {
+      changed.synopsis = [storyNotes.synopsis, r.obj];
+      storyNotes = { ...storyNotes, synopsis: r.obj };
+    }
+  }
 
   let storyDna = project.storyDna;
   if (!same) {
@@ -336,6 +345,9 @@ export function revertRename(state, changed, direction = 'undo') {
   if (changed.sections.length && storyNotes?.sections) {
     const sections = swap(storyNotes.sections, changed.sections);
     if (sections !== storyNotes.sections) storyNotes = { ...storyNotes, sections };
+  }
+  if (changed.synopsis && storyNotes?.synopsis === changed.synopsis[fromIdx]) {
+    storyNotes = { ...storyNotes, synopsis: changed.synopsis[toIdx] };
   }
   let { storyDna } = state;
   if (changed.storyDna && storyDna === changed.storyDna[fromIdx]) storyDna = changed.storyDna[toIdx];

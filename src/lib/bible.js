@@ -159,9 +159,75 @@ export function missingFromScript(list, speakers) {
 }
 
 // ---- Story notes ------------------------------------------------------------------------
+//
+// { version, sections: [{ id, title, body }], synopsis: { act1, act2, act3 } }
+// The Synopsis is a structured three-act card shown right after Pitch (SYNOPSIS_AFTER).
+
+/** The Synopsis card's three acts, in order. */
+export const SYNOPSIS_ACTS = [
+  { key: 'act1', label: 'Act I: Setup', short: 'Act I (Setup)', placeholder: 'Act I setup, world-building, inciting incident...' },
+  { key: 'act2', label: 'Act II: Confrontation', short: 'Act II (Confrontation)', placeholder: 'Act II escalating stakes, midpoint reversal, all-hope-is-lost moment...' },
+  { key: 'act3', label: 'Act III: Resolution', short: 'Act III (Resolution)', placeholder: 'Act III climax, ultimate confrontation, and resolution...' },
+];
+export const SYNOPSIS_AFTER = 'Pitch';
+
+export const emptySynopsis = () => ({ act1: '', act2: '', act3: '' });
+
+/** Anything stored → { act1, act2, act3 }. A plain string (an older one-box synopsis) becomes Act I. */
+export function normalizeSynopsis(v) {
+  if (typeof v === 'string') return { ...emptySynopsis(), act1: v };
+  if (!v || typeof v !== 'object') return emptySynopsis();
+  const out = emptySynopsis();
+  for (const { key } of SYNOPSIS_ACTS) out[key] = typeof v[key] === 'string' ? v[key] : '';
+  return out;
+}
+
+export const synopsisHasText = (s) => SYNOPSIS_ACTS.some(({ key }) => (s?.[key] || '').trim());
+
+/** Set one act's text (the others are untouched). */
+export function setSynopsisAct(notes, key, text) {
+  if (!SYNOPSIS_ACTS.some((a) => a.key === key)) return notes;
+  return { ...notes, synopsis: { ...normalizeSynopsis(notes.synopsis), [key]: text } };
+}
+
+/** Where the Synopsis card goes among the sections: right after Pitch, else at the end. */
+export function synopsisIndex(sections) {
+  const i = sections.findIndex((s) => s.title.trim().toLowerCase() === SYNOPSIS_AFTER.toLowerCase());
+  return i < 0 ? sections.length : i + 1;
+}
+
+/**
+ * The Notes tab as Markdown, in on-screen order — the Synopsis (Act I / II / III) in its place
+ * after Pitch. Empty sections and acts are left out.
+ */
+export function storyNotesMarkdown(notes, title = '') {
+  const n = normalizeStoryNotes(notes);
+  const out = [];
+  if (title.trim()) out.push(`# ${title.trim()} — Story Notes`, '');
+  const syn = () => {
+    if (!synopsisHasText(n.synopsis)) return;
+    out.push('## Synopsis', '');
+    for (const a of SYNOPSIS_ACTS) {
+      const t = n.synopsis[a.key].trim();
+      if (t) out.push(`### ${a.label}`, '', t, '');
+    }
+  };
+  const at = synopsisIndex(n.sections);
+  n.sections.forEach((s, i) => {
+    if (i === at) syn();
+    if (!s.body.trim()) return;
+    out.push(`## ${s.title.trim() || 'Untitled section'}`, '', s.body.trim(), '');
+  });
+  if (at >= n.sections.length) syn();
+  return `${out.join('\n').trim()}\n`;
+}
 
 export function defaultStoryNotes() {
-  return { version: STORY_NOTES_VERSION, sections: DEFAULT_SECTIONS.map((title) => ({ id: uid('sn'), title, body: '' })) };
+  return {
+    version: STORY_NOTES_VERSION,
+    sections: DEFAULT_SECTIONS.map((title) => ({ id: uid('sn'), title, body: '' })),
+    synopsis: emptySynopsis(),
+  };
 }
 
 /**
@@ -198,7 +264,7 @@ export function migrateStoryNotes(sections) {
   const ordered = DEFAULT_SECTIONS.map((name) => presets.get(name) || { id: uid('sn'), title: name, body: '' });
   // An empty Themes card just goes; one with text stays (as your own section) until it can move.
   const kept = themes?.body.trim() ? [themes] : [];
-  return { version: STORY_NOTES_VERSION, sections: [...ordered, ...kept, ...custom] };
+  return { version: STORY_NOTES_VERSION, sections: [...ordered, ...kept, ...custom], synopsis: emptySynopsis() };
 }
 
 /** "- Exile\n- Return home" → "Exile; Return home" (Story DNA's Theme is a one-line field). */
@@ -266,8 +332,9 @@ export function normalizeStoryNotes(notes) {
   }
   if (notes && Array.isArray(notes.sections) && notes.sections.every((s) => s && typeof s.id === 'string')) {
     const sections = notes.sections.map((s) => ({ id: s.id, title: String(s.title ?? ''), body: String(s.body ?? '') }));
-    if ((notes.version || 1) < STORY_NOTES_VERSION) return migrateStoryNotes(sections);
-    return { version: notes.version, sections };
+    const synopsis = normalizeSynopsis(notes.synopsis);
+    if ((notes.version || 1) < STORY_NOTES_VERSION) return { ...migrateStoryNotes(sections), synopsis };
+    return { version: notes.version, sections, synopsis };
   }
   return defaultStoryNotes();
 }

@@ -1,4 +1,4 @@
-// Beat Board model: index cards in act columns, plus outline exporters.
+// Scene Board model (stored as `beats`): index cards in act columns, plus outline exporters.
 //
 // Every card stores one of four underlying acts (0 = Act 1, 1 = Act 2A, 2 = Act 2B,
 // 3 = Act 3). The 3-Act and 4-Act structures are only two ways of *displaying* those
@@ -147,7 +147,7 @@ export function beatsToFountain(beats, title, mode = 4) {
     col.acts.forEach((a, i) => {
       if (i > 0 && acts[col.acts[0]].length && acts[a].length) out.push('[[Midpoint]]', '');
       for (const b of acts[a]) {
-        out.push(`## ${b.title.trim() || 'Untitled beat'}`);
+        out.push(`## ${b.title.trim() || 'Untitled card'}`);
         const syn = b.synopsis.trim();
         if (syn) for (const line of syn.split('\n')) if (line.trim()) out.push(`= ${line.trim()}`);
         if (beatTags(b).length) out.push(`[[${tagLabels(b).join(' · ')}]]`);
@@ -160,17 +160,17 @@ export function beatsToFountain(beats, title, mode = 4) {
 
 /** Markdown outline. */
 export function beatsToMarkdown(beats, title, mode = 4) {
-  const out = [`# ${title || 'Untitled'} — Beat Outline`, ''];
+  const out = [`# ${title || 'Untitled'} — Scene Outline`, ''];
   const acts = byAct(beats);
   let n = 0;
   for (const col of structureFor(mode)) {
     out.push(`## ${col.label}: ${col.name}`, '');
-    if (col.acts.every((a) => !acts[a].length)) out.push('_No beats yet._', '');
+    if (col.acts.every((a) => !acts[a].length)) out.push('_No cards yet._', '');
     col.acts.forEach((a, i) => {
       if (i > 0 && acts[col.acts[0]].length && acts[a].length) out.push('*— Midpoint —*', '');
       for (const b of acts[a]) {
         n += 1;
-        out.push(`### ${n}. ${b.title.trim() || 'Untitled beat'}${beatTags(b).length ? ` · *${tagLabels(b).join(' · ')}*` : ''}`);
+        out.push(`### ${n}. ${b.title.trim() || 'Untitled card'}${beatTags(b).length ? ` · *${tagLabels(b).join(' · ')}*` : ''}`);
         if (b.synopsis.trim()) out.push('', b.synopsis.trim());
         out.push('');
       }

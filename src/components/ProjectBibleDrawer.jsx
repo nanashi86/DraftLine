@@ -1,9 +1,10 @@
-import { useEffect, useRef, useState } from 'react';
+import { Fragment, useEffect, useRef, useState } from 'react';
 import AutoTextarea from './AutoTextarea.jsx';
 import TabIcon from './TabIcon.jsx';
 import { RichLine } from './FormattedText.jsx';
 import {
-  BIBLE_TABS, DEFAULT_BIBLE_TAB, addSection, bibleTabBadge, importNotes, markdownBlocks, removeSection, updateSection,
+  BIBLE_TABS, DEFAULT_BIBLE_TAB, SYNOPSIS_ACTS, addSection, bibleTabBadge, importNotes, markdownBlocks, normalizeSynopsis,
+  removeSection, setSynopsisAct, storyNotesMarkdown, synopsisHasText, synopsisIndex, updateSection,
 } from '../lib/bible.js';
 import StoryDna from './StoryDna.jsx';
 import { storyDnaProgress, DNA_QUESTIONS } from '../lib/storyDna.js';
@@ -88,9 +89,79 @@ function ImportPanel({ notes, onImport, onCancel }) {
   );
 }
 
-function StoryNotes({ notes, onChange, onUndoable }) {
+/**
+ * Synopsis: a structured three-act card — Act I: Setup · Act II: Confrontation · Act III:
+ * Resolution — each with its own box when editing, and as three labelled blocks otherwise.
+ */
+function SynopsisCard({ synopsis, editing, onToggle, onChange }) {
+  const syn = normalizeSynopsis(synopsis);
+  return (
+    <section className="pb-section pb-synopsis" aria-label="Synopsis">
+      <header>
+        <span className="pb-section-title pb-fixed-title">Synopsis</span>
+        <button type="button" className="btn pb-mini" onClick={onToggle} aria-pressed={editing}>
+          {editing ? 'Done' : 'Edit'}
+        </button>
+      </header>
+      {editing ? (
+        <div className="pb-acts">
+          {SYNOPSIS_ACTS.map((a) => (
+            <label key={a.key} className="pb-act">
+              <span className="micro-label">{a.label}</span>
+              <AutoTextarea
+                className="pb-section-body pb-act-body"
+                value={syn[a.key]}
+                placeholder={a.placeholder}
+                aria-label={a.short}
+                data-act={a.key}
+                onChange={(e) => onChange(a.key, e.target.value)}
+              />
+            </label>
+          ))}
+        </div>
+      ) : (
+        <div
+          className="pb-section-view pb-acts"
+          role="button"
+          tabIndex={0}
+          title="Click to edit"
+          onClick={(e) => !e.target.closest('a') && onToggle()}
+          onKeyDown={(e) => (e.key === 'Enter' ? onToggle() : null)}
+        >
+          {SYNOPSIS_ACTS.map((a) => (
+            <div key={a.key} className="pb-act" data-act={a.key}>
+              <span className="micro-label">{a.label}</span>
+              {syn[a.key].trim() ? <MarkdownView text={syn[a.key]} /> : <p className="pb-md-empty">Not written yet.</p>}
+            </div>
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}
+
+function StoryNotes({ notes, onChange, onUndoable, projectTitle = '' }) {
+  const [synopsisEditing, setSynopsisEditing] = useState(() => !synopsisHasText(notes.synopsis));
+  const [copied, setCopied] = useState(false);
+  const copyMarkdown = async () => {
+    try {
+      await navigator.clipboard.writeText(storyNotesMarkdown(notes, projectTitle));
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1600);
+    } catch {
+      setCopied(false);
+    }
+  };
   const [editing, setEditing] = useState(() => new Set(notes.sections.filter((s) => !s.body.trim()).map((s) => s.id)));
   const [importing, setImporting] = useState(false);
+  const synopsisCard = (
+    <SynopsisCard
+      synopsis={notes.synopsis}
+      editing={synopsisEditing}
+      onToggle={() => setSynopsisEditing((v) => !v)}
+      onChange={(key, text) => onChange(setSynopsisAct(notes, key, text))}
+    />
+  );
   const toggle = (id) => setEditing((e) => {
     const n = new Set(e);
     if (n.has(id)) n.delete(id);
@@ -101,6 +172,14 @@ function StoryNotes({ notes, onChange, onUndoable }) {
   return (
     <div className="pb-pane">
       <div className="pb-tools is-end">
+        <button
+          type="button"
+          className="btn"
+          onClick={copyMarkdown}
+          title="Copy every note — Logline, Tone, Timeline, Pitch, the three-act Synopsis… — as Markdown"
+        >
+          {copied ? 'Copied ✓' : 'Copy as Markdown'}
+        </button>
         <button type="button" className="btn" onClick={() => setImporting((v) => !v)} aria-expanded={importing}>
           Import from Notes
         </button>
@@ -119,10 +198,12 @@ function StoryNotes({ notes, onChange, onUndoable }) {
       )}
 
       <div className="pb-sections">
-        {notes.sections.map((s) => {
+        {notes.sections.map((s, i) => {
           const isEditing = editing.has(s.id);
           return (
-            <section key={s.id} className="pb-section">
+            <Fragment key={s.id}>
+            {i === synopsisIndex(notes.sections) && synopsisCard}
+            <section className="pb-section">
               <header>
                 <input
                   className="pb-section-title"
@@ -132,7 +213,7 @@ function StoryNotes({ notes, onChange, onUndoable }) {
                   onChange={(e) => onChange(updateSection(notes, s.id, { title: e.target.value }))}
                 />
                 <button type="button" className="btn pb-mini" onClick={() => toggle(s.id)}>
-                  {isEditing ? 'Preview' : 'Edit'}
+                  {isEditing ? 'Done' : 'Edit'}
                 </button>
                 <button
                   type="button"
@@ -168,8 +249,10 @@ function StoryNotes({ notes, onChange, onUndoable }) {
                 </div>
               )}
             </section>
+            </Fragment>
           );
         })}
+        {synopsisIndex(notes.sections) >= notes.sections.length && synopsisCard}
       </div>
       <button
         type="button"
@@ -259,6 +342,7 @@ export default function ProjectBibleDrawer({
         ) : (
           <StoryNotes
             notes={storyNotes}
+            projectTitle={projectTitle}
             onChange={onStoryNotesChange}
             onUndoable={(message, prev) => setUndo({ message, restore: () => onStoryNotesChange(prev) })}
           />

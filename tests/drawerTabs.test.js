@@ -42,8 +42,8 @@ describe('Story Bible → Notes toolbar', () => {
     assert.ok(!/Markdown: # heading/.test(src));
     assert.ok(!/pb-hint/.test(src));
   });
-  it('Import from Notes sits alone at the right, above the notes', () => {
-    assert.match(src, /<div className="pb-tools is-end">\s*<button type="button" className="btn" onClick=\{\(\) => setImporting/);
+  it('Copy as Markdown and Import from Notes sit at the right, above the notes — no hint text', () => {
+    assert.match(src, /<div className="pb-tools is-end">\s*<button[\s\S]*?Copy as Markdown[\s\S]*?Import from Notes\s*<\/button>\s*<\/div>/);
     assert.match(read('components/ProjectBibleDrawer.css'), /\.pb-tools\.is-end \{ justify-content: flex-end; \}/);
   });
 });

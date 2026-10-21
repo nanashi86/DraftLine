@@ -143,7 +143,7 @@ describe('.draftline backup: bad files', () => {
     assert.throws(() => parseBackup(JSON.stringify({ format: BACKUP_FORMAT, version: BACKUP_VERSION + 1, project: { script: [] } })), /newer DraftLine/);
     assert.throws(() => parseBackup(JSON.stringify({ format: BACKUP_FORMAT, version: 1, project: { script: [{ type: 'nope' }] } })), /script is damaged/);
     const ok = { id: 'x', type: 'action', text: 'Hi.' };
-    assert.throws(() => parseBackup(JSON.stringify({ format: BACKUP_FORMAT, version: 1, project: { script: [ok], beats: [{ id: 'b', act: 9 }] } })), /Beat Board is damaged/);
+    assert.throws(() => parseBackup(JSON.stringify({ format: BACKUP_FORMAT, version: 1, project: { script: [ok], beats: [{ id: 'b', act: 9 }] } })), /Scene Board is damaged/);
   });
   it('reads a byte-order mark and a minimal file', () => {
     const p = parseBackup(`\uFEFF${JSON.stringify({ format: BACKUP_FORMAT, version: 1, project: { script: [{ id: 'x', type: 'action', text: 'Hi.' }] } })}`);

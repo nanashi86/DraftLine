@@ -64,8 +64,8 @@ const SAVE_DEBOUNCE_MS = 500;
 const ZOOM_STEPS = [0.75, 0.9, 1, 1.1, 1.25, 1.5, 1.75, 2];
 const VIEWS = [
   { id: 'page', label: 'Page', title: 'Script only' },
-  { id: 'split', label: 'Split', title: 'Script + Beat Board side by side' },
-  { id: 'board', label: 'Board', title: 'Beat Board only' },
+  { id: 'split', label: 'Split', title: 'Script + Scene Board side by side' },
+  { id: 'board', label: 'Board', title: 'Scene Board only' },
 ];
 
 function sampleDoc() {
@@ -310,7 +310,7 @@ function Workspace({ boot }) {
         heading: items[k].block.text.trim(),
         page: pl.page + 1,
         length: formatEighths(Math.max(1, nextPos - pl.pos)),
-        eighths: linesToEighths(Math.max(1, nextPos - pl.pos)), // length in eighths of a page (Beat Board pacing)
+        eighths: linesToEighths(Math.max(1, nextPos - pl.pos)), // length in eighths of a page (Scene Board pacing)
         snippet,
       };
     });
@@ -321,7 +321,7 @@ function Workspace({ boot }) {
   // Characters → Dialogue: a character picked there spotlights their speeches in the script.
   const filter = useMemo(() => dialogueFilter(analysis, selectedChar), [analysis, selectedChar]);
 
-  // Scenes the Beat Board can turn into cards: numbered headings with text.
+  // Scenes the Scene Board can turn into cards: numbered headings with text.
   const boardScenes = useMemo(() => scenes.filter((s) => s.number && s.heading), [scenes]);
 
   // ---- Toasts ----
@@ -583,7 +583,7 @@ function Workspace({ boot }) {
 
   const loadSample = () => openAsNewProject(sampleDoc(), 'Sample script added to your Projects');
 
-  // ---- Beat Board → script: moving a scene card moves its scene (one undo step) ----
+  // ---- Scene Board → script: moving a scene card moves its scene (one undo step) ----
   const moveCard = (id, act, index) => {
     const s = latest.current;
     const r = moveCardAndScene(s.beats, s.blocks, id, act, index);
@@ -786,7 +786,7 @@ function Workspace({ boot }) {
   };
 
   const deleteProject = async (id, title) => {
-    if (!window.confirm(`Delete “${title}”? This removes the script and its beat cards from this browser and can’t be undone. Export it first if you might want it back.`)) return;
+    if (!window.confirm(`Delete “${title}”? This removes the script and its Scene Board cards from this browser and can’t be undone. Export it first if you might want it back.`)) return;
     if (id === projectId) {
       // Move to the most recently edited other script first, then delete.
       const next = (await projects.getAllProjects()).find((p) => p.id !== id);
@@ -942,7 +942,7 @@ function Workspace({ boot }) {
         setFocusMode(false);
       } else if (mod && !e.defaultPrevented && !titleOpen && !importSeed && !doctorOpen && !renameFrom
         && (e.key.toLowerCase() === 'z' || e.key.toLowerCase() === 'y')
-        // Script undo covers the editor, the Dialogue panel and Beat Board moves (focus on a card's grip
+        // Script undo covers the editor, the Dialogue panel and Scene Board moves (focus on a card's grip
         // or the board itself) — but a card's own title / synopsis text keeps the browser's text undo.
         && !['INPUT', 'SELECT'].includes(t.tagName) && !(t.tagName === 'TEXTAREA' && t.closest?.('.board'))) {
         e.preventDefault();
@@ -978,7 +978,7 @@ function Workspace({ boot }) {
     { label: 'Fountain', hint: '.fountain', onSelect: exportFountain },
     { label: 'Final Draft', hint: '.fdx', onSelect: exportFDX },
     { divider: true },
-    { heading: 'Beat outline' },
+    { heading: 'Scene outline' },
     { label: 'Fountain outline', hint: '.fountain', onSelect: () => exportOutline('fountain') },
     { label: 'Markdown', hint: '.md', onSelect: () => exportOutline('md') },
     { divider: true },
@@ -1142,7 +1142,7 @@ function Workspace({ boot }) {
 
           {/* 5 · Output & side panels */}
           <div className="bar-group bar-right">
-            <Menu label="Export" items={exportItems} align="right" title="Export the screenplay or beat outline, print / save as PDF, or back up the project" />
+            <Menu label="Export" items={exportItems} align="right" title="Export the screenplay or scene outline, print / save as PDF, or back up the project" />
             <button
               className={`btn btn-snapshot${snapshotsOpen ? ' is-on-subtle' : ''}`}
               onClick={() => setSnapshotPrompt(true)}
@@ -1332,7 +1332,6 @@ function Workspace({ boot }) {
             {saveLabel}
           </span>
           <span>{analysis.sceneCount} scenes</span>
-          <span>{beats.length} beats</span>
           {noteCount > 0 && (
             <button
               type="button"

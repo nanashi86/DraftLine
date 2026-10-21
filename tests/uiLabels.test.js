@@ -54,7 +54,7 @@ describe('UI names: Story Bible, Characters and Dialogue', () => {
     assert.match(SHORTCUTS['Alt+T'], /Dialogue/);
     assert.match(app, /title="Story Bible: [^"]*\(Alt\+I\)"/);
     assert.match(app, /title="Characters: [^"]*Alt\+C[^"]*Alt\+T[^"]*"/);
-    assert.equal(RENAME_CATEGORIES.find((c) => c.id === 'notes').label, 'Beat Board & Story Bible');
+    assert.equal(RENAME_CATEGORIES.find((c) => c.id === 'notes').label, 'Scene Board & Story Bible');
   });
 });
 
@@ -63,9 +63,9 @@ describe('toolbar: Export holds Print; panels stay visible on laptops', () => {
   const css = readFileSync(join(root, 'App.css'), 'utf8');
   const menu = app.slice(app.indexOf('const exportItems = ['), app.indexOf('];', app.indexOf('const exportItems = [')));
 
-  it('the Export menu has Screenplay, Beat outline, Document and Project, in that order', () => {
+  it('the Export menu has Screenplay, Scene outline, Document and Project, in that order', () => {
     const headings = [...menu.matchAll(/heading: '([^']+)'/g)].map((m) => m[1]);
-    assert.deepEqual(headings, ['Screenplay', 'Beat outline', 'Document', 'Project']);
+    assert.deepEqual(headings, ['Screenplay', 'Scene outline', 'Document', 'Project']);
     const labels = [...menu.matchAll(/label: '([^']+)', hint: '([^']+)'/g)].map((m) => `${m[1]} ${m[2]}`);
     assert.deepEqual(labels, [
       'Fountain .fountain', 'Final Draft .fdx', 'Fountain outline .fountain', 'Markdown .md',

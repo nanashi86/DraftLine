@@ -30,7 +30,7 @@ function CharacterCard({ c, open, canMove, onToggle, onChange, onMove, onDelete,
             className="btn btn-outline pb-char-rename"
             onClick={() => onRename(name)}
             aria-label={`Rename ${name}`}
-            title={`Rename ${name} in cues, dialogue, action, the Beat Board and the Story Bible`}
+            title={`Rename ${name} in cues, dialogue, action, the Scene Board and the Story Bible`}
           >
             Rename
           </button>

@@ -1,4 +1,4 @@
-// Beat Board ↔ script: moving a scene card moves its scene in the screenplay.
+// Scene Board ↔ script: moving a scene card moves its scene in the screenplay.
 //
 // A scene is the chunk from its heading up to (not including) the next heading — every
 // action, speech, transition and note in between travels with it, untouched and in order.

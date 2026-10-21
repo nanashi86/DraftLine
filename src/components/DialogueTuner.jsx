@@ -63,7 +63,7 @@ export default function DialogueTuner({
                   type="button"
                   className="btn btn-outline tuner-rename"
                   onClick={() => onRename(current.name)}
-                  title={`Rename ${current.name} across the script, Beat Board and Story Bible`}
+                  title={`Rename ${current.name} across the script, Scene Board and Story Bible`}
                 >
                   Rename…
                 </button>

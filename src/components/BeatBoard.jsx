@@ -8,7 +8,7 @@ import {
 import './BeatBoard.css';
 
 /**
- * Beat Board: act columns of index cards (3-Act or 4-Act view of the same cards). Drag cards by their grip (native
+ * Scene Board: act columns of index cards (3-Act or 4-Act view of the same cards). Drag cards by their grip (native
  * HTML5 drag-and-drop) to reorder within a column or move across acts. With the
  * grip focused, arrow keys move a card too.
  */
@@ -43,7 +43,7 @@ const BeatCard = memo(function BeatCard({
           className="card-grip"
           data-grip={beat.id}
           draggable
-          aria-label={`Move beat ${number}. Drag, or use arrow keys.`}
+          aria-label={`Move card ${number}. Drag, or use arrow keys.`}
           title="Drag to move · arrow keys also move"
           onDragStart={(e) => {
             e.dataTransfer.effectAllowed = 'move';
@@ -73,8 +73,8 @@ const BeatCard = memo(function BeatCard({
           fitOnResize
           className="card-title"
           value={beat.title}
-          placeholder="Beat headline"
-          aria-label="Beat headline"
+          placeholder="Card headline"
+          aria-label="Card headline"
           onChange={(e) => onField(beat.id, 'title', e.target.value.replace(/\n/g, ' '))}
           onKeyDown={(e) => {
             if (e.key === 'Enter') {
@@ -83,7 +83,7 @@ const BeatCard = memo(function BeatCard({
             }
           }}
         />
-        <button className="card-del" onClick={() => onDelete(beat.id)} aria-label="Delete beat" title="Delete beat">
+        <button className="card-del" onClick={() => onDelete(beat.id)} aria-label="Delete card" title="Delete card">
           ×
         </button>
       </header>
@@ -191,7 +191,7 @@ export default function BeatBoard({
     const cur = beatsRef.current;
     const at = cur.findIndex((b) => b.id === id);
     if (at < 0) return;
-    setUndo({ message: `Deleted “${cur[at].title || 'Untitled beat'}”`, beats: cur });
+    setUndo({ message: `Deleted “${cur[at].title || 'Untitled card'}”`, beats: cur });
     onChange(cur.filter((b) => b.id !== id));
   }, [onChange]);
 
@@ -329,7 +329,7 @@ export default function BeatBoard({
     <section
       className={`board${compact ? ' is-compact' : ''}${tagFilter ? ' is-filtered' : ''}`}
       ref={boardRef}
-      aria-label="Beat Board"
+      aria-label="Scene Board"
       data-filter={tagFilter || undefined}
       onKeyDown={(e) => {
         if (e.key === 'Escape' && tagFilter) {
@@ -341,11 +341,11 @@ export default function BeatBoard({
     >
       <header className="board-head">
         <div className="board-title">
-          <h2>Beat Board</h2>
+          <h2>Scene Board</h2>
           <p className="board-sub">
             {tagFilter
               ? <span role="status">{filterLabel}: {lit.size} of {beats.length} {beats.length === 1 ? 'card' : 'cards'} · Esc shows all</span>
-              : <>{beats.length} {beats.length === 1 ? 'beat' : 'beats'} · drag cards by the grip to restructure</>}
+              : <>{scenes.length} {scenes.length === 1 ? 'scene' : 'scenes'} · drag cards by the grip to restructure</>}
           </p>
         </div>
         <div className="board-tools">
@@ -476,8 +476,8 @@ export default function BeatBoard({
                     </Fragment>
                   );
                 })}
-                {count === 0 && !over && <p className="col-empty">No beats yet</p>}
-                <button className="col-add" onClick={() => addBeat(colDef.acts[colDef.acts.length - 1])}>+ Add Beat</button>
+                {count === 0 && !over && <p className="col-empty">No cards yet</p>}
+                <button className="col-add" onClick={() => addBeat(colDef.acts[colDef.acts.length - 1])}>+ Add Card</button>
               </div>
             </div>
           );

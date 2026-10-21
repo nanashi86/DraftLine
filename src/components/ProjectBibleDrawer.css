@@ -1,6 +1,6 @@
 /* ---- Story Bible and Characters: two drawers sharing the right dock (opening one closes
    the other). On wide screens the workspace makes room for whichever is open (App.css:
-   .dock-open .workspace), so the script and Beat Board flex beside it instead of being
+   .dock-open .workspace), so the script and Scene Board flex beside it instead of being
    covered; on narrow screens it overlays them. */
 .pb {
   position: fixed;
@@ -195,6 +195,18 @@
 .pb-section-view { padding: 0 14px 10px; cursor: text; border-radius: 0 0 8px 8px; outline: none; }
 .pb-section-view:focus-visible { box-shadow: inset 0 0 0 2px var(--accent); }
 .pb-add-section { margin-top: 10px; width: 100%; border: 1px dashed var(--line-soft); }
+
+/* Synopsis: three labelled acts (Act I: Setup · Act II: Confrontation · Act III: Resolution). */
+.pb-fixed-title { padding: 4px 5px; border-color: transparent !important; background: transparent !important; cursor: default; }
+.pb-acts { display: grid; gap: 12px; padding-bottom: 10px; }
+.pb-section-view.pb-acts { gap: 10px; }
+.pb-act { display: grid; gap: 5px; }
+.pb-synopsis .pb-acts:not(.pb-section-view) .pb-act { padding: 0 10px; }
+.pb-synopsis .pb-act .micro-label { padding-left: 1px; }
+.pb-act-body { width: 100%; margin: 0; min-height: 72px; }
+.pb-act .pb-md > :first-child { margin-top: 0; }
+.pb-act .pb-md > :last-child { margin-bottom: 0; }
+.pb-act .pb-md-empty { margin: 0; }
 
 .pb-md { font-size: 13.5px; line-height: 1.6; color: var(--text); }
 .pb-md > :first-child { margin-top: 2px; }

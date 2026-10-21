@@ -104,7 +104,7 @@ export default function HelpModal({ kind, storage, onBackup, onClose }) {
                 Backup Project (.draftline)
               </button>
               <span>
-                Downloads this script complete — title page, Beat Board and Story Bible included — to restore here or on
+                Downloads this script complete — title page, Scene Board and Story Bible included — to restore here or on
                 any other browser.
               </span>
             </div>

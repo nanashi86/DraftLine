@@ -16,7 +16,7 @@
 //                  note and dual-dialogue flag
 //   • title page — title, credit, author, based on, draft version / date, contact, and the
 //                  title typography (titleFont, titleSize, titleBold)
-//   • beats      — Beat Board cards in board order: act column / Act 2 lane, title, synopsis,
+//   • beats      — Scene Board cards in board order: act column / Act 2 lane, title, synopsis,
 //                  colour tags (`tags: string[]`; older backups' single `tag` is read as one) and
 //                  linked scene
 //   • characters, storyNotes, storyDna — the Project Bible
@@ -88,7 +88,7 @@ export function parseBackup(text) {
   }
   const record = data.project;
   if (!validBlocks(record.script)) throw new Error('This backup’s script is damaged.');
-  if (record.beats !== undefined && !validBeats(record.beats)) throw new Error('This backup’s Beat Board is damaged.');
+  if (record.beats !== undefined && !validBeats(record.beats)) throw new Error('This backup’s Scene Board is damaged.');
   if (record.characters !== undefined && !validCharacters(record.characters)) throw new Error('This backup’s character bios are damaged.');
   if (!validRevisions(record.revisions)) throw new Error('This backup’s snapshots are damaged.');
   // These two normalise anything older; reading them here just proves they're readable.

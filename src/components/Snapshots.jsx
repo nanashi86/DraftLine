@@ -49,7 +49,7 @@ export function SnapshotPrompt({ count, onSave, onViewAll, onClose }) {
       >
         <header className="sn-head">
           <h2 id="sn-title">Take a snapshot</h2>
-          <p>Saves this draft — script, title page, Beat Board and Story Bible — as a checkpoint you can restore later.</p>
+          <p>Saves this draft — script, title page, Scene Board and Story Bible — as a checkpoint you can restore later.</p>
         </header>
         <label className="sn-field">
           <span>Label</span>
@@ -91,7 +91,7 @@ export function RestorePrompt({ revision, dirty, onRestore, onClose }) {
         <header className="sn-head">
           <h2 id="sn-restore-title">Restore “{revision.label}”?</h2>
           <p>
-            The script, title page, Beat Board and Story Bible go back to how they were on {when(revision.timestamp)}.
+            The script, title page, Scene Board and Story Bible go back to how they were on {when(revision.timestamp)}.
             {' '}Ctrl+Z undoes the restore.
           </p>
         </header>

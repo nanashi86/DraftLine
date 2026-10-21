@@ -1,6 +1,6 @@
 // The right dock holds one drawer at a time — the Story Bible, Characters (Bios · Dialogue),
 // Snapshots or Margin Notes. Opening one closes the other; the workspace makes room for
-// whichever is open (on wide screens the script and Beat Board flex beside it, on narrow ones
+// whichever is open (on wide screens the script and Scene Board flex beside it, on narrow ones
 // it overlays them). Only the Story Bible and Characters reopen after a reload.
 
 export const DOCK_PANELS = ['bible', 'characters', 'snapshots', 'notes'];
