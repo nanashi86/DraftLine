@@ -6,7 +6,7 @@ import {
   saveProjectEverywhere, scriptSlug, snapshotFileName, snapshotFileText, snapshotFromFileText, snapshotPath, snapshotStamp, storageStatus,
   trashFileName,
 } from '../src/lib/folderSync.js';
-import { DELETE_WORD, deleteWarning, isDeleteConfirmed } from '../src/lib/deleteConfirm.js';
+import { deleteWarning } from '../src/lib/deleteConfirm.js';
 import { createProjectStore, toDoc } from '../src/lib/projectStorage.js';
 import { parseBackup } from '../src/lib/backup.js';
 import { createRevision } from '../src/lib/revisions.js';
@@ -321,40 +321,43 @@ describe('Folder sync: wired into the app', async () => {
     assert.match(app, /if \(saveStatus\.action === 'permission'\) \{\s*folderSync\.requestPermission\(\)/);
     assert.match(app, /setDrawerOpen\(true\);\s*setFocusStorage\(\(n\) => n \+ 1\);/);
   });
-  it('deleting a script takes its folder file out too (or the folder would bring it back) — after the typed confirmation', () => {
-    assert.match(app, /await projects\.deleteProject\(d\.id\);\s*const folder = await folderSync\.removeProject\(d\.id\);/);
+  it('deleting a script takes its folder file out too (or the folder would bring it back) — after the dialog is confirmed', () => {
+    assert.match(app, /await projects\.deleteProject\(d\.id\);\s*setLibraryRev\(\(n\) => n \+ 1\);\s*const folder = await folderSync\.removeProject\(d\.id\);/);
   });
 });
 
-describe('Deleting a script: typed confirmation, Trash instead of erasing', () => {
+describe('Deleting a script: a confirmation dialog, Trash instead of erasing', () => {
   const app = readFileSync(new URL('../src/App.jsx', import.meta.url), 'utf8');
   const modal = readFileSync(new URL('../src/components/DeleteProjectModal.jsx', import.meta.url), 'utf8');
 
-  it('only exactly "DELETE" (capitals, spaces around ignored) enables Permanently Delete', () => {
-    assert.equal(DELETE_WORD, 'DELETE');
-    for (const t of ['DELETE', '  DELETE ']) assert.ok(isDeleteConfirmed(t), t);
-    for (const t of ['', 'delete', 'Delete', 'DELET', 'DELETE!', 'DEL ETE', null, undefined]) assert.equal(isDeleteConfirmed(t), false, String(t));
-  });
-  it('the dialog: title, warning, a type-DELETE field, Cancel, and a red button disabled until confirmed', () => {
+  it('the dialog: title, warning, Cancel, and a red Permanently Delete that works straight away — no typing', () => {
     assert.equal(deleteWarning('The Last Ferry', { synced: true }),
       "This will permanently remove 'The Last Ferry' from this browser and delete the .draftline file from your synced drive folder.");
     assert.equal(deleteWarning('The Last Ferry'), "This will permanently remove 'The Last Ferry' from this browser.");
     assert.match(modal, /<h2 id="dp-title">Delete Screenplay\?<\/h2>/);
-    assert.match(modal, /const ok = isDeleteConfirmed\(typed\) && !busy;/);
-    assert.match(modal, /<button type="submit" className="btn dp-delete" disabled=\{!ok\}>\{busy \? 'Deleting…' : 'Permanently Delete'\}<\/button>/);
-    assert.match(modal, /<button type="button" className="btn dp-cancel" onClick=\{onCancel\} disabled=\{busy\}>Cancel<\/button>/);
-    assert.match(modal, /if \(stage === 'confirm' && ok\) onConfirm\(\);/, 'Enter does nothing until DELETE is typed');
+    assert.ok(!/<input|DELETE_WORD|isDeleteConfirmed|typed/.test(modal), 'no text field, nothing to type');
+    assert.match(modal, /<button type="button" className="btn dp-delete" onClick=\{onConfirm\} disabled=\{busy\}>\{busy \? 'Deleting…' : 'Permanently Delete'\}<\/button>/,
+      'one click deletes (disabled only while a deletion is already running)');
+    assert.match(modal, /<button ref=\{cancelRef\} type="button" className="btn dp-cancel" onClick=\{onCancel\} disabled=\{busy\}>Cancel<\/button>/);
+    assert.match(modal, /cancelRef\.current\?\.focus\(\);/, 'Cancel has focus when it opens: a stray Enter never deletes');
+    assert.match(modal, /onCancel=\{\(e\) => \{\s*e\.preventDefault\(\);\s*if \(!busy\) onCancel\(\);/, 'Esc cancels');
     const css = readFileSync(new URL('../src/components/DeleteProjectModal.css', import.meta.url), 'utf8');
     assert.match(css, /\.dp-modal \.dp-delete \{[^}]*background: #b5402c;/, 'red, and specific enough to beat .btn');
-    assert.match(css, /\.dp-modal \.dp-delete:disabled \{[^}]*cursor: not-allowed;/);
+    assert.ok(!/\.dp-field/.test(css), 'the field’s styles are gone too');
   });
-  it('the app: the Projects menu only opens the dialog — nothing is deleted on click', () => {
+  it('the app: the Projects menu only opens the dialog — nothing is deleted until Permanently Delete', () => {
     const open = /const deleteProject = async \(id, title\) => \{([\s\S]*?)\n {2}\};/.exec(app)[1];
     assert.ok(!/deleteProject\(|removeProject|confirm\(/.test(open), 'no deletion and no window.confirm before the dialog');
     assert.match(open, /setPendingDelete\(\{ id, title, stage: 'confirm', failed: \[\], busy: false \}\);/);
     assert.ok(!/window\.confirm\(`Delete/.test(app));
     assert.match(app, /onConfirm=\{confirmDelete\}/);
     assert.match(app, /onDelete=\{deleteProject\}/);
+    // The drawer's own refresh runs when the menu item returns — before the dialog is answered — so
+    // the app tells it to re-read once the deletion has actually happened.
+    assert.match(app, /await projects\.deleteProject\(d\.id\);\s*setLibraryRev\(\(n\) => n \+ 1\);/);
+    assert.match(app, /libraryRev=\{libraryRev\}/);
+    const drawerSrc = readFileSync(new URL('../src/components/ProjectsDrawer.jsx', import.meta.url), 'utf8');
+    assert.match(drawerSrc, /\}, \[open, loadProjects, syncKey, libraryRev\]\);/);
   });
   it('the folder file is moved into Trash/ (verified copy first), not erased', async () => {
     const { dir, sync } = await linked({ clock: () => 7 });

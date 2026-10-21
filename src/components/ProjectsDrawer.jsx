@@ -68,7 +68,7 @@ function RenameInput({ initial, onDone }) {
  * `live` carries the open script's unsaved title/author/counts so its card is current.
  */
 export default function ProjectsDrawer({
-  open, activeId, live, loadProjects, onClose, onSwitch, onCreate, onRename, onDuplicate, onExport, onDelete,
+  open, activeId, live, loadProjects, onClose, onSwitch, onCreate, onRename, onDuplicate, onExport, onDelete, libraryRev = 0,
   storage, // { sync, onChoose, onLink, onDisconnect, onAllow } — the Storage Destination block
   focusStorage = 0, // bumped by the status bar: open on the storage settings
 }) {
@@ -90,7 +90,8 @@ export default function ProjectsDrawer({
     setNow(Date.now());
   }, [loadProjects]);
 
-  // Re-read when the drawer opens, and when a folder is linked, changed or allowed (its scripts join the list).
+  // Re-read when the drawer opens, when a folder is linked, changed or allowed (its scripts join the
+  // list), and when the app changes the library itself (libraryRev: e.g. a deletion confirmed in its dialog).
   const syncKey = storage ? `${storage.sync.active}|${storage.sync.folderName}` : '';
   useEffect(() => {
     if (!open) return undefined;
@@ -112,7 +113,7 @@ export default function ProjectsDrawer({
       clearInterval(t);
       cancelAnimationFrame(f);
     };
-  }, [open, loadProjects, syncKey]);
+  }, [open, loadProjects, syncKey, libraryRev]);
 
   // Opened from the status bar: show the storage settings.
   useEffect(() => {

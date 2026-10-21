@@ -993,6 +993,7 @@ function Workspace({ boot }) {
   // DELETE. The folder copy goes into the folder's Trash/; if that move fails, the dialog asks
   // before erasing anything (DeleteProjectModal's 'hard' stage).
   const [pendingDelete, setPendingDelete] = useState(null); // { id, title, stage, failed, busy }
+  const [libraryRev, setLibraryRev] = useState(0); // bumped when a deletion finishes: Projects re-reads its list
   const deleteProject = async (id, title) => {
     const others = (await projects.getAllProjects()).filter((p) => p.id !== id);
     if (!others.length) {
@@ -1014,6 +1015,7 @@ function Workspace({ boot }) {
         applyProject(next);
       }
       await projects.deleteProject(d.id);
+      setLibraryRev((n) => n + 1);
       const folder = await folderSync.removeProject(d.id); // otherwise the folder copy would bring it back
       if (folder.failed.length) {
         setPendingDelete({ ...d, stage: 'hard', failed: folder.failed, busy: false });
@@ -1034,6 +1036,7 @@ function Workspace({ boot }) {
     setPendingDelete({ ...d, busy: true });
     const folder = await folderSync.removeProject(d.id, { hard: true }).catch(() => ({ failed: d.failed, removed: 0 }));
     setPendingDelete(null);
+    setLibraryRev((n) => n + 1);
     notify(folder.failed.length ? `Couldn’t delete ${folder.failed.join(', ')} — it’s still in “${sync.folderName}”` : `Deleted “${d.title}” and its file`);
   };
   const cancelDelete = () => {
@@ -1841,6 +1844,7 @@ function Workspace({ boot }) {
           activeId={projectId}
           live={{ title: meta.title, author: meta.author, pages: layout.pageCount, scenes: analysis.sceneCount, updatedAt: saved.at, dirty }}
           loadProjects={loadLibrary}
+          libraryRev={libraryRev}
           storage={storageControls}
           focusStorage={focusStorage}
           onClose={() => setDrawerOpen(false)}

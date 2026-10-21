@@ -1,9 +1,4 @@
-// Deleting a script: the typed confirmation and the dialog's words (components/DeleteProjectModal.jsx).
-
-export const DELETE_WORD = 'DELETE';
-
-/** The Permanently Delete button only works once exactly "DELETE" is typed (capitals; spaces around ignored). */
-export const isDeleteConfirmed = (typed) => String(typed ?? '').trim() === DELETE_WORD;
+// Deleting a script: the confirmation dialog's words (components/DeleteProjectModal.jsx).
 
 /** The warning: the drive part only when a folder is linked. */
 export function deleteWarning(title, { synced = false } = {}) {
