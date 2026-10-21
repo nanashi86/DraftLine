@@ -1,4 +1,4 @@
-import{K as e,q as t}from"./formatting-ROOIYVNG.js";import{A as n,C as r,D as i,E as a,F as o,I as s,L as c,M as l,N as u,O as d,P as f,R as p,S as m,T as h,V as g,_,a as v,b as y,g as b,h as ee,i as x,j as S,k as C,m as w,n as te,o as ne,r as re,s as ie,t as ae,v as oe,w as T,x as E,y as D}from"./index-kjHu-8XI.js";/* empty css                  */var O=t(),k=`# DraftLine User Guide
+import{K as e,q as t}from"./formatting-ROOIYVNG.js";import{A as n,C as r,D as i,E as a,F as o,I as s,L as c,M as l,N as u,O as d,P as f,R as p,S as m,T as h,V as g,_,a as v,b as y,g as b,h as ee,i as x,j as S,k as C,m as w,n as te,o as ne,r as re,s as ie,t as ae,v as oe,w as T,x as E,y as D}from"./index-CTH62P9R.js";/* empty css                  */var O=t(),k=`# DraftLine User Guide
 
 DraftLine is a distraction-free screenwriting app that runs in your browser. It writes in Courier Prime at 12 pt with standard screenplay margins, saves as you type, and works offline. This guide covers everything from your first scene heading to the final PDF.
 
@@ -17,7 +17,7 @@ The top bar holds your script's title, file actions (New, Open, Import, Title Pa
 
 ### Projects and browser storage
 
-Every script lives in your **Projects** library ({{key:Alt+P}}, or the ▾ beside the title). From there you can create, switch, rename, duplicate, export or delete scripts. Deleting asks first: the **Delete Screenplay?** dialog only deletes once you type **DELETE** and press **Permanently Delete**; **Cancel** leaves everything as it was.
+Every script lives in your **Projects** library ({{key:Alt+P}}, or the ▾ beside the title). From there you can create, switch, rename, duplicate, export or delete scripts. Deleting asks first: the **Delete Screenplay?** dialog only deletes when you press **Permanently Delete**; **Cancel** leaves everything as it was.
 
 By default, scripts are saved in this browser's own database (IndexedDB) on this computer. Saving is automatic, about half a second after you stop typing. {{key:Ctrl+S}} saves immediately. Nothing is uploaded and no account is needed.
 
