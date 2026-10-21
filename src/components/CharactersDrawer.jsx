@@ -17,7 +17,7 @@ function CharacterCard({ c, open, canMove, onToggle, onChange, onMove, onDelete,
   }, [autoFocus]);
   const name = c.name.trim();
   return (
-    <li className={`pb-char${open ? ' is-open' : ''}`}>
+    <li className={`pb-char${open ? ' is-open' : ''}`} data-character={c.id}>
       <div className="pb-char-head">
         <button type="button" className="pb-char-toggle" onClick={onToggle} aria-expanded={open}>
           <span className="pb-chev" aria-hidden="true">▸</span>
@@ -72,10 +72,27 @@ function CharacterCard({ c, open, canMove, onToggle, onChange, onMove, onDelete,
   );
 }
 
-function CharacterBios({ characters, onChange, speakers, onUndoable, onRename }) {
+function CharacterBios({ characters, onChange, speakers, onUndoable, onRename, reveal = null }) {
   const [query, setQuery] = useState('');
   const [openId, setOpenId] = useState(null);
   const [focusId, setFocusId] = useState(null);
+  // "Edit in Bios →" from a cue in the script: open that character's card (and clear the filter).
+  const [revealed, setRevealed] = useState(reveal);
+  if (reveal !== revealed) {
+    setRevealed(reveal);
+    if (reveal?.id) {
+      setOpenId(reveal.id);
+      setQuery('');
+    }
+  }
+  const listRef = useRef(null);
+  useEffect(() => {
+    if (!reveal?.id) return;
+    const t = requestAnimationFrame(() => {
+      listRef.current?.querySelector(`[data-character="${CSS.escape(reveal.id)}"]`)?.scrollIntoView({ block: 'start', behavior: 'smooth' });
+    });
+    return () => cancelAnimationFrame(t);
+  }, [reveal]);
   const shown = filterCharacters(characters, query);
   const missing = missingFromScript(characters, speakers);
 
@@ -129,7 +146,7 @@ function CharacterBios({ characters, onChange, speakers, onUndoable, onRename })
       ) : shown.length === 0 ? (
         <p className="pb-empty">No character matches “{query}”.</p>
       ) : (
-        <ul className="pb-chars">
+        <ul className="pb-chars" ref={listRef}>
           {shown.map((c) => (
             <CharacterCard
               key={c.id}
@@ -162,7 +179,7 @@ function CharacterBios({ characters, onChange, speakers, onUndoable, onRename })
  */
 export default function CharactersDrawer({
   open, onClose, tab = DEFAULT_CHARACTER_TAB, onTabChange, characters, onCharactersChange, speakers,
-  onRenameCharacter, dialogue,
+  onRenameCharacter, revealBio = null, dialogue,
 }) {
   const [undo, setUndo] = useState(null); // { message, restore }
   const panelRef = useRef(null);
@@ -235,6 +252,7 @@ export default function CharactersDrawer({
             speakers={speakers}
             onUndoable={(message, prev) => setUndo({ message, restore: () => onCharactersChange(prev) })}
             onRename={onRenameCharacter}
+            reveal={revealBio}
           />
         </div>
       )}

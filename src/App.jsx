@@ -17,6 +17,7 @@ import ProjectsDrawer from './components/ProjectsDrawer.jsx';
 import ProjectBibleDrawer from './components/ProjectBibleDrawer.jsx';
 import RenameCharacterModal from './components/RenameCharacterModal.jsx';
 import NotesDrawer from './components/NotesDrawer.jsx';
+import CueBioCard from './components/CueBioCard.jsx';
 import { RestorePrompt, SnapshotPrompt, SnapshotsDrawer } from './components/Snapshots.jsx';
 import { addRevision, createRevision, getRevision, removeRevision } from './lib/revisions.js';
 import { endNoteSession, hasNote, restoreNoteVersion, setNoteText, startNote } from './lib/editorialNotes.js';
@@ -275,7 +276,9 @@ function Workspace({ boot }) {
   const zoomPct = (z) => Math.round((Math.max(6, Math.round(16 * z)) / 16) * 100); // matches the editor's whole-pixel lines
   const isFitted = zoomPct(effectiveZoom) !== zoomPct(zoom);
 
+  const scrollerEl = useRef(null); // the script pane itself (the cue bio card listens there)
   const scrollerRef = useCallback((el) => {
+    scrollerEl.current = el;
     if (!el) return undefined;
     scrollerRO.current = new ResizeObserver(([en]) => {
       const w = Math.floor(en.contentRect.width); // width available to the page
@@ -608,6 +611,13 @@ function Workspace({ boot }) {
 
   // ---- Rename a character everywhere (one undo step) ----
   const [renameFrom, setRenameFrom] = useState(null); // the name being renamed, while the review is open
+  const [revealBio, setRevealBio] = useState(null); // { id } — a bio the Characters drawer should open to
+  /** Cue bio card → "Edit in Bios →": Characters, Bios tab, that character's card open. */
+  const editBio = useCallback((id) => {
+    setCharacterTab('bios');
+    setDock('characters');
+    setRevealBio({ id });
+  }, []);
   const renameSource = useMemo(
     () => ({ blocks, beats, characters, storyNotes, storyDna }),
     [blocks, beats, characters, storyNotes, storyDna],
@@ -1272,6 +1282,7 @@ function Workspace({ boot }) {
           onCharactersChange={setCharacters}
           speakers={speakers}
           onRenameCharacter={setRenameFrom}
+          revealBio={revealBio}
           dialogue={{
             analysis,
             pageOfBlock: layout.pageOfBlock,
@@ -1376,6 +1387,7 @@ function Workspace({ boot }) {
           </div>
         )}
         {toast && <div className="toast" role="status">{toast}</div>}
+        <CueBioCard root={scrollerEl} characters={characters} onEdit={editBio} disabled={!showEditor || printing} />
 
         <ProjectBibleDrawer
           key={`bible-${projectId}`}
