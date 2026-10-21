@@ -2,10 +2,12 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { beatsToFountain, beatsToMarkdown } from '../src/lib/beats.js';
 import { RENAME_CATEGORIES } from '../src/lib/renameCharacter.js';
 
-const root = new URL('../src/', import.meta.url).pathname;
+// fileURLToPath, not .pathname: on Windows .pathname is "/C:/Users/…", which Windows reads as "C:\C:\Users\…".
+const root = fileURLToPath(new URL('../src/', import.meta.url));
 const read = (p) => readFileSync(join(root, p), 'utf8');
 const files = (dir) => readdirSync(dir, { withFileTypes: true }).flatMap((d) => (d.isDirectory() ? files(join(dir, d.name)) : [join(dir, d.name)]));
 const code = (src) => src.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');

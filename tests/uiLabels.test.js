@@ -2,15 +2,17 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { SHORTCUTS } from '../src/lib/shortcuts.js';
 import { RENAME_CATEGORIES } from '../src/lib/renameCharacter.js';
 import { BIBLE_TABS, DNA_VIEWS } from '../src/lib/bible.js';
 
-const root = new URL('../src/', import.meta.url).pathname;
+// fileURLToPath, not .pathname: on Windows .pathname is "/C:/Users/…", which Windows reads as "C:\C:\Users\…".
+const root = fileURLToPath(new URL('../src/', import.meta.url));
 const files = (dir) => readdirSync(dir, { withFileTypes: true })
   .flatMap((d) => (d.isDirectory() ? files(join(dir, d.name)) : [join(dir, d.name)]));
 // Everything the writer can see or hear: components, the app shell, menus, shortcut and rename labels.
-const uiSources = files(root).filter((f) => /\.jsx$/.test(f) || /lib\/(shortcuts|renameCharacter)\.js$/.test(f));
+const uiSources = files(root).filter((f) => /\.jsx$/.test(f) || /lib[\\/](shortcuts|renameCharacter)\.js$/.test(f));
 
 describe('DNA tab views: Blueprint and Glossary', () => {
   it('the toggle reads [ Blueprint | Glossary ], in that order', () => {
