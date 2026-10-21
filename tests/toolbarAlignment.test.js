@@ -31,7 +31,7 @@ describe('Toolbar: the top-right cluster sits on one baseline', () => {
 });
 
 describe('Header: the D badge opens About; the title ▾ opens the one Projects drawer', () => {
-  const id = app.slice(app.indexOf('className="bar-group g-identity"'), app.indexOf('<span className="bar-sep"'));
+  const id = app.slice(app.indexOf('className="bar-zone zone-left g-identity"'), app.indexOf('<div className="bar-zone zone-middle">'));
   it('no breadcrumb, no second project popover', () => {
     assert.ok(!/Breadcrumbs|crumb/.test(app), 'App has no breadcrumb');
     assert.ok(!/crumb/.test(css), 'no breadcrumb styles left');

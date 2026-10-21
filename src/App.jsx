@@ -123,6 +123,14 @@ function download(filename, content, mime) {
 /** Narrower than this, the header's author field hides rather than showing a sliver. */
 const AUTHOR_MIN_WIDTH = 90;
 
+/** The file actions: four toolbar buttons on wide windows, one "File ▾" menu on narrower ones. */
+const FILE_ACTIONS = [
+  { id: 'new', label: 'New', title: 'Start a new script (your others stay in Projects)' },
+  { id: 'open', label: 'Open', title: 'Open .fountain, .fdx, .txt or a .draftline backup' },
+  { id: 'import', label: 'Import', title: 'Import a script from Google Docs, Word, a PDF or plain text' },
+  { id: 'title', label: 'Title Page', title: 'Edit the title page' },
+];
+
 function timeLabel(ts) {
   return ts ? new Date(ts).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : '';
 }
@@ -245,6 +253,7 @@ function Workspace({ boot }) {
   }, []);
   const charactersBtnRef = useRef(null);
   const bibleBtnRef = useRef(null);
+  const focusBtnRef = useRef(null);
   const [toast, setToast] = useState(() => bootMessage(boot));
   const [saved, setSaved] = useState(() => ({
     blocks: initialDoc.blocks,
@@ -996,6 +1005,14 @@ function Workspace({ boot }) {
     requestAnimationFrame(() => requestAnimationFrame(() => editorRef.current?.pulseBlock(target.id)));
   };
 
+  // New · Open · Import · Title Page: four buttons on wide windows, the "File ▾" menu on narrow ones.
+  const runFileAction = (id) => {
+    if (id === 'new') newScript();
+    else if (id === 'open') fileInputRef.current?.click();
+    else if (id === 'import') setImportSeed({ text: '', name: '' });
+    else if (id === 'title') setTitleOpen(true);
+  };
+
   const exportItems = [
     { heading: 'Screenplay' },
     { label: 'Fountain', hint: '.fountain', onSelect: exportFountain },
@@ -1025,8 +1042,10 @@ function Workspace({ boot }) {
         data-canvas={canvasTheme}
       >
         <header className="bar" ref={barRef}>
-          {/* 1 · Identity & metadata */}
-          <div className="bar-group g-identity">
+          {/* Three zones: left (scenes · D · title ▾) never shrinks; the middle (file actions, element &
+              formatting) gives way and clips, never overlaps; right (views, export, panels) never shrinks. */}
+          {/* 1 · Left zone: identity */}
+          <div className="bar-zone zone-left g-identity">
             <button
               className={`btn btn-icon${navVisible ? ' is-on-subtle' : ''}`}
               onClick={() => setNavOpen((o) => !o)}
@@ -1085,23 +1104,24 @@ function Workspace({ boot }) {
             </div>
           </div>
 
+          {/* 2 · Middle zone: file actions, then the element & formatting tools */}
+          <div className="bar-zone zone-middle">
           <span className="bar-sep" aria-hidden="true" />
-
-          {/* 2 · Document operations */}
-          <div className="bar-group">
-            <button className="btn" onClick={() => newScript()} title="Start a new script (your others stay in Projects)">New</button>
-            <button className="btn" onClick={() => fileInputRef.current?.click()} title="Open .fountain, .fdx, .txt or a .draftline backup">Open</button>
-            <button className="btn" onClick={() => setImportSeed({ text: '', name: '' })} title="Import a script from Google Docs, Word, a PDF or plain text">Import</button>
-            <button className="btn" onClick={() => setTitleOpen(true)}>
-              Title Page
-            </button>
-            <input ref={fileInputRef} type="file" accept=".fountain,.spmd,.txt,.fdx,.draftline" hidden onChange={openFile} />
+          {/* Under 1100px: one "File ▾" menu. It sits outside the clipping box so its list can drop down. */}
+          <span className="file-menu">
+            <Menu label="File" items={() => FILE_ACTIONS.map((a) => ({ ...a, onSelect: () => runFileAction(a.id) }))} title="New · Open · Import · Title Page" />
+          </span>
+          <input ref={fileInputRef} type="file" accept=".fountain,.spmd,.txt,.fdx,.draftline" hidden onChange={openFile} />
+          {/* Shrinks and clips if it ever runs out of room — it can never paint over a neighbour. */}
+          <div className="zone-middle-tools">
+          <div className="bar-group g-file file-inline">
+            {FILE_ACTIONS.map((a) => (
+              <button key={a.id} className="btn" onClick={() => runFileAction(a.id)} title={a.title}>{a.label}</button>
+            ))}
           </div>
 
-          <span className="bar-sep" aria-hidden="true" />
-
-          {/* 3 · Active element & formatting */}
-          <div className="bar-group">
+          {/* Active element & formatting */}
+          <div className="bar-group g-format">
             <select
               className="type-select"
               value={elementControlsEnabled ? activeBlock.type : ''}
@@ -1145,9 +1165,12 @@ function Workspace({ boot }) {
             </div>
           </div>
 
-          <span className="bar-sep" aria-hidden="true" />
+          </div>
+          </div>
 
-          {/* 4 · Workspace views */}
+          {/* 3 · Right zone: workspace views, output and side panels */}
+          <div className="bar-zone zone-right">
+          <span className="bar-sep" aria-hidden="true" />
           <div className="seg" role="radiogroup" aria-label="Workspace view (Alt+B cycles)">
             {VIEWS.map((v) => (
               <button
@@ -1179,7 +1202,7 @@ function Workspace({ boot }) {
               <span className="snap-label">Snapshot</span>
               {revisions.length > 0 && <span className="btn-count" aria-label={`${revisions.length} saved`}>{revisions.length}</span>}
             </button>
-            <button className="btn" onClick={() => setFocusMode(true)} title="Hide everything but the page (Esc to exit)">Focus</button>
+            <button ref={focusBtnRef} className="btn btn-focus" onClick={() => setFocusMode(true)} title="Hide everything but the page (Esc to exit)">Focus</button>
             <button
               ref={bibleBtnRef}
               className={`btn btn-bible${bibleOpen ? ' is-on-subtle' : ''}`}
@@ -1221,8 +1244,11 @@ function Workspace({ boot }) {
                 onShortcuts: () => setHelpKind('shortcuts'),
                 onSample: loadSample,
                 onAbout: () => setHelpKind('about'),
+                focusOnBar: isOnBar(focusBtnRef.current, barRef.current),
+                onFocus: () => setFocusMode(true),
               })}
             />
+          </div>
           </div>
         </header>
 

@@ -81,11 +81,12 @@ describe('toolbar: Export holds Print; panels stay visible on laptops', () => {
   it('Ctrl+P still prints: the print view mounts on the browser’s beforeprint', () => {
     assert.match(app, /addEventListener\('beforeprint'/);
   });
-  it('Story Bible tucks into ⋮ only below 1380px (≈ laptop width); Characters never does', () => {
-    const m = /@media \(max-width: (\d+)px\) \{\s*\.bar-right > \.btn-bible \{ display: none; \}/.exec(css);
+  it('Story Bible tucks into ⋮ below 1440px; Characters only on narrow windows (under 1024px)', () => {
+    const m = /@media \(max-width: ([\d.]+)px\) \{\s*\.bar-right > \.btn-bible \{ display: none; \}/.exec(css);
     assert.ok(m, 'a breakpoint hides .btn-bible');
-    assert.equal(Number(m[1]), 1379);
-    assert.ok(!/\.btn-accent[^}]*display:\s*none/.test(css), 'Characters is never hidden');
+    assert.equal(Number(m[1]), 1439.98);
+    const c = /@media \(max-width: ([\d.]+)px\) \{\s*\.bar-right > \.btn-accent \{ display: none; \}/.exec(css);
+    assert.equal(Number(c?.[1]), 1023.98);
   });
 });
 
