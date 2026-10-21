@@ -566,7 +566,7 @@ button.status-density.is-on { background: rgba(224, 164, 88, 0.22); border-color
 .dlg-main {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 0;
   padding: 1px 4px 1px 0;
   border: 0;
   background: transparent;
@@ -574,9 +574,11 @@ button.status-density.is-on { background: rgba(224, 164, 88, 0.22); border-color
   font: inherit;
   cursor: pointer;
 }
-.dlg-icon { flex: none; color: var(--muted); }
+/* The Dialogue tab's own speech bubble (TabIcon, 14px, stroke 1.75), 6px before the name. */
+.dlg-icon { display: inline-flex; flex: none; margin-right: 6px; color: var(--muted); }
+.dlg-icon .tab-icon { display: block; margin: 0; }
 .dlg-name { color: var(--text); font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; max-width: 16ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.dlg-pos { font-variant-numeric: tabular-nums; }
+.dlg-pos { margin-left: 5px; font-variant-numeric: tabular-nums; }
 .dlg-main:hover .dlg-pos,
 .dlg-main.is-open .dlg-pos { color: var(--text); }
 .dlg-step,

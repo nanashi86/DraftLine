@@ -69,12 +69,22 @@ describe('Dialogue stepper: look and wiring', () => {
   const ui = read('components/DialogueStepper.jsx');
   const app = read('App.jsx');
   const css = read('App.css');
-  it('Lucide line icons (Theater, ChevronLeft/Right, X) at 13px, stroke 1.75 — no emoji', () => {
-    assert.match(ui, /import \{ ChevronLeft, ChevronRight, Theater, X \} from 'lucide-react';/);
+  it('the Characters drawer’s own Dialogue speech bubble (TabIcon, 14px, stroke 1.75) — no Theater, no emoji', () => {
+    assert.match(ui, /import TabIcon from '\.\/TabIcon\.jsx';/);
+    assert.match(ui, /<span className="dlg-icon"><TabIcon name="dialogue" \/><\/span>/);
+    assert.ok(!/Theater/.test(ui));
+    const tab = read('components/TabIcon.jsx');
+    assert.match(tab, /width="14"\s*height="14"/);
+    assert.match(tab, /strokeWidth="1\.75"/);
+    assert.match(read('components/CharactersDrawer.jsx'), /<TabIcon name=\{t\.id\} \/>/, 'the same component the drawer tab uses');
+    assert.match(css, /\.dlg-icon \{ display: inline-flex; flex: none; margin-right: 6px; color: var\(--muted\); \}/, '6px before the name');
+    assert.match(css, /\.dlg-icon \.tab-icon \{ display: block; margin: 0; \}/, 'no extra tab margin on top');
+    assert.match(css, /\.dlg-main \{[^}]*gap: 0;/, 'nothing else adds space');
+    // ‹ › × stay Lucide line icons at 13px, stroke 1.75.
+    assert.match(ui, /import \{ ChevronLeft, ChevronRight, X \} from 'lucide-react';/);
     assert.match(ui, /const ICON = \{ size: 13, strokeWidth: 1\.75, 'aria-hidden': true \};/);
-    for (const icon of ['Theater', 'ChevronLeft', 'ChevronRight', 'X']) assert.match(ui, new RegExp(`<${icon} \\{\\.\\.\\.ICON\\}`), icon);
+    for (const icon of ['ChevronLeft', 'ChevronRight', 'X']) assert.match(ui, new RegExp(`<${icon} \\{\\.\\.\\.ICON\\}`), icon);
     assert.ok(!/\p{Extended_Pictographic}/u.test(ui.replace(/\/\/.*|\/\*[\s\S]*?\*\/|^ \*.*$/gm, '')), 'no emoji in the markup');
-    assert.match(css, /\.dlg-icon \{ flex: none; color: var\(--muted\); \}/);
     const pkg = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8'));
     assert.match(pkg.dependencies['lucide-react'], /^\d+\.\d+\.\d+$/, 'pinned');
   });
@@ -85,7 +95,7 @@ describe('Dialogue stepper: look and wiring', () => {
     assert.match(css, /\.dlg-main \{[^}]*font: inherit;/, 'the status bar’s own font and size');
   });
   it('[ icon NAME n of N ‹ › ] [ × ]: the pill opens the list; × clears the filter', () => {
-    assert.match(ui, /<Theater \{\.\.\.ICON\} className="dlg-icon" \/>\s*<span className="dlg-name">\{name\}<\/span>\s*<span className="dlg-pos">\{stepperPosition\(index, total\)\}<\/span>/);
+    assert.match(ui, /<span className="dlg-icon"><TabIcon name="dialogue" \/><\/span>\s*<span className="dlg-name">\{name\}<\/span>\s*<span className="dlg-pos">\{stepperPosition\(index, total\)\}<\/span>/);
     assert.match(ui, /className=\{`dlg-main\$\{listOpen \? ' is-open' : ''\}`\}\s*onClick=\{\(\) => setListOpen\(\(o\) => !o\)\}/);
     assert.match(ui, /onClick=\{\(\) => onStep\('prev'\)\}/);
     assert.match(ui, /onClick=\{\(\) => onStep\('next'\)\}/);

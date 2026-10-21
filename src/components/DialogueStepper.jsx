@@ -1,13 +1,14 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { ChevronLeft, ChevronRight, Theater, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight, X } from 'lucide-react';
+import TabIcon from './TabIcon.jsx';
 import { stepperPosition } from '../lib/dialogueFilter.js';
 
 const ICON = { size: 13, strokeWidth: 1.75, 'aria-hidden': true };
 
 /**
  * Status bar: steps through the filtered character's speeches while the Characters → Dialogue
- * filter is on.  [ 🎭 MARIE 3 of 12  ‹  › ] [ × ]
+ * filter is on.  [ 💬 MARIE 3 of 12  ‹  › ] [ × ]   (💬: the Characters drawer's Dialogue tab icon)
  *   pill   → a list of every speech (Sc. · p. — "snippet"); a row jumps there
  *   ‹ ›    → previous / next speech, looping (also Alt+↑ / Alt+↓, and [ / ] outside the text)
  *   ×      → clears the filter
@@ -67,7 +68,7 @@ export default function DialogueStepper({ name, stops, index, onStep, onGo, onCl
           aria-expanded={listOpen}
           title={`Every speech by ${name} — pick one to jump to it`}
         >
-          <Theater {...ICON} className="dlg-icon" />
+          <span className="dlg-icon"><TabIcon name="dialogue" /></span>
           <span className="dlg-name">{name}</span>
           <span className="dlg-pos">{stepperPosition(index, total)}</span>
         </button>
