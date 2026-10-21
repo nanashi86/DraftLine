@@ -2,9 +2,9 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import {
-  DEFAULT_SECTIONS, SYNOPSIS_ACTS, TREATMENT, TREATMENT_TARGET, defaultStoryNotes, emptySynopsis, importNotes, migrateStoryBible,
-  normalizeStoryNotes, normalizeSynopsis, setSynopsisAct, setTreatment, splitByHeadings, storyNotesMarkdown, synopsisIndex, themeLine,
-  updateSection,
+  DEFAULT_SECTIONS, SYNOPSIS_ACTS, TREATMENT, TREATMENT_ACTS, TREATMENT_TARGETS, defaultStoryNotes, emptySynopsis, importNotes,
+  migrateStoryBible, normalizeStoryNotes, normalizeSynopsis, normalizeTreatment, setSynopsisAct, setTreatmentAct, splitByHeadings,
+  storyNotesMarkdown, synopsisIndex, themeLine, treatmentActHeading, updateSection,
 } from '../src/lib/bible.js';
 import { renameCharacter, revertRename } from '../src/lib/renameCharacter.js';
 import { parseBackup, serializeBackup } from '../src/lib/backup.js';
@@ -124,8 +124,10 @@ describe('Story Notes: three-act Synopsis card', () => {
     ]);
   });
   it('renders all three in both states: one labelled box per act when editing, three labelled blocks otherwise', () => {
-    const card = ui.slice(ui.indexOf('function SynopsisCard'), ui.indexOf('function StoryNotes'));
-    assert.equal((card.match(/SYNOPSIS_ACTS\.map/g) || []).length, 2);
+    // The Synopsis is the shared three-act card (the Treatment is too), given SYNOPSIS_ACTS.
+    const card = ui.slice(ui.indexOf('function ActsCard'), ui.indexOf('function StoryNotes'));
+    assert.equal((card.match(/acts\.map/g) || []).length, 2);
+    assert.match(ui, /<ActsCard\s+label="Synopsis"\s+className="pb-synopsis"\s+acts=\{SYNOPSIS_ACTS\}/);
     assert.match(card, /<AutoTextarea[\s\S]*?placeholder=\{a\.placeholder\}[\s\S]*?onChange=\{\(e\) => onChange\(a\.key, e\.target\.value\)\}/);
     assert.match(card, /<span className="micro-label">\{a\.label\}<\/span>/);
     assert.match(card, /\{editing \? 'Done' : 'Edit'\}/);
@@ -184,76 +186,93 @@ describe('Story Notes: three-act Synopsis card', () => {
   });
 });
 
-describe('Story Notes: Treatment card', () => {
+describe('Story Notes: Treatment card, in three acts like the Synopsis', () => {
   const ui = readFileSync(new URL('../src/components/ProjectBibleDrawer.jsx', import.meta.url), 'utf8');
-  it('label and placeholder', () => {
+  const tr = (acts) => Object.entries(acts).reduce((n, [k, v]) => setTreatmentAct(n, k, v), defaultStoryNotes());
+
+  it('the Synopsis’s three acts — ACT I: SETUP · ACT II: CONFRONTATION · ACT III: RESOLUTION — with their own prompts', () => {
     assert.equal(TREATMENT.label, 'Treatment');
-    assert.equal(TREATMENT.placeholder, 'Write or paste your full narrative treatment here (sequence-by-sequence prose, scene breakdowns, subplots)...');
+    assert.deepEqual(TREATMENT_ACTS.map((a) => [a.key, a.label]), SYNOPSIS_ACTS.map((a) => [a.key, a.label]));
+    assert.deepEqual(TREATMENT_ACTS.map(treatmentActHeading), ['ACT I: SETUP', 'ACT II: CONFRONTATION', 'ACT III: RESOLUTION']);
+    for (const a of TREATMENT_ACTS) assert.match(a.placeholder, /^Act I{1,3} in full: .+\.\.\.$/);
   });
-  it('sits directly below the Synopsis, with Edit / Done like it', () => {
-    assert.match(ui, /const fixedCards = \(\s*<>\s*\{synopsisCard\}\s*<TreatmentCard/);
-    assert.match(ui, /\{i === synopsisIndex\(notes\.sections\) && fixedCards\}/);
-    assert.match(ui, /\{synopsisIndex\(notes\.sections\) >= notes\.sections\.length && fixedCards\}/);
-    const card = ui.slice(ui.indexOf('function TreatmentCard'), ui.indexOf('function StoryNotes'));
+  it('renders all three act blocks, editing and not — the same card as the Synopsis', () => {
+    const card = ui.slice(ui.indexOf('function ActsCard'), ui.indexOf('function StoryNotes'));
+    assert.match(card, /\{acts\.map\(\(a\) => \(\s*<label key=\{a\.key\} className="pb-act">\s*<span className="micro-label">\{a\.label\}<\/span>\s*<AutoTextarea/);
+    assert.match(card, /\{acts\.map\(\(a\) => \(\s*<div key=\{a\.key\} className="pb-act" data-act=\{a\.key\}>\s*<span className="micro-label">\{a\.label\}<\/span>/);
     assert.match(card, /\{editing \? 'Done' : 'Edit'\}/);
-    assert.match(card, /<AutoTextarea[^>]*placeholder=\{TREATMENT\.placeholder\}/);
-    assert.match(card, /onChange=\{\(e\) => onChange\(e\.target\.value\)\}/);
-    assert.match(ui, /onChange=\{\(text\) => onChange\(setTreatment\(notes, text\)\)\}/, 'saves through the notes like every card');
+    assert.match(ui, /<ActsCard\s+label="Synopsis"\s+className="pb-synopsis"\s+acts=\{SYNOPSIS_ACTS\}/);
+    assert.match(ui, /<ActsCard\s+label=\{TREATMENT\.label\}\s+className="pb-treatment"\s+acts=\{TREATMENT_ACTS\}\s+value=\{normalizeTreatment\(notes\.treatment\)\}/);
+    assert.match(ui, /onChange=\{\(key, text\) => onChange\(setTreatmentAct\(notes, key, text\)\)\}/, 'each act saves through the notes');
+    assert.match(ui, /const fixedCards = \(\s*<>\s*<ActsCard\s+label="Synopsis"[^]*?<ActsCard\s+label=\{TREATMENT\.label\}/, 'directly below the Synopsis');
   });
-  it('a new project has an empty treatment; older notes load with one', () => {
-    assert.equal(defaultStoryNotes().treatment, '');
-    assert.equal(normalizeStoryNotes(v2Notes('')).treatment, '');
-    assert.equal(normalizeStoryNotes({ ...defaultStoryNotes(), treatment: 42 }).treatment, '');
-    assert.equal(normalizeStoryNotes('old free text').treatment, '');
+  it('each act edits on its own; new projects start empty; an older one-box treatment becomes Act I', () => {
+    let n = setTreatmentAct(defaultStoryNotes(), 'act2', 'The storm.');
+    n = setTreatmentAct(n, 'act1', 'The harbor.');
+    assert.deepEqual(n.treatment, { act1: 'The harbor.', act2: 'The storm.', act3: '' });
+    assert.equal(setTreatmentAct(n, 'act9', 'x'), n);
+    assert.deepEqual(defaultStoryNotes().treatment, emptySynopsis());
+    assert.deepEqual(normalizeStoryNotes({ ...defaultStoryNotes(), treatment: 'Old one-box text.' }).treatment, { act1: 'Old one-box text.', act2: '', act3: '' });
+    assert.deepEqual(normalizeStoryNotes(v2Notes('')).treatment, emptySynopsis());
+    assert.deepEqual(normalizeTreatment(42), emptySynopsis());
   });
-  it('saves input: through the library and inside .draftline backups', async () => {
-    const notes = setTreatment(defaultStoryNotes(), 'Sequence 1. Marie at the harbor.');
-    const store = createProjectStore({ indexedDB: createFakeIndexedDB() });
-    const rec = await store.saveActiveProject({ meta: { title: 'Run!' }, blocks: [makeBlock('scene', 'EXT. HARBOR')], storyNotes: notes });
-    assert.equal(toDoc(await store.getProject(rec.id)).storyNotes.treatment, 'Sequence 1. Marie at the harbor.');
+  it('preserves every act across reloads: the project library and .draftline backups', async () => {
+    const notes = tr({ act1: 'Sequence 1.', act2: 'Sequence 2.', act3: 'Sequence 3.' });
+    const idb = createFakeIndexedDB();
+    const rec = await createProjectStore({ indexedDB: idb }).saveActiveProject({ meta: { title: 'Run!' }, blocks: [makeBlock('scene', 'EXT. HARBOR')], storyNotes: notes });
+    const reopened = createProjectStore({ indexedDB: idb }); // a reload: a new store on the same database
+    assert.deepEqual(toDoc(await reopened.getProject(rec.id)).storyNotes.treatment, { act1: 'Sequence 1.', act2: 'Sequence 2.', act3: 'Sequence 3.' });
     const { record } = parseBackup(serializeBackup(rec));
-    assert.equal(toDoc(record).storyNotes.treatment, 'Sequence 1. Marie at the harbor.');
+    assert.deepEqual(toDoc(record).storyNotes.treatment, { act1: 'Sequence 1.', act2: 'Sequence 2.', act3: 'Sequence 3.' });
   });
-  it('Copy as Markdown: "## Treatment" right after the Synopsis', () => {
+  it('Copy as Markdown: ## Treatment, then ### ACT I: SETUP / ### ACT II: CONFRONTATION / ### ACT III: RESOLUTION, after the Synopsis', () => {
     let n = setSynopsisAct(defaultStoryNotes(), 'act1', 'Marie returns.');
-    n = setTreatment(n, 'Opening prose.');
+    n = setTreatmentAct(n, 'act1', 'Dawn.');
+    n = setTreatmentAct(n, 'act2', 'Storm.');
+    n = setTreatmentAct(n, 'act3', 'Sails.');
     n = updateSection(n, n.sections.find((x) => x.title === 'Scratchpad').id, { body: 'Loose ideas.' });
     const md = storyNotesMarkdown(n, 'Run!');
-    assert.ok(md.indexOf('### Act I: Setup') < md.indexOf('## Treatment'));
-    assert.ok(md.indexOf('## Treatment') < md.indexOf('## Scratchpad'));
-    assert.match(md, /## Treatment\n\nOpening prose\.\n/);
-    // with no synopsis text, the treatment still comes out (in the same place)
-    assert.match(storyNotesMarkdown(setTreatment(defaultStoryNotes(), 'Only this.')), /^## Treatment\n\nOnly this\.\n$/);
-    assert.ok(!/Treatment/.test(storyNotesMarkdown(defaultStoryNotes())), 'an empty treatment is left out');
+    assert.match(md, /## Treatment\n\n### ACT I: SETUP\n\nDawn\.\n\n### ACT II: CONFRONTATION\n\nStorm\.\n\n### ACT III: RESOLUTION\n\nSails\.\n/);
+    assert.ok(md.indexOf('### Act I: Setup') < md.indexOf('## Treatment') && md.indexOf('## Treatment') < md.indexOf('## Scratchpad'));
+    assert.equal(storyNotesMarkdown(tr({ act3: 'Only the end.' })), '## Treatment\n\n### ACT III: RESOLUTION\n\nOnly the end.\n', 'empty acts are left out');
+    assert.ok(!/Treatment/.test(storyNotesMarkdown(defaultStoryNotes())));
   });
-  it('Import from Notes: "## Treatment" fills the card, sub-headings and all; Copy → Import round-trips', () => {
-    const text = '# Ideas\n\nA note.\n\n## Treatment\n\nOpening.\n\n### Sequence 2: The Storm\n\nWind.\n\n## Logline\n\nShe goes back.';
+  it('Import from Notes: ### ACT I / II / III under ## Treatment fill those acts; Copy → Import round-trips', () => {
+    const text = '## Treatment\n\n### ACT I: SETUP\n\nDawn.\n\n### Sequence 2\n\nTickets.\n\n### Act II\n\nStorm.\n\n### act 3\n\nSails.\n\n## Logline\n\nShe goes back.';
     const base = defaultStoryNotes();
     const out = importNotes(base, text, { mode: 'sections', targetId: base.sections[0].id });
-    assert.equal(out.treatment, 'Opening.\n\n### Sequence 2: The Storm\n\nWind.');
+    assert.deepEqual(out.treatment, { act1: 'Dawn.\n\n### Sequence 2\n\nTickets.', act2: 'Storm.', act3: 'Sails.' });
     assert.equal(out.sections.find((x) => x.title === 'Logline').body, 'She goes back.');
-    assert.ok(!out.sections.some((x) => /Treatment|Sequence/.test(x.title)), 'no stray sections');
+    assert.deepEqual(out.synopsis, emptySynopsis(), 'act headings under ## Treatment never reach the Synopsis');
+    assert.ok(!out.sections.some((x) => /Treatment|Sequence|Act/.test(x.title)), 'no stray sections');
     let n = setSynopsisAct(defaultStoryNotes(), 'act2', 'It falls apart.');
-    n = setTreatment(n, 'Long prose.\n\n### Part Two\n\nMore.');
+    n = setTreatmentAct(n, 'act1', 'Long prose.\n\n### Part Two\n\nMore.');
+    n = setTreatmentAct(n, 'act3', 'The end.');
     const back = importNotes(defaultStoryNotes(), storyNotesMarkdown(n, 'Run!'), { mode: 'sections' });
-    assert.equal(back.treatment, n.treatment);
+    assert.deepEqual(back.treatment, n.treatment);
     assert.deepEqual(back.synopsis, n.synopsis);
-    assert.deepEqual(back.sections.map((x) => x.title), DEFAULT_SECTIONS, 'no "Run! — Story Notes" section');
+    assert.deepEqual(back.sections.map((x) => x.title), DEFAULT_SECTIONS);
   });
-  it('Import from Notes can paste straight into the Treatment (append or replace)', () => {
-    const n = setTreatment(defaultStoryNotes(), 'First.');
-    assert.equal(importNotes(n, 'Second.', { targetId: TREATMENT_TARGET, mode: 'append' }).treatment, 'First.\n\nSecond.');
-    assert.equal(importNotes(n, 'New.', { targetId: TREATMENT_TARGET, mode: 'replace' }).treatment, 'New.');
-    assert.match(ui, /<option value=\{TREATMENT_TARGET\}>\{TREATMENT\.label\}<\/option>/);
+  it('Import from Notes can paste straight into one Treatment act (append or replace)', () => {
+    const n = tr({ act2: 'First.' });
+    assert.deepEqual(TREATMENT_TARGETS.map((t) => t.label), ['Treatment — Act I (Setup)', 'Treatment — Act II (Confrontation)', 'Treatment — Act III (Resolution)']);
+    assert.equal(importNotes(n, 'Second.', { targetId: 'treatment:act2', mode: 'append' }).treatment.act2, 'First.\n\nSecond.');
+    assert.equal(importNotes(n, 'New.', { targetId: 'treatment:act2', mode: 'replace' }).treatment.act2, 'New.');
+    assert.equal(importNotes(n, 'Opening.', { targetId: 'treatment:act1' }).treatment.act1, 'Opening.');
+    assert.match(ui, /\{TREATMENT_TARGETS\.map\(\(t\) => <option key=\{t\.id\} value=\{t\.id\}>\{t\.label\}<\/option>\)\}/);
     assert.deepEqual(splitByHeadings('## A\n\nx\n\n### B').map((p) => p.level), [2, 3]);
   });
-  it('renaming a character reaches the treatment, and undo puts it back', () => {
-    const storyNotes = setTreatment(defaultStoryNotes(), 'FITO runs. Fito hides.');
+  it('renaming a character reaches every Treatment act, and undo puts them all back', () => {
+    const storyNotes = tr({ act1: 'FITO runs.', act2: 'Nobody here.', act3: 'Fito hides.' });
     const project = { blocks: [makeBlock('character', 'FITO')], beats: [], characters: [], storyNotes, storyDna: emptyStoryDna() };
     const { project: p2, changed } = renameCharacter(project, 'FITO', 'Marc');
-    assert.equal(p2.storyNotes.treatment, 'MARC runs. Marc hides.');
-    const undone = revertRename({ beats: [], characters: [], storyNotes: p2.storyNotes, storyDna: p2.storyDna }, changed, 'undo');
-    assert.equal(undone.storyNotes.treatment, 'FITO runs. Fito hides.');
+    assert.deepEqual(p2.storyNotes.treatment, { act1: 'MARC runs.', act2: 'Nobody here.', act3: 'Marc hides.' });
+    const state = { beats: [], characters: [], storyNotes: p2.storyNotes, storyDna: p2.storyDna };
+    const undone = revertRename(state, changed, 'undo');
+    assert.deepEqual(undone.storyNotes.treatment, storyNotes.treatment);
+    assert.deepEqual(revertRename(undone, changed, 'redo').storyNotes.treatment, p2.storyNotes.treatment);
+    // an older one-box treatment still renames (it becomes Act I)
+    const legacy = renameCharacter({ ...project, storyNotes: { ...storyNotes, treatment: 'Fito waits.' } }, 'FITO', 'Marc');
+    assert.equal(legacy.project.storyNotes.treatment.act1, 'Marc waits.');
   });
 });
-

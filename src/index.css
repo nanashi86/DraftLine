@@ -11,6 +11,10 @@
   --line-soft: #3a3b42;
   --text: #e9e7e2;
   --muted: #9a9890;
+  /* Shared label / pill tokens — the app’s warm neutrals (no cool slate greys). */
+  --text-muted: var(--muted);
+  --text-normal: var(--text);
+  --border-subtle: rgba(255, 255, 255, 0.1);
   --accent: #c8553d;      /* typewriter-ribbon red */
   --on-accent: #fff;
 
@@ -87,9 +91,9 @@ button { font-family: inherit; }
   padding: 4px 10px;
   font-size: 11.5px;
   border-radius: 12px;
-  border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.12));
-  background: rgba(255, 255, 255, 0.04);
-  color: var(--text-muted, #9ca3af);
+  border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.1));
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-muted, #9a9890);
   font-family: var(--ui-font);
   font-weight: 500;
   line-height: 1.4;
@@ -97,7 +101,7 @@ button { font-family: inherit; }
   cursor: pointer;
   transition: background 120ms ease, border-color 120ms ease, color 120ms ease;
 }
-.pill:hover:not(.is-on, .is-selected) { color: var(--text-normal, #e5e7eb); border: 1px solid rgba(255, 255, 255, 0.25); background: rgba(255, 255, 255, 0.07); }
+.pill:hover:not(.is-on, .is-selected) { color: var(--text-normal, #e9e7e2); border: 1px solid rgba(255, 255, 255, 0.22); background: rgba(255, 255, 255, 0.08); }
 .pill.is-on,
 .pill.is-selected { background: var(--accent, #d9532f); color: #ffffff; border: 1px solid transparent; border-color: transparent; font-weight: 600; }
 .pill-count { opacity: 0.6; color: inherit; font-weight: normal; margin-left: 4px; }
@@ -106,4 +110,4 @@ button { font-family: inherit; }
 .pill:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 
 /* ---- Micro-headers: GENRE · THEME · PLOT DEVICES · MISSING BIOS ---- */
-.micro-label { font-size: 11px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; color: var(--text-muted, #9ca3af); }
+.micro-label { font-size: 11px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; color: var(--text-muted, #9a9890); }

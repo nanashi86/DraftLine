@@ -6,9 +6,9 @@ import AutoTextarea from './AutoTextarea.jsx';
 import TabIcon from './TabIcon.jsx';
 import { RichLine } from './FormattedText.jsx';
 import {
-  BIBLE_TABS, DEFAULT_BIBLE_TAB, SYNOPSIS_ACTS, TREATMENT, TREATMENT_TARGET, addSection, bibleTabBadge, importNotes,
-  markdownBlocks, normalizeSynopsis, removeSection, setSynopsisAct, setTreatment, storyNotesMarkdown, synopsisHasText,
-  synopsisIndex, updateSection,
+  BIBLE_TABS, DEFAULT_BIBLE_TAB, SYNOPSIS_ACTS, TREATMENT, TREATMENT_ACTS, TREATMENT_TARGETS, addSection, bibleTabBadge,
+  importNotes, markdownBlocks, normalizeSynopsis, normalizeTreatment, removeSection, setSynopsisAct, setTreatmentAct,
+  storyNotesMarkdown, synopsisHasText, synopsisIndex, treatmentHasText, updateSection,
 } from '../lib/bible.js';
 import StoryDna from './StoryDna.jsx';
 import { storyDnaProgress, DNA_QUESTIONS } from '../lib/storyDna.js';
@@ -59,7 +59,7 @@ function ImportPanel({ notes, onImport, onCancel }) {
           Into
           <select value={target} onChange={(e) => setTarget(e.target.value)}>
             {notes.sections.map((s) => <option key={s.id} value={s.id}>{s.title || 'Untitled section'}</option>)}
-            <option value={TREATMENT_TARGET}>{TREATMENT.label}</option>
+            {TREATMENT_TARGETS.map((t) => <option key={t.id} value={t.id}>{t.label}</option>)}
           </select>
         </label>
         <div className="seg seg-sm" role="radiogroup" aria-label="How to import">
@@ -95,29 +95,29 @@ function ImportPanel({ notes, onImport, onCancel }) {
 }
 
 /**
- * Synopsis: a structured three-act card — Act I: Setup · Act II: Confrontation · Act III:
- * Resolution — each with its own box when editing, and as three labelled blocks otherwise.
+ * A three-act card — Act I: Setup · Act II: Confrontation · Act III: Resolution — each act with
+ * its own labelled box when editing, and as three labelled blocks otherwise. The Synopsis and
+ * the Treatment are both this card, so they look and behave the same.
  */
-function SynopsisCard({ synopsis, editing, onToggle, onChange }) {
-  const syn = normalizeSynopsis(synopsis);
+function ActsCard({ label, className, acts, value, editing, onToggle, onChange }) {
   return (
-    <section className="pb-section pb-synopsis" aria-label="Synopsis">
+    <section className={`pb-section pb-acts-card ${className}`} aria-label={label}>
       <header>
-        <span className="pb-section-title pb-fixed-title">Synopsis</span>
+        <span className="pb-section-title pb-fixed-title">{label}</span>
         <button type="button" className="btn pb-mini" onClick={onToggle} aria-pressed={editing}>
           {editing ? 'Done' : 'Edit'}
         </button>
       </header>
       {editing ? (
         <div className="pb-acts">
-          {SYNOPSIS_ACTS.map((a) => (
+          {acts.map((a) => (
             <label key={a.key} className="pb-act">
               <span className="micro-label">{a.label}</span>
               <AutoTextarea
                 className="pb-section-body pb-act-body"
-                value={syn[a.key]}
+                value={value[a.key]}
                 placeholder={a.placeholder}
-                aria-label={a.short}
+                aria-label={`${label}: ${a.short}`}
                 data-act={a.key}
                 onChange={(e) => onChange(a.key, e.target.value)}
               />
@@ -133,10 +133,10 @@ function SynopsisCard({ synopsis, editing, onToggle, onChange }) {
           onClick={(e) => !e.target.closest('a') && onToggle()}
           onKeyDown={(e) => (e.key === 'Enter' ? onToggle() : null)}
         >
-          {SYNOPSIS_ACTS.map((a) => (
+          {acts.map((a) => (
             <div key={a.key} className="pb-act" data-act={a.key}>
               <span className="micro-label">{a.label}</span>
-              {syn[a.key].trim() ? <MarkdownView text={syn[a.key]} /> : <p className="pb-md-empty">Not written yet.</p>}
+              {value[a.key].trim() ? <MarkdownView text={value[a.key]} /> : <p className="pb-md-empty">Not written yet.</p>}
             </div>
           ))}
         </div>
@@ -145,46 +145,9 @@ function SynopsisCard({ synopsis, editing, onToggle, onChange }) {
   );
 }
 
-/**
- * Treatment: the full narrative treatment — one long Markdown text, right below the Synopsis.
- * Edit / Done like the Synopsis; it saves as you type.
- */
-function TreatmentCard({ text, editing, onToggle, onChange }) {
-  return (
-    <section className="pb-section pb-treatment" aria-label={TREATMENT.label}>
-      <header>
-        <span className="pb-section-title pb-fixed-title">{TREATMENT.label}</span>
-        <button type="button" className="btn pb-mini" onClick={onToggle} aria-pressed={editing}>
-          {editing ? 'Done' : 'Edit'}
-        </button>
-      </header>
-      {editing ? (
-        <AutoTextarea
-          className="pb-section-body pb-treatment-body"
-          value={text}
-          placeholder={TREATMENT.placeholder}
-          aria-label={`${TREATMENT.label} notes`}
-          onChange={(e) => onChange(e.target.value)}
-        />
-      ) : (
-        <div
-          className="pb-section-view"
-          role="button"
-          tabIndex={0}
-          title="Click to edit"
-          onClick={(e) => !e.target.closest('a') && onToggle()}
-          onKeyDown={(e) => (e.key === 'Enter' ? onToggle() : null)}
-        >
-          {text.trim() ? <MarkdownView text={text} /> : <p className="pb-md-empty">Not written yet.</p>}
-        </div>
-      )}
-    </section>
-  );
-}
-
 function StoryNotes({ notes, onChange, onUndoable, projectTitle = '' }) {
   const [synopsisEditing, setSynopsisEditing] = useState(() => !synopsisHasText(notes.synopsis));
-  const [treatmentEditing, setTreatmentEditing] = useState(() => !(notes.treatment || '').trim());
+  const [treatmentEditing, setTreatmentEditing] = useState(() => !treatmentHasText(notes.treatment));
   const [copied, setCopied] = useState(false);
   const copyMarkdown = async () => {
     try {
@@ -197,23 +160,26 @@ function StoryNotes({ notes, onChange, onUndoable, projectTitle = '' }) {
   };
   const [editing, setEditing] = useState(() => new Set(notes.sections.filter((s) => !s.body.trim()).map((s) => s.id)));
   const [importing, setImporting] = useState(false);
-  const synopsisCard = (
-    <SynopsisCard
-      synopsis={notes.synopsis}
-      editing={synopsisEditing}
-      onToggle={() => setSynopsisEditing((v) => !v)}
-      onChange={(key, text) => onChange(setSynopsisAct(notes, key, text))}
-    />
-  );
-  // The Synopsis and, right below it, the Treatment — together, after Pitch.
+  // The Synopsis and, right below it, the Treatment — the same three acts — together, after Pitch.
   const fixedCards = (
     <>
-      {synopsisCard}
-      <TreatmentCard
-        text={notes.treatment || ''}
+      <ActsCard
+        label="Synopsis"
+        className="pb-synopsis"
+        acts={SYNOPSIS_ACTS}
+        value={normalizeSynopsis(notes.synopsis)}
+        editing={synopsisEditing}
+        onToggle={() => setSynopsisEditing((v) => !v)}
+        onChange={(key, text) => onChange(setSynopsisAct(notes, key, text))}
+      />
+      <ActsCard
+        label={TREATMENT.label}
+        className="pb-treatment"
+        acts={TREATMENT_ACTS}
+        value={normalizeTreatment(notes.treatment)}
         editing={treatmentEditing}
         onToggle={() => setTreatmentEditing((v) => !v)}
-        onChange={(text) => onChange(setTreatment(notes, text))}
+        onChange={(key, text) => onChange(setTreatmentAct(notes, key, text))}
       />
     </>
   );
@@ -231,7 +197,7 @@ function StoryNotes({ notes, onChange, onUndoable, projectTitle = '' }) {
           type="button"
           className="btn"
           onClick={copyMarkdown}
-          title="Copy every note — Logline, Tone, Timeline, Pitch, the three-act Synopsis, the Treatment… — as Markdown"
+          title="Copy every note — Logline, Tone, Timeline, Pitch, the three-act Synopsis and Treatment… — as Markdown"
         >
           {copied ? 'Copied ✓' : 'Copy as Markdown'}
         </button>

@@ -96,7 +96,7 @@ describe('Characters drawer', () => {
   it('Bios: the suggestions header is the MISSING BIOS micro-header', () => {
     assert.match(chars, /<span className="micro-label" id="pb-missing-bios">Missing bios<\/span>/);
     assert.ok(!/In the script without a bio/.test(chars));
-    assert.match(read('index.css'), /\.micro-label \{ font-size: 11px; font-weight: 600; letter-spacing: 0\.05em; text-transform: uppercase; color: var\(--text-muted, #9ca3af\); \}/);
+    assert.match(read('index.css'), /\.micro-label \{ font-size: 11px; font-weight: 600; letter-spacing: 0\.05em; text-transform: uppercase; color: var\(--text-muted, #9a9890\); \}/);
   });
   it('one pill look everywhere: genre pills, Dialogue chips, + Name suggestions — interface font, solid border', () => {
     assert.match(read('components/StoryDna.jsx'), /className=\{`pill dna-pill/);
@@ -135,8 +135,8 @@ describe('Pills: one neutral palette — genre, MISSING BIOS and Dialogue charac
   });
   it('neutral muted text and border on a faint white fill; interface font, 11.5px, 500 — no slate blues left', () => {
     const r = rule('.pill');
-    for (const d of ['color: var(--text-muted, #9ca3af)', 'border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.12))',
-      'background: rgba(255, 255, 255, 0.04)', 'font-family: var(--ui-font)', 'font-size: 11.5px', 'font-weight: 500']) assert.ok(r.includes(d), d);
+    for (const d of ['color: var(--text-muted, #9a9890)', 'border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.1))',
+      'background: rgba(255, 255, 255, 0.05)', 'font-family: var(--ui-font)', 'font-size: 11.5px', 'font-weight: 500']) assert.ok(r.includes(d), d);
     for (const f of ['index.css', 'components/DialogueTuner.css', 'components/ProjectBibleDrawer.css', 'components/CharactersDrawer.jsx']) {
       assert.ok(!/#94a3b8|#64748b|#e2e8f0|148, 163, 184/i.test(read(f)), `${f} has no slate`);
     }
@@ -145,11 +145,32 @@ describe('Pills: one neutral palette — genre, MISSING BIOS and Dialogue charac
     assert.match(rule('.pill-count'), /opacity: 0\.6; color: inherit;/);
     assert.match(read('components/DialogueTuner.jsx'), /<span className="pill-count cast-count">\{c\.lines\}<\/span>/);
   });
-  it('hover: normal text, 25 % white border, a touch more fill', () => {
-    assert.match(rule('.pill:hover:not(.is-on, .is-selected)'), /color: var\(--text-normal, #e5e7eb\); border: 1px solid rgba\(255, 255, 255, 0\.25\); background: rgba\(255, 255, 255, 0\.07\);/);
+  it('hover: normal text, 22 % white border, a touch more fill', () => {
+    assert.match(rule('.pill:hover:not(.is-on, .is-selected)'), /color: var\(--text-normal, #e9e7e2\); border: 1px solid rgba\(255, 255, 255, 0\.22\); background: rgba\(255, 255, 255, 0\.08\);/);
   });
   it('selected: accent fill, white text, transparent border', () => {
     assert.match(css, /\.pill\.is-on,\s*\.pill\.is-selected \{ background: var\(--accent, #d9532f\); color: #ffffff;[^}]*border-color: transparent;/);
+  });
+});
+
+describe('Neutral tokens: MISSING BIOS and every pill use the app\u2019s warm neutrals, never slate', () => {
+  const css = read('index.css');
+  it('the shared tokens are defined (so no slate fallback is ever used)', () => {
+    assert.match(css, /--text-muted: var\(--muted\);/);
+    assert.match(css, /--text-normal: var\(--text\);/);
+    assert.match(css, /--border-subtle: rgba\(255, 255, 255, 0\.1\);/);
+    assert.match(css, /--muted: #9a9890;/);
+  });
+  it('no slate grays (#9ca3af, #e5e7eb, #94a3b8, #64748b) anywhere in the styles', () => {
+    for (const f of ['index.css', 'App.css', 'components/ProjectBibleDrawer.css', 'components/CueBioCard.css', 'components/DialogueTuner.css']) {
+      assert.ok(!/#9ca3af|#e5e7eb|#94a3b8|#64748b/i.test(read(f)), f);
+    }
+  });
+  it('the MISSING BIOS header is a .micro-label and its names are .pill chips — no overrides of their colours', () => {
+    const ui = read('components/CharactersDrawer.jsx');
+    assert.match(ui, /<span className="micro-label" id="pb-missing-bios">Missing bios<\/span>/);
+    assert.match(ui, /className="pill pb-chip"/);
+    assert.ok(!/\.pb-chip\s*\{[^}]*color/.test(read('components/ProjectBibleDrawer.css')));
   });
 });
 

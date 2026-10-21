@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import userGuideMarkdown from '../content/userGuide.md?raw';
 import ExpandToggle from './ExpandToggle.jsx';
-import { guideHtml, highlight, inlineTokens, parseGuide, searchGuide } from '../lib/userGuide.js';
+import { PRINT_TITLE, guideHtml, highlight, inlineTokens, parseGuide, searchGuide } from '../lib/userGuide.js';
+import { holdPrintTitle } from '../lib/printTitle.js';
 import pkg from '../../package.json';
 import './HelpModal.css';
 import './UserGuideModal.css';
@@ -31,20 +32,30 @@ function Blocks({ blocks, query }) {
   });
 }
 
-/** Print / Save PDF: the guide alone, in a hidden frame — the script's own print view is untouched. */
+/**
+ * Print / Save PDF: the guide alone, in a hidden frame — the script's own print view is untouched.
+ * The page and the frame are titled "DraftLine - User Guide" until the print dialog is over, so
+ * Save as PDF suggests "DraftLine - User Guide.pdf" (lib/printTitle.js); then the script's title
+ * comes back and the frame goes.
+ */
 function printGuide(returnFocusTo) {
   const frame = document.createElement('iframe');
   frame.setAttribute('aria-hidden', 'true');
   frame.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0;visibility:hidden';
-  frame.srcdoc = guideHtml(GUIDE, { version: pkg.version });
+  frame.srcdoc = guideHtml(GUIDE, { version: pkg.version, title: PRINT_TITLE });
   frame.onload = () => {
-    const w = frame.contentWindow;
-    const done = () => setTimeout(() => frame.remove(), 500);
-    w.addEventListener('afterprint', done);
-    w.focus();
-    w.print(); // blocks until the print dialog closes
-    returnFocusTo?.focus(); // keep Esc and the keyboard working in the guide
-    setTimeout(done, 60_000); // in case afterprint never comes
+    const held = holdPrintTitle({
+      topWindow: window,
+      frameWindow: frame.contentWindow,
+      title: PRINT_TITLE,
+      onDone: () => {
+        returnFocusTo?.focus(); // keep Esc and the keyboard working in the guide
+        setTimeout(() => frame.remove(), 500);
+      },
+    });
+    frame.contentWindow.focus();
+    frame.contentWindow.print(); // Chrome opens the dialog after this returns: the titles stay put
+    held.armFallback();
   };
   document.body.appendChild(frame);
 }

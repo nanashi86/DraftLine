@@ -156,12 +156,12 @@ The **Glossary** defines every story term in two sections, **Character Roles** a
 ### Synopsis & Treatment
 
 - **Synopsis**: three acts (Act I: Setup, Act II: Confrontation, Act III: Resolution), right after Pitch.
-- **Treatment**: one long card right below the Synopsis, for your full narrative treatment: sequence-by-sequence prose, scene breakdowns and subplots. Write it there, or paste it in with Import from Notes.
+- **Treatment**: right below the Synopsis, the same three acts at full length, for your narrative treatment: sequence-by-sequence prose, scene breakdowns and subplots. Write each act there, or paste it in with Import from Notes.
 
 ### Copying and importing notes
 
 - **Copy as Markdown** copies every note, in order, ready to paste into a document.
-- **Import from Notes** pastes text from Docs, Word, Notion or Apple Notes into a section (or straight into the Treatment), appended or replacing what's there. **Split by headings** turns each heading into a section. A `## Treatment` heading, with any sub-headings under it, fills the Treatment card, and `## Synopsis` with its act headings fills the Synopsis, so Copy as Markdown output imports straight back.
+- **Import from Notes** pastes text from Docs, Word, Notion or Apple Notes into a section (or straight into one act of the Treatment), appended or replacing what's there. **Split by headings** turns each heading into a section. Under a `## Treatment` or `## Synopsis` heading, act headings such as `### ACT I: SETUP` fill that act, and any other sub-headings stay inside the act they follow, so Copy as Markdown output imports straight back.
 
 ## Characters
 

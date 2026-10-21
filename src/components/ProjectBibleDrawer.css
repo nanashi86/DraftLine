@@ -201,8 +201,8 @@
 .pb-acts { display: grid; gap: 12px; padding-bottom: 10px; }
 .pb-section-view.pb-acts { gap: 10px; }
 .pb-act { display: grid; gap: 5px; }
-.pb-synopsis .pb-acts:not(.pb-section-view) .pb-act { padding: 0 10px; }
-.pb-synopsis .pb-act .micro-label { padding-left: 1px; }
+.pb-acts-card .pb-acts:not(.pb-section-view) .pb-act { padding: 0 10px; }
+.pb-acts-card .pb-act .micro-label { padding-left: 1px; }
 .pb-act-body { width: 100%; margin: 0; min-height: 72px; }
 .pb-act .pb-md > :first-child { margin-top: 0; }
 .pb-act .pb-md > :last-child { margin-bottom: 0; }
@@ -269,7 +269,7 @@
 .dna-yn-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
 
 /* Blueprint field headers (Genre · Theme · Central Dramatic Question · Plot Devices) */
-.dna-label { font-size: 11px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; color: var(--text-muted, #9ca3af); }
+.dna-label { font-size: 11px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; color: var(--text-muted, #9a9890); }
 .dna-hint { font-size: 11px; font-weight: normal; text-transform: none; opacity: 0.7; margin-left: 6px; letter-spacing: 0; }
 .dna-notes,
 .dna-answer {
@@ -522,4 +522,4 @@
 @media (prefers-reduced-motion: reduce) {
   .pb, .pb.is-open { transition: none; }
 }
-.pb-treatment-body { width: 100%; min-height: 160px; }
+.pb-treatment .pb-act-body { min-height: 110px; } /* same type and spacing as the Synopsis; a little more room for full prose */

@@ -7,7 +7,7 @@
   max-width: calc(100vw - 16px);
   box-sizing: border-box;
   padding: 10px 12px 9px;
-  border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.12));
+  border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.1));
   border-radius: 8px;
   background: rgba(26, 26, 28, 0.95);
   backdrop-filter: blur(8px);
@@ -21,9 +21,9 @@
 }
 .cue-card.is-measuring { visibility: hidden; }
 .cue-card-name { font-size: 13.5px; font-weight: 650; letter-spacing: 0.01em; }
-.cue-card-meta { margin-top: 1px; font-size: 11.5px; color: var(--text-muted, #9ca3af); }
+.cue-card-meta { margin-top: 1px; font-size: 11.5px; color: var(--text-muted, #9a9890); }
 .cue-card-summary { margin: 7px 0 0; font-size: 12.5px; }
-.cue-card-excerpt { margin: 5px 0 0; font-size: 12px; color: var(--text-muted, #9ca3af); }
+.cue-card-excerpt { margin: 5px 0 0; font-size: 12px; color: var(--text-muted, #9a9890); }
 .cue-card-edit {
   display: inline-block;
   margin-top: 8px;

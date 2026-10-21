@@ -181,8 +181,11 @@ const blocksHtml = (blocks) => blocks.map((b) => (b.type === 'p'
   ? `<p>${inlineHtml(b.text)}</p>`
   : `<${b.type}${b.type === 'ol' && b.start !== 1 ? ` start="${b.start}"` : ''}>${b.items.map((i) => `<li>${inlineHtml(i)}</li>`).join('')}</${b.type}>`)).join('\n');
 
+/** The printed guide's title — and so the name "Save as PDF" suggests: "DraftLine - User Guide.pdf". */
+export const PRINT_TITLE = 'DraftLine - User Guide';
+
 /** The whole guide as a standalone, escaped HTML document — what Print / Save PDF prints. */
-export function guideHtml(guide, { version = '' } = {}) {
+export function guideHtml(guide, { version = '', title = PRINT_TITLE } = {}) {
   const body = [
     `<h1>${esc(guide.title)}</h1>`,
     version ? `<p class="ver">DraftLine ${esc(version)}</p>` : '',
@@ -195,7 +198,7 @@ export function guideHtml(guide, { version = '' } = {}) {
     ].join('\n')),
   ].join('\n');
   return `<!doctype html>
-<html lang="en"><head><meta charset="utf-8"><title>${esc(guide.title)}</title>
+<html lang="en"><head><meta charset="utf-8"><title>${esc(title)}</title>
 <style>
   @page { margin: 0.8in; }
   body { font: 11pt/1.5 -apple-system, "Segoe UI", Inter, Helvetica, Arial, sans-serif; color: #111; max-width: 7in; margin: 0 auto; }

@@ -281,9 +281,9 @@ export function missingFromScript(list, speakers) {
 
 // ---- Story notes ------------------------------------------------------------------------
 //
-// { version, sections: [{ id, title, body }], synopsis: { act1, act2, act3 }, treatment }
+// { version, sections: [{ id, title, body }], synopsis: { act1, act2, act3 }, treatment: { act1, act2, act3 } }
 // The Synopsis is a structured three-act card shown right after Pitch (SYNOPSIS_AFTER); the
-// Treatment (one long free-form text, Markdown) comes right after the Synopsis.
+// Treatment — the same three acts, at full length — comes right after the Synopsis.
 
 /** The Synopsis card's three acts, in order. */
 export const SYNOPSIS_ACTS = [
@@ -295,14 +295,35 @@ export const SYNOPSIS_AFTER = 'Pitch';
 
 export const emptySynopsis = () => ({ act1: '', act2: '', act3: '' });
 
-/** The Treatment card: the full narrative treatment, below the Synopsis. */
+/** The Treatment card: the full narrative treatment, below the Synopsis, in the Synopsis's three acts. */
 export const TREATMENT = {
   label: 'Treatment',
   placeholder: 'Write or paste your full narrative treatment here (sequence-by-sequence prose, scene breakdowns, subplots)...',
 };
 
-/** Set the Treatment text. */
-export const setTreatment = (notes, text) => ({ ...notes, treatment: String(text ?? '') });
+/** The Treatment's acts: the Synopsis's keys and labels, with prompts for full-length prose. */
+export const TREATMENT_ACTS = [
+  { key: 'act1', label: 'Act I: Setup', short: 'Act I (Setup)', placeholder: 'Act I in full: the world, the characters, the inciting incident — sequence by sequence...' },
+  { key: 'act2', label: 'Act II: Confrontation', short: 'Act II (Confrontation)', placeholder: 'Act II in full: escalating stakes, subplots, the midpoint reversal, the all-hope-is-lost moment...' },
+  { key: 'act3', label: 'Act III: Resolution', short: 'Act III (Resolution)', placeholder: 'Act III in full: the climax, the final confrontation, and the resolution...' },
+];
+
+/** "ACT I: SETUP" — how an act is headed in Copy as Markdown's Treatment. */
+export const treatmentActHeading = (a) => a.label.toUpperCase();
+
+/**
+ * Anything stored → { act1, act2, act3 }. A plain string (a one-box treatment from before the
+ * acts) becomes Act I, word for word.
+ */
+export const normalizeTreatment = (v) => normalizeSynopsis(v);
+
+export const treatmentHasText = (t) => synopsisHasText(t);
+
+/** Set one Treatment act (the others are untouched). */
+export function setTreatmentAct(notes, key, text) {
+  if (!TREATMENT_ACTS.some((a) => a.key === key)) return notes;
+  return { ...notes, treatment: { ...normalizeTreatment(notes.treatment), [key]: String(text ?? '') } };
+}
 
 /** Anything stored → { act1, act2, act3 }. A plain string (an older one-box synopsis) becomes Act I. */
 export function normalizeSynopsis(v) {
@@ -343,7 +364,13 @@ export function storyNotesMarkdown(notes, title = '') {
         if (t) out.push(`### ${a.label}`, '', t, '');
       }
     }
-    if (n.treatment.trim()) out.push(`## ${TREATMENT.label}`, '', n.treatment.trim(), '');
+    if (treatmentHasText(n.treatment)) {
+      out.push(`## ${TREATMENT.label}`, '');
+      for (const a of TREATMENT_ACTS) {
+        const t = n.treatment[a.key].trim();
+        if (t) out.push(`### ${treatmentActHeading(a)}`, '', t, '');
+      }
+    }
   };
   const at = synopsisIndex(n.sections);
   n.sections.forEach((s, i) => {
@@ -360,7 +387,7 @@ export function defaultStoryNotes() {
     version: STORY_NOTES_VERSION,
     sections: DEFAULT_SECTIONS.map((title) => ({ id: uid('sn'), title, body: '' })),
     synopsis: emptySynopsis(),
-    treatment: '',
+    treatment: emptySynopsis(),
   };
 }
 
@@ -398,7 +425,7 @@ export function migrateStoryNotes(sections) {
   const ordered = DEFAULT_SECTIONS.map((name) => presets.get(name) || { id: uid('sn'), title: name, body: '' });
   // An empty Themes card just goes; one with text stays (as your own section) until it can move.
   const kept = themes?.body.trim() ? [themes] : [];
-  return { version: STORY_NOTES_VERSION, sections: [...ordered, ...kept, ...custom], synopsis: emptySynopsis(), treatment: '' };
+  return { version: STORY_NOTES_VERSION, sections: [...ordered, ...kept, ...custom], synopsis: emptySynopsis(), treatment: emptySynopsis() };
 }
 
 /** "- Exile\n- Return home" → "Exile; Return home" (Story DNA's Theme is a one-line field). */
@@ -467,7 +494,7 @@ export function normalizeStoryNotes(notes) {
   if (notes && Array.isArray(notes.sections) && notes.sections.every((s) => s && typeof s.id === 'string')) {
     const sections = notes.sections.map((s) => ({ id: s.id, title: String(s.title ?? ''), body: String(s.body ?? '') }));
     const synopsis = normalizeSynopsis(notes.synopsis);
-    const treatment = typeof notes.treatment === 'string' ? notes.treatment : '';
+    const treatment = normalizeTreatment(notes.treatment);
     if ((notes.version || 1) < STORY_NOTES_VERSION) return { ...migrateStoryNotes(sections), synopsis, treatment };
     return { version: notes.version, sections, synopsis, treatment };
   }
@@ -510,15 +537,18 @@ export function splitByHeadings(text) {
   return out.map((s) => ({ title: s.title, level: s.level ?? 0, body: s.lines.join('\n').trim() }));
 }
 
-/** importNotes target id for the Treatment card (the "Into" list offers it beside the sections). */
-export const TREATMENT_TARGET = 'treatment';
+/** importNotes targets for the Treatment's acts (the "Into" list offers them beside the sections). */
+export const TREATMENT_TARGETS = TREATMENT_ACTS.map((a) => ({ id: `treatment:${a.key}`, key: a.key, label: `${TREATMENT.label} — ${a.short}` }));
+const treatmentTargetKey = (id) => TREATMENT_TARGETS.find((t) => t.id === id)?.key ?? null;
 
-/** Which fixed card a pasted heading belongs to: 'treatment', 'synopsis', an act key, or null. */
+/** Which fixed card a pasted heading names: 'treatment', 'synopsis', an act key, or null. */
 function fixedCardFor(title) {
-  const t = title.trim().toLowerCase().replace(/[:.]+$/, '');
+  const t = title.trim().toLowerCase().replace(/[:.]+$/, '').replace(/\s+/g, ' ');
   if (t === TREATMENT.label.toLowerCase()) return 'treatment';
   if (t === 'synopsis') return 'synopsis';
-  const act = SYNOPSIS_ACTS.find((a) => [a.label, a.short].some((l) => l.toLowerCase() === t) || t === a.label.split(':')[0].toLowerCase());
+  const roman = ['i', 'ii', 'iii'];
+  const act = SYNOPSIS_ACTS.find((a, i) => [a.label, a.short].some((l) => l.toLowerCase() === t)
+    || t === `act ${roman[i]}` || t === `act ${i + 1}`);
   return act ? act.key : null;
 }
 
@@ -528,18 +558,25 @@ function fixedCardFor(title) {
  *   mode 'replace'  — replace that section's text
  *   mode 'sections' — split at headings: a heading that matches an existing section's
  *                      title appends there, others become new sections; text before the
- *                      first heading goes to `targetId`. "Treatment", "Synopsis" and the
- *                      act headings fill those cards; headings nested under "Treatment"
- *                      (### Sequence 1…) stay part of the treatment.
- *   targetId TREATMENT_TARGET (append / replace) — the Treatment card
+ *                      first heading goes to `targetId`.
+ *                      "## Synopsis" and "## Treatment" fill those cards: their act headings
+ *                      ("### ACT I: SETUP", "### Act II: Confrontation", "### Act 3"…) pick the
+ *                      act, and any other headings under them stay in the current act's text.
+ *                      Act headings on their own (no card heading above) go to the Synopsis.
+ *   targetId "treatment:act1" … (TREATMENT_TARGETS) — that Treatment act
  */
 export function importNotes(notes, text, { targetId, mode = 'append' } = {}) {
   const clean = (text || '').replace(/\r\n?/g, '\n').trim();
   if (!clean) return notes;
   const join = (a, b) => (a.trim() ? `${a.replace(/\s+$/, '')}\n\n${b}` : b);
-  if (targetId === TREATMENT_TARGET && mode !== 'sections') {
-    const cur = notes.treatment || '';
-    return setTreatment(notes, mode === 'replace' ? clean : join(cur, clean));
+  const intoTreatment = treatmentTargetKey(targetId);
+  // Fixed cards: read / write one act of the Synopsis or the Treatment.
+  const getAct = (n, card, key) => (card === 'treatment' ? normalizeTreatment(n.treatment) : normalizeSynopsis(n.synopsis))[key];
+  const setAct = (n, card, key, t) => (card === 'treatment' ? setTreatmentAct(n, key, t) : setSynopsisAct(n, key, t));
+  const addToAct = (n, card, key, t) => (t ? setAct(n, card, key, join(getAct(n, card, key), t)) : n);
+
+  if (intoTreatment && mode !== 'sections') {
+    return setAct(notes, 'treatment', intoTreatment, mode === 'replace' ? clean : join(getAct(notes, 'treatment', intoTreatment), clean));
   }
   const target = notes.sections.find((s) => s.id === targetId) || notes.sections[notes.sections.length - 1];
   if (mode !== 'sections' || !target) {
@@ -547,33 +584,36 @@ export function importNotes(notes, text, { targetId, mode = 'append' } = {}) {
     return updateSection(notes, target.id, { body: mode === 'replace' ? clean : join(target.body, clean) });
   }
   let next = notes;
-  let treatmentLevel = 0; // inside "## Treatment": deeper headings are part of it
+  let inCard = null; // { card: 'synopsis' | 'treatment', level, act } while inside "## Synopsis" / "## Treatment"
   for (const part of splitByHeadings(clean)) {
-    if (treatmentLevel && part.title !== null && part.level > treatmentLevel) {
-      const chunk = `${'#'.repeat(part.level)} ${part.title}${part.body ? `\n\n${part.body}` : ''}`;
-      next = setTreatment(next, join(next.treatment || '', chunk));
-      continue;
-    }
-    treatmentLevel = 0;
     if (part.title === null) {
       if (!part.body) continue;
-      if (targetId === TREATMENT_TARGET) next = setTreatment(next, join(next.treatment || '', part.body));
+      if (intoTreatment) next = addToAct(next, 'treatment', intoTreatment, part.body);
       else next = updateSection(next, target.id, { body: join(next.sections.find((s) => s.id === target.id).body, part.body) });
       continue;
     }
-    // Copy as Markdown's own title line ("# Run! — Story Notes") isn't a section.
-    if (/\s—\s*Story Notes$/.test(part.title) && !part.body) continue;
-    // "## Treatment", "## Synopsis" and "### Act I: Setup"… (as Copy as Markdown writes them) fill
-    // their own cards instead of becoming new sections.
-    const card = fixedCardFor(part.title);
-    if (card === 'treatment') {
-      treatmentLevel = part.level || 1;
-      if (part.body) next = setTreatment(next, join(next.treatment || '', part.body));
+    const fixed = fixedCardFor(part.title);
+    if (inCard && part.level > inCard.level) {
+      if (fixed && fixed.startsWith('act')) {
+        inCard.act = fixed;
+        next = addToAct(next, inCard.card, fixed, part.body);
+      } else {
+        // A heading of its own inside an act (### Sequence 2…): kept, with its text, in that act.
+        const chunk = `${'#'.repeat(part.level)} ${part.title}${part.body ? `\n\n${part.body}` : ''}`;
+        next = addToAct(next, inCard.card, inCard.act, chunk);
+      }
       continue;
     }
-    if (card === 'synopsis' || (card && card.startsWith('act'))) {
-      const key = card === 'synopsis' ? 'act1' : card;
-      if (part.body) next = setSynopsisAct(next, key, join(normalizeSynopsis(next.synopsis)[key], part.body));
+    inCard = null;
+    // Copy as Markdown's own title line ("# Run! — Story Notes") isn't a section.
+    if (/\s—\s*Story Notes$/.test(part.title) && !part.body) continue;
+    if (fixed === 'treatment' || fixed === 'synopsis') {
+      inCard = { card: fixed, level: part.level || 1, act: 'act1' };
+      next = addToAct(next, fixed, 'act1', part.body);
+      continue;
+    }
+    if (fixed) { // an act heading on its own: the Synopsis
+      next = addToAct(next, 'synopsis', fixed, part.body);
       continue;
     }
     const want = (presetName(part.title) || part.title).toLowerCase();

@@ -267,13 +267,14 @@ export function renameCharacter(project, oldName, newName, categories = ALL_CATE
       storyNotes = { ...storyNotes, synopsis: r.obj };
     }
   }
-  // …and so does the Treatment.
-  if (!same && typeof storyNotes?.treatment === 'string' && storyNotes.treatment) {
-    const r = renameFields({ treatment: storyNotes.treatment }, ['treatment'], variants);
+  // …and so does the Treatment: the same three acts (an older one-box treatment is read as Act I).
+  if (!same && storyNotes?.treatment) {
+    const acts = typeof storyNotes.treatment === 'string' ? { act1: storyNotes.treatment, act2: '', act3: '' } : storyNotes.treatment;
+    const r = renameFields(acts, ['act1', 'act2', 'act3'], variants);
     counts.notes += r.count;
     if (on.notes && r.count) {
-      changed.treatment = [storyNotes.treatment, r.obj.treatment];
-      storyNotes = { ...storyNotes, treatment: r.obj.treatment };
+      changed.treatment = [storyNotes.treatment, r.obj];
+      storyNotes = { ...storyNotes, treatment: r.obj };
     }
   }
 

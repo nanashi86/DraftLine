@@ -47,14 +47,14 @@ describe('Blueprint layout', () => {
   it('genre pills wrap with 6px gaps; refined pill; accent fill with white text when picked', () => {
     assert.match(pbCss, /\.dna-pills \{ display: flex; flex-wrap: wrap; gap: 6px; \}/);
     const pill = read('index.css').match(/\.pill \{[^}]*\}/)[0];
-    for (const d of ['padding: 4px 10px', 'font-size: 11.5px', 'border-radius: 12px', 'border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.12))', 'background: rgba(255, 255, 255, 0.04)']) {
+    for (const d of ['padding: 4px 10px', 'font-size: 11.5px', 'border-radius: 12px', 'border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.1))', 'background: rgba(255, 255, 255, 0.05)']) {
       assert.ok(pill.includes(d), d);
     }
     assert.match(read('index.css'), /\.pill\.is-on,\s*\.pill\.is-selected \{ background: var\(--accent, #d9532f\); color: #ffffff;/);
     assert.match(read('components/StoryDna.jsx'), /className=\{`pill dna-pill/);
   });
   it('one header style for Genre, Theme and Plot Devices, with inline hints', () => {
-    assert.match(pbCss, /\.dna-label \{ font-size: 11px; font-weight: 600; letter-spacing: 0\.05em; text-transform: uppercase; color: var\(--text-muted, #9ca3af\); \}/);
+    assert.match(pbCss, /\.dna-label \{ font-size: 11px; font-weight: 600; letter-spacing: 0\.05em; text-transform: uppercase; color: var\(--text-muted, #9a9890\); \}/);
     assert.match(pbCss, /\.dna-hint \{ font-size: 11px; font-weight: normal; text-transform: none; opacity: 0\.7; margin-left: 6px;/);
     assert.match(dna, /className="dna-label">Genre<span className="dna-hint">pick all that apply<\/span>/);
     assert.match(dna, /className="dna-label">Theme<span className="dna-hint">revealed by the climax<\/span>/);
