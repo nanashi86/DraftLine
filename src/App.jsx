@@ -54,7 +54,8 @@ import { parseFDX, toFDX } from './lib/fdx.js';
 import { beatsToFountain, beatsToMarkdown, byAct, moveBeat, sampleBeats } from './lib/beats.js';
 import { SAMPLE_SCRIPT } from './lib/sampleScript.js';
 import { effectiveZoomFor } from './lib/zoom.js';
-import { actionDensity, densityLabel, densityTitle } from './lib/pacing.js';
+import { actionDensity, riskLocations, stepRisk } from './lib/pacing.js';
+import DensityNav from './components/DensityNav.jsx';
 import './App.css';
 
 // Scripts live in IndexedDB (lib/projectStorage.js); localStorage keeps only UI prefs.
@@ -484,6 +485,7 @@ function Workspace({ boot }) {
   // Action density (skim risk): long action paragraphs, from the measured lines when known.
   const density = useMemo(() => actionDensity(blocks, lineMap), [blocks, lineMap]);
   const [densityMode, setDensityMode] = useState(false);
+  const [densityIndex, setDensityIndex] = useState(-1); // which skim risk the stepper is on (-1: none yet)
   const noteCount = useMemo(() => blocks.filter((b) => hasNote(b) && b.note.trim()).length, [blocks]);
   const fixIssues = useCallback((list) => {
     if (!list.length) return;
@@ -957,6 +959,20 @@ function Workspace({ boot }) {
   const navVisible = navOpen && !focusMode && showEditor;
   const elementControlsEnabled = !!activeBlock && showEditor;
 
+  // Density: jump to skim risk `i` — scroll it to the middle and pulse it (Editor.pulseBlock).
+  const densityLocations = useMemo(
+    () => riskLocations(density, { sceneOf: analysis.sceneOfBlock, scenes, pageOf: layout.pageOfBlock }),
+    [density, analysis, scenes, layout],
+  );
+  const jumpToRisk = (i) => {
+    const target = density.list[i];
+    if (!target) return;
+    setDensityIndex(i);
+    if (view === 'board' && !focusMode) setView('page');
+    // After this render (highlights on, editor shown), so the element exists and is marked.
+    requestAnimationFrame(() => requestAnimationFrame(() => editorRef.current?.pulseBlock(target.id)));
+  };
+
   const exportItems = [
     { heading: 'Screenplay' },
     { label: 'Fountain', hint: '.fountain', onSelect: exportFountain },
@@ -1334,20 +1350,22 @@ function Workspace({ boot }) {
             </button>
           )}
           <span>{analysis.words.toLocaleString()} words</span>
-          {density.dense > 0 ? (
-            <button
-              type="button"
-              className={`status-density is-risk${densityMode ? ' is-on' : ''}`}
-              onClick={() => setDensityMode((on) => !on)}
-              aria-pressed={densityMode}
-              title={densityTitle(density, densityMode)}
-            >
-              <span className="density-dot" aria-hidden="true" />
-              {densityLabel(density)}
-            </button>
-          ) : (
-            <span className="status-density" title={densityTitle(density)}>{densityLabel(density)}</span>
-          )}
+          <DensityNav
+            density={density}
+            on={densityMode}
+            index={densityIndex}
+            locations={densityLocations}
+            onStart={({ jump }) => {
+              setDensityMode(true);
+              if (jump) jumpToRisk(stepRisk(-1, density.dense, 'first'));
+            }}
+            onStep={(dir) => jumpToRisk(stepRisk(densityIndex, density.dense, dir))}
+            onGo={(i) => jumpToRisk(stepRisk(densityIndex, density.dense, { type: 'go', index: i }))}
+            onOff={() => {
+              setDensityMode(false);
+              setDensityIndex(-1);
+            }}
+          />
           <span title="54 lines per page">
             {currentPage && showEditor ? `p. ${currentPage} of ${layout.pageCount}` : `${layout.pageCount} ${layout.pageCount === 1 ? 'page' : 'pages'}`}
           </span>

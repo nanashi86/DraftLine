@@ -475,6 +475,30 @@ button.status-density {
 button.status-density:hover { background: rgba(224, 164, 88, 0.16); }
 button.status-density.is-on { background: rgba(224, 164, 88, 0.22); border-color: rgba(224, 164, 88, 0.7); color: #f2c27e; }
 .density-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.density-nav { display: inline-flex; align-items: center; gap: 2px; }
+.density-steps { display: inline-flex; align-items: center; gap: 1px; }
+.density-step {
+  min-width: 20px;
+  height: 18px;
+  padding: 0 4px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: #e0a458;
+  font: 600 12px/1 var(--ui-font);
+  cursor: pointer;
+}
+.density-step:hover,
+.density-step.is-open { background: rgba(224, 164, 88, 0.16); color: #f2c27e; }
+.density-step:focus-visible { outline: 2px solid #e0a458; outline-offset: -1px; }
+/* Quick list: floats above the status bar (which clips overflow), opening upward. */
+.density-list { position: fixed; top: auto; z-index: 60; min-width: 320px; max-width: min(460px, calc(100vw - 16px)); }
+.density-list-items { max-height: min(50vh, 360px); overflow-y: auto; }
+.density-list .menu-item { justify-content: flex-start; gap: 8px; }
+.density-list .menu-item.is-current { background: rgba(224, 164, 88, 0.12); }
+.density-list-n { flex: none; min-width: 16px; color: #e0a458; font-weight: 650; font-variant-numeric: tabular-nums; }
+.density-list .menu-label { min-width: 0; }
+.density-list .menu-label > span { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .status-btn { padding: 0 6px; border: 0; border-radius: 4px; background: transparent; color: inherit; font: inherit; cursor: pointer; }
 .status-btn:hover { color: var(--text); background: var(--field); }
 .status-canvas { display: inline-flex; align-items: center; gap: 6px; padding: 0 7px; font-size: 11.5px; color: var(--muted); }

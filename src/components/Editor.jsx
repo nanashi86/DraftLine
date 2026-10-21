@@ -2,6 +2,7 @@ import { memo, useCallback, useEffect, useImperativeHandle, useLayoutEffect, use
 import AutoTextarea from './AutoTextarea.jsx';
 import { hasNote } from '../lib/editorialNotes.js';
 import { linePxFor } from '../lib/zoom.js';
+import { revealAndPulse } from '../lib/reveal.js';
 import { measureTextarea } from '../lib/measure.js';
 import { backspaceAt, deleteAt } from '../lib/editing.js';
 import {
@@ -449,6 +450,10 @@ export default function Editor({
     /** Scroll element `id` into view without moving focus (the Notes drawer keeps it). */
     revealBlock(id) {
       els.current.get(id)?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    },
+    /** Scroll element `id` to the middle of the view and pulse it (Density jumps). No focus change. */
+    pulseBlock(id) {
+      return revealAndPulse(els.current.get(id)?.closest('.el') || null);
     },
     focusBlock(id) {
       const el = els.current.get(id);

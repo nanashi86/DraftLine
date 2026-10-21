@@ -67,3 +67,43 @@ export function densityTitle(d, on = false) {
   return `${d.dense} of ${d.total} action ${d.total === 1 ? 'paragraph' : 'paragraphs'} (${d.percent}%) run past ${ACTION_LINE_LIMIT} lines — `
     + `readers tend to skim them. ${on ? 'Click to hide the highlights' : 'Click to highlight them in the script'}`;
 }
+
+// ---- Jumping between skim risks (status bar stepper + quick list) ----
+
+/**
+ * The stepper: which risk is "current" (0-based; -1 before the first jump), given `count` risks.
+ *   'first' → 0 · 'next' / 'prev' step and loop around · { type: 'go', index } jumps to one.
+ * Always lands inside 0 … count − 1 (or −1 when there are none).
+ */
+export function stepRisk(index, count, action) {
+  if (!count) return -1;
+  const cur = Math.min(Math.max(index, -1), count - 1);
+  const a = typeof action === 'string' ? { type: action } : action;
+  switch (a.type) {
+    case 'first': return 0;
+    case 'next': return cur < 0 ? 0 : (cur + 1) % count;
+    case 'prev': return cur < 0 ? count - 1 : (cur - 1 + count) % count;
+    case 'go': return Math.min(Math.max(a.index | 0, 0), count - 1);
+    default: return cur;
+  }
+}
+
+/** "Density: Risk 1 of 9" while stepping (index ≥ 0), else the plain label. */
+export function riskPositionLabel(d, index) {
+  if (!d.dense || index < 0) return densityLabel(d);
+  return `Density: Risk ${Math.min(index, d.dense - 1) + 1} of ${d.dense}`;
+}
+
+/**
+ * Where each risk is, for the quick list: [{ id, label: "Sc. 4 - EXT. BOUCHARD RESIDENCE - p. 4" }].
+ * sceneOf: block id → scene heading id · scenes: [{ id, number, heading }] · pageOf: block id → page.
+ */
+export function riskLocations(d, { sceneOf = {}, scenes = [], pageOf = {} } = {}) {
+  const byId = new Map(scenes.map((s) => [s.id, s]));
+  return d.list.map((r) => {
+    const sc = byId.get(sceneOf[r.id]);
+    const page = pageOf[r.id];
+    const where = sc ? `Sc. ${sc.number ?? '–'} - ${sc.heading || 'Untitled scene'}` : 'Before the first scene';
+    return { id: r.id, lines: r.lines, label: page ? `${where} - p. ${page}` : where };
+  });
+}

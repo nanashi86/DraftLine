@@ -3,8 +3,9 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import {
   ACTION_LINE_LIMIT, SEGMENT_CHAR_LIMIT, SEGMENT_WORD_LIMIT, actionDensity, actionLines, densityLabel, densityReason, densityTitle,
-  isDenseAction,
+  isDenseAction, riskLocations, riskPositionLabel, stepRisk,
 } from '../src/lib/pacing.js';
+import { PULSE_CLASS, PULSE_MS, revealAndPulse } from '../src/lib/reveal.js';
 import { toFountain } from '../src/lib/fountain.js';
 import { toFDX } from '../src/lib/fdx.js';
 
@@ -85,11 +86,11 @@ describe('Density across the script', () => {
 });
 
 describe('Density Mode is editor-only', () => {
-  it('a clickable amber pill toggles it; Optimal is plain muted text', () => {
-    const app = read('App.jsx');
-    assert.match(app, /className=\{`status-density is-risk\$\{densityMode \? ' is-on' : ''\}`\}\s*onClick=\{\(\) => setDensityMode\(\(on\) => !on\)\}/);
-    assert.match(app, /<span className="status-density" title=\{densityTitle\(density\)\}>\{densityLabel\(density\)\}<\/span>/);
-    assert.match(app, /dense=\{densityMode && density\.dense \? density\.ids : null\}/);
+  it('the status bar uses DensityNav: muted Optimal, an amber pill when there are risks', () => {
+    const nav = read('components/DensityNav.jsx');
+    assert.match(nav, /if \(!density\.dense\) \{\s*return <span className="status-density" title=\{densityTitle\(density\)\}>\{densityLabel\(density\)\}<\/span>;/);
+    assert.match(nav, /className=\{`status-density is-risk\$\{on \? ' is-on' : ''\}`\}/);
+    assert.match(read('App.jsx'), /dense=\{densityMode && density\.dense \? density\.ids : null\}/);
   });
   it('the mark is a faint 2px left border drawn outside the text column', () => {
     assert.match(read('components/Editor.css'), /\.sheet \.el\.is-dense::after \{[^}]*position: absolute;[^}]*border-left: 2px solid rgba\(217, 83, 47, 0\.4\);[^}]*pointer-events: none;/);
@@ -99,5 +100,80 @@ describe('Density Mode is editor-only', () => {
     assert.ok(!/dense|is-dense/.test(toFountain({ meta: {}, blocks })));
     assert.ok(!/dense|is-dense/.test(toFDX({ meta: {}, blocks })));
     assert.ok(!/dense|density/i.test(read('components/PrintView.jsx')));
+  });
+});
+
+describe('Jumping between skim risks', () => {
+  it('the first click goes to risk 1; next / prev step and loop around', () => {
+    assert.equal(stepRisk(-1, 9, 'first'), 0);
+    assert.equal(stepRisk(-1, 9, 'next'), 0, 'next before any jump starts at 1');
+    let i = 0;
+    const seen = [];
+    for (let k = 0; k < 10; k++) { i = stepRisk(i, 9, 'next'); seen.push(i); }
+    assert.deepEqual(seen, [1, 2, 3, 4, 5, 6, 7, 8, 0, 1]);
+    assert.equal(stepRisk(0, 9, 'prev'), 8);
+    assert.equal(stepRisk(-1, 9, 'prev'), 8);
+  });
+  it('picking from the list goes straight there; out-of-range picks are clamped', () => {
+    assert.equal(stepRisk(2, 9, { type: 'go', index: 6 }), 6);
+    assert.equal(stepRisk(2, 9, { type: 'go', index: 40 }), 8);
+    assert.equal(stepRisk(2, 9, { type: 'go', index: -3 }), 0);
+  });
+  it('stays valid when risks are fixed while stepping', () => {
+    assert.equal(stepRisk(7, 3, 'next'), 0, 'was on 8 of 9, now only 3 left');
+    assert.equal(stepRisk(4, 0, 'next'), -1, 'none left');
+  });
+  it('the pill shows the position: "Density: Risk 1 of 9"', () => {
+    const d = { dense: 9, total: 30, percent: 30 };
+    assert.equal(riskPositionLabel(d, 0), 'Density: Risk 1 of 9');
+    assert.equal(riskPositionLabel(d, 8), 'Density: Risk 9 of 9');
+    assert.equal(riskPositionLabel(d, -1), 'Density: 9 Skim Risks', 'before the first jump');
+    assert.equal(riskPositionLabel({ ...d, dense: 0 }, 3), 'Density: Optimal');
+  });
+  it('the quick list names each risk by scene heading and page', () => {
+    const d = actionDensity([
+      act('a0', words(60)),
+      { id: 's4', type: 'scene', text: 'EXT. BOUCHARD RESIDENCE - DAY' },
+      act('a1', words(60)),
+    ]);
+    const list = riskLocations(d, {
+      sceneOf: { a1: 's4' }, scenes: [{ id: 's4', number: 4, heading: 'EXT. BOUCHARD RESIDENCE - DAY' }], pageOf: { a0: 1, a1: 4 },
+    });
+    assert.deepEqual(list.map((l) => l.label), ['Before the first scene - p. 1', 'Sc. 4 - EXT. BOUCHARD RESIDENCE - DAY - p. 4']);
+    assert.deepEqual(list.map((l) => l.id), ['a0', 'a1']);
+  });
+});
+
+describe('Scrolling to a risk', () => {
+  const fakeEl = () => {
+    const calls = [];
+    const classes = new Set();
+    return {
+      calls,
+      classes,
+      offsetWidth: 100,
+      scrollIntoView: (opts) => calls.push(opts),
+      classList: { add: (c) => classes.add(c), remove: (c) => classes.delete(c) },
+    };
+  };
+  it('scrollIntoView centres the target smoothly, and it pulses for a moment', () => {
+    const el = fakeEl();
+    const timers = [];
+    assert.equal(revealAndPulse(el, { schedule: (fn, ms) => timers.push([fn, ms]) }), true);
+    assert.deepEqual(el.calls, [{ block: 'center', behavior: 'smooth' }]);
+    assert.ok(el.classes.has(PULSE_CLASS));
+    assert.equal(timers[0][1], PULSE_MS);
+    timers[0][0]();
+    assert.ok(!el.classes.has(PULSE_CLASS), 'the pulse goes away by itself');
+  });
+  it('a missing element is a no-op', () => {
+    assert.equal(revealAndPulse(null), false);
+  });
+  it('the editor pulses the element with the risk’s block id; the app jumps through the stepper', () => {
+    assert.match(read('components/Editor.jsx'), /pulseBlock\(id\) \{\s*return revealAndPulse\(els\.current\.get\(id\)\?\.closest\('\.el'\) \|\| null\);/);
+    const app = read('App.jsx');
+    assert.match(app, /const target = density\.list\[i\];[\s\S]*?setDensityIndex\(i\);[\s\S]*?editorRef\.current\?\.pulseBlock\(target\.id\)/);
+    assert.match(app, /if \(jump\) jumpToRisk\(stepRisk\(-1, density\.dense, 'first'\)\);/);
+    assert.match(app, /onStep=\{\(dir\) => jumpToRisk\(stepRisk\(densityIndex, density\.dense, dir\)\)\}/);
   });
 });
