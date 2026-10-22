@@ -9,7 +9,9 @@
   flex: none;
   height: var(--bar-h);
   display: flex;
+  justify-content: space-between;
   align-items: center;
+  width: 100%;
   gap: 22px; /* between groups — buttons inside a group sit 4px apart */
   padding: 0 18px;
   background: var(--bar);
@@ -36,7 +38,15 @@
   margin: -3px;
 }
 .zone-right { flex: 0 0 auto; margin-left: auto; }
-.file-menu { display: none; }
+.file-menu { display: inline-flex; flex: none; }
+/* Plan's header tools: Export's label shortens on small screens (see the 767.98px step). */
+.btn-plan-export .plan-lbl-short { display: none; }
+/* Icon + label view switches: Page | Split | Board (Write), Breakdowns | Stripboard (Plan). */
+.view-seg .seg-btn,
+.plan-seg .seg-btn { display: inline-flex; align-items: center; gap: 6px; }
+.btn-plan-fold:disabled,
+.btn-plan-export:disabled { opacity: 0.45; cursor: default; }
+.file-menu .menu-pop { min-width: 300px; } /* one line per item: "Export Story Bible (PDF)…  .pdf" */
 .bar-sep { flex: none; width: 1px; height: 22px; background: var(--line-soft); }
 
 .brand {
@@ -164,6 +174,25 @@
   box-sizing: border-box;
 }
 .bar-right > .menu > .btn-kebab { padding: 0 8px; }
+/* Write-only header tools in the Plan workspace (and the element / formatting group): hidden
+   attributes win over the display rules above. */
+.bar-right > [hidden],
+.bar-group[hidden] { display: none !important; }
+
+/* [ Write | Plan ]: the workspace switch beside the title — 24px capsules, full pill. */
+.ws-switch { margin-left: 12px; padding: 2px; border-radius: 9999px; }
+.ws-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 24px;
+  padding: 0 12px;
+  border-radius: 9999px;
+  font: 500 12px/1 var(--ui-font);
+  letter-spacing: 0.02em;
+}
+.ws-btn.is-on { background: var(--chip); color: var(--text); }
+.ws-btn[aria-checked="true"] svg { color: var(--accent-amber); }
 /* The ▾ is its own small flex item, centred — so it can't drop the label's baseline. */
 .dropdown-caret {
   font-size: 0.75em;
@@ -210,10 +239,14 @@
 .btn-icon { padding: 6px 7px; display: inline-grid; place-items: center; color: var(--muted); }
 .btn.is-on-subtle { background: var(--chip); color: var(--text); }
 
-/* B | I | U | S — a segmented pill like the view switch */
+/* B | I | U | S — a segmented capsule the same 32px as Element ▾ and File ▾ beside it, letters in
+   the same type as Element's, centred on the same line. */
 .fmt-seg {
+  box-sizing: border-box;
   display: inline-flex;
+  align-items: stretch;
   flex: none;
+  height: 32px;
   padding: 2px;
   gap: 1px;
   border: 1px solid var(--line-soft);
@@ -221,21 +254,24 @@
   background: var(--field);
 }
 .fmt-btn {
-  width: 26px;
-  height: 24px;
-  display: grid;
-  place-items: center;
-  padding: 0;
+  min-width: 28px;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
   border: 0;
   border-radius: 5px;
   background: transparent;
   color: var(--muted);
-  font: 13px/1 'Courier Prime', 'Courier New', monospace;
+  font: 600 13px/1 var(--ui-font);
   cursor: pointer;
   transition: background 120ms ease, color 120ms ease;
 }
 .fmt-btn:hover:not(:disabled) { color: var(--text); background: color-mix(in srgb, var(--chip) 60%, transparent); }
-.fmt-btn:disabled { opacity: 0.4; cursor: default; }
+/* Disabled (title page, Board, View Only): the whole capsule fades as one, shape unchanged. */
+.fmt-seg.is-disabled { opacity: 0.45; }
+.fmt-btn:disabled { cursor: default; }
 .fmt-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
 .fmt-b { font-weight: 700; }
 .fmt-i { font-style: italic; }
@@ -254,7 +290,9 @@
 .btn-accent.is-on { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
 
 .type-select {
-  padding: 5px 8px;
+  box-sizing: border-box;
+  height: 32px;
+  padding: 0 8px;
   border: 1px solid var(--line-soft);
   border-radius: 6px;
   background: var(--field);
@@ -324,9 +362,8 @@
 .menu-label { display: flex; flex-direction: column; gap: 1px; white-space: nowrap; }
 .menu-sub { font-size: 11.5px; opacity: 0.65; font-variant-numeric: tabular-nums; }
 
-/* Long/short button labels for narrower windows */
-.lbl-short { display: none; }
-.type-select:disabled { opacity: 0.55; }
+.type-select:disabled { opacity: 0.45; }
+.file-menu > .menu > .btn { box-sizing: border-box; height: 32px; display: inline-flex; align-items: center; }
 
 /* ---------- Workspace: Page | Split | Board ---------- */
 .workspace {
@@ -351,38 +388,6 @@
 .view-split .workspace > .board { border-left: 1px solid var(--line-soft); }
 .view-split .scroller { padding-left: 24px; padding-right: 24px; }
 
-/* ---------- Characters → Dialogue filter banner (screen only; never printed) ---------- */
-.filter-banner {
-  position: sticky;
-  top: 8px;
-  z-index: 6;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  width: fit-content;
-  max-width: 100%;
-  margin: -28px auto 12px;
-  padding: 5px 6px 5px 12px;
-  border: 1px solid color-mix(in srgb, var(--accent) 45%, var(--line-soft));
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--accent) 14%, var(--bar));
-  color: var(--text);
-  font-size: 12.5px;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3);
-}
-.filter-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); flex: none; }
-.filter-clear {
-  padding: 3px 10px;
-  border: 0;
-  border-radius: 999px;
-  background: var(--accent);
-  color: var(--on-accent);
-  font: 600 12px var(--ui-font);
-  cursor: pointer;
-  white-space: nowrap;
-}
-.filter-clear:hover { filter: brightness(1.08); }
-@media print { .filter-banner { display: none !important; } }
 
 /* ---------- Title page as Page 0 ---------- */
 .cover-wrap {
@@ -441,23 +446,15 @@
   color: var(--text);
   margin-left: 6px;
 }
-.status-spacer { flex: 1; }
-.status-doctor {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 2px 8px;
-  border: 1px solid transparent;
-  border-radius: 5px;
-  background: transparent;
-  color: var(--muted);
-  font: 12px var(--ui-font);
-  cursor: pointer;
-}
-.status-doctor:hover { background: var(--field); color: var(--text); }
-.doctor-dot { width: 6px; height: 6px; border-radius: 50%; background: #6fae7d; }
-.status-doctor.has-issues { color: var(--text); border-color: var(--line-soft); }
-.status-doctor.has-issues .doctor-dot { background: #e0a458; }
+.status-spacer { flex: 1 1 0; min-width: 8px; } /* the open middle */
+/* Left: telemetry (gives way first — it clips rather than squashing the tools). Right: tools + view. */
+.status-left { display: flex; align-items: center; gap: 16px; flex: 0 1 auto; min-width: 0; overflow: hidden; }
+.status-right { display: flex; align-items: center; gap: 16px; flex: none; }
+.status-tools { display: flex; align-items: center; gap: 8px; }
+.status-tools:empty,
+.status-tools[hidden] { display: none; }
+/* Both steppers on: the key hints step aside for them. */
+.status.has-tools .status-hints { display: none; }
 .status-save {
   display: inline-flex;
   align-items: center;
@@ -521,97 +518,110 @@
 .zoom-val { font-size: 11px; min-width: 40px; }
 
 /* Page colour toggle: a swatch of the current page, then its name */
-/* Density: muted when optimal; a warm amber pill when there are skim risks (toggles Density Mode). */
-.status-density { display: inline-flex; align-items: center; gap: 5px; color: var(--muted); }
-button.status-density {
-  padding: 1px 8px;
-  border: 1px solid rgba(224, 164, 88, 0.35);
-  border-radius: 999px;
-  background: rgba(224, 164, 88, 0.08);
-  color: #e0a458;
-  font: inherit;
-  cursor: pointer;
-}
-button.status-density:hover { background: rgba(224, 164, 88, 0.16); }
-button.status-density.is-on { background: rgba(224, 164, 88, 0.22); border-color: rgba(224, 164, 88, 0.7); color: #f2c27e; }
-.density-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
-.density-nav { display: inline-flex; align-items: center; gap: 2px; }
-.density-steps { display: inline-flex; align-items: center; gap: 1px; }
-.density-step {
-  min-width: 20px;
-  height: 18px;
-  padding: 0 4px;
-  border: 0;
-  border-radius: 4px;
-  background: transparent;
-  color: #e0a458;
-  font: 600 12px/1 var(--ui-font);
-  cursor: pointer;
-}
-.density-step:hover,
-.density-step.is-open { background: rgba(224, 164, 88, 0.16); color: #f2c27e; }
-.density-step:focus-visible { outline: 2px solid #e0a458; outline-offset: -1px; }
-/* Dialogue stepper (Characters → Dialogue filter on): the density pill's shape and type, neutral. */
-.dlg-stepper { display: inline-flex; align-items: center; gap: 3px; }
-.dlg-pill {
+/* Density · Optimal: plain muted text (no risks, nothing to step through). */
+.status-density { display: inline-flex; align-items: center; color: var(--muted); }
+
+/* ---- Tool steppers (Dialogue, Density): one capsule — components/StatusStepper.jsx ----
+   [ icon  Label · 3 of 12   ‹  › ] (✕)   24px tall, full pill, 11px / 500 / 0.02em. */
+.stepper { --stepper-ink: var(--muted); --stepper-strong: var(--text); --stepper-line: var(--line-soft);
+  --stepper-fill: rgba(255, 255, 255, 0.05); --stepper-hover: rgba(255, 255, 255, 0.1);
+  display: inline-flex; align-items: center; flex: none; }
+.stepper.is-amber { --stepper-ink: var(--accent-amber); --stepper-strong: #fbbf24; --stepper-line: rgba(245, 158, 11, 0.45);
+  --stepper-fill: rgba(245, 158, 11, 0.1); --stepper-hover: rgba(245, 158, 11, 0.2); }
+.stepper-capsule {
   display: inline-flex;
   align-items: center;
-  gap: 1px;
-  padding: 0 2px 0 8px;
-  border: 1px solid var(--line-soft);
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.05);
-  color: var(--muted);
+  height: 24px;
+  padding: 0 3px 0 10px;
+  border: 1px solid var(--stepper-line);
+  border-radius: 9999px;
+  background: var(--stepper-fill);
+  color: var(--stepper-ink);
+  font: 500 11px/1 var(--ui-font);
+  letter-spacing: 0.02em;
 }
-.dlg-main {
+.stepper:not(.is-stepping) .stepper-capsule { padding-right: 10px; }
+.stepper-main {
   display: inline-flex;
   align-items: center;
-  gap: 0;
-  padding: 1px 4px 1px 0;
+  height: 100%;
+  padding: 0 4px 0 0;
   border: 0;
   background: transparent;
   color: inherit;
   font: inherit;
+  letter-spacing: inherit;
   cursor: pointer;
 }
-/* The Dialogue tab's own speech bubble (TabIcon, 14px, stroke 1.75), 6px before the name. */
-.dlg-icon { display: inline-flex; flex: none; margin-right: 6px; color: var(--muted); }
-.dlg-icon .tab-icon { display: block; margin: 0; }
-.dlg-name { color: var(--text); font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; max-width: 16ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.dlg-pos { margin-left: 5px; font-variant-numeric: tabular-nums; }
-.dlg-main:hover .dlg-pos,
-.dlg-main.is-open .dlg-pos { color: var(--text); }
-.dlg-step,
-.dlg-clear {
+.stepper:not(.is-stepping) .stepper-main { padding-right: 0; }
+.stepper-icon { display: inline-flex; flex: none; margin-right: 6px; color: var(--stepper-ink); }
+.stepper-icon .tab-icon { display: block; margin: 0; }
+.stepper-label { color: var(--stepper-strong); }
+.stepper-name { text-transform: uppercase; letter-spacing: 0.04em; max-width: 16ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: inline-block; vertical-align: bottom; }
+.stepper-dot { margin: 0 5px; opacity: 0.7; }
+.stepper-pos { font-variant-numeric: tabular-nums; }
+.stepper-main:hover .stepper-pos,
+.stepper-main.is-open .stepper-pos { color: var(--stepper-strong); }
+.stepper-step,
+.stepper-dismiss {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 20px;
-  height: 18px;
   padding: 0;
   border: 0;
-  border-radius: 999px;
   background: transparent;
-  color: var(--muted);
+  color: var(--stepper-ink);
   cursor: pointer;
 }
-.dlg-clear { border: 1px solid var(--line-soft); width: 20px; height: 20px; }
-.dlg-step:hover:not(:disabled),
-.dlg-clear:hover { background: rgba(255, 255, 255, 0.1); color: var(--text); }
-.dlg-step:disabled { opacity: 0.35; cursor: default; }
-.dlg-main:focus-visible,
-.dlg-step:focus-visible,
-.dlg-clear:focus-visible { outline: 2px solid var(--muted); outline-offset: -1px; border-radius: 999px; }
-.dlg-list.density-list .density-list-n { color: var(--muted); }
-.dlg-list.density-list .menu-item.is-current { background: rgba(255, 255, 255, 0.08); }
-/* Quick list: floats above the status bar (which clips overflow), opening upward. */
-.density-list { position: fixed; top: auto; z-index: 60; min-width: 320px; max-width: min(460px, calc(100vw - 16px)); }
-.density-list-items { max-height: min(50vh, 360px); overflow-y: auto; }
-.density-list .menu-item { justify-content: flex-start; gap: 8px; }
-.density-list .menu-item.is-current { background: rgba(224, 164, 88, 0.12); }
-.density-list-n { flex: none; min-width: 16px; color: #e0a458; font-weight: 650; font-variant-numeric: tabular-nums; }
-.density-list .menu-label { min-width: 0; }
-.density-list .menu-label > span { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.stepper-step { width: 18px; height: 18px; border-radius: 9999px; }
+.stepper-dismiss {
+  width: 18px;
+  height: 18px;
+  margin-left: 6px;
+  border: 1px solid var(--stepper-line);
+  border-radius: 50%;
+}
+.stepper-step:hover,
+.stepper-dismiss:hover,
+.stepper-main.is-open { background: var(--stepper-hover); color: var(--stepper-strong); }
+.stepper-main.is-open { border-radius: 9999px; }
+.stepper-main:focus-visible,
+.stepper-step:focus-visible,
+.stepper-dismiss:focus-visible { outline: 2px solid var(--stepper-ink); outline-offset: -1px; border-radius: 9999px; }
+/* The dropup list: floats above the status bar (which clips overflow). */
+.stepper-list {
+  position: fixed;
+  top: auto;
+  z-index: 60;
+  min-width: 320px;
+  max-width: min(480px, calc(100vw - 16px));
+  margin-bottom: 4px;
+  border: 1px solid #333;
+  border-radius: 8px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+}
+.stepper-list-items { max-height: min(50vh, 360px); overflow-y: auto; }
+.stepper-list .menu-item { justify-content: flex-start; gap: 8px; }
+.stepper-list .menu-item.is-current { background: rgba(255, 255, 255, 0.08); }
+.stepper-list.is-amber .menu-item.is-current { background: rgba(245, 158, 11, 0.12); }
+.stepper-list-n { flex: none; min-width: 16px; color: var(--muted); font-weight: 650; font-variant-numeric: tabular-nums; }
+.stepper-list.is-amber .stepper-list-n { color: var(--accent-amber); }
+.stepper-list .menu-label { min-width: 0; }
+.stepper-list .menu-label > span { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* Line 1: title · page tag. Line 2: the script text, muted Courier, cut with "…". */
+.stepper-list .stepper-list-title { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.stepper-list-label { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.stepper-list-tag {
+  flex: none;
+  padding: 1px 6px;
+  border: 1px solid var(--line-soft);
+  border-radius: 9999px;
+  color: var(--muted);
+  font-size: 10.5px;
+  font-variant-numeric: tabular-nums;
+}
+.stepper-list .menu-sub { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.stepper-list .menu-sub.is-mono { font: 12px/1.35 'Courier Prime', 'Courier New', monospace; opacity: 0.6; }
 .status-btn { padding: 0 6px; border: 0; border-radius: 4px; background: transparent; color: inherit; font: inherit; cursor: pointer; }
 .status-btn:hover { color: var(--text); background: var(--field); }
 .status-canvas { display: inline-flex; align-items: center; gap: 6px; padding: 0 7px; font-size: 11.5px; color: var(--muted); }
@@ -679,8 +689,6 @@ button.status-density.is-on { background: rgba(224, 164, 88, 0.22); border-color
 
 @media (max-width: 1800px) {
   .brand-name { display: none; }
-  .lbl-long { display: none; }
-  .lbl-short { display: inline; }
   .type-select { min-width: 150px; }
   .bar { gap: 18px; padding: 0 14px; }
   .bar-zone, .zone-middle-tools { gap: 18px; }
@@ -728,11 +736,12 @@ button.status-density.is-on { background: rgba(224, 164, 88, 0.22); border-color
 }
 
 /* ---------- Narrow windows: collapse before anything can collide ----------
-   Measured widths: left zone ≈ 250px; middle ≈ 500px with four file buttons, ≈ 300px with File ▾;
-   right ≈ 490px. Each step below frees room before the next width would clip anything. */
-@media (max-width: 1319.98px) {
-  .file-inline { display: none; }        /* New · Open · Import · Title Page → File ▾ */
-  .file-menu { display: inline-flex; }
+   File ▾ holds New · Open · Import · Title Page and every export at all widths, and Element / B I U S
+   only show on a writing canvas, so the bar fits a laptop at 100%. Each step below frees room
+   before the next width would clip anything. */
+@media (max-width: 1199.98px) {
+  .bar-right > .btn-plan-fold { display: none; }   /* Plan: ⋮ → Collapse All / Expand All */
+  .fmt-seg { display: none; }                      /* B I U S stay on Ctrl+B / I / U and Ctrl+Shift+X */
 }
 @media (max-width: 1099.98px) {
   .bar-right > .btn-focus { display: none; }       /* → ⋮ */
@@ -742,21 +751,39 @@ button.status-density.is-on { background: rgba(224, 164, 88, 0.22); border-color
   .bar, .bar-zone, .zone-middle-tools { gap: 10px; }
   .bar { padding: 0 10px; }
 }
+@media (max-width: 999.98px) {
+  .btn-plan-export .plan-lbl-long { display: none; } /* Plan: "Export Breakdown (.csv)" → "Export (.csv)" */
+  .btn-plan-export .plan-lbl-short { display: inline; }
+}
 @media (max-width: 899.98px) {
-  .fmt-seg { display: none; }                      /* B I U S stay on Ctrl+B / I / U */
+  .ws-label { display: none; }                     /* Write | Plan: icons only (names on hover) — never hidden */
+  .plan-seg .seg-label { display: none; }          /* Breakdowns | Stripboard too */
+  .plan-seg .seg-btn { padding: 4px 8px; }
+  .ws-btn { padding: 0 9px; }
+  .type-select { display: none; }                  /* element type stays on Alt+1…8 and Tab */
   .doc-title { max-width: 120px; }
   .seg-btn { padding: 4px 7px; }
 }
 @media (max-width: 767.98px) {
-  .type-select { display: none; }                  /* element type stays on Alt+1…8 and Tab */
   .bar-right > .btn-snapshot { display: none; }    /* ⋮ → View Snapshots */
+  .view-seg .seg-label { display: none; }          /* Page | Split | Board: icons (names on hover), like Plan's */
+  .view-seg .seg-btn { padding: 4px 8px; }
+}
+@media (max-width: 639.98px) {
+  .bar-right > .btn-plan-export { display: none; } /* ⋮ → Export Breakdown */
   .doc-title { max-width: 110px; }
 }
 @media (max-width: 559.98px) {
-  .seg { display: none; }                          /* Page / Split / Board stay on Alt+B */
+  .zone-left > .btn-icon { display: none; }        /* the scene list stays on Alt+S */
+  .plan-seg .seg-btn { padding: 4px 6px; }
+  .ws-switch { margin-left: 4px; }
   .doc-title { max-width: 90px; }
   .bar, .bar-zone, .zone-middle-tools { gap: 6px; }
   .bar { padding: 0 8px; }
+}
+@media (max-width: 439.98px) {
+  .zone-right .plan-seg { display: none; }         /* ⋮ → Breakdowns / Stripboard */
+  .zone-right .view-seg { display: none; }         /* Page / Split / Board stay on Alt+B */
 }
 @media (max-width: 374.98px) {
   .zone-left > .btn-icon { display: none; }        /* the scene list stays on Alt+S */
@@ -785,27 +812,72 @@ button.status-density.is-on { background: rgba(224, 164, 88, 0.22); border-color
 @keyframes milestone-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 @keyframes milestone-out { to { opacity: 0; transform: translateY(4px); } }
 
-/* ---- Film Noir mode (lib/noir.js): high-contrast black and white, Venetian-blind shadows ---- */
-.film-noir-mode .scroller,
+/* ---- Film Noir mode (lib/noir.js): 1940s typed paper on a dark desk, Venetian-blind light, grain ---- */
+/* The page: typewriter stock and near-black ink, whatever the page colour (Midnight included). Set as
+   the page's own colours, not a filter, so the paper is exactly #f3efe6 and the ink #111111. */
+.app.film-noir-mode,
+.app.film-noir-mode[data-canvas] {
+  --paper: #f3efe6;
+  --ink: #111111;
+  --caret: #111111;
+  --placeholder: #9c968a;
+  --selection: #d8d1c1;
+  --scene-no: #6d685f;
+  --active-rule: #bdb5a4;
+  --highlight: #e4dcc8;
+  --dual-tag: #2a2a2a;
+  --dual-tag-bg: #e2dbcb;
+  --fmt-ink: #2a2a2a;
+  --fmt-tag: #2a2a2a;
+  --fmt-tag-bg: #e2dbcb;
+  --paper-shadow: 0 1px 2px rgba(0, 0, 0, 0.55), 0 16px 50px rgba(0, 0, 0, 0.65);
+}
 .film-noir-mode .board { filter: grayscale(1) sepia(0.18) contrast(1.18) brightness(0.94); } /* warm monochrome, like a silver print */
-.film-noir-mode .workspace { position: relative; }
-/* Venetian-blind shadows (soft-edged slats) and a vignette, over the page. */
+/* The desk: a dark room, a little lighter toward the window (top left). */
+.film-noir-mode .workspace {
+  position: relative;
+  background: radial-gradient(circle at 20% 20%, #1a1a1c 0%, #0a0a0c 100%);
+}
+/* Venetian-blind light: slats tilted 18deg with soft edges, at most 6% dark on the paper, and fading out
+   from the window at the top left instead of tiling evenly over everything. */
 .film-noir-mode .workspace::after {
   content: '';
   position: absolute;
   inset: 0;
   pointer-events: none;
   z-index: 5;
-  background:
-    radial-gradient(ellipse at center, transparent 65%, rgba(0, 0, 0, 0.45) 100%),
-    repeating-linear-gradient(-28deg,
-      rgba(0, 0, 0, 0) 0 34px,
-      rgba(0, 0, 0, 0.12) 36px,
-      rgba(0, 0, 0, 0.24) 43px,
-      rgba(0, 0, 0, 0.12) 50px,
-      rgba(0, 0, 0, 0) 52px);
+  background: repeating-linear-gradient(18deg,
+    rgba(0, 0, 0, 0) 0px,
+    rgba(0, 0, 0, 0) 20px,
+    rgba(0, 0, 0, 0.015) 25px,
+    rgba(0, 0, 0, 0.035) 30px,
+    rgba(0, 0, 0, 0.055) 35px,
+    rgba(0, 0, 0, 0.06) 38px,
+    rgba(0, 0, 0, 0.055) 41px,
+    rgba(0, 0, 0, 0.035) 46px,
+    rgba(0, 0, 0, 0.015) 51px,
+    rgba(0, 0, 0, 0) 56px);
+  -webkit-mask-image: radial-gradient(ellipse 120% 110% at 0% 0%, #000 0%, rgba(0, 0, 0, 0.8) 30%, rgba(0, 0, 0, 0.35) 62%, transparent 92%);
+  mask-image: radial-gradient(ellipse 120% 110% at 0% 0%, #000 0%, rgba(0, 0, 0, 0.8) 30%, rgba(0, 0, 0, 0.35) 62%, transparent 92%);
   mix-blend-mode: multiply;
   animation: noir-in 600ms ease-out;
+}
+/* A coffee ring on the desk, bottom right: an uneven double ring with a little bleed. Painted before
+   the pages, so the paper always covers it; it only ever shows on the desk. */
+.noir-coffee {
+  position: fixed;
+  right: 36px;
+  bottom: calc(var(--status-h) + 28px);
+  width: 190px;
+  height: 190px;
+  opacity: 0.08;
+  pointer-events: none;
+  z-index: 0;
+  transform: rotate(-12deg);
+  background: url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 200 200%27%3E%3Cdefs%3E%3Cfilter id=%27w%27 x=%27-20%25%27 y=%27-20%25%27 width=%27140%25%27 height=%27140%25%27%3E%3CfeTurbulence type=%27fractalNoise%27 baseFrequency=%270.035%27 numOctaves=%272%27 seed=%277%27/%3E%3CfeDisplacementMap in=%27SourceGraphic%27 scale=%279%27/%3E%3CfeGaussianBlur stdDeviation=%271.1%27/%3E%3C/filter%3E%3C/defs%3E%3Cg fill=%27none%27 stroke=%27%23c9a47c%27 filter=%27url%28%23w%29%27%3E%3Cellipse cx=%27100%27 cy=%27101%27 rx=%2772%27 ry=%2769%27 stroke-width=%277%27 stroke-opacity=%270.9%27/%3E%3Cellipse cx=%27103%27 cy=%2798%27 rx=%2763%27 ry=%2761%27 stroke-width=%272.5%27 stroke-opacity=%270.55%27/%3E%3Cpath d=%27M38 128 q-10 14 -2 24 q9 6 14 -6%27 stroke-width=%275%27 stroke-opacity=%270.5%27/%3E%3C/g%3E%3Cellipse cx=%27100%27 cy=%27101%27 rx=%2770%27 ry=%2767%27 fill=%27%23c9a47c%27 fill-opacity=%270.12%27 filter=%27url%28%23w%29%27/%3E%3C/svg%3E") center / contain no-repeat;
+}
+@media (min-width: 1100px) {
+  .dock-open .noir-coffee { right: calc(var(--tuner-w) + 36px); } /* stays on the desk beside an open side panel */
 }
 /* 35 mm grain: a fractal-noise tile, jumping to a new spot every frame or so. */
 .film-noir-mode .workspace::before {
@@ -841,5 +913,25 @@ button.status-density.is-on { background: rgba(224, 164, 88, 0.22); border-color
   cursor: pointer;
 }
 .status-noir:hover { background: rgba(255, 255, 255, 0.12); }
-@media print { .film-noir-mode .workspace::after, .film-noir-mode .workspace::before { display: none; } .milestone-toast { display: none; } }
+@media print { .film-noir-mode .workspace::after, .film-noir-mode .workspace::before, .noir-coffee { display: none; } .milestone-toast { display: none; } }
 @media (prefers-reduced-motion: reduce) { .milestone-toast, .film-noir-mode .workspace::after, .film-noir-mode .workspace::before { animation: none; } }
+
+/* Stepper list rows with their own buttons (Format Doctor: Fix / Ignore). */
+.stepper-list-row { display: flex; align-items: center; gap: 4px; padding-right: 6px; border-radius: 6px; }
+.stepper-list-row .menu-item { flex: 1; min-width: 0; }
+.stepper-list-row.is-current { background: rgba(255, 255, 255, 0.08); }
+.stepper-list-actions { display: inline-flex; flex: none; align-items: center; gap: 4px; white-space: nowrap; }
+.stepper-list-act {
+  height: 22px;
+  padding: 0 9px;
+  border: 1px solid var(--line-soft);
+  border-radius: 9999px;
+  background: transparent;
+  color: var(--muted);
+  font: 500 11px/1 var(--ui-font);
+  cursor: pointer;
+}
+.stepper-list-act:hover { background: rgba(255, 255, 255, 0.1); color: var(--text); }
+.stepper-list-act.is-primary { border-color: color-mix(in srgb, var(--accent) 60%, transparent); color: var(--text); }
+.stepper-list-act.is-primary:hover { background: color-mix(in srgb, var(--accent) 22%, transparent); }
+.stepper-list-footer { justify-content: center; border-top: 1px solid var(--line-soft); border-radius: 0; color: var(--muted); }

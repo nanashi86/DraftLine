@@ -22,10 +22,10 @@ describe('Toolbar: the top-right cluster sits on one baseline', () => {
     const rule = css.match(/\.dropdown-caret \{([^}]*)\}/)[1];
     for (const d of ['font-size: 0.75em', 'line-height: 1', 'display: inline-flex', 'align-items: center', 'margin-left: 4px']) assert.ok(rule.includes(d), d);
   });
-  it('order: Export ▾ · Snapshot · Focus · Story Bible · Characters · ⋮', () => {
+  it('order: Focus · Story Bible · Characters · Snapshot · ⋮', () => {
     const right = app.slice(app.indexOf('<div className="bar-group bar-right">'), app.indexOf('</header>'));
     const at = (s) => right.indexOf(s);
-    const order = [at('label="Export"'), at('btn-snapshot'), at('>Focus<'), at('btn-bible'), at('btn btn-accent'), at('btn btn-kebab')];
+    const order = [at('>Focus<'), at('btn-bible'), at('btn btn-accent'), at('btn-snapshot'), at('btn btn-kebab')];
     assert.ok(order.every((v, i) => v > 0 && (i === 0 || v > order[i - 1])), JSON.stringify(order));
   });
 });

@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import {
   ACTION_LINE_LIMIT, SEGMENT_CHAR_LIMIT, SEGMENT_WORD_LIMIT, actionDensity, actionLines, densityLabel, densityReason, densityTitle,
-  isDenseAction, riskLocations, riskPositionLabel, stepRisk,
+  isDenseAction, riskLocations, riskPosition, riskPositionLabel, stepRisk,
 } from '../src/lib/pacing.js';
 import { PULSE_CLASS, PULSE_MS, revealAndPulse } from '../src/lib/reveal.js';
 import { toFountain } from '../src/lib/fountain.js';
@@ -78,18 +78,18 @@ describe('Density across the script', () => {
     assert.deepEqual({ ...actionDensity([]), ids: [] }, { total: 0, dense: 0, percent: 0, ids: [], list: [] });
   });
   it('status text: Optimal, or N Skim Risk(s)', () => {
-    assert.equal(densityLabel(actionDensity([act('a', 'Rain.')])), 'Density: Optimal');
-    assert.equal(densityLabel(actionDensity([act('a', words(60))])), 'Density: 1 Skim Risk');
-    assert.equal(densityLabel(actionDensity(blocks)), 'Density: 2 Skim Risks');
+    assert.equal(densityLabel(actionDensity([act('a', 'Rain.')])), 'Density · Optimal');
+    assert.equal(densityLabel(actionDensity([act('a', words(60))])), 'Density · 1 Skim Risk');
+    assert.equal(densityLabel(actionDensity(blocks)), 'Density · 2 Skim Risks');
     assert.match(densityTitle(actionDensity(blocks)), /^2 of 4 action paragraphs \(50%\) run past 4 lines/);
   });
 });
 
 describe('Density Mode is editor-only', () => {
-  it('the status bar uses DensityNav: muted Optimal, an amber pill when there are risks', () => {
-    const nav = read('components/DensityNav.jsx');
+  it('the status bar uses DensityStepper: muted Optimal, the amber capsule when there are risks', () => {
+    const nav = read('components/DensityStepper.jsx');
     assert.match(nav, /if \(!density\.dense\) \{\s*return <span className="status-density" title=\{densityTitle\(density\)\}>\{densityLabel\(density\)\}<\/span>;/);
-    assert.match(nav, /className=\{`status-density is-risk\$\{on \? ' is-on' : ''\}`\}/);
+    assert.match(nav, /<StatusStepper\s*tone="amber"/);
     assert.match(read('App.jsx'), /dense=\{densityMode && density\.dense \? density\.ids : null\}/);
   });
   it('the mark is a faint 2px left border drawn outside the text column', () => {
@@ -123,12 +123,14 @@ describe('Jumping between skim risks', () => {
     assert.equal(stepRisk(7, 3, 'next'), 0, 'was on 8 of 9, now only 3 left');
     assert.equal(stepRisk(4, 0, 'next'), -1, 'none left');
   });
-  it('the pill shows the position: "Density: Risk 1 of 9"', () => {
+  it('the capsule shows the position: "Density · 1 of 9"', () => {
     const d = { dense: 9, total: 30, percent: 30 };
-    assert.equal(riskPositionLabel(d, 0), 'Density: Risk 1 of 9');
-    assert.equal(riskPositionLabel(d, 8), 'Density: Risk 9 of 9');
-    assert.equal(riskPositionLabel(d, -1), 'Density: 9 Skim Risks', 'before the first jump');
-    assert.equal(riskPositionLabel({ ...d, dense: 0 }, 3), 'Density: Optimal');
+    assert.equal(riskPositionLabel(d, 0), 'Density · 1 of 9');
+    assert.equal(riskPositionLabel(d, 8), 'Density · 9 of 9');
+    assert.equal(riskPositionLabel(d, -1), 'Density · 9 Skim Risks', 'before the first jump');
+    assert.equal(riskPositionLabel({ ...d, dense: 0 }, 3), 'Density · Optimal');
+    assert.equal(riskPosition(d, 0), '1 of 9');
+    assert.equal(riskPosition(d, -1), '– of 9');
   });
   it('the quick list names each risk by scene heading and page', () => {
     const d = actionDensity([
@@ -173,7 +175,7 @@ describe('Scrolling to a risk', () => {
     assert.match(read('components/Editor.jsx'), /pulseBlock\(id\) \{\s*return revealAndPulse\(els\.current\.get\(id\)\?\.closest\('\.el'\) \|\| null\);/);
     const app = read('App.jsx');
     assert.match(app, /const target = density\.list\[i\];[\s\S]*?setDensityIndex\(i\);[\s\S]*?editorRef\.current\?\.pulseBlock\(target\.id\)/);
-    assert.match(app, /if \(jump\) jumpToRisk\(stepRisk\(-1, density\.dense, 'first'\)\);/);
-    assert.match(app, /onStep=\{\(dir\) => jumpToRisk\(stepRisk\(densityIndex, density\.dense, dir\)\)\}/);
+    assert.match(app, /jumpToRisk\(stepRisk\(densityMode \? densityIndex : -1, density\.dense, dir\)\)/);
+    assert.match(app, /jumpToRisk\(stepRisk\(densityIndex, density\.dense, \{ type: 'go', index: i \}\)\)/);
   });
 });

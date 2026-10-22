@@ -54,14 +54,36 @@ export function beatTags(beat) {
 
 /** The card stored the current way: `tags: string[]`, no legacy `tag`. */
 export function normalizeBeat(beat) {
-  const { tag, ...rest } = beat; // eslint-disable-line no-unused-vars
-  return { ...rest, tags: beatTags(beat) };
+  const { tag, valueShift, ...rest } = beat; // eslint-disable-line no-unused-vars
+  const out = { ...rest, tags: beatTags(beat) };
+  if (valueShiftInfo(valueShift)) out.valueShift = valueShift; // anything else isn't a shift: dropped
+  return out;
+}
+
+/**
+ * A scene's Value Shift: the emotional charge at its start and its end. Stored on the card as
+ * `valueShift` ('+-', '-+', '++' or '--'; absent when not set), so it travels in the .draftline file.
+ * `static`: the charge didn't turn — usually a scene that needs a turn.
+ */
+export const VALUE_SHIFTS = [
+  { id: '+-', label: '+ / −', name: 'Positive to Negative', hint: 'Conflict / Setback', static: false },
+  { id: '-+', label: '− / +', name: 'Negative to Positive', hint: 'Small Win / Insight', static: false },
+  { id: '++', label: '+ / +', name: 'Positive to Positive', hint: 'Warning: Static', static: true },
+  { id: '--', label: '− / −', name: 'Negative to Negative', hint: 'Warning: Static', static: true },
+];
+export const valueShiftInfo = (id) => VALUE_SHIFTS.find((v) => v.id === id) || null;
+
+/** Set (or with null / the same id, clear) a card's Value Shift. */
+export function setValueShift(beat, id) {
+  const { valueShift, ...rest } = beat; // eslint-disable-line no-unused-vars
+  return valueShiftInfo(id) && id !== beat.valueShift ? { ...rest, valueShift: id } : rest;
 }
 
 /** Every card stored the current way (unchanged cards keep their identity). */
 export function normalizeBeats(beats) {
   if (!Array.isArray(beats)) return [];
-  return beats.map((b) => (Array.isArray(b.tags) && !('tag' in b) && beatTags(b).length === b.tags.length ? b : normalizeBeat(b)));
+  return beats.map((b) => (Array.isArray(b.tags) && !('tag' in b) && beatTags(b).length === b.tags.length
+    && (b.valueShift === undefined || valueShiftInfo(b.valueShift)) ? b : normalizeBeat(b)));
 }
 
 /** Switch one tag on or off, leaving the others as they are. */

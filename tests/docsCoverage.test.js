@@ -21,10 +21,11 @@ const headings = guide.chapters.flatMap((c) => [c.title, ...c.topics.map((t) => 
 const hasHeading = (re) => headings.some((h) => re.test(h));
 
 describe('User Guide covers the app', () => {
-  it('has the seven chapters, the curiosities last', () => {
+  it('has the eight chapters, the curiosities last', () => {
     assert.equal(guide.title, 'DraftLine User Guide');
     assert.deepEqual(guide.chapters.map((c) => c.title), [
-      'Workspace & Storage', 'Screenplay Editor', 'Story Bible', 'Characters', 'Scene Board & Pacing', 'Export & Deliverables',
+      'Workspace & Storage', 'Screenplay Editor', 'Story Bible', 'Characters', 'Scene Board & Pacing', 'Production & Planning',
+      'Export & Deliverables',
       'Editor Curiosities & Secrets',
     ]);
   });
@@ -42,12 +43,29 @@ describe('User Guide covers the app', () => {
     ['Tab & Enter flow', /Tab & Enter/],
     ['Pacing', /Pacing/],
     ['Printing and PDF', /PDF/],
+    ['Write | Plan switch', /^Write and Plan$/],
+    ['Scene heading formatting tips', /^Scene headings: formatting tips$/],
+    ['Breakdowns', /^Breakdowns$/],
+    ['Stripboard', /^Stripboard$/],
+    ['Where planning is saved', /^Where planning is saved$/],
   ]) {
     it(`has a section for ${feature}`, () => assert.ok(hasHeading(re), `no heading for ${feature}`));
   }
   it('the Treatment is documented where Notes are (and under its own name)', () => {
     const notes = guide.chapters.find((c) => c.title === 'Story Bible').topics.find((t) => t.title === 'Synopsis & Treatment');
     assert.ok(notes.blocks.some((b) => JSON.stringify(b).includes(`**${TREATMENT.label}**`)));
+  });
+});
+
+describe('User Guide: scene heading formatting tips', () => {
+  const tips = guide.chapters.find((c) => c.title === 'Screenplay Editor').topics.find((t) => t.title === 'Scene headings: formatting tips');
+  const text = JSON.stringify(tips.blocks);
+  it('macro-to-micro hierarchy, hyphens for places, parentheses for modifiers, INT./EXT. direction', () => {
+    for (const x of ['MASTER LOCATION - SPECIFIC ROOM OR AREA - TIME OF DAY', 'INT. BOUCHARD RESIDENCE - MASTER BEDROOM - NIGHT',
+      'INT. POLICE STATION - INTERROGATION ROOM - DAY', 'EXT. CINEUS RESIDENCE - BACKYARD - NIGHT', '(MOVING)', '(FLASHBACK)', '(DREAM)',
+      '(FANTASY)', '(INTERCUT)', '(PRE-LAP)', '(SERIES OF SHOTS)', 'INT./EXT.', 'no spaces around the slash', 'where the camera setup begins']) {
+      assert.ok(text.includes(x), x);
+    }
   });
 });
 

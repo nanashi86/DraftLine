@@ -93,3 +93,33 @@ export function printInNewWindow({ openWindow, html, title, features = 'width=80
   }
   return w;
 }
+
+/**
+ * Print a whole HTML document titled `title` (so Save as PDF suggests "<title>.pdf"): from its
+ * own window, or — popups blocked — from a hidden frame with the page title held until the print
+ * dialog is over. `win` is the app's window (injectable for tests).
+ */
+export function printDocument({ html, title, win = globalThis, returnFocusTo = null }) {
+  if (printInNewWindow({ openWindow: (...a) => win.open(...a), html, title })) return 'window';
+  const doc = win.document;
+  const frame = doc.createElement('iframe');
+  frame.setAttribute('aria-hidden', 'true');
+  frame.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0;visibility:hidden';
+  frame.srcdoc = html;
+  frame.onload = () => {
+    const held = holdPrintTitle({
+      topWindow: win,
+      frameWindow: frame.contentWindow,
+      title,
+      onDone: () => {
+        returnFocusTo?.focus?.();
+        setTimeout(() => frame.remove(), 500);
+      },
+    });
+    frame.contentWindow.focus();
+    frame.contentWindow.print();
+    held.armFallback();
+  };
+  doc.body.appendChild(frame);
+  return 'frame';
+}

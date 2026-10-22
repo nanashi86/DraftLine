@@ -2,8 +2,11 @@ import { Fragment, memo, useCallback, useEffect, useMemo, useRef, useState } fro
 import AutoTextarea from './AutoTextarea.jsx';
 import Menu from './Menu.jsx';
 import SceneRangeModal from './SceneRangeModal.jsx';
+import ValueShiftModal from './ValueShiftModal.jsx';
+import { Zap } from 'lucide-react';
+import { scanValueShifts } from '../lib/valueShiftScanner.js';
 import {
-  TAGS, actPacing, beatTags, beatsWithTag, byAct, formatPageTargets, formatPercentTargets, moveBeat, newBeat, populateByPages, populateByRanges, structureFor, tagAccent, toggleTag,
+  TAGS, VALUE_SHIFTS, actPacing, beatTags, beatsWithTag, byAct, formatPageTargets, formatPercentTargets, moveBeat, newBeat, populateByPages, populateByRanges, setValueShift, structureFor, tagAccent, toggleTag, valueShiftInfo,
 } from '../lib/beats.js';
 import './BeatBoard.css';
 
@@ -13,8 +16,72 @@ import './BeatBoard.css';
  * grip focused, arrow keys move a card too.
  */
 
+/**
+ * A card's Value Shift — the scene's emotional charge going in and coming out: [ ± ] opens four
+ * choices (+/−, −/+, and the two static ones, flagged as a warning); picking the current one, or
+ * Clear, removes it. Esc or a click outside closes it.
+ */
+function ValueShiftPicker({ value, onPick }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+  const info = valueShiftInfo(value);
+  useEffect(() => {
+    if (!open) return undefined;
+    const onDown = (e) => { if (!ref.current?.contains(e.target)) setOpen(false); };
+    const onKey = (e) => {
+      if (e.key === 'Escape') {
+        e.stopPropagation();
+        setOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', onDown);
+    window.addEventListener('keydown', onKey, true);
+    return () => {
+      document.removeEventListener('mousedown', onDown);
+      window.removeEventListener('keydown', onKey, true);
+    };
+  }, [open]);
+  return (
+    <span className="vs" ref={ref}>
+      <button
+        type="button"
+        className={`vs-btn${info ? ` is-set${info.static ? ' is-static' : ''}` : ''}`}
+        onClick={() => setOpen((o) => !o)}
+        aria-haspopup="menu"
+        aria-expanded={open}
+        title={info ? `Value Shift: ${info.name} — ${info.hint}` : 'Value Shift: how the scene’s charge turns'}
+      >
+        {info ? info.label : '+/−'}
+      </button>
+      {open && (
+        <span className="vs-pop" role="menu" aria-label="Value Shift">
+          {VALUE_SHIFTS.map((v) => (
+            <button
+              key={v.id}
+              type="button"
+              role="menuitemradio"
+              aria-checked={v.id === value}
+              className={`vs-opt${v.static ? ' is-static' : ''}${v.id === value ? ' is-on' : ''}`}
+              onClick={() => {
+                onPick(v.id === value ? null : v.id);
+                setOpen(false);
+              }}
+            >
+              <b>{v.label}</b>
+              <span>{v.name}<small>{v.hint}</small></span>
+            </button>
+          ))}
+          {info && (
+            <button type="button" role="menuitem" className="vs-opt vs-clear" onClick={() => { onPick(null); setOpen(false); }}>Clear</button>
+          )}
+        </span>
+      )}
+    </span>
+  );
+}
+
 const BeatCard = memo(function BeatCard({
-  beat, number, scene, isDragging, onField, onToggleTag, onDelete, onDragStart, onDragEnd, onKeyMove, onJump, autoFocus, dim, lit,
+  beat, number, scene, isDragging, onField, onToggleTag, onValueShift, onDelete, onDragStart, onDragEnd, onKeyMove, onJump, autoFocus, dim, lit,
 }) {
   const tags = beatTags(beat);
   const accent = tagAccent(tags);
@@ -110,6 +177,7 @@ const BeatCard = memo(function BeatCard({
             <span className="card-scene is-gone" title="This card’s scene heading was deleted">Scene removed</span>
           )
         )}
+        <ValueShiftPicker value={beat.valueShift} onPick={(id) => onValueShift(beat.id, id)} />
         <span className="card-tags">
           {TAGS.map((t) => {
             const on = tags.includes(t.id);
@@ -139,13 +207,15 @@ const MODES = [
 ];
 
 export default function BeatBoard({
-  beats, onChange, onMoveCard, onExport, compact, actMode = 4, onActModeChange, scenes = [], pageCount = 1, onJump,
+  beats, onChange, onMoveCard, onExport, compact, actMode = 4, onActModeChange, scenes = [], pageCount = 1, onJump, hidden = false,
+  getBlocks, // () => the script's elements now: read when Analyze Value Shifts opens (not on every keystroke)
 }) {
   const [dragId, setDragId] = useState(null);
   const [drop, setDrop] = useState(null); // { act, index } — act is always one of the four underlying acts
   const [focusId, setFocusId] = useState(null);
   const [undo, setUndo] = useState(null); // { message, beats? } — the toast; `beats` is what Undo restores
   const [rangesOpen, setRangesOpen] = useState(false);
+  const [shiftScan, setShiftScan] = useState(null); // Analyze Value Shifts: scanValueShifts() while open
   const [tagFilter, setTagFilter] = useState(null); // legend filter: highlight cards with this tag
   const beatsRef = useRef(beats);
   const structureRef = useRef(null);
@@ -185,6 +255,10 @@ export default function BeatBoard({
 
   const onToggleTag = useCallback((id, tag) => {
     onChange(beatsRef.current.map((b) => (b.id === id ? toggleTag(b, tag) : b)));
+  }, [onChange]);
+
+  const onValueShift = useCallback((id, shift) => {
+    onChange(beatsRef.current.map((b) => (b.id === id ? setValueShift(b, shift) : b)));
   }, [onChange]);
 
   const onDelete = useCallback((id) => {
@@ -319,8 +393,9 @@ export default function BeatBoard({
   };
 
   const exportItems = [
-    { label: 'Fountain outline', hint: '.fountain', onSelect: () => onExport('fountain') },
+    { label: 'Fountain Outline', hint: '.fountain', onSelect: () => onExport('fountain') },
     { label: 'Markdown', hint: '.md', onSelect: () => onExport('md') },
+    { label: 'Spreadsheet', hint: '.csv', onSelect: () => onExport('csv') },
   ];
 
   const dropLine = <div className="drop-line" />;
@@ -329,6 +404,7 @@ export default function BeatBoard({
     <section
       className={`board${compact ? ' is-compact' : ''}${tagFilter ? ' is-filtered' : ''}`}
       ref={boardRef}
+      hidden={hidden} // the Plan workspace: kept mounted (and scrolled where it was), just not shown
       aria-label="Scene Board"
       data-filter={tagFilter || undefined}
       onKeyDown={(e) => {
@@ -389,6 +465,16 @@ export default function BeatBoard({
             className="btn btn-outline"
             title="Make a card for every scene and place them in act columns"
           />
+          {getBlocks && (
+            <button
+              type="button"
+              className="btn btn-outline board-analyze"
+              onClick={() => setShiftScan(scanValueShifts(getBlocks()))}
+              title="Read each scene’s opening and ending and suggest its Value Shift (+ / −, − / +, + / +, − / −)"
+            >
+              <Zap size={13} strokeWidth={1.75} aria-hidden /> Analyze Value Shifts
+            </button>
+          )}
           <Menu label="Export Outline" items={exportItems} align="right" className="btn btn-outline" />
         </div>
       </header>
@@ -460,6 +546,7 @@ export default function BeatBoard({
                               onJump={onJump}
                               isDragging={b.id === dragId}
                               onField={onField}
+                              onValueShift={onValueShift}
                               onToggleTag={onToggleTag}
                               dim={!!lit && !lit.has(b.id)}
                               lit={!!lit && lit.has(b.id)}
@@ -489,6 +576,23 @@ export default function BeatBoard({
           {undo.message}
           {undo.beats && <button className="btn" onClick={undoLast}>Undo</button>}
         </div>
+      )}
+
+      {shiftScan && (
+        <ValueShiftModal
+          suggestions={shiftScan}
+          beats={beats}
+          onClose={() => setShiftScan(null)}
+          onApply={(changes, { all }) => {
+            if (!changes.size) return;
+            const prev = beatsRef.current;
+            onChange(prev.map((b) => (changes.has(b.id) ? setValueShift({ ...b, valueShift: undefined }, changes.get(b.id)) : b)));
+            if (all) {
+              setShiftScan(null);
+              setUndo({ message: `Value Shift set on ${changes.size} ${changes.size === 1 ? 'card' : 'cards'}`, beats: prev });
+            }
+          }}
+        />
       )}
 
       {rangesOpen && (

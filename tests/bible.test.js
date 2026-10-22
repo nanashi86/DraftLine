@@ -2,7 +2,7 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   addCharacter, addSection, defaultStoryNotes, filterCharacters, importNotes, markdownBlocks, missingFromScript,
-  moveCharacter, normalizeStoryNotes, removeCharacter, removeSection, sortCharacters, splitByHeadings,
+  moveCharacter, normalizeStoryNotes, removeCharacter, removeSection, reorderStandardNotes, sortCharacters, splitByHeadings,
   updateCharacter, updateSection,
 } from '../src/lib/bible.js';
 import { createFakeIndexedDB } from './helpers/fakeIndexedDB.js';
@@ -44,9 +44,9 @@ describe('Character Bios: CRUD', () => {
 });
 
 describe('Story Notes', () => {
-  it('a new project starts with Logline, Tone, Timeline, Pitch, Scratchpad (Theme lives in Story DNA)', () => {
-    assert.deepEqual(defaultStoryNotes().sections.map((s) => s.title), ['Logline', 'Tone', 'Timeline', 'Pitch', 'Scratchpad']);
-    assert.equal(defaultStoryNotes().version, 3);
+  it('a new project starts with Logline, Tone, Pitch, Timeline, Scratchpad (Theme lives in Story DNA)', () => {
+    assert.deepEqual(defaultStoryNotes().sections.map((s) => s.title), ['Logline', 'Tone', 'Pitch', 'Timeline', 'Scratchpad']);
+    assert.equal(defaultStoryNotes().version, 4);
   });
   it('older notes are renamed and reordered with every word kept (same section ids)', () => {
     const old = {
@@ -65,13 +65,13 @@ describe('Story Notes', () => {
     assert.deepEqual(n.sections.map((s) => `${s.id}:${s.title}:${s.body}`), [
       'l:Logline:A ferry, a storm, a choice.',
       'o:Tone:',
-      't:Timeline:1986 — Jacmel',
       'p:Pitch:Two siblings…',
+      't:Timeline:1986 — Jacmel',
       'g:Scratchpad:Loose ideas',
       'm:Themes:Exile and return',
       'r:Research:Ferry routes 1991',
     ]);
-    assert.equal(n.version, 3);
+    assert.equal(n.version, 4);
   });
   it('the original three-section notes gain the missing presets; custom sections follow, in their order', () => {
     const old = { sections: [
@@ -82,7 +82,7 @@ describe('Story Notes', () => {
       { id: 'g', title: 'General Scratchpad', body: '' },
     ] };
     assert.deepEqual(normalizeStoryNotes(old).sections.map((s) => s.title),
-      ['Logline', 'Tone', 'Timeline', 'Pitch', 'Scratchpad', 'Themes', 'Locations', 'Music']);
+      ['Logline', 'Tone', 'Pitch', 'Timeline', 'Scratchpad', 'Themes', 'Locations', 'Music']);
   });
   it('if an old and a new name meet, their text is combined — nothing is lost', () => {
     const both = { sections: [{ id: 'a', title: 'Themes', body: 'Mine.' }, { id: 'b', title: 'Themes & Motifs', body: 'Older.' }] };
@@ -93,15 +93,27 @@ describe('Story Notes', () => {
   it('migrates once: after that, deleted or reordered presets stay the way you left them', () => {
     let n = normalizeStoryNotes({ sections: [{ id: 'g', title: 'General Scratchpad', body: 'x' }] });
     n = removeSection(n, n.sections.find((s) => s.title === 'Tone').id);
-    assert.deepEqual(normalizeStoryNotes(n).sections.map((s) => s.title), ['Logline', 'Timeline', 'Pitch', 'Scratchpad']);
+    assert.deepEqual(normalizeStoryNotes(n).sections.map((s) => s.title), ['Logline', 'Pitch', 'Timeline', 'Scratchpad']);
   });
   it('edits, adds and removes sections; new sections go after Scratchpad', () => {
     let n = defaultStoryNotes();
     n = updateSection(n, n.sections[0].id, { body: 'A ferry, a storm.' });
     const added = addSection(n, 'Research');
-    n = removeSection(added.notes, n.sections[2].id);
+    n = removeSection(added.notes, n.sections[3].id); // Timeline
     assert.deepEqual(n.sections.map((s) => s.title), ['Logline', 'Tone', 'Pitch', 'Scratchpad', 'Research']);
     assert.equal(n.sections[0].body, 'A ferry, a storm.');
+  });
+  it('version 3 → 4: Pitch moves before Timeline once; your own cards and the Scratchpad stay put', () => {
+    const v3 = { version: 3, sections: [
+      { id: 'l', title: 'Logline', body: 'L' }, { id: 'o', title: 'Tone', body: 'T' }, { id: 'c', title: 'Locations', body: 'Jacmel' },
+      { id: 't', title: 'Timeline', body: '1986' }, { id: 'p', title: 'Pitch', body: 'P' }, { id: 's', title: 'Scratchpad', body: 'x' },
+    ] };
+    const n = normalizeStoryNotes(v3);
+    assert.equal(n.version, 4);
+    assert.deepEqual(n.sections.map((s) => `${s.id}:${s.body}`), ['l:L', 'o:T', 'c:Jacmel', 'p:P', 't:1986', 's:x']);
+    const moved = { ...n, sections: [n.sections[0], n.sections[4], n.sections[3], ...n.sections.slice(1, 3), n.sections[5]] };
+    assert.deepEqual(normalizeStoryNotes(moved).sections, moved.sections, 'version 4: never reordered again');
+    assert.deepEqual(reorderStandardNotes([{ title: 'Pitch' }, { title: 'Mine' }, { title: 'Logline' }]).map((s) => s.title), ['Logline', 'Mine', 'Pitch']);
   });
   it('a legacy plain-markdown string becomes the scratchpad', () => {
     const n = normalizeStoryNotes('just text');
@@ -110,15 +122,15 @@ describe('Story Notes', () => {
   });
   it('Import from Notes: append, replace, or split by headings into matching/new sections', () => {
     const base = defaultStoryNotes();
-    const timeline = base.sections[2].id;
+    const timeline = base.sections[3].id;
     const a = importNotes(updateSection(base, timeline, { body: 'Old.' }), 'New.', { targetId: timeline });
-    assert.equal(a.sections[2].body, 'Old.\n\nNew.');
-    assert.equal(importNotes(a, 'Only this.', { targetId: timeline, mode: 'replace' }).sections[2].body, 'Only this.');
+    assert.equal(a.sections[3].body, 'Old.\n\nNew.');
+    assert.equal(importNotes(a, 'Only this.', { targetId: timeline, mode: 'replace' }).sections[3].body, 'Only this.');
     // A pasted "# Timeline & Lore" heading (an old name) lands in Timeline; unknown headings add sections.
     const pasted = 'Loose intro.\n\n# Timeline & Lore\n1986 — Jacmel.\n\n## Locations\n- Jacmel\n- Port-au-Prince';
     const s = importNotes(base, pasted, { targetId: base.sections[4].id, mode: 'sections' });
-    assert.deepEqual(s.sections.map((x) => x.title), ['Logline', 'Tone', 'Timeline', 'Pitch', 'Scratchpad', 'Locations']);
-    assert.equal(s.sections[2].body, '1986 — Jacmel.');
+    assert.deepEqual(s.sections.map((x) => x.title), ['Logline', 'Tone', 'Pitch', 'Timeline', 'Scratchpad', 'Locations']);
+    assert.equal(s.sections[3].body, '1986 — Jacmel.');
     assert.equal(s.sections[4].body, 'Loose intro.');
     assert.equal(s.sections[5].body, '- Jacmel\n- Port-au-Prince');
   });

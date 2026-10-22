@@ -1,7 +1,7 @@
 // Characters → Dialogue filter: picking a character in the Dialogue tab spotlights their
-// speeches in the script (everything else fades) until the filter is cleared — with the
-// banner's "Clear Filter ✕" or Escape. Nothing here prints: the banner and the fading are
-// screen-only (the print view is separate and never sees them).
+// speeches in the script (everything else fades) until the filter is cleared — with the status
+// bar stepper's ✕ or Escape. The stepper is the only control (no banner over the page). Nothing
+// here prints: the fading is screen-only (the print view is separate and never sees it).
 
 /**
  * The active filter for `name` in an analyzeScript() result, or null when there's no filter
@@ -21,8 +21,7 @@ export function dialogueFilter(analysis, name) {
   return { name: c.name, lines: c.lines, speeches: c.entries.length, ids };
 }
 
-/** "Filtering dialogue: MARIE · 9 lines" */
-export const filterLabel = (f) => `Filtering dialogue: ${f.name} · ${f.lines} ${f.lines === 1 ? 'line' : 'lines'}`;
+
 
 // ---- The status bar's dialogue stepper (components/DialogueStepper.jsx) ----------------------
 

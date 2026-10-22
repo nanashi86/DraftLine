@@ -28,7 +28,7 @@ export function defaultRevisionLabel(now = new Date(), locale) {
 const wordCount = (blocks) => blocks.reduce((n, b) => n + ((b.text || '').match(/\S+/g)?.length || 0), 0);
 
 /**
- * A snapshot of `doc` — the editor's { meta, blocks, beats, characters, storyNotes, storyDna } —
+ * A snapshot of `doc` — the editor's { meta, blocks, beats, characters, storyNotes, storyDna, production } —
  * deep-copied, so later edits never reach it. `pages` is the page count on screen right now.
  */
 export function createRevision(doc, { label, now = Date.now(), pages, id } = {}) {
@@ -43,6 +43,7 @@ export function createRevision(doc, { label, now = Date.now(), pages, id } = {})
     meta: clone(doc.meta || {}),
     characters: clone(doc.characters || []),
     storyNotes: clone(doc.storyNotes),
+    ...(doc.production ? { production: clone(doc.production) } : {}),
     pages: Number.isFinite(pages) ? pages : null,
     scenes: blocks.filter((b) => b.type === 'scene' && (b.text || '').trim()).length,
     words: wordCount(blocks),
@@ -114,5 +115,6 @@ export function revisionRecord(rev) {
     characters: r.characters || [],
     storyNotes: r.storyNotes,
     storyDna: r.storyDna,
+    production: r.production, // absent in older snapshots: empty breakdowns
   };
 }

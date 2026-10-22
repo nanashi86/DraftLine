@@ -1,9 +1,12 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import AutoTextarea from './AutoTextarea.jsx';
+import { CADENCE, MONOLOGUE_LINES, MONOLOGUE_WORDS, voiceMetrics } from '../lib/voice.js';
 import './DialogueTuner.css';
 
 /**
- * Characters → Dialogue tab: pick a character, read every line they speak top-to-bottom, and
+ * Characters → Dialogue tab: nothing is picked until you pick a character (no pill lit, an empty
+ * state below). Picking one lights its pill and spotlights its speeches in the script (the
+ * filter, the status bar stepper, a scroll to its first line). Then read every line they speak top-to-bottom, and
  * edit in place. Edits write straight back to the script blocks (same ids), so the main
  * editor and this tab are always two views of one source of truth. `open` is whether the tab
  * is showing (so its text fields can measure themselves on return).
@@ -23,7 +26,8 @@ export default function DialogueTuner({
   const [query, setQuery] = useState('');
 
   const { characterList } = analysis;
-  const current = analysis.characters.get(selected) || characterList[0] || null;
+  const current = (selected && analysis.characters.get(selected)) || null; // never a default pick
+  const voice = useMemo(() => voiceMetrics(current), [current]);
   const q = query.trim().toLowerCase();
   const entries = current
     ? current.entries.filter((en) => !q || en.parts.some((p) => p.text.toLowerCase().includes(q)))
@@ -58,6 +62,10 @@ export default function DialogueTuner({
               <span><b>{current.words}</b> words</span>
               <span><b>{current.scenes.size}</b> {current.scenes.size === 1 ? 'scene' : 'scenes'}</span>
               <span><b>{current.lines ? Math.round(current.words / current.lines) : 0}</b> avg words/line</span>
+              <span title={`Speeches over ${MONOLOGUE_LINES} printed lines or ${MONOLOGUE_WORDS} words`}><b>{voice.monologues}</b> {voice.monologues === 1 ? 'monologue' : 'monologues'}</span>
+              <span title={`Cadence from average words per line: under ${CADENCE.fast} Fast / Banter, over ${CADENCE.expository} Expository, else Balanced`}>
+                Cadence <b>{voice.cadence}</b>
+              </span>
               {onRename && (
                 <button
                   type="button"
@@ -71,6 +79,12 @@ export default function DialogueTuner({
             </div>
           )}
 
+          {!current && (
+            <div className="dialogue-empty-state">Select a character to spotlight their dialogue across the script</div>
+          )}
+
+          {current && (
+          <>
           <div className="tuner-tools">
             <input
               className="tuner-search"
@@ -128,6 +142,8 @@ export default function DialogueTuner({
               </article>
             ))}
           </div>
+          </>
+          )}
         </>
       )}
     </div>

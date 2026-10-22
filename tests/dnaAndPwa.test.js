@@ -7,7 +7,7 @@ import {
   PLOT_DEVICES, addDevice, availableDevices, deviceInfo, emptyStoryDna, normalizeStoryDna, removeDevice, setDevice,
 } from '../src/lib/storyDna.js';
 import { STRUCTURE_DICTIONARY, dictionaryEntry } from '../src/lib/structureDictionary.js';
-import { dialogueFilter, filterLabel } from '../src/lib/dialogueFilter.js';
+import { dialogueFilter } from '../src/lib/dialogueFilter.js';
 import { analyzeScript } from '../src/lib/screenplay.js';
 import { buildServiceWorker, CACHE_REVISION, CORE_FONTS_CSS } from '../src/pwa/vitePlugin.js';
 import { registerServiceWorker } from '../src/pwa/register.js';
@@ -128,19 +128,18 @@ describe('Dialogue filter', () => {
   it('spotlights every cue, parenthetical and line of that character; nothing else', () => {
     const f = dialogueFilter(analysis, 'THEO');
     assert.deepEqual([...f.ids].sort(), ['c1', 'c3', 'd1', 'd3', 'p3']);
-    assert.equal(filterLabel(f), 'Filtering dialogue: THEO · 2 lines');
-    assert.equal(filterLabel(dialogueFilter(analysis, 'MARIE')), 'Filtering dialogue: MARIE · 1 line');
+    assert.deepEqual([f.name, f.lines, f.speeches], ['THEO', 2, 2]);
   });
   it('no filter without a name, or for a name that no longer speaks', () => {
     assert.equal(dialogueFilter(analysis, null), null);
     assert.equal(dialogueFilter(analysis, 'GHOST'), null);
   });
-  it('the banner clears on its button or Esc, and never prints', () => {
+  it('no banner over the page: the status bar stepper (✕) and Esc are the controls', () => {
     const app = read('src/App.jsx');
-    assert.match(app, /className="filter-clear" onClick=\{\(\) => setSelectedChar\(null\)\}/);
+    assert.ok(!/filter-banner|filter-clear|Filtering dialogue/.test(app), 'the banner is gone');
+    assert.ok(!/\.filter-banner/.test(read('src/App.css')), 'and its styles');
+    assert.match(app, /onClear=\{\(\) => setSelectedChar\(null\)\}/, 'the stepper’s ✕ clears the filter');
     assert.match(app, /e\.key === 'Escape' && filter && !e\.defaultPrevented[^\n]*\n\s*setSelectedChar\(null\)/);
-    assert.match(read('src/App.css'), /@media print \{ \.filter-banner \{ display: none !important; \} \}/);
-    assert.ok(app.indexOf('className="filter-banner"') < app.indexOf('<PrintView'), 'lives in the app, not the print view');
   });
 });
 

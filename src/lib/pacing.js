@@ -56,16 +56,18 @@ export function actionDensity(blocks, lineMap = {}) {
 
 /** The status bar's words: "Density: Optimal" or "Density: 3 Skim Risks". */
 export function densityLabel(d) {
-  if (!d.dense) return 'Density: Optimal';
-  return `Density: ${d.dense} Skim ${d.dense === 1 ? 'Risk' : 'Risks'}`;
+  if (!d.dense) return 'Density · Optimal';
+  return `Density · ${skimRisks(d.dense)}`;
 }
+/** "9 Skim Risks" / "1 Skim Risk". */
+export const skimRisks = (n) => `${n} Skim ${n === 1 ? 'Risk' : 'Risks'}`;
 
 /** Its tooltip. */
-export function densityTitle(d, on = false) {
+export function densityTitle(d) {
   if (!d.total) return 'No action paragraphs yet';
   if (!d.dense) return `All ${d.total} action ${d.total === 1 ? 'paragraph stays' : 'paragraphs stay'} within ${ACTION_LINE_LIMIT} lines`;
   return `${d.dense} of ${d.total} action ${d.total === 1 ? 'paragraph' : 'paragraphs'} (${d.percent}%) run past ${ACTION_LINE_LIMIT} lines — `
-    + `readers tend to skim them. ${on ? 'Click to hide the highlights' : 'Click to highlight them in the script'}`;
+    + 'readers tend to skim them.';
 }
 
 // ---- Jumping between skim risks (status bar stepper + quick list) ----
@@ -88,10 +90,15 @@ export function stepRisk(index, count, action) {
   }
 }
 
-/** "Density: Risk 1 of 9" while stepping (index ≥ 0), else the plain label. */
+/** The stepper's position: "1 of 9" ("– of 9" before the first jump). */
+export function riskPosition(d, index) {
+  return `${index >= 0 && d.dense ? Math.min(index, d.dense - 1) + 1 : '–'} of ${d.dense}`;
+}
+
+/** "Density · 1 of 9" while stepping (index ≥ 0), else the plain label. */
 export function riskPositionLabel(d, index) {
   if (!d.dense || index < 0) return densityLabel(d);
-  return `Density: Risk ${Math.min(index, d.dense - 1) + 1} of ${d.dense}`;
+  return `Density · ${riskPosition(d, index)}`;
 }
 
 /**

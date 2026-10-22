@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { analyzeScript, makeBlock } from '../src/lib/screenplay.js';
 import { dialogueKeyAction, dialogueStops, speechSnippet, stepperPosition } from '../src/lib/dialogueFilter.js';
 import { stepRisk } from '../src/lib/pacing.js';
@@ -65,50 +65,121 @@ describe('Dialogue stepper: the filtered character’s speeches', () => {
   });
 });
 
-describe('Dialogue stepper: look and wiring', () => {
-  const ui = read('components/DialogueStepper.jsx');
+describe('Status bar steppers: one capsule for Dialogue and Density', () => {
+  const capsule = read('components/StatusStepper.jsx');
+  const dlg = read('components/DialogueStepper.jsx');
+  const dens = read('components/DensityStepper.jsx');
   const app = read('App.jsx');
   const css = read('App.css');
-  it('the Characters drawer’s own Dialogue speech bubble (TabIcon, 14px, stroke 1.75) — no Theater, no emoji', () => {
-    assert.match(ui, /import TabIcon from '\.\/TabIcon\.jsx';/);
-    assert.match(ui, /<span className="dlg-icon"><TabIcon name="dialogue" \/><\/span>/);
-    assert.ok(!/Theater/.test(ui));
-    const tab = read('components/TabIcon.jsx');
-    assert.match(tab, /width="14"\s*height="14"/);
-    assert.match(tab, /strokeWidth="1\.75"/);
-    assert.match(read('components/CharactersDrawer.jsx'), /<TabIcon name=\{t\.id\} \/>/, 'the same component the drawer tab uses');
-    assert.match(css, /\.dlg-icon \{ display: inline-flex; flex: none; margin-right: 6px; color: var\(--muted\); \}/, '6px before the name');
-    assert.match(css, /\.dlg-icon \.tab-icon \{ display: block; margin: 0; \}/, 'no extra tab margin on top');
-    assert.match(css, /\.dlg-main \{[^}]*gap: 0;/, 'nothing else adds space');
-    // ‹ › × stay Lucide line icons at 13px, stroke 1.75.
-    assert.match(ui, /import \{ ChevronLeft, ChevronRight, X \} from 'lucide-react';/);
-    assert.match(ui, /const ICON = \{ size: 13, strokeWidth: 1\.75, 'aria-hidden': true \};/);
-    for (const icon of ['ChevronLeft', 'ChevronRight', 'X']) assert.match(ui, new RegExp(`<${icon} \\{\\.\\.\\.ICON\\}`), icon);
-    assert.ok(!/\p{Extended_Pictographic}/u.test(ui.replace(/\/\/.*|\/\*[\s\S]*?\*\/|^ \*.*$/gm, '')), 'no emoji in the markup');
+  // A selector's own rule: the last block that opens with it (not a shared "a,\nb {" list before it).
+  const rule = (sel) => [...css.matchAll(new RegExp(`^${sel.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')} \\{([^}]*)\\}`, 'gm'))].at(-1)?.[1] ?? '';
+
+  it('both steppers render through StatusStepper — same markup, same classes', () => {
+    assert.match(dlg, /<StatusStepper\s+tone="neutral"/);
+    assert.match(dens, /<StatusStepper\s+tone="amber"/);
+    assert.ok(!/stepper-capsule|createPortal/.test(dlg + dens), 'no capsule or list markup of their own');
+    assert.match(capsule, /<span className=\{`stepper is-\$\{tone\}\$\{stepping \? ' is-stepping' : ''\}`\}/);
+    assert.match(capsule, /<span className="stepper-capsule" ref=\{anchorRef\}>/);
+  });
+  it('[ icon Label · n of N  ‹ › ] (✕): chevrons inside the capsule, dismiss outside it', () => {
+    const inside = capsule.slice(capsule.indexOf('<span className="stepper-capsule"'), capsule.indexOf('{onDismiss && ('));
+    for (const part of ['className="stepper-icon"', 'className="stepper-label"', 'className="stepper-dot" aria-hidden="true">·', 'className="stepper-pos"', "onStep('prev')", "onStep('next')", '<ChevronLeft', '<ChevronRight']) {
+      assert.ok(inside.includes(part), part);
+    }
+    assert.ok(!inside.includes('stepper-dismiss'), 'dismiss is its own button outside the capsule');
+    assert.match(capsule, /className="stepper-dismiss" onClick=\{\(\) => \{ setListOpen\(false\); onDismiss\(\); \}\}/);
+    assert.ok(!/▴|ChevronUp/.test(capsule + dens), 'no boxed up-arrow button');
+  });
+  it('geometry: 24px full pill, 11px / 500 / 0.02em; dismiss an 18px circle 6px away; same hover', () => {
+    const c = rule('.stepper-capsule');
+    for (const d of ['height: 24px', 'border-radius: 9999px', 'font: 500 11px/1 var(--ui-font)', 'letter-spacing: 0.02em']) assert.ok(c.includes(d), d);
+    const x = rule('.stepper-dismiss');
+    for (const d of ['width: 18px', 'height: 18px', 'margin-left: 6px', 'border-radius: 50%']) assert.ok(x.includes(d), d);
+    assert.match(css, /\.stepper-step:hover,\s*\.stepper-dismiss:hover,\s*\.stepper-main\.is-open \{ background: var\(--stepper-hover\); color: var\(--stepper-strong\); \}/);
+    assert.match(css, /\.stepper\.is-amber \{ --stepper-ink: var\(--accent-amber\);/);
+    assert.match(read('index.css'), /--accent-amber: #f59e0b;/);
+  });
+  it('the label opens / closes the dropup list; ‹ › step without opening it', () => {
+    assert.match(capsule, /const labelClick = \(\) => \{\s*if \(list && stepping\) setListOpen\(\(o\) => !o\);\s*else onLabel\?\.\(\);/);
+    assert.match(capsule, /onClick=\{\(\) => onStep\('next'\)\}/);
+    assert.ok(!/setListOpen[^\n]*onStep|onStep[^\n]*setListOpen/.test(capsule), 'stepping never touches the list');
+    assert.match(capsule, /createPortal\(/);
+  });
+  it('Dialogue: [ 💬 NAME · n of N ‹ › ] (✕) with the drawer’s own speech bubble; ✕ clears the filter', () => {
+    assert.match(dlg, /icon=\{<TabIcon name="dialogue" \/>\}/);
+    assert.match(dlg, /label=\{<span className="stepper-name">\{name\}<\/span>\}/);
+    assert.match(dlg, /position=\{stepperPosition\(index, total\)\}/);
+    assert.match(dlg, /onDismiss=\{onClear\}/);
+    assert.match(css, /\.stepper-name \{ text-transform: uppercase;/);
+    assert.match(css, /\.stepper-icon \{ display: inline-flex; flex: none; margin-right: 6px;/);
+    assert.match(read('components/TabIcon.jsx'), /strokeWidth="1\.75"/);
+    assert.match(capsule, /const ICON = \{ size: 13, strokeWidth: 1\.75, 'aria-hidden': true \};/);
     const pkg = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8'));
     assert.match(pkg.dependencies['lucide-react'], /^\d+\.\d+\.\d+$/, 'pinned');
   });
-  it('the density pill’s shape and type, on a neutral surface; uppercase name', () => {
-    const pill = /\.dlg-pill \{([^}]*)\}/.exec(css)[1];
-    for (const d of ['border: 1px solid var(--line-soft)', 'border-radius: 999px', 'color: var(--muted)']) assert.ok(pill.includes(d), d);
-    assert.match(css, /\.dlg-name \{[^}]*text-transform: uppercase; letter-spacing: 0\.04em;/);
-    assert.match(css, /\.dlg-main \{[^}]*font: inherit;/, 'the status bar’s own font and size');
+  it('Density: the same compact capsule as Format — "Density · – of 9 ‹ ›", then "3 of 9" with ✕; never a wide "Skim Risks" button', () => {
+    assert.match(dens, /label="Density"/);
+    assert.match(dens, /<TriangleAlert size=\{14\} strokeWidth=\{1\.75\} aria-hidden \/>/);
+    assert.match(dens, /position=\{riskPosition\(density, on \? index : -1\)\}/);
+    assert.match(dens, /onStep=\{onStep\}/);
+    assert.match(dens, /onDismiss=\{on \? onOff : undefined\}/);
+    assert.doesNotMatch(dens, /skimRisks|onLabel|onStart/);
+    assert.match(app, /setDensityMode\(true\); \/\/ ‹ › before the highlights are on turns them on\s*jumpToRisk\(stepRisk\(densityMode \? densityIndex : -1, density\.dense, dir\)\);/);
+    assert.ok(!existsSync(new URL('../src/components/DensityNav.jsx', import.meta.url)), 'the old control is gone');
   });
-  it('[ icon NAME n of N ‹ › ] [ × ]: the pill opens the list; × clears the filter', () => {
-    assert.match(ui, /<span className="dlg-icon"><TabIcon name="dialogue" \/><\/span>\s*<span className="dlg-name">\{name\}<\/span>\s*<span className="dlg-pos">\{stepperPosition\(index, total\)\}<\/span>/);
-    assert.match(ui, /className=\{`dlg-main\$\{listOpen \? ' is-open' : ''\}`\}\s*onClick=\{\(\) => setListOpen\(\(o\) => !o\)\}/);
-    assert.match(ui, /onClick=\{\(\) => onStep\('prev'\)\}/);
-    assert.match(ui, /onClick=\{\(\) => onStep\('next'\)\}/);
-    assert.match(ui, /className="dlg-clear" onClick=\{\(\) => \{ setListOpen\(false\); onClear\(\); \}\}/);
-    assert.match(ui, /setListOpen\(false\);\s*onGo\(i\);/, 'a row jumps there');
-    assert.match(ui, /createPortal\(/, 'the list floats above the status bar like the Skim Risks list');
-  });
-  it('the app: only while a filter is on, right cluster; steps scroll + pulse; × clears selectedChar', () => {
-    assert.match(app, /<span className="status-spacer" \/>\s*\{filter && \(\s*<DialogueStepper\s*name=\{filter\.name\}\s*stops=\{dialogueStopList\}\s*index=\{dialogueIndex\}\s*onStep=\{stepSpeech\}\s*onGo=\{jumpToSpeech\}\s*onClear=\{\(\) => setSelectedChar\(null\)\}/);
+  it('the app: both in the right-hand tools cluster, Dialogue first; only while a filter is on', () => {
+    const tools = app.slice(app.indexOf('<div className="status-tools" hidden={inPlan}>'), app.indexOf('<span title="54 lines per page">'));
+    assert.ok(tools.indexOf('<DialogueStepper') >= 0 && tools.indexOf('<DialogueStepper') < tools.indexOf('<DensityStepper'));
+    assert.match(tools, /\{filter && \(\s*<DialogueStepper\s*name=\{filter\.name\}\s*stops=\{dialogueStopList\}\s*index=\{dialogueIndex\}\s*onStep=\{stepSpeech\}\s*onGo=\{jumpToSpeech\}\s*onClear=\{\(\) => setSelectedChar\(null\)\}/);
     assert.match(app, /requestAnimationFrame\(\(\) => requestAnimationFrame\(\(\) => editorRef\.current\?\.pulseBlock\(target\.id\)\)\);/);
-    assert.match(app, /const dialogueIndex = filter && dialoguePos\.name === filter\.name \?/, 'a new character starts from “– of N”');
-    assert.match(app, /dialogueStops\(analysis, filter\.name, \{ sceneOf: analysis\.sceneOfBlock, scenes, pageOf: layout\.pageOfBlock \}\)/);
     assert.match(app, /const act = dialogueKeyAction\(e\);\s*if \(!act\) return;\s*e\.preventDefault\(\);\s*stepSpeechRef\.current\(act\);/);
-    assert.ok(read('lib/reveal.js').includes("scrollIntoView({ block: 'center', behavior: 'smooth' })"), 'smooth, centered');
+  });
+});
+
+describe('Characters → Dialogue tab: nothing picked to start', () => {
+  const tuner = read('components/DialogueTuner.jsx');
+  const app = read('App.jsx');
+  it('no default character: no pill lit, an empty state instead of lines', () => {
+    assert.match(tuner, /const current = \(selected && analysis\.characters\.get\(selected\)\) \|\| null;/);
+    assert.ok(!/characterList\[0\]/.test(tuner), 'never falls back to the first character');
+    assert.match(tuner, /\{!current && \(\s*<div className="dialogue-empty-state">Select a character to spotlight their dialogue across the script<\/div>/);
+    assert.match(tuner, /aria-selected=\{current\?\.name === c\.name\}/);
+    assert.match(app, /const \[selectedChar, setSelectedChar\] = useState\(null\);/, 'the app starts with no filter');
+  });
+  it('picking a pill: filter on, stepper at 1 of N, scroll + pulse to the first line', () => {
+    assert.match(app, /onSelect: selectCharacter,/);
+    assert.match(app, /const selectCharacter = \(name\) => \{\s*setSelectedChar\(name\);\s*if \(!name\) return;\s*const first = dialogueStops\(analysis, name,/);
+    assert.match(app, /setDialoguePos\(\{ name: analysis\.characters\.get\(name\)\?\.name \?\? name, index: 0 \}\);/);
+    assert.match(app, /requestAnimationFrame\(\(\) => requestAnimationFrame\(\(\) => editorRef\.current\?\.pulseBlock\(first\.id\)\)\);/);
+  });
+});
+
+describe('Status bar: the Format stepper', () => {
+  const fs = read('components/FormatStepper.jsx');
+  const app = read('App.jsx');
+  it('the same capsule: [ stethoscope Format · n of N ‹ › ] (✕)', () => {
+    assert.match(fs, /import StatusStepper from '\.\/StatusStepper\.jsx';/);
+    assert.match(fs, /import \{ Stethoscope \} from 'lucide-react';/);
+    assert.match(fs, /label="Format"\s*position=\{stepperPosition\(index, total\)\}/);
+    assert.ok(!/\p{Extended_Pictographic}/u.test(fs.replace(/\/\/.*|\/\*[\s\S]*?\*\/|^ \*.*$/gm, '')), 'a line icon, not an emoji');
+  });
+  it('its list: every finding with Fix (when there is one) and Ignore, and Open Format Doctor…', () => {
+    assert.match(fs, /\.\.\.\(canFix\(it\.kind\) \? \[\{ label: 'Fix', primary: true/);
+    assert.match(fs, /\{ label: 'Ignore', title: 'Hide this finding for this session', onClick: \(\) => onIgnore\(it\) \}/);
+    assert.match(fs, /footer: \{ label: 'Open Format Doctor…', onClick: onOpenDoctor \}/);
+    const ss = read('components/StatusStepper.jsx');
+    assert.match(ss, /<span className="stepper-list-actions">/, 'row buttons rendered by the shared stepper');
+  });
+  it('the app: shown while there are findings (until ✕), in the tools cluster; Ignore is per session; ‹ › jump and pulse', () => {
+    assert.match(app, /\{showFormatStepper && \(\s*<FormatStepper/);
+    assert.match(app, /const showFormatStepper = issues\.some\(\(it\) => !formatHidden\.has\(issueKey\(it\)\)\);/);
+    assert.match(app, /onDismiss=\{\(\) => setFormatHidden\(new Set\(issues\.map\(issueKey\)\)\)\}/);
+    assert.match(app, /auditScript\(blocks, \{ skipId: activeId, ignore: ignoredIssues \}\)/);
+    assert.match(app, /requestAnimationFrame\(\(\) => requestAnimationFrame\(\(\) => editorRef\.current\?\.pulseBlock\(it\.id\)\)\);/);
+    const tools = app.slice(app.indexOf('<div className="status-tools" hidden={inPlan}>'), app.indexOf('</div>', app.indexOf('<div className="status-tools" hidden={inPlan}>')));
+    assert.ok(tools.indexOf('<DialogueStepper') < tools.indexOf('<FormatStepper') && tools.indexOf('<FormatStepper') < tools.indexOf('<DensityStepper'));
+  });
+  it('Fix All fixes only what can be fixed', () => {
+    assert.match(app, /const list = all\.filter\(\(it\) => canFix\(it\.kind\)\);/);
   });
 });

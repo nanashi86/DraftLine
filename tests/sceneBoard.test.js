@@ -31,10 +31,8 @@ describe('Scene Board (formerly Beat Board)', () => {
     }
     assert.ok(!/Beat Board/.test(readFileSync(new URL('../README.md', import.meta.url), 'utf8')));
   });
-  it('the Export menu and its tooltip say "Scene outline"; outline files say Scene Outline', () => {
-    const app = read('App.jsx');
-    assert.match(app, /\{ heading: 'Scene outline' \}/);
-    assert.match(app, /title="Export the screenplay or scene outline, print \/ save as PDF, or back up the project"/);
+  it('File ▾ says "Spreadsheet Outline"; outline files say Scene Outline', () => {
+    assert.match(read('lib/toolbar.js'), /label: 'Spreadsheet Outline \(\.csv\)'/);
     const beats = [{ id: 'b', act: 0, title: '', synopsis: '', tags: [] }];
     assert.match(beatsToMarkdown(beats, 'Run!'), /^# Run! — Scene Outline/);
     assert.match(beatsToFountain(beats, 'Run!'), /## Untitled card/);
@@ -47,14 +45,26 @@ describe('Scene Board (formerly Beat Board)', () => {
 
 describe('Status bar', () => {
   const app = read('App.jsx');
-  const status = app.slice(app.indexOf('<footer className="status"'), app.indexOf('</footer>', app.indexOf('<footer className="status"')));
+  const status = app.slice(app.indexOf('<footer className={`status'), app.indexOf('</footer>', app.indexOf('<footer className={`status')));
   it('no "beats" count any more', () => {
     assert.ok(status.length > 200, 'found the status bar');
     assert.ok(!/beats/i.test(status), 'no beats item');
   });
-  it('order: save state · scenes · words · Density · pages · page colour', () => {
+  it('left: save / sync · Edit · scenes · words | open middle | right: [Dialogue] [Density] · pages · paper · zoom', () => {
     const at = (s) => status.indexOf(s);
-    const order = [at('status-save'), at('{analysis.sceneCount} scenes'), at('words</span>'), at('<DensityNav'), at('title="54 lines per page"'), at('status-canvas')];
+    const order = [at('<div className="status-left">'), at('status-save'), at('<LockBadge'), at('{analysis.sceneCount} scenes'), at('words</span>'),
+      at('<span className="status-spacer" />'), at('<div className="status-right">'), at('<DialogueStepper'), at('<DensityStepper'),
+      at('title="54 lines per page"'), at('status-canvas'), at('status-zoom')];
     assert.ok(order.every((v, i) => v > 0 && (i === 0 || v > order[i - 1])), JSON.stringify(order));
+    const left = status.slice(at('<div className="status-left">'), at('<span className="status-spacer" />'));
+    assert.ok(!/Stepper/.test(left), 'no tool steppers on the left');
+  });
+  it('nothing squashes: the left gives way (clips), the right never shrinks; both steppers on hide the key hints', () => {
+    const css = read('App.css');
+    assert.match(css, /\.status-left \{[^}]*flex: 0 1 auto; min-width: 0; overflow: hidden; \}/);
+    assert.match(css, /\.status-right \{[^}]*flex: none; \}/);
+    assert.match(css, /\.status-spacer \{ flex: 1 1 0; min-width: 8px; \}/);
+    assert.match(css, /\.status\.has-tools \.status-hints \{ display: none; \}/);
+    assert.match(read('App.jsx'), /<footer className=\{`status\$\{filter && densityMode && density\.dense \? ' has-tools' : ''\}`\}>/);
   });
 });

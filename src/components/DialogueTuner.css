@@ -148,3 +148,15 @@
 .tune-paren:hover { background: var(--field); }
 .tune-line:focus,
 .tune-paren:focus { background: var(--field); border-color: var(--line-soft); }
+
+/* Nothing picked yet: a quiet prompt where the lines will be. */
+.dialogue-empty-state {
+  margin: 14px 18px;
+  padding: 28px 18px;
+  border: 1px dashed var(--line-soft);
+  border-radius: 10px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.5;
+  text-align: center;
+}

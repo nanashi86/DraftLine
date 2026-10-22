@@ -8,12 +8,15 @@ Press {{key:F1}} at any time to open this guide. {{key:Ctrl+/}} shows every keyb
 
 ### The workspace
 
-The top bar holds your script's title, file actions (New, Open, Import, Title Page), the Element picker, the B / I / U / S formatting buttons, the view switch (**Page**, **Split**, **Board**) and the Export menu. Story Bible and Characters open as panels on the right. The status bar at the bottom shows the current element, where your work is saved, scene and word counts, page count, page colour, undo / redo and zoom.
+The top bar holds your script's title, the **Write | Plan** switch, the **File ▾** menu, the Element picker and the B / I / U / S formatting buttons (only while you're on the page: **Page**, **Split** or Focus), the view switch (**Page**, **Split**, **Board**) and **Snapshot**. Story Bible and Characters open as panels on the right. The status bar at the bottom shows the current element, where your work is saved, scene and word counts, page count, page colour, undo / redo and zoom.
 
 - **Page** shows the script. **Split** shows the script beside the Scene Board. **Board** shows the Scene Board alone. {{key:Alt+B}} cycles through them.
 - **Focus** hides everything but the page. Press {{key:Esc}} to come back.
 - The **Scenes** sidebar ({{key:Alt+S}}) lists every scene with its length in eighths of a page. Click one to jump to it, or type to find a scene.
-- Narrow windows tuck File actions into a **File ▾** menu, and panels you can't see on the bar move into the **⋮** menu.
+- **Write | Plan** switches between writing the script and planning the shoot (see Production & Planning). Write is where you start.
+- The status bar's steppers (**Format · 1 of 7**, **Density · 1 of 9**, a character's **MARIE · 1 of 8**) all work the same way: ‹ › step through, clicking the name lists every one, and ✕ closes it.
+- **File ▾** holds everything to do with files, in three parts. **Script**: New Script ({{key:Ctrl+Alt+N}}), Open… ({{key:Ctrl+O}}), Import…, Load Sample Script (adds *The Last Ferry* to your Projects) and Title Page Settings…. **Export Script**: Script (PDF), Fountain (.fountain) and Final Draft (.fdx). **Export Outline & Bible**: Story Bible (PDF)…, and the Scene Board as a Spreadsheet (.csv), Markdown (.md) or Fountain (.fountain) outline. **Backup**: Backup Project and Snapshot History.
+- Narrow windows move panels you can't see on the bar into the **⋮** menu.
 
 ### Projects and browser storage
 
@@ -53,7 +56,7 @@ A snapshot is a named checkpoint of the whole project: script, title page, Scene
 
 ### Backups
 
-**Export → Backup Project (.draftline)** downloads one file holding everything the project is: script, formatting, margin notes, title page, Scene Board, Story Bible, characters and snapshots. Open it with **Open** on any computer to restore it exactly. A restored backup never overwrites an existing script; if the same script is already there, the backup comes in beside it.
+**File → Backup Project (.draftline)** downloads one file holding everything the project is: script, formatting, margin notes, title page, Scene Board, Story Bible, characters and snapshots. Open it with **File → Open…** on any computer to restore it exactly. A restored backup never overwrites an existing script; if the same script is already there, the backup comes in beside it.
 
 About DraftLine (**⋮ → About DraftLine**) has a **Backup Project** button too, and shows where your scripts are stored.
 
@@ -106,7 +109,7 @@ Select text and press {{key:Ctrl+B}} (bold), {{key:Ctrl+I}} (italic), {{key:Ctrl
 
 ### Title page
 
-**Title Page** in the top bar edits the title, credit, author, source material, draft version and date, and contact details, plus the title's font, size and weight. The title page shows above page 1 and prints first.
+**File → Title Page Settings…** edits the title, credit, author, source material, draft version and date, and contact details, plus the title's font, size and weight. The title page shows above page 1 and prints first.
 
 ### Margin notes
 
@@ -118,9 +121,43 @@ Select text and press {{key:Ctrl+B}} (bold), {{key:Ctrl+I}} (italic), {{key:Ctrl
 
 ### Checking your pages
 
-- **Format Doctor** (status bar) finds elements that are probably tagged wrong, such as a scene heading or a character cue typed as Action, dialogue with no character above it, or empty elements, and fixes each in one click (or all at once).
-- **Density** (status bar) flags Action paragraphs that run past {{density.lines}} lines, or that are walls of text. Click it to highlight them, then step through each one with ‹ ›, or open the list with ▴.
+- **Format Doctor** checks the script against spec-script conventions (see below) and fixes what it can in one click, or all at once. Open it from **⋮ → Format Doctor** at any time; the menu shows how many findings there are, or **Clean**.
+- While it has findings, a **Format · 1 of 7** stepper sits on the right of the status bar, and it's the Format Doctor's only control there: ‹ › go from one to the next, clicking **Format** lists them all with **Fix** and **Ignore** on each (Ignore hides one for this session), and ✕ hides the stepper until something new turns up.
+- **Density** (status bar) flags Action paragraphs that run past {{density.lines}} lines, or that are walls of text. It's the same compact stepper as Format: **Density · – of 9**. ‹ › highlight them and step from one to the next (the pill then reads **Density · 1 of 9**), click **Density** for a list of every one by scene and page, and ✕ turns the highlights off.
 - **Hover a character cue** to see that character's bio card. Click **Edit in Bios →** to open their bio.
+
+### What the Format Doctor checks
+
+- Elements that are probably tagged wrong: a scene heading or a character cue typed as Action, dialogue with no character above it, empty elements.
+- A character cue with no dialogue under it, or a parenthetical with no dialogue after it.
+- Scene headings: case, periods and dashes are fixed for you (`int kitchen–night` becomes `INT. KITCHEN - NIGHT`). A heading with no INT. / EXT. or no time of day is flagged for you to complete. `INT./EXT.`, `INT/EXT.` and `I/E.` are all accepted, and a time of day still counts with more after it (`- NIGHT - BACK TO SCENE`, `- NEXT DAY`, `- NIGHT (FLASHBACK)`).
+- A speaking character whose first mention in the Action isn't in capitals ("Marie" for MARIE). The fix capitalizes it.
+- Double blank lines inside an element, which are stripped.
+
+### Scene headings: formatting tips
+
+A scene heading (slugline) goes from the biggest place to the smallest, then the time:
+
+`INT./EXT. MASTER LOCATION - SPECIFIC ROOM OR AREA - TIME OF DAY`
+
+**Hyphens ( - ) are for physical spaces.** Each one steps further in:
+
+- `INT. BOUCHARD RESIDENCE - MASTER BEDROOM - NIGHT`
+- `INT. POLICE STATION - INTERROGATION ROOM - DAY`
+- `EXT. CINEUS RESIDENCE - BACKYARD - NIGHT`
+
+**Parentheses ( ) are for everything that isn't a place**: the state of a vehicle, the mode of the story, the camera or the sound.
+
+- Vehicle state: `INT. TAP-TAP - NIGHT (MOVING)`
+- Story mode: `(FLASHBACK)`, `(DREAM)`, `(FANTASY)`
+- Sound and perspective: `(INTERCUT)`, `(PRE-LAP)`
+- Sequence: `(SERIES OF SHOTS)`
+
+Keeping them apart pays off later: Plan reads the hyphenated parts as the location and shows the parentheses as a separate tag, so `EXT. CROIX-DES-BOSSALES - NIGHT (FLASHBACK)` schedules as a night exterior at Croix-des-Bossales, marked FLASHBACK.
+
+**Interior and exterior together.** Write the combined prefix with no spaces around the slash (`INT./EXT.`, or `INT/EXT.`), and lead with the side where the camera setup begins: `INT./EXT. CAR - NIGHT` when we start inside, `EXT./INT. PORCH - DAY` when we start outside. Plan colours the strip by the side you lead with.
+
+**Time of day.** DAY and NIGHT are the clearest, and anything containing them works too (`NEXT DAY`, `LATER THAT NIGHT`). CONTINUOUS, LATER and MOMENTS LATER say the scene follows straight on, so it keeps the previous scene's light.
 
 ### Page colour and zoom
 
@@ -189,7 +226,9 @@ DraftLine reads the character cues in your script. Anyone who speaks but has no 
 
 ### Dialogue
 
-The **Dialogue** tab ({{key:Alt+T}}) gathers every line one character speaks, in script order, with its scene and page. Pick a character at the top. You can edit lines right there (changes go straight into the script), filter the lines, show the line before each speech for context (**Cue context**), and jump to any line in the script with **Go ↗**. Picking a character also highlights their speeches in the script.
+The **Dialogue** tab ({{key:Alt+T}}) gathers every line one character speaks, in script order, with its scene and page. Pick a character at the top. You can edit lines right there (changes go straight into the script), filter the lines, show the line before each speech for context (**Cue context**), and jump to any line in the script with **Go ↗**. Nothing is picked when you open it. Picking a character also highlights their speeches in the script, scrolls to their first line, and shows a stepper in the status bar, **MARIE · 1 of 8**: step through their speeches with ‹ › (or {{key:Alt+Down}} / {{key:Alt+Up}}), click the name for a list of every speech, and clear the filter with ✕ or `Esc`. The stepper is the filter's only control: nothing covers the page.
+
+Above the lines are the character's totals: lines, words, scenes and average words per line, plus **Monologues** (speeches over five printed lines or 60 words) and **Cadence**: **Fast / Banter** under 8 words a line, **Expository** over 20, **Balanced** in between.
 
 ## Scene Board & Pacing
 
@@ -199,6 +238,8 @@ The **Scene Board** (formerly the Beat Board; **Board** or **Split** view) lays 
 
 - Switch between **3 Acts** ({{board.columns.3}}, with a Midpoint divider in Act 2) and **4 Acts** ({{board.columns.4}}). Switching never moves or loses a card. It's the same setting as the act switch in Notes, so it also splits or joins Act II of the Synopsis and Treatment (see Synopsis & Treatment).
 - Each card has a headline, a synopsis and colour tags: {{board.tags}}. Click a tag in the legend to show only those cards.
+- **Value Shift** (the **+/−** button on a card) records how the scene's emotional charge turns: **+ / −** (a setback), **− / +** (a small win or insight), or **+ / +** and **− / −**, which are marked as warnings because the scene doesn't turn. It's saved with the project.
+- **Analyze Value Shifts** (beside Populate from Script) reads every scene and suggests its Value Shift. It compares the opening quarter of the scene's Action and Dialogue with the closing quarter: calm, help and agreement count as **+**; threats, obstacles and tension as **−**, and at the end, interruptions, weapons, violence, sudden exits and discoveries count double. The list shows each scene's number, slugline, the suggested shift and the card's current one. Hover a suggestion to see the words it's based on; **weak** means the scene gave little to go on. ✓ sets one card, **Apply to All Cards** sets every linked card (with Undo). Scenes without a card need **Populate from Script** first. It's a word-level reading, so treat it as a second opinion.
 - **+ Add Card** adds a card to a column. Drag cards by their grip to reorder them or move them between acts.
 
 ### Linking cards to scenes
@@ -216,7 +257,39 @@ Once cards are linked to scenes, each act column shows how many pages its scenes
 
 ### Outline export
 
-**Export → Scene outline** downloads the board as a **Fountain outline** or **Markdown**.
+The Scene Board's **Export Outline** downloads the board as a **Fountain Outline**, **Markdown**, or a **Spreadsheet** (.csv, named "Title_Scene_Outline.csv") with one row per card: scene number, act, heading, summary, tags, Value Shift and page. The same three are in **File ▾ → Export Outline & Bible**.
+
+## Production & Planning
+
+**Plan** (the **Write | Plan** switch in the top bar) turns the script into a production breakdown and a stripboard, for writer-directors getting ready to shoot. Everything that comes from the script is worked out from it each time you look, so there's nothing to keep in step: rewrite a scene and its breakdown follows.
+
+### Write and Plan
+
+- **Write** is the screenplay editor, with **Page**, **Split** and **Board**, **Focus**, **Story Bible** and **Characters** on the right of the top bar. In **Plan** those same places hold **Breakdowns | Stripboard**, **Collapse All / Expand All** and **Export Breakdown (.csv)**; the title, **Write | Plan**, **File ▾**, **Snapshot** and **⋮** stay put. On a smaller screen Plan's tools shorten (Export becomes **Export (.csv)**, the view switch turns to icons) and then move into **⋮**, the same way Write's do.
+- The title, the Projects library, **File ▾**, **Snapshot** and the ⋮ menu (About, User Guide) stay in both.
+- Switching never loses anything. Your script stays exactly as it was, unsaved typing included, and it keeps saving. Coming back to Write puts the script and the Scene Board where you'd scrolled them.
+- **Write** on a breakdown card, or a click on a strip, takes you back to Write at that scene.
+
+### What comes from the script
+
+- **Scene number and slugline**: every scene heading, numbered in script order.
+- **INT / EXT**: from the start of the heading, as written: INT, EXT, INT/EXT or EXT/INT. A combined heading is coloured by the side it leads with: INT./EXT. (and I/E) as an interior, EXT./INT. as an exterior.
+- **Day or night**: from the part after the location that holds a day or night word, so `NEXT DAY`, `FOLLOWING NIGHT`, `LATER THAT DAY` and `DAY - CONTINUOUS` all read. DAY, MORNING, AFTERNOON, DAWN and SUNRISE are day; NIGHT, EVENING, DUSK and SUNSET are night. CONTINUOUS, LATER and MOMENTS LATER take the light of the scene before. The stripboard's D/N column shows the result as DAY or NIGHT; a heading without one is marked **DAY/NIGHT?**.
+- **Modifiers**: anything in parentheses — `(FLASHBACK)`, `(DREAM)`, `(MOVING)` — is shown as a tag beside the location and never hides the time of day (see Scene headings: formatting tips).
+- **Page eighths**: each scene's length in eighths of a page, the way a call sheet counts it: **6/8**, **1 2/8**. It's measured from the lines the scene takes on the page (a page is {{plan.pageLines}} lines), and every scene counts as at least 1/8.
+- **Cast (Speaking)**: everyone with a line in the scene, from the character cues (extensions like (V.O.) and (CONT'D) are left off). Each character gets a **cast number**, as on a call sheet: 1 is the character with the most lines in the script, then 2, 3 …
+
+### Breakdowns
+
+One card per scene: **number · slugline · INT/EXT and DAY/NIGHT badges · length in eighths**, the speaking cast as pills, and four lists you fill in: **Background / Extras**, **Props & Set Dressing**, **Wardrobe & SFX** and **Vehicles & Stunts**. Click **+ Add** on a list, type, and press `Enter` (commas add several at once). The × on an item removes it. **Production Notes** takes anything else: permits, locations to scout, a stunt to rehearse. The ▾ folds a card.
+
+### Stripboard
+
+Every scene as one strip, in script order, coloured the standard way: **INT. DAY** white, **EXT. DAY** yellow, **INT. NIGHT** blue, **EXT. NIGHT** green (grey when the heading has no day or night). Each strip shows the scene number, INT/EXT, location, time of day, length in eighths and the cast numbers of who speaks. The legend at the top counts scenes, pages and strips of each colour.
+
+### Where planning is saved
+
+Your lists and notes are saved with the script, inside the project, and kept by everything that keeps the project: the browser library, a linked folder, **Backup Project** (.draftline) and **Snapshots** (restoring a snapshot puts its breakdowns back too). They're kept per scene, so they stay with a scene when you rename its heading or move it. Scripts and backups from before Plan existed open as usual, with empty breakdowns. **Export Breakdown** downloads a spreadsheet (.csv, named "Title_Breakdown.csv") with one row per scene: number, slugline, INT/EXT, day or night, eighths, page, speaking cast, each list and the notes.
 
 ## Export & Deliverables
 
@@ -225,16 +298,18 @@ Once cards are linked to scenes, each act column shows how many pages its scenes
 - **.draftline**: DraftLine's own format, holding the complete project. Use **Backup Project**, or link a folder (above), to keep and move scripts with nothing lost.
 - **.fountain**: plain-text screenplay format, readable by Highland, Slugline, WriteSolo, Fade In and many others.
 - **.fdx**: Final Draft's format, for sending to Final Draft users and productions.
-- **Scene outline**: a Fountain outline or Markdown, from the Scene Board.
+- **Scene outline**: a Fountain Outline, Markdown, or a Spreadsheet (.csv), from the Scene Board.
+- **Breakdown**: **Export Breakdown** in Plan, a spreadsheet (.csv) of every scene's breakdown (see Production & Planning).
+- **Story Bible (PDF)**: **File → Story Bible (PDF)…** turns Story DNA, Story Notes and Character Bios (any or all of them) into a formatted dossier headed with the title, author and "Story Bible & Project Dossier", each section starting on a new page. Choose **Save as PDF** in the print dialog; the file is named "<Title> - Story Bible". Story Notes go in this order: Logline, Tone, Pitch, Timeline, Synopsis, then the Treatment by act. Of your own note cards, only those with "Note" in the title are included ("Note: Haiti 1986", "Note Revisions"); research questions and brainstorms stay in DraftLine, and the Scratchpad never goes. Only characters with something in their bio are included.
 
 ### Opening and importing
 
-- **Open** reads `.fountain`, `.fdx`, `.txt` and `.draftline` files. Each opens as a new script; your others stay in Projects.
-- **Import** takes a script copied from Google Docs, Word, a PDF or plain text, detects its elements, and shows a preview before anything changes. **Join wrapped lines** repairs lines broken by a PDF. You can add the import after your current script instead of starting a new one.
+- **File → Open…** ({{key:Ctrl+O}}) reads `.fountain`, `.fdx`, `.txt` and `.draftline` files. Each opens as a new script; your others stay in Projects.
+- **File → Import…** takes a script copied from Google Docs, Word, a PDF or plain text, detects its elements, and shows a preview before anything changes. **Join wrapped lines** repairs lines broken by a PDF. You can add the import after your current script instead of starting a new one.
 
 ### Printing and PDF
 
-**Export → Print Script / PDF** ({{key:Ctrl+P}}) prints exactly what the editor shows: Courier Prime 12 pt, standard margins and the same page breaks. The title page prints first, unnumbered, and page numbers start on page 2. Choose **Save as PDF** in the print dialog for a PDF. Margin notes, highlights and the Midnight page colour never print.
+**File → Script (PDF)** ({{key:Ctrl+P}}) prints exactly what the editor shows: Courier Prime 12 pt, standard margins and the same page breaks. The title page prints first, unnumbered, and page numbers start on page 2. Choose **Save as PDF** in the print dialog for a PDF. Margin notes, highlights and the Midnight page colour never print.
 
 ## Editor Curiosities & Secrets
 
@@ -259,4 +334,4 @@ A small note pops up in the corner of the window, once per session, when your ow
 
 ### Film Noir mode
 
-Press {{curiosities.noirCombo}} or select **{{curiosities.noirGenre}}** under Story DNA → Genre to transform the workspace into 1940s monochrome complete with blind shadows, vintage grading, and ambient rain audio. Press `Esc` to exit.
+Press {{curiosities.noirCombo}} or select **{{curiosities.noirGenre}}** under Story DNA → Genre to turn the room 1940s: typed paper on a dark desk with a coffee ring, Venetian-blind light falling from the window, film grain, and ambient rain audio. Press `Esc` to exit.

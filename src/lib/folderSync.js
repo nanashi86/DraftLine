@@ -113,7 +113,7 @@ export function snapshotFromFileText(text) {
   if (!s || typeof s.id !== 'string' || typeof s.label !== 'string' || Number.isNaN(Date.parse(s.timestamp))) {
     throw new Error('Not a DraftLine snapshot file');
   }
-  const { script, beats, characters, storyNotes, storyDna, ...rest } = record;
+  const { script, beats, characters, storyNotes, storyDna, production, ...rest } = record;
   const meta = {};
   for (const k of ['title', 'credit', 'author', 'basedOn', 'draftVersion', 'draftDate', 'contact', 'titleFont', 'titleSize', 'titleBold']) {
     if (rest[k] !== undefined) meta[k] = rest[k];
@@ -122,7 +122,7 @@ export function snapshotFromFileText(text) {
     projectId: s.projectId ?? record.id,
     rev: {
       id: s.id, label: s.label, timestamp: s.timestamp, script, beatBoard: beats || [], meta, characters: characters || [],
-      storyNotes, storyDna, pages: s.pages ?? null, scenes: s.scenes ?? 0, words: s.words ?? 0,
+      storyNotes, storyDna, ...(production ? { production } : {}), pages: s.pages ?? null, scenes: s.scenes ?? 0, words: s.words ?? 0,
     },
   };
 }

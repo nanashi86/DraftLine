@@ -15,15 +15,15 @@ const el = (left, right, shown = true) => ({
 const bar = el(0, 1400);
 
 describe('⋮ menu', () => {
-  it('when the toolbar shows both panels: Snapshots · Notes — Shortcuts — Load Sample — About', () => {
+  it('when the toolbar shows both panels: Snapshots · Notes — Shortcuts — About (Load Sample is in File ▾)', () => {
     assert.deepEqual(shape(moreMenuItems({ ...handlers, charactersOnBar: true, bibleOnBar: true, snapshotCount: 3, noteCount: 7 })), [
-      'View Snapshots [3]', 'Margin Notes [7]', '---', 'Keyboard Shortcuts [Ctrl+/]', '---', 'Load Sample [The Last Ferry]', '---', 'About DraftLine',
+      'View Snapshots [3]', 'Margin Notes [7]', '---', 'Keyboard Shortcuts [Ctrl+/]', '---', 'About DraftLine',
     ]);
   });
   it('adds Story Bible on top only while the toolbar has tucked it away', () => {
     assert.deepEqual(shape(moreMenuItems({ ...handlers, charactersOnBar: true, bibleOnBar: false })), [
       'Story Bible [Alt+I]', '---', 'View Snapshots [0]', 'Margin Notes [0]', '---', 'Keyboard Shortcuts [Ctrl+/]', '---',
-      'Load Sample [The Last Ferry]', '---', 'About DraftLine',
+      'About DraftLine',
     ]);
   });
   it('adds Characters on top only while the toolbar has it out of view', () => {
@@ -40,7 +40,7 @@ describe('⋮ menu', () => {
     const calls = [];
     const h = Object.fromEntries(Object.keys(handlers).map((k) => [k, () => calls.push(k)]));
     moreMenuItems({ ...h, charactersOnBar: false, bibleOnBar: false }).filter((i) => !i.divider).forEach((i) => i.onSelect());
-    assert.deepEqual(calls, ['onBible', 'onCharacters', 'onSnapshots', 'onNotes', 'onShortcuts', 'onSample', 'onAbout']);
+    assert.deepEqual(calls, ['onBible', 'onCharacters', 'onSnapshots', 'onNotes', 'onShortcuts', 'onAbout']);
   });
 });
 
@@ -70,12 +70,12 @@ describe('toolbar & About wiring', () => {
   });
   it('the ⋮ menu is built as it opens, from what the toolbar is showing', () => {
     assert.match(bar, /items=\{\(\) => moreMenuItems\(\{/);
-    assert.match(bar, /bibleOnBar: isOnBar\(bibleBtnRef\.current, barRef\.current\)/);
-    assert.match(bar, /charactersOnBar: isOnBar\(charactersBtnRef\.current, barRef\.current\)/);
+    assert.match(bar, /bibleOnBar: inPlan \|\| isOnBar\(bibleBtnRef\.current, barRef\.current\)/, 'never in ⋮ while in Plan');
+    assert.match(bar, /charactersOnBar: inPlan \|\| isOnBar\(charactersBtnRef\.current, barRef\.current\)/);
   });
-  it('the right-hand order is Export · Focus · Story Bible · Characters · ⋮', () => {
+  it('the right-hand order: workspace tools (Focus · Story Bible · Characters, or Plan’s), then Snapshot · ⋮', () => {
     const right = bar.slice(bar.indexOf('bar-group bar-right'));
-    const pos = ['label="Export"', '>Focus<', 'Story Bible\n', 'Characters\n', 'btn-kebab'].map((k) => right.indexOf(k));
+    const pos = ['btn-plan-fold', 'btn-plan-export', '>Focus<', 'Story Bible\n', 'Characters\n', 'btn-snapshot', 'btn-kebab'].map((k) => right.indexOf(k));
     assert.ok(pos.every((p) => p > 0), JSON.stringify(pos));
     assert.deepEqual([...pos].sort((a, b) => a - b), pos);
     assert.ok(!/>\s*Dialogue\s*</.test(right), 'no separate Dialogue toolbar button');

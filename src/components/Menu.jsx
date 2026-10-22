@@ -51,6 +51,7 @@ export default function Menu({
               role="menuitem"
               className={`menu-item${it.danger ? ' is-danger' : ''}`}
               disabled={it.disabled}
+              title={it.title}
               onClick={() => {
                 setOpen(false);
                 it.onSelect();

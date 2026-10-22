@@ -1,0 +1,35 @@
+.eb-modal {
+  width: min(520px, calc(100vw - 32px));
+  padding: 22px;
+  border: 1px solid var(--line-soft);
+  border-radius: 12px;
+  background: var(--panel);
+  color: var(--text);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.5);
+}
+.eb-modal::backdrop { background: rgba(10, 10, 12, 0.6); backdrop-filter: blur(2px); }
+.eb-modal h2 { margin: 0 0 6px; font-size: 17px; font-weight: 650; }
+.eb-sub { margin: 0 0 14px; font-size: 12.5px; line-height: 1.5; color: var(--muted); }
+.eb-options { display: flex; flex-direction: column; gap: 6px; margin: 0; padding: 0; border: 0; }
+.eb-legend { margin-bottom: 6px; padding: 0; font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.eb-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--line-soft);
+  border-radius: 8px;
+  cursor: pointer;
+}
+.eb-option:hover { background: color-mix(in srgb, var(--text) 4%, transparent); }
+.eb-option.is-on { border-color: color-mix(in srgb, var(--accent) 55%, var(--line-soft)); }
+.eb-option input { margin: 2px 0 0; accent-color: var(--accent); }
+.eb-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.eb-label { font-size: 13.5px; font-weight: 600; }
+.eb-hint { font-weight: 400; color: var(--muted); }
+.eb-summary { font-size: 12px; color: var(--muted); }
+.eb-warn { margin: 10px 0 0; font-size: 12px; color: #e0a458; }
+.eb-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px; }
+.eb-actions .eb-export { background: var(--accent); color: var(--on-accent); padding: 6px 16px; font-weight: 600; }
+.eb-actions .eb-export:hover:not(:disabled) { background: var(--accent); filter: brightness(1.08); }
+.eb-actions .eb-export:disabled { opacity: 0.45; cursor: not-allowed; }

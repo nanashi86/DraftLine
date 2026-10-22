@@ -49,6 +49,12 @@
 .fd-k-falsedialogue { --kc: var(--k-orphan); }
 .fd-k-unspaced { --kc: #6fb7c0; }
 .fd-k-ending { --kc: #b9a4d8; }
+.fd-k-orphancue,
+.fd-k-orphanparen { --kc: var(--k-orphan); }
+.fd-k-slugformat,
+.fd-k-slugincomplete { --kc: var(--k-slugline); }
+.fd-k-intro { --kc: var(--k-cue); }
+.fd-k-spacing { --kc: var(--k-empty); }
 
 .fd-list { flex: 1; min-height: 0; overflow-y: auto; margin: 0; padding: 8px 14px 16px; list-style: none; }
 .fd-clean { display: flex; align-items: center; gap: 10px; padding: 26px 8px; color: var(--muted); font-size: 13.5px; }
@@ -65,7 +71,8 @@
 
 .fd-row {
   display: grid;
-  grid-template-columns: 170px 38px 1fr auto auto;
+  /* badge · page · snippet · actions: fixed columns, so a long badge can never run into the script text */
+  grid-template-columns: 180px 50px minmax(0, 1fr) 170px;
   align-items: center;
   gap: 12px;
   padding: 8px;
@@ -74,31 +81,30 @@
 .fd-row:hover { background: var(--card); }
 .fd-kind {
   justify-self: start;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   padding: 2px 7px;
   border-radius: 4px;
   background: color-mix(in srgb, var(--kc) 16%, transparent);
   color: var(--kc);
   font-size: 11px;
   font-weight: 600;
-  white-space: nowrap;
 }
-.fd-page { color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
-.fd-text {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font: 13px 'Courier Prime', 'Courier New', monospace;
-}
-.fd-change { color: var(--muted); font-size: 12px; white-space: nowrap; }
-.fd-change b { color: var(--text); font-weight: 600; }
-.fd-actions { display: flex; gap: 4px; }
-.fd-actions .btn { padding: 4px 10px; font-size: 12px; }
-.fd-actions .btn-outline { border-color: var(--line-soft); }
+.fd-page { color: var(--muted); font-size: 12px; text-align: center; font-variant-numeric: tabular-nums; }
+.fd-snippet { display: flex; flex-direction: column; gap: 2px; min-width: 0; overflow: hidden; }
+.fd-text,
+.fd-change { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fd-text { font: 13px 'Courier Prime', 'Courier New', monospace; }
+.fd-change { color: var(--muted); font-size: 11.5px; }
+.fd-actions { display: flex; gap: 6px; justify-content: flex-end; }
+.fd-actions .btn { flex: none; padding: 4px 8px; font-size: 11.5px; white-space: nowrap; }
+.fd-actions .fd-fix { border: 1px solid color-mix(in srgb, var(--accent) 60%, transparent); color: var(--text); }
+.fd-actions .fd-fix:hover { background: color-mix(in srgb, var(--accent) 22%, transparent); }
 
 @media (max-width: 760px) {
-  .fd-row { grid-template-columns: 1fr auto; }
-  .fd-page,
-  .fd-change { display: none; }
-  .fd-text { grid-column: 1 / -1; }
+  .fd-row { grid-template-columns: minmax(0, 1fr) auto; }
+  .fd-page { display: none; }
+  .fd-snippet { grid-column: 1 / -1; grid-row: 2; }
 }

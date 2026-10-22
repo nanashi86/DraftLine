@@ -34,6 +34,26 @@ export const TIME_OF_DAY = [
 ];
 const TIME_RE = new RegExp(`\\s[-–—]\\s*(?:${TIME_OF_DAY.join('|')})\\s*$`, 'i');
 
+// ---- Reading a heading's time of day (shared by the Format Doctor and Plan) ----
+// Any part of a heading after the location can be its time of day, and it counts if it *contains*
+// a day or night word: "NEXT DAY", "LATER THAT NIGHT", "DAY - CONTINUOUS", "NIGHT (FLASHBACK)".
+const NIGHT_WORDS = /\b(?:NIGHT|NIGHTFALL|EVENING|DUSK|SUNSET|MIDNIGHT|TWILIGHT)\b/i;
+const DAY_WORDS = /\b(?:DAY|DAYBREAK|MORNING|AFTERNOON|DAWN|SUNRISE|NOON|MIDDAY|MAGIC HOUR)\b/i;
+const CARRY_WORDS = /^(?:CONTINUOUS|LATER|MOMENTS?\s+LATER|SECONDS\s+LATER|A\s+MOMENT\s+LATER|SAME|SAME\s+TIME)$/i;
+
+/** One dash-separated part of a heading → 'day' | 'night' | 'carry' (CONTINUOUS, LATER…: the scene before's) | null. */
+export function timeOfDayPeriod(part) {
+  const t = String(part || '').replace(/\([^)]*\)/g, ' ').replace(/[.\s]+$/, '').replace(/\s+/g, ' ').trim();
+  if (!t) return null;
+  if (NIGHT_WORDS.test(t)) return 'night';
+  if (DAY_WORDS.test(t)) return 'day';
+  if (CARRY_WORDS.test(t)) return 'carry';
+  return null;
+}
+
+/** A heading's parts after the prefix: "KITCHEN - NIGHT - BACK TO SCENE" → ['KITCHEN', 'NIGHT', 'BACK TO SCENE']. */
+export const headingParts = (rest) => String(rest || '').split(/\s+[-–—]+\s+|\s*(?:--|[–—])\s*/).map((p) => p.trim()).filter(Boolean);
+
 /** "BACK ALLEY - NIGHT": a location with a time-of-day suffix but no INT./EXT. */
 export function hasTimeOfDaySuffix(text) {
   return TIME_RE.test(stripInline(text || '').trim());

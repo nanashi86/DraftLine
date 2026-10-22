@@ -6,6 +6,7 @@ import { fileURLToPath } from 'node:url';
 import { SHORTCUTS } from '../src/lib/shortcuts.js';
 import { RENAME_CATEGORIES } from '../src/lib/renameCharacter.js';
 import { BIBLE_TABS, DNA_VIEWS } from '../src/lib/bible.js';
+import { fileMenuItems } from '../src/lib/toolbar.js';
 
 // fileURLToPath, not .pathname: on Windows .pathname is "/C:/Users/…", which Windows reads as "C:\C:\Users\…".
 const root = fileURLToPath(new URL('../src/', import.meta.url));
@@ -60,20 +61,32 @@ describe('UI names: Story Bible, Characters and Dialogue', () => {
   });
 });
 
-describe('toolbar: Export holds Print; panels stay visible on laptops', () => {
+describe('toolbar: File ▾ holds Print; panels stay visible on laptops', () => {
   const app = readFileSync(join(root, 'App.jsx'), 'utf8');
   const css = readFileSync(join(root, 'App.css'), 'utf8');
-  const menu = app.slice(app.indexOf('const exportItems = ['), app.indexOf('];', app.indexOf('const exportItems = [')));
 
-  it('the Export menu has Screenplay, Scene outline, Document and Project, in that order', () => {
-    const headings = [...menu.matchAll(/heading: '([^']+)'/g)].map((m) => m[1]);
-    assert.deepEqual(headings, ['Screenplay', 'Scene outline', 'Document', 'Project']);
-    const labels = [...menu.matchAll(/label: '([^']+)', hint: '([^']+)'/g)].map((m) => `${m[1]} ${m[2]}`);
-    assert.deepEqual(labels, [
-      'Fountain .fountain', 'Final Draft .fdx', 'Fountain outline .fountain', 'Markdown .md',
-      'Print Script / PDF Ctrl+P', 'Backup Project .draftline',
+  it('File ▾ has Script, Export and Backup sections, in that order', () => {
+    const calls = [];
+    const h = new Proxy({}, { get: (_, k) => (k === 'snapshotCount' ? 2 : () => calls.push(k)) });
+    const items = fileMenuItems(h);
+    const shape = items.map((it) => (it.divider ? '---' : it.heading ? `# ${it.heading}` : `${it.label}${it.hint ? ` [${it.hint}]` : ''}`));
+    assert.deepEqual(shape, [
+      '# Script', 'New Script [Ctrl+Alt+N]', 'Open… [Ctrl+O]', 'Import… [Docs · Word · PDF]', 'Load Sample Script [The Last Ferry]',
+      'Title Page Settings…', '---',
+      '# Export Script', 'Script (PDF) [Ctrl+P]', 'Fountain (.fountain)', 'Final Draft (.fdx)', '---',
+      '# Export Outline & Bible', 'Story Bible (PDF)… [.pdf]', 'Spreadsheet Outline (.csv)', 'Markdown Outline (.md)',
+      'Fountain Outline (.fountain)', '---',
+      '# Backup', 'Backup Project [.draftline]', 'Snapshot History [2]',
     ]);
-    assert.match(menu, /label: 'Print Script \/ PDF', hint: 'Ctrl\+P', onSelect: printScript/);
+    items.filter((i) => i.onSelect).forEach((i) => i.onSelect());
+    assert.deepEqual(calls, ['onNew', 'onOpen', 'onImport', 'onSample', 'onTitlePage', 'onPrint', 'onFountain', 'onFdx', 'onBible', 'onOutlineCsv', 'onOutlineMd',
+      'onOutlineFountain', 'onBackup', 'onSnapshots']);
+    assert.match(app, /onPrint: printScript,/);
+    assert.ok(!/Print Script \/ PDF|Fountain outline'/.test(app), 'no legacy slash label or lower-case outline');
+  });
+  it('its shortcut hints are real: Ctrl+O opens, Ctrl+Alt+N starts a script (not Film Noir’s Ctrl+Shift+Alt+N)', () => {
+    assert.match(app, /mod && !e\.altKey && !e\.shiftKey && e\.code === 'KeyO'\) \{\s*e\.preventDefault\(\);[^\n]*\n\s*fileShortcuts\.current\.open\?\.\(\);/);
+    assert.match(app, /mod && e\.altKey && !e\.shiftKey && e\.code === 'KeyN'\) \{[\s\S]{0,160}fileShortcuts\.current\.new\?\.\(\);/);
   });
   it('there is no standalone Print button any more', () => {
     const bar = app.slice(app.indexOf('<header className="bar">'), app.indexOf('</header>'));

@@ -3,12 +3,14 @@
 //   database "draftline_db"
 //     store "projects"  (keyPath "id")
 //       { id, title, author, credit, basedOn, draftVersion, draftDate, contact,
-//         titleFont, titleSize, titleBold, script, beats, characters, storyNotes, storyDna,
+//         titleFont, titleSize, titleBold, script, beats, characters, storyNotes, storyDna, production,
 //         pages, scenes, createdAt, updatedAt }
 //       characters — the Project Bible's bios [{ id, name, primaryRole, secondaryRole, relationship, age,
 //                    description, traits, backstory }] (older ones: a free-text `role`)
 //       storyNotes — the Bible's notes { sections: [{ id, title, body }] } (see bible.js)
 //       storyDna   — the Bible's story blueprint (see storyDna.js)
+//       production — the Plan workspace's per-scene asset lists (see productionData.js); older
+//                    projects have none and load with empty breakdowns
 //     store "settings"  (keyPath "key")  — { key: 'activeProjectId', value }
 //
 // IndexedDB has no practical size limit for scripts (unlike localStorage's ~5 MB), writes
@@ -25,6 +27,7 @@ import { normalizeBeats, validBeats } from './beats.js';
 import { normalizeRevisions, revisionRecord } from './revisions.js';
 import { migrateStoryBible, normalizeCharacters, normalizeStoryNotes, validCharacters } from './bible.js';
 import { normalizeStoryDna } from './storyDna.js';
+import { normalizeProduction } from './productionData.js';
 import { newProjectMeta } from './authorDefaults.js';
 import { DEFAULT_CREDIT, DEFAULT_TITLE_BOLD, DEFAULT_TITLE_FONT, DEFAULT_TITLE_SIZE } from './titleFonts.js';
 
@@ -80,7 +83,7 @@ export function projectStats(blocks) {
 
 /** Editor document ({ meta, blocks, beats }) → stored record. */
 export function toRecord({
-  id, meta = {}, blocks = [], beats = [], characters = [], storyNotes, storyDna, revisions, pages, scenes,
+  id, meta = {}, blocks = [], beats = [], characters = [], storyNotes, storyDna, production, revisions, pages, scenes,
 }, now = Date.now()) {
   const rec = { id: id || newProjectId() };
   for (const k of META_FIELDS) rec[k] = meta[k] ?? EMPTY_META[k];
@@ -89,6 +92,7 @@ export function toRecord({
   rec.characters = characters;
   rec.storyNotes = normalizeStoryNotes(storyNotes);
   rec.storyDna = normalizeStoryDna(storyDna);
+  rec.production = normalizeProduction(production);
   // Snapshots (revisions.js). Left out when the caller doesn't know them — saving then keeps
   // whatever the library already has (see saveActiveProject).
   if (revisions !== undefined) rec.revisions = normalizeRevisions(revisions);
@@ -114,6 +118,7 @@ export function toDoc(rec) {
     characters: validCharacters(rec.characters) ? normalizeCharacters(rec.characters) : [],
     // Notes from before Theme moved to Story DNA hand their Themes text over (bible.js).
     ...pickBible(migrateStoryBible(rec.storyNotes, rec.storyDna)),
+    production: normalizeProduction(rec.production),
     revisions: normalizeRevisions(rec.revisions),
     createdAt: rec.createdAt,
     updatedAt: rec.updatedAt,

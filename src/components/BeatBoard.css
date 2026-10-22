@@ -1,3 +1,4 @@
+.board[hidden] { display: none !important; } /* the Plan workspace keeps it mounted, out of sight */
 .board {
   --card-paper: #fbf8f0;
   --card-ink: #1d1c1a;
@@ -28,6 +29,8 @@
 .board-sub { margin: 2px 0 0; font-size: 12px; color: var(--muted); }
 .board-title { min-width: 0; }
 .board-tools { display: flex; align-items: center; gap: 14px; margin-left: auto; }
+.board-analyze { display: inline-flex; align-items: center; gap: 6px; }
+.board-analyze svg { color: #f59e0b; }
 .board-legend { display: flex; align-items: center; gap: 4px; font-size: 12px; color: var(--muted); }
 .seg-sm .seg-btn { padding: 3px 10px; font-size: 12px; }
 .legend-item { display: inline-flex; align-items: center; gap: 5px; }
@@ -350,3 +353,57 @@ button.legend-item.is-on { border-color: currentColor; font-weight: 600; }
 .board-tools { flex-wrap: wrap; justify-content: flex-end; row-gap: 6px; }
 .board.is-compact .board-tools { margin-left: 0; gap: 8px; }
 .card-foot { flex-wrap: wrap; row-gap: 4px; }
+
+/* ---- Value Shift (the scene's charge in → out) ---- */
+.vs { position: relative; display: inline-flex; }
+.vs-btn {
+  height: 20px;
+  min-width: 34px;
+  padding: 0 7px;
+  border: 1px dashed rgba(29, 28, 26, 0.28);
+  border-radius: 999px;
+  background: transparent;
+  color: #8b877d;
+  font: 600 10.5px/1 var(--ui-font);
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.vs-btn:hover { border-style: solid; color: var(--card-ink); }
+.vs-btn.is-set { border-style: solid; border-color: rgba(29, 28, 26, 0.35); background: rgba(255, 255, 255, 0.7); color: var(--card-ink); }
+.vs-btn.is-static { border-color: #c98a2b; background: #fbecd2; color: #8a5a12; }
+.vs-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.vs-pop {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 4px);
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  width: 230px;
+  padding: 4px;
+  border: 1px solid rgba(29, 28, 26, 0.18);
+  border-radius: 8px;
+  background: #fffdf8;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
+}
+.vs-opt {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 8px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--card-ink);
+  font: 12px/1.3 var(--ui-font);
+  text-align: left;
+  cursor: pointer;
+}
+.vs-opt:hover, .vs-opt.is-on { background: rgba(29, 28, 26, 0.07); }
+.vs-opt b { flex: none; min-width: 34px; font-size: 12.5px; text-align: center; }
+.vs-opt span { display: flex; flex-direction: column; }
+.vs-opt small { color: #8b877d; font-size: 11px; }
+.vs-opt.is-static small { color: #a36b12; font-weight: 600; }
+.vs-clear { justify-content: center; color: #8b877d; border-top: 1px solid rgba(29, 28, 26, 0.1); border-radius: 0 0 6px 6px; }
+.card:has(.vs-pop) { z-index: 5; }

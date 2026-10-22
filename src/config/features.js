@@ -23,6 +23,7 @@ import { SPEC_STAMP_ANGLE, SPEC_STAMP_TEXT } from '../lib/specStamp.js';
 import { AUTHOR_PLACEHOLDER } from '../lib/authorDefaults.js';
 import { LATE_NIGHT_HOURS, MILESTONES, PAGE_MILESTONES, SESSION_WORD_GOAL } from '../lib/milestones.js';
 import { NOIR_COMBO, isNoirGenre } from '../lib/noir.js';
+import { PAGE_LINES } from '../lib/screenplay.js';
 
 /** The app's colour tokens (src/index.css :root, BeatBoard.css). tests check the CSS still matches. */
 export const COLOR_TOKENS = {
@@ -107,6 +108,7 @@ export function guideValues(f = FEATURES) {
   v['dna.optionalDevices'] = listText(f.dna.plotDevices.filter((d) => !f.dna.defaultDevices.includes(d.id)).map((d) => d.label));
   v['glossary.sections'] = listText(f.glossary.sections.map((s) => bold(s.label)));
   v['density.lines'] = { 4: 'four' }[f.density.lineLimit] || String(f.density.lineLimit);
+  v['plan.pageLines'] = String(PAGE_LINES); // Plan: page eighths are measured against this
   v['lock.combo'] = `\`${f.lock.combo}\``;
   v['sync.snapshotDir'] = f.sync.snapshotDir;
   v['themes'] = f.canvasThemes.map((t) => `${bold(t.label)} (${t.hint.charAt(0).toLowerCase()}${t.hint.slice(1)})`).join(' or ');

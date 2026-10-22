@@ -16,6 +16,7 @@
   --text-normal: var(--text);
   --border-subtle: rgba(255, 255, 255, 0.1);
   --accent: #c8553d;      /* typewriter-ribbon red */
+  --accent-amber: #f59e0b; /* Density: the skim-risk stepper and highlights' warm amber */
   --on-accent: #fff;
 
   /* The page */

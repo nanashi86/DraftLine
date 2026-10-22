@@ -25,7 +25,9 @@ export const CHARACTER_FIELDS = [
  * Story Notes sections a new project starts with, in order. Theme isn't one of them: it
  * lives in Story DNA ("Theme — revealed by the Climax"), so there's one place for it.
  */
-export const DEFAULT_SECTIONS = ['Logline', 'Tone', 'Timeline', 'Pitch', 'Scratchpad'];
+export const DEFAULT_SECTIONS = ['Logline', 'Tone', 'Pitch', 'Timeline', 'Scratchpad'];
+/** The standard cards that come before the Synopsis and Treatment, in their reading order. */
+export const NOTES_ORDER = ['Logline', 'Tone', 'Pitch', 'Timeline'];
 
 /** Note titles that meant the story's theme in earlier versions (case-insensitive). */
 const THEME_TITLES = new Set(['themes', 'themes & motifs', 'theme']);
@@ -44,7 +46,8 @@ export const LEGACY_SECTION_NAMES = {
  * Story DNA — see migrateStoryBible); after that your own deletions, renames and order are
  * left alone.
  */
-export const STORY_NOTES_VERSION = 3;
+export const STORY_NOTES_VERSION = 4; // 4: Pitch before Timeline (reorderStandardNotes)
+const THEMES_MOVED_VERSION = 3; // before 3, a Themes card could move into Story DNA (migrateStoryBible)
 
 /** Today's preset name for a title (old names included), or null if it isn't a preset. */
 const presetName = (title) => {
@@ -282,7 +285,7 @@ export function missingFromScript(list, speakers) {
 // ---- Story notes ------------------------------------------------------------------------
 //
 // { version, sections: [{ id, title, body }], synopsis: { act1, act2, act2b, act3 }, treatment: { …same… } }
-// The Synopsis is a structured act card shown right after Pitch (SYNOPSIS_AFTER); the Treatment —
+// The Synopsis is a structured act card shown right after Timeline (SYNOPSIS_AFTER); the Treatment —
 // the same acts, at full length — comes right after the Synopsis.
 //
 // Both follow the Scene Board's 3 / 4-act switch (ACT_STRUCTURES). Four slots are stored, so a
@@ -358,7 +361,7 @@ export function actsFor(card, mode, value) {
 
 /** The Synopsis card's three acts (the 3-act view, nothing in 2B). */
 export const SYNOPSIS_ACTS = actsFor('synopsis', 3, null);
-export const SYNOPSIS_AFTER = 'Pitch';
+export const SYNOPSIS_AFTER = 'Timeline';
 
 export const emptySynopsis = () => ({ act1: '', act2: '', act2b: '', act3: '' });
 
@@ -641,8 +644,25 @@ export function convertNotesActs(notes, from, to, story = {}) {
 
 /** Where the Synopsis card goes among the sections: right after Pitch, else at the end. */
 export function synopsisIndex(sections) {
-  const i = sections.findIndex((s) => s.title.trim().toLowerCase() === SYNOPSIS_AFTER.toLowerCase());
-  return i < 0 ? sections.length : i + 1;
+  // After Timeline; if that card was deleted, after the last of Logline / Tone / Pitch still there.
+  for (const name of [...NOTES_ORDER].reverse()) {
+    const i = sections.findIndex((s) => s.title.trim().toLowerCase() === name.toLowerCase());
+    if (i >= 0) return i + 1;
+  }
+  return sections.length;
+}
+
+/**
+ * Version 3 → 4: Logline, Tone, Pitch and Timeline put in that order, each in one of the places
+ * those cards already held — your own cards (and the Scratchpad) don't move.
+ */
+export function reorderStandardNotes(sections) {
+  const rank = (s) => NOTES_ORDER.findIndex((n) => n.toLowerCase() === s.title.trim().toLowerCase());
+  const slots = sections.map((s, i) => (rank(s) >= 0 ? i : -1)).filter((i) => i >= 0);
+  const sorted = slots.map((i) => sections[i]).sort((a, b) => rank(a) - rank(b));
+  const out = [...sections];
+  slots.forEach((slot, k) => { out[slot] = sorted[k]; });
+  return out;
 }
 
 /**
@@ -766,7 +786,7 @@ function keepCentralQuestion(storyNotes, rawDna) {
 export function migrateStoryBible(rawNotes, rawDna) {
   let storyDna = normalizeStoryDna(rawDna);
   let storyNotes = keepCentralQuestion(normalizeStoryNotes(rawNotes), rawDna);
-  const old = rawNotes && typeof rawNotes === 'object' && (rawNotes.version || 1) < STORY_NOTES_VERSION;
+  const old = rawNotes && typeof rawNotes === 'object' && (rawNotes.version || 1) < THEMES_MOVED_VERSION;
   const card = old ? storyNotes.sections.find((s) => s.title === 'Themes') : null;
   if (!card) return { storyNotes, storyDna, movedTheme: false };
   const line = themeLine(card.body);
@@ -794,7 +814,9 @@ export function normalizeStoryNotes(notes) {
     const treatment = normalizeTreatment(notes.treatment);
     const splits = normalizeActSplits(notes.actSplits); // where a joined Act II splits again (convertNotesActs)
     const extra = Object.keys(splits).length ? { actSplits: splits } : {};
-    if ((notes.version || 1) < STORY_NOTES_VERSION) return { ...migrateStoryNotes(sections), synopsis, treatment, ...extra };
+    const v = notes.version || 1;
+    if (v < THEMES_MOVED_VERSION) return { ...migrateStoryNotes(sections), synopsis, treatment, ...extra };
+    if (v < STORY_NOTES_VERSION) return { version: STORY_NOTES_VERSION, sections: reorderStandardNotes(sections), synopsis, treatment, ...extra };
     return { version: notes.version, sections, synopsis, treatment, ...extra };
   }
   return defaultStoryNotes();

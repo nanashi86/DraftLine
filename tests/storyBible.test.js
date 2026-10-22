@@ -30,8 +30,8 @@ const v2Notes = (themes = '', extra = []) => ({
 const titles = (n) => n.sections.map((s) => s.title);
 
 describe('Story Bible: one home for Theme', () => {
-  it('the Notes tab shows Logline, Tone, Timeline, Pitch and Scratchpad — no Themes card', () => {
-    assert.deepEqual(DEFAULT_SECTIONS, ['Logline', 'Tone', 'Timeline', 'Pitch', 'Scratchpad']);
+  it('the Notes tab shows Logline, Tone, Pitch, Timeline and Scratchpad — no Themes card', () => {
+    assert.deepEqual(DEFAULT_SECTIONS, ['Logline', 'Tone', 'Pitch', 'Timeline', 'Scratchpad']);
     assert.deepEqual(titles(defaultStoryNotes()), DEFAULT_SECTIONS);
   });
   it('the DNA tab keeps "Theme · revealed by the climax" as the field', () => {
@@ -45,8 +45,8 @@ describe('migration: Themes note → Story DNA Theme', () => {
     const { storyNotes, storyDna, movedTheme } = migrateStoryBible(v2Notes('Moral Dilemma'), emptyStoryDna());
     assert.equal(storyDna.theme, 'Moral Dilemma');
     assert.equal(movedTheme, true);
-    assert.deepEqual(titles(storyNotes), ['Logline', 'Tone', 'Timeline', 'Pitch', 'Scratchpad']);
-    assert.equal(storyNotes.version, 3);
+    assert.deepEqual(titles(storyNotes), ['Logline', 'Tone', 'Pitch', 'Timeline', 'Scratchpad']);
+    assert.equal(storyNotes.version, 4);
     // Everything else is untouched, ids included.
     assert.equal(storyNotes.sections.find((s) => s.id === 'to').body, 'Salt and rain.');
     assert.equal(storyNotes.sections.find((s) => s.id === 's').body, 'Loose ideas');
@@ -106,7 +106,7 @@ describe('migration happens when a project opens', () => {
     assert.deepEqual(titles(doc.storyNotes), DEFAULT_SECTIONS);
     const saved = await store.saveActiveProject(doc);
     assert.equal(saved.storyDna.theme, 'Moral Dilemma');
-    assert.equal(saved.storyNotes.version, 3);
+    assert.equal(saved.storyNotes.version, 4);
     assert.deepEqual(toDoc(saved).storyNotes, doc.storyNotes, 'stable on the next open');
   });
 });
@@ -132,11 +132,14 @@ describe('Story Notes: three-act Synopsis card', () => {
     assert.match(card, /<span className="micro-label">\{a\.label\}<\/span>/);
     assert.match(card, /\{editing \? 'Done' : 'Edit'\}/);
   });
-  it('a new project starts with an empty synopsis, placed right after Pitch', () => {
+  it('a new project starts with an empty synopsis, placed right after Timeline (Logline · Tone · Pitch · Timeline · Synopsis · Treatment)', () => {
     const n = defaultStoryNotes();
     assert.deepEqual(n.synopsis, emptySynopsis());
-    assert.equal(n.sections[synopsisIndex(n.sections) - 1].title, 'Pitch');
-    assert.equal(synopsisIndex([{ id: 'a', title: 'Logline', body: '' }]), 1, 'no Pitch → at the end');
+    assert.equal(n.sections[synopsisIndex(n.sections) - 1].title, 'Timeline');
+    assert.deepEqual(n.sections.slice(0, synopsisIndex(n.sections)).map((x) => x.title), ['Logline', 'Tone', 'Pitch', 'Timeline']);
+    assert.equal(synopsisIndex([{ id: 'a', title: 'Logline', body: '' }, { id: 'p', title: 'Pitch', body: '' }, { id: 'm', title: 'Mine', body: '' }]), 2,
+      'no Timeline → after the last standard card still there');
+    assert.equal(synopsisIndex([{ id: 'm', title: 'Mine', body: '' }]), 1, 'none → at the end');
   });
   it('each act edits independently', () => {
     let n = defaultStoryNotes();

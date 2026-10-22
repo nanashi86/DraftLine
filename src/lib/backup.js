@@ -27,6 +27,7 @@
 // own Story Glossary wording; a restore only adds terms the library has no wording for.
 
 import { normalizeStoryDna } from './storyDna.js';
+import { normalizeProduction } from './productionData.js';
 import { normalizeStoryNotes, validCharacters } from './bible.js';
 import { validBeats } from './beats.js';
 import { validBlocks } from './projectStorage.js';
@@ -94,6 +95,7 @@ export function parseBackup(text) {
   // These two normalise anything older; reading them here just proves they're readable.
   normalizeStoryNotes(record.storyNotes);
   normalizeStoryDna(record.storyDna);
+  normalizeProduction(record.production); // Plan breakdowns: none in older backups, which is fine
   const actMode = data.board?.actMode === 3 || data.board?.actMode === 4 ? data.board.actMode : null;
   const dictionary = data.dictionary && typeof data.dictionary === 'object' && !Array.isArray(data.dictionary) ? data.dictionary : {};
   return { record, actMode, dictionary, exportedAt: data.exportedAt || null, app: data.app || null };

@@ -2,27 +2,118 @@
 // Pure functions over the block array, so every rule is unit-tested.
 
 import {
-  END_RE, isActBreak, isFormatCue, isOnScreenText, isSecondarySlugline, isSlugline, isUnprefixedSlugline,
+  END_RE, hasTimeOfDaySuffix, headingParts, isActBreak, timeOfDayPeriod, isFormatCue, isOnScreenText, isSecondarySlugline, isSlugline, isUnprefixedSlugline,
 } from './sluglines.js';
 import { looksLikeCue } from './textScriptParser.js';
-import { concatMarks, sliceMarks, stripInline } from './formatting.js';
+import { concatMarks, remapMarks, sliceMarks, stripInline } from './formatting.js';
 import { newId } from './screenplay.js';
 
 const SPEECH = new Set(['character', 'dialogue', 'parenthetical']);
 
-// `fix` is the label on the row's one-click fix button.
+// `fix` describes the one-click fix (tooltips, the change line); `verb` is its short button label
+// (Format Doctor rows, the status-bar list). Both null: nothing to fix automatically — Show it, or Ignore it.
 export const ISSUE_KINDS = {
-  slugline: { label: 'Unclassified slugline', fix: 'Convert to Scene Heading' },
-  secondary: { label: 'Secondary scene heading', fix: 'Convert to Scene Heading' },
-  formatcue: { label: 'Format cue tagged as Action', fix: 'Make Format Cue' },
-  cue: { label: 'Character cue tagged as Action', fix: 'Make Character' },
-  orphan: { label: 'Dialogue without a character', fix: 'Make Action' },
-  act: { label: 'Act marker in the script', fix: 'Remove' },
-  empty: { label: 'Empty element', fix: 'Remove' },
-  falsedialogue: { label: 'False dialogue', fix: 'Make Action' },
-  unspaced: { label: 'Unspaced Super/Cue', fix: 'Split out the cue' },
-  ending: { label: 'Misaligned script ending', fix: 'Center ‘THE END’' },
+  slugline: { label: 'Unclassified slugline', fix: 'Convert to Scene Heading', verb: 'Convert' },
+  secondary: { label: 'Secondary scene heading', fix: 'Convert to Scene Heading', verb: 'Convert' },
+  formatcue: { label: 'Format cue tagged as Action', fix: 'Make Format Cue', verb: 'Convert' },
+  cue: { label: 'Character cue tagged as Action', fix: 'Make Character', verb: 'Convert' },
+  orphan: { label: 'Dialogue without a character', fix: 'Make Action', verb: 'Fix' },
+  act: { label: 'Act marker in the script', fix: 'Remove', verb: 'Remove' },
+  empty: { label: 'Empty element', fix: 'Remove', verb: 'Remove' },
+  falsedialogue: { label: 'False dialogue', fix: 'Make Action', verb: 'Fix' },
+  unspaced: { label: 'Unspaced Super/Cue', fix: 'Split out the cue', verb: 'Split' },
+  ending: { label: 'Misaligned script ending', fix: 'Center ‘THE END’', verb: 'Center' },
+  orphancue: { label: 'Character cue without dialogue', fix: 'Make Action', verb: 'Fix' },
+  orphanparen: { label: 'Parenthetical without dialogue after it', fix: 'Make Action', verb: 'Fix' },
+  slugformat: { label: 'Scene heading format', fix: 'Format heading', verb: 'Format' },
+  slugincomplete: { label: 'Scene heading missing INT./EXT. or time of day', fix: null, verb: null },
+  intro: { label: 'Character introduced in lowercase', fix: 'Capitalize name', verb: 'Fix' },
+  spacing: { label: 'Double blank lines', fix: 'Strip blank lines', verb: 'Strip' },
 };
+/** Kinds the Fix All button (and a row's Fix) can repair. */
+export const canFix = (kind) => !!ISSUE_KINDS[kind]?.fix;
+
+// ---- Spec-script hygiene -------------------------------------------------------------------------
+
+// The combined prefixes keep the writer's own spelling — INT./EXT. and INT/EXT. are both standard —
+// and only gain the closing period: "int/ext factory" → "INT/EXT. FACTORY".
+const PREFIXES = [
+  [/^int(\.?)\s*\/\s*ext\.?(?=[\s.]|$)\s*/i, (m) => `INT${m[1]}/EXT. `],
+  [/^i\s*\/\s*e\.?(?=[\s.]|$)\s*/i, 'I/E. '],
+  [/^ext(\.?)\s*\/\s*int\.?(?=[\s.]|$)\s*/i, (m) => `EXT${m[1]}/INT. `],
+  [/^int\.?(?=[\s.]|$)\s*/i, 'INT. '],
+  [/^ext\.?(?=[\s.]|$)\s*/i, 'EXT. '],
+  [/^est\.?(?=[\s.]|$)\s*/i, 'EST. '],
+];
+/** Headings that are sequences rather than places: no INT./EXT. or time of day expected. */
+const SEQUENCE_HEADING = /^(?:(?:BEGIN|END|START)\s+)?(?:MONTAGE|SERIES OF SHOTS|INTERCUT|FLASHBACK|DREAM|SPLIT SCREEN)\b/i;
+
+/**
+ * A scene heading laid out the standard way: upper case, single spaces, "INT. " / "EXT. " /
+ * "INT./EXT. " prefixes with their periods, and " - " before the time of day.
+ *   "int kitchen–night" → "INT. KITCHEN - NIGHT"
+ */
+export function formatSlugline(text) {
+  let t = String(text || '').trim().replace(/[ \t]+/g, ' ');
+  for (const [re, canon] of PREFIXES) {
+    const m = re.exec(t);
+    if (m) {
+      t = (typeof canon === 'function' ? canon(m) : canon) + t.slice(m[0].length);
+      break;
+    }
+  }
+  t = t.replace(/\s*(?:--+|[–—])\s*/g, ' - ').replace(/\s+-\s*|\s*-\s+/g, ' - ').replace(/(?: - )+/g, ' - ');
+  return t.toUpperCase().trim();
+}
+
+/**
+ * A time of day as any dash-separated part after the location, not only the last one, read the
+ * same way Plan reads it (sluglines.js timeOfDayPeriod): "INT. KITCHEN - NIGHT - BACK TO SCENE",
+ * "EXT. ROOF - DAY - CONTINUOUS", "INT. CINEUS RESIDENCE - NEXT DAY", "EXT. FIELD - NIGHT (FLASHBACK)".
+ */
+export function hasTimeOfDayPart(text) {
+  return headingParts(stripInline(text || '').trim()).slice(1).some((p) => timeOfDayPeriod(p));
+}
+
+/** Prefix and time of day both there (or a sequence heading like MONTAGE, or a secondary one like LATER)? */
+export function isCompleteSlugline(text) {
+  const t = stripInline(text || '').trim();
+  if (isSecondarySlugline(t) || SEQUENCE_HEADING.test(t) || t.startsWith('.')) return true;
+  return isSlugline(t) && (hasTimeOfDaySuffix(t) || hasTimeOfDayPart(t));
+}
+
+const DOUBLE_BLANK = /\n[ \t]*\n(?:[ \t]*\n)+/;
+/** Two or more blank lines in a row inside an element, or blank lines at its start or end. */
+export const hasExtraBlankLines = (text) => DOUBLE_BLANK.test(text) || /^[ \t]*\n/.test(text) || /\n[ \t]*$/.test(text);
+/** Collapse runs of blank lines to one, and drop blank lines at the start and end. */
+export const stripBlankLines = (text) => text.replace(/\n[ \t]*\n(?:[ \t]*\n)+/g, '\n\n').replace(/^(?:[ \t]*\n)+/, '').replace(/(?:\n[ \t]*)+$/, '');
+
+const escapeRe = (x) => x.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+/**
+ * Speaking characters whose first mention in the Action is not in capitals ("Marie runs…" for a
+ * MARIE who speaks) → Map blockId → [{ name, at, len }]. Only names written like a name (a capital
+ * then lower case) count, so a cue like MAN never matches "the man".
+ */
+export function lowercaseIntroductions(blocks, names) {
+  const out = new Map();
+  const actions = blocks.filter((b) => b.type === 'action' && b.text.trim());
+  for (const name of names) {
+    if (name.length < 3 || !/\p{L}/u.test(name)) continue;
+    const re = new RegExp(`(?<![\\p{L}\\p{N}])${escapeRe(name).replace(/\s+/g, '\\s+')}(?![\\p{L}\\p{N}])`, 'iu');
+    for (const b of actions) {
+      const m = re.exec(b.text);
+      if (!m) continue;
+      const word = m[0];
+      if (word !== word.toUpperCase() && /^\p{Lu}/u.test(word)) {
+        const list = out.get(b.id) || [];
+        list.push({ name, at: m.index, len: word.length });
+        out.set(b.id, list);
+      }
+      break; // only the first mention is the introduction
+    }
+  }
+  return out;
+}
 
 const NARRATIVE_DASH = /^(?:--|—|–)/;
 
@@ -62,20 +153,28 @@ function embeddedCueLines(text) {
 
 /**
  * Audit the script. `skipId` (the element being typed in) is never reported as empty,
- * so a fresh blank line doesn't nag while you write.
+ * so a fresh blank line doesn't nag while you write. `ignore` holds "id|kind" findings the writer
+ * ignored: they're skipped, and the element's other checks still run (one finding per element).
  * Returns [{ id, index, kind, from, to, text }]; `to: null` means "remove".
  */
-export function auditScript(blocks, { skipId = null } = {}) {
+export function auditScript(blocks, { skipId = null, ignore = new Set() } = {}) {
   const issues = [];
   const flaggedCue = new Set();
   const names = new Set(blocks.filter((b) => b.type === 'character')
     .map((b) => stripInline(b.text).replace(/\(.*?\)/g, '').replace(/\^\s*$/, '').trim().toUpperCase()));
 
+  const intros = lowercaseIntroductions(blocks, names);
+
   blocks.forEach((b, i) => {
     const t = b.text.trim();
     const next = blocks[i + 1];
     const prev = blocks[i - 1];
-    const issue = (kind, to) => issues.push({ id: b.id, index: i, kind, from: b.type, to, text: b.text });
+    // Record a finding unless it's ignored (then the checks after it still get their turn).
+    const issue = (kind, to, extra = {}) => {
+      if (ignore.has(`${b.id}|${kind}`)) return false;
+      issues.push({ id: b.id, index: i, kind, from: b.type, to, text: b.text, ...extra });
+      return true;
+    };
 
     if (!t || t === '()') {
       if (blocks.length > 1 && b.id !== skipId && !b.note?.trim()) issue('empty', null);
@@ -84,53 +183,47 @@ export function auditScript(blocks, { skipId = null } = {}) {
     const oneLine = !t.includes('\n');
 
     if (b.type === 'action' && oneLine && isActBreak(t)) {
-      issue('act', null);
-      return;
+      if (issue('act', null)) return;
     }
 
     // THE END left at the Action margin (or typed as a Transition): it's centered.
     if ((b.type === 'action' || b.type === 'transition') && END_RE.test(stripInline(t))) {
-      issue('ending', 'centered');
-      return;
+      if (issue('ending', 'centered')) return;
     }
 
     // SUPER: / SUBTITLE: … run into the Action around it, with no blank line either side.
     if (b.type === 'action' && embeddedCueLines(b.text).length) {
-      issue('unspaced', 'format_cue');
-      return;
+      if (issue('unspaced', 'format_cue')) return;
     }
 
     // Action that is really a scene heading: an INT./EXT. variant, or an all-caps
     // "LOCATION - NIGHT" line…
     if (b.type === 'action' && oneLine && t.length <= 80 && !isOnScreenText(t)
       && (isSlugline(t) || isUnprefixedSlugline(t))) {
-      issue('slugline', 'scene');
-      return;
+      if (issue('slugline', 'scene')) return;
     }
     // …or a secondary heading: BACK TO THE CINEUS RESIDENCE, LATER, MOMENTS LATER, RESUME…
     if (b.type === 'action' && isSecondarySlugline(t)) {
-      issue('secondary', 'scene');
-      return;
+      if (issue('secondary', 'scene')) return;
     }
     // Language / sequence cues typed as Action (on-screen SUPER:/TITLE: lines may stay Action).
     if (b.type === 'action' && isFormatCue(t) && !isOnScreenText(t)) {
-      issue('formatcue', 'format_cue');
-      return;
+      if (issue('formatcue', 'format_cue')) return;
     }
 
     // Short all-caps Action directly above dialogue: a character cue.
     if (b.type === 'action' && oneLine && next && (next.type === 'dialogue' || next.type === 'parenthetical')
       && looksLikeCue(t)) {
-      issue('cue', 'character');
-      flaggedCue.add(i);
-      return;
+      if (issue('cue', 'character')) {
+        flaggedCue.add(i);
+        return;
+      }
     }
 
     // Dialogue / parenthetical that doesn't follow a cue or another part of a speech.
     if ((b.type === 'dialogue' || b.type === 'parenthetical')
       && !(prev && SPEECH.has(prev.type)) && !flaggedCue.has(i - 1)) {
-      issue('orphan', 'action');
-      return;
+      if (issue('orphan', 'action')) return;
     }
 
     // False dialogue — structure only, never length or a leading dash (monologues and
@@ -144,8 +237,34 @@ export function auditScript(blocks, { skipId = null } = {}) {
       const badCue = cue && INTRO_CUE.test(stripInline(cue.text));
       if (badCue || isCharacterIntro(t, names)) {
         const whole = badCue && sp[1] - sp[0] === 2 ? cue : null;
-        issues.push({ id: b.id, index: i, kind: 'falsedialogue', from: 'dialogue', to: 'action', text: b.text, ...(whole ? { mergeCue: whole.id } : {}) });
+        if (issue('falsedialogue', 'action', whole ? { mergeCue: whole.id } : {})) return;
       }
+    }
+
+    // A cue with no dialogue under it (an action, a heading, nothing): not while it's being written.
+    const typing = b.id === skipId || next?.id === skipId;
+    if (b.type === 'character' && !typing && !(next && (next.type === 'dialogue' || next.type === 'parenthetical'))) {
+      if (issue('orphancue', 'action')) return;
+    }
+    // A parenthetical inside a speech that no dialogue follows.
+    if (b.type === 'parenthetical' && !typing && !(next && next.type === 'dialogue')) {
+      if (issue('orphanparen', 'action')) return;
+    }
+
+    // Scene headings: the standard layout first (fixable), then what's missing (yours to add).
+    if (b.type === 'scene' && b.id !== skipId && !t.startsWith('.')) {
+      const plain = stripInline(t);
+      if (formatSlugline(plain) !== plain) {
+        if (issue('slugformat', 'scene', { fixed: formatSlugline(b.text) })) return;
+      }
+      if (!isCompleteSlugline(plain)) {
+        if (issue('slugincomplete', 'scene')) return;
+      }
+    }
+
+    if (intros.has(b.id) && b.id !== skipId && issue('intro', b.type, { intros: intros.get(b.id) })) return;
+    if (b.id !== skipId && hasExtraBlankLines(b.text)) {
+      issue('spacing', b.type);
     }
   });
 
@@ -229,6 +348,26 @@ export function applyFixes(blocks, issues) {
       continue;
     }
     if (it.to === null) continue; // remove
+    if (!canFix(it.kind)) {
+      out.push(b); // nothing automatic to do (e.g. a heading missing its time of day)
+      continue;
+    }
+    if (it.kind === 'slugformat') {
+      const text = formatSlugline(b.text);
+      out.push(withMarks({ ...b, text }, remapMarks(b.text, text, b.marks)));
+      continue;
+    }
+    if (it.kind === 'spacing') {
+      const text = stripBlankLines(b.text);
+      out.push(withMarks({ ...b, text }, remapMarks(b.text, text, b.marks)));
+      continue;
+    }
+    if (it.kind === 'intro') {
+      let text = b.text;
+      for (const { at, len } of it.intros || []) text = text.slice(0, at) + text.slice(at, at + len).toUpperCase() + text.slice(at + len);
+      out.push({ ...b, text }); // same length: formatting stays where it was
+      continue;
+    }
     if (it.kind === 'unspaced') {
       out.push(...splitOutCues(b));
       continue;
@@ -239,7 +378,13 @@ export function applyFixes(blocks, issues) {
     }
     const fixed = { ...b, type: it.to };
     if (it.to !== 'character') delete fixed.dual;
-    if (it.to === 'scene') fixed.text = b.text.trim().toUpperCase();
+    if (it.to === 'scene') {
+      // A new heading comes out in the standard layout too ("ext/int car -- day" → "EXT./INT. CAR - DAY").
+      fixed.text = formatSlugline(b.text);
+      const marks = remapMarks(b.text, fixed.text, b.marks);
+      if (marks) fixed.marks = marks;
+      else delete fixed.marks;
+    }
     if (it.to === 'character') fixed.text = b.text.trim().toUpperCase();
     out.push(fixed);
   }

@@ -8,14 +8,22 @@ import Navigator from './components/Navigator.jsx';
 import TitlePageModal from './components/TitlePageModal.jsx';
 import DeleteProjectModal from './components/DeleteProjectModal.jsx';
 import DialogueStepper from './components/DialogueStepper.jsx';
-import { applyFixes, auditScript } from './lib/formatDoctor.js';
+import { Clapperboard, Columns2, FileText, LayoutList, PenLine, Rows3, SquareKanban } from 'lucide-react';
+import { addAsset, removeAsset, setSceneNotes } from './lib/productionData.js';
+import { csvOutlineFileName, outlineCsv } from './lib/exportCsvOutline.js';
+import FormatStepper from './components/FormatStepper.jsx';
+import { applyFixes, auditScript, canFix } from './lib/formatDoctor.js';
 import TitlePageSheet from './components/TitlePageSheet.jsx';
 import PrintView from './components/PrintView.jsx';
-import BeatBoard from './components/BeatBoard.jsx';
 import Menu from './components/Menu.jsx';
 import { useHistory } from './hooks/useHistory.js';
 // The User Guide (and its text) loads the first time it's opened; the service worker caches it for offline use.
 const UserGuideModal = lazy(() => import('./components/UserGuideModal.jsx'));
+const ExportBibleModal = lazy(() => import('./components/ExportBibleModal.jsx'));
+// The Scene Board (Board / Split views) loads the first time it's shown.
+const BeatBoard = lazy(() => import('./components/BeatBoard.jsx'));
+// The Plan workspace (Breakdowns · Stripboard) loads the first time you switch to it.
+const PlanningWorkspace = lazy(() => import('./components/planning/PlanningWorkspace.jsx'));
 // So do the occasional dialogs — About / Shortcuts, Import, Format Doctor, Rename — keeping the app's first load small.
 const HelpModal = lazy(() => import('./components/HelpModal.jsx'));
 const ImportModal = lazy(() => import('./components/ImportModal.jsx'));
@@ -32,7 +40,7 @@ import { addRevision, createRevision, getRevision, removeRevision } from './lib/
 import { endNoteSession, hasNote, restoreNoteVersion, setNoteText, startNote } from './lib/editorialNotes.js';
 import { renameCharacter, revertRename } from './lib/renameCharacter.js';
 import { moveCardAndScene } from './lib/sceneSync.js';
-import { dialogueFilter, dialogueKeyAction, dialogueStops, filterLabel } from './lib/dialogueFilter.js';
+import { dialogueFilter, dialogueKeyAction, dialogueStops } from './lib/dialogueFilter.js';
 import { canvasThemeInfo, nextCanvasTheme, readCanvasTheme, writeCanvasTheme } from './lib/canvasTheme.js';
 import { mergeDictionary } from './lib/structureDictionary.js';
 import { characterTabFromPrefs, closeDock, dockFromPrefs, openDock, toggleDock } from './lib/dock.js';
@@ -56,7 +64,7 @@ import {
   paginate,
 } from './lib/screenplay.js';
 import { DUAL_SHORTCUT, ELEMENT_MENU } from './lib/shortcuts.js';
-import { isOnBar, moreMenuItems } from './lib/toolbar.js';
+import { fileMenuItems, isOnBar, moreMenuItems } from './lib/toolbar.js';
 import { newProjectMeta, rememberAuthorDefaults } from './lib/authorDefaults.js';
 import { parseFountain, toFountain } from './lib/fountain.js';
 import { parseFDX, toFDX } from './lib/fdx.js';
@@ -64,7 +72,7 @@ import { beatsToFountain, beatsToMarkdown, byAct, moveBeat, sampleBeats } from '
 import { SAMPLE_SCRIPT } from './lib/sampleScript.js';
 import { effectiveZoomFor } from './lib/zoom.js';
 import { actionDensity, riskLocations, stepRisk } from './lib/pacing.js';
-import DensityNav from './components/DensityNav.jsx';
+import DensityStepper from './components/DensityStepper.jsx';
 import { MILESTONES, MILESTONE_TOAST_MS, finishedSentence, milestonesReached } from './lib/milestones.js';
 import { createNoirAudio } from './lib/noirAudio.js';
 import { NOIR_CLASS, NOIR_COMBO, noirGenrePicked, noirKeyAction } from './lib/noir.js';
@@ -80,10 +88,19 @@ const SAVE_DEBOUNCE_MS = 500;
 // handle, Browser vs Synced Folder) live in the library's IndexedDB settings store.
 const folderSync = createFolderSync({ settings: { get: (k) => projects.getSetting(k), set: (k, v) => projects.setSetting(k, v) } });
 const ZOOM_STEPS = [0.75, 0.9, 1, 1.1, 1.25, 1.5, 1.75, 2];
+/** The top-level switch: writing the script, or planning its production (derived from the script). */
+const WORKSPACES = [
+  { id: 'write', label: 'Write', title: 'The script, Scene Board and Story Bible', Icon: PenLine },
+  { id: 'plan', label: 'Plan', title: 'Production planning: breakdowns and stripboard, from the script', Icon: Clapperboard },
+];
+const PLAN_VIEWS = [
+  { id: 'breakdowns', label: 'Breakdowns', title: 'Every scene’s cast, setting, length and the props, wardrobe, vehicles and extras you add', Icon: LayoutList },
+  { id: 'stripboard', label: 'Stripboard', title: 'One colour-coded strip per scene, in script order', Icon: Rows3 },
+];
 const VIEWS = [
-  { id: 'page', label: 'Page', title: 'Script only' },
-  { id: 'split', label: 'Split', title: 'Script + Scene Board side by side' },
-  { id: 'board', label: 'Board', title: 'Scene Board only' },
+  { id: 'page', label: 'Page', title: 'Script only', Icon: FileText },
+  { id: 'split', label: 'Split', title: 'Script + Scene Board side by side', Icon: Columns2 },
+  { id: 'board', label: 'Board', title: 'Scene Board only', Icon: SquareKanban },
 ];
 
 function sampleDoc() {
@@ -138,14 +155,6 @@ function download(filename, content, mime) {
 
 /** Narrower than this, the header's author field hides rather than showing a sliver. */
 const AUTHOR_MIN_WIDTH = 90;
-
-/** The file actions: four toolbar buttons on wide windows, one "File ▾" menu on narrower ones. */
-const FILE_ACTIONS = [
-  { id: 'new', label: 'New', title: 'Start a new script (your others stay in Projects)' },
-  { id: 'open', label: 'Open', title: 'Open .fountain, .fdx, .txt or a .draftline backup' },
-  { id: 'import', label: 'Import', title: 'Import a script from Google Docs, Word, a PDF or plain text' },
-  { id: 'title', label: 'Title Page', title: 'Edit the title page' },
-];
 
 function timeLabel(ts) {
   return ts ? new Date(ts).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : '';
@@ -208,6 +217,8 @@ function Workspace({ boot }) {
   const [characters, setCharacters] = useState(initialDoc.characters); // Story Bible
   const [storyNotes, setStoryNotes] = useState(initialDoc.storyNotes);
   const [storyDna, setStoryDna] = useState(initialDoc.storyDna);
+  // Plan workspace: per-scene asset lists (lib/productionEngine.js), saved with the project.
+  const [production, setProduction] = useState(initialDoc.production); // toDoc normalized it
   const [revisions, setRevisions] = useState(initialDoc.revisions); // Snapshots (lib/revisions.js)
   const [snapshotPrompt, setSnapshotPrompt] = useState(false);
   const [restoreId, setRestoreId] = useState(null); // the snapshot waiting on "Restore?"
@@ -309,6 +320,7 @@ function Workspace({ boot }) {
     characters: initialDoc.characters,
     storyNotes: initialDoc.storyNotes,
     storyDna: initialDoc.storyDna,
+    production: initialDoc.production,
     revisions: initialDoc.revisions,
     at: initialDoc.updatedAt,
     ok: boot.persistent,
@@ -326,7 +338,27 @@ function Workspace({ boot }) {
   const activeBlock = blocks.find((b) => b.id === activeId) || null;
   const activeInDual = items.some((it) => it.kind === 'dual' && it.blocks.some((b) => b.id === activeId));
   // Focus mode is always the bare script page.
-  const showEditor = view !== 'board' || focusMode;
+  // [ Write | Plan ]: Plan hides the writing surfaces without unmounting them, so nothing unsaved
+  // or scrolled is lost; switching back puts the page where it was.
+  const [workspace, setWorkspace] = useState('write');
+  const [planView, setPlanView] = useState('breakdowns');
+  // Breakdown cards' open / folded state (Plan): all open or all folded, except the ones toggled by hand.
+  // Kept here because Collapse All is on the header; a card is open when closed !== except.has(id).
+  const [planFold, setPlanFold] = useState(() => ({ closed: false, except: new Set() }));
+  const planAllFolded = planFold.closed && planFold.except.size === 0;
+  const foldAllPlan = () => setPlanFold({ closed: !planAllFolded, except: new Set() });
+  const togglePlanCard = useCallback((id) => setPlanFold((f) => {
+    const except = new Set(f.except);
+    if (except.has(id)) except.delete(id);
+    else except.add(id);
+    return { ...f, except };
+  }), []);
+  const planFoldBtnRef = useRef(null);
+  const planExportBtnRef = useRef(null);
+  const planSegRef = useRef(null);
+  const inPlan = workspace === 'plan' && !focusMode;
+  const showEditor = (view !== 'board' || focusMode) && !inPlan;
+  const formatBarShown = showEditor; // Element ▾ and B I U S: Page and Split (and Focus), never Board or Plan
   const showBoard = view !== 'page' && !focusMode;
 
   // Page and Split: the page shrinks to fit beside the open drawers — never sideways scrolling,
@@ -381,6 +413,7 @@ function Workspace({ boot }) {
 
   // Scenes the Scene Board can turn into cards: numbered headings with text.
   const boardScenes = useMemo(() => scenes.filter((s) => s.number && s.heading), [scenes]);
+  const getBlocks = useCallback(() => latest.current.blocks, []); // Scene Board → Analyze Value Shifts
 
   // ---- Toasts ----
   const notify = useCallback((msg) => {
@@ -432,11 +465,12 @@ function Workspace({ boot }) {
   // ---- Auto-save to the project library (IndexedDB), debounced ----
   const dirty = saved.blocks !== blocks || saved.meta !== meta || saved.beats !== beats
     || saved.characters !== characters || saved.storyNotes !== storyNotes || saved.storyDna !== storyDna
+    || saved.production !== production
     || saved.revisions !== revisions;
   const latest = useRef(null);
   useLayoutEffect(() => {
     latest.current = {
-      projectId, meta, blocks, beats, characters, storyNotes, storyDna, revisions, pages: layout.pageCount, scenes: analysis.sceneCount, dirty,
+      projectId, meta, blocks, beats, characters, storyNotes, storyDna, production, revisions, pages: layout.pageCount, scenes: analysis.sceneCount, dirty,
       createdAt: saved.createdAt,
       savedAt: saved.at,
       // What a synced .draftline file carries beside the project (same as Backup Project).
@@ -450,7 +484,7 @@ function Workspace({ boot }) {
     const s = latest.current;
     const snap = {
       meta: s.meta, blocks: s.blocks, beats: s.beats, characters: s.characters, storyNotes: s.storyNotes, storyDna: s.storyDna,
-      revisions: s.revisions,
+      production: s.production, revisions: s.revisions,
     };
     // The browser first (the ground truth), then — if a folder is synced — its .draftline file.
     // "Saving…" clears as soon as the browser copy is safe; the folder write follows on its own.
@@ -518,7 +552,7 @@ function Workspace({ boot }) {
     if (!dirty) return undefined;
     const t = setTimeout(saveNow, SAVE_DEBOUNCE_MS);
     return () => clearTimeout(t);
-  }, [dirty, meta, blocks, beats, characters, storyNotes, storyDna, revisions, saveNow]);
+  }, [dirty, meta, blocks, beats, characters, storyNotes, storyDna, production, revisions, saveNow]);
 
   // Tab hidden or closing inside the debounce window: start the save, and journal the state
   // synchronously in case the browser kills the page before IndexedDB commits.
@@ -528,6 +562,7 @@ function Workspace({ boot }) {
       if (!s.dirty) return;
       writeJournal(LOCAL, {
         id: s.projectId, meta: s.meta, blocks: s.blocks, beats: s.beats, characters: s.characters, storyNotes: s.storyNotes, storyDna: s.storyDna,
+        production: s.production,
       });
       saveNow();
     };
@@ -652,17 +687,25 @@ function Workspace({ boot }) {
   }, [dock, endNoteEditing]);
 
   // ---- Format Doctor ----
-  const issues = useMemo(() => auditScript(blocks, { skipId: activeId }), [blocks, activeId]);
+  // Ignore (Format stepper): hidden for this session, per element and kind of finding.
+  const [ignoredIssues, setIgnoredIssues] = useState(() => new Set());
+  const issueKey = (it) => `${it.id}|${it.kind}`;
+  const issues = useMemo(() => auditScript(blocks, { skipId: activeId, ignore: ignoredIssues }), [blocks, activeId, ignoredIssues]);
   // Action density (skim risk): long action paragraphs, from the measured lines when known.
   const density = useMemo(() => actionDensity(blocks, lineMap), [blocks, lineMap]);
   const [densityMode, setDensityMode] = useState(false);
   const [densityIndex, setDensityIndex] = useState(-1); // which skim risk the stepper is on (-1: none yet)
   const noteCount = useMemo(() => blocks.filter((b) => hasNote(b) && b.note.trim()).length, [blocks]);
-  const fixIssues = useCallback((list) => {
+  const fixIssues = useCallback((all) => {
+    const list = all.filter((it) => canFix(it.kind)); // e.g. a heading missing its time of day: yours to write
     if (!list.length) return;
     set(applyFixes(blocks, list));
     notify(list.length === 1 ? 'Fixed · Ctrl+Z to undo' : `Fixed ${list.length} elements · Ctrl+Z to undo`);
   }, [blocks, set, notify]);
+  const ignoreIssue = useCallback((it) => {
+    setIgnoredIssues((prev) => new Set(prev).add(`${it.id}|${it.kind}`));
+    notify('Ignored for this session');
+  }, [notify]);
 
   const onMeasure = useCallback((changes) => {
     setLineMap((prev) => {
@@ -683,14 +726,18 @@ function Workspace({ boot }) {
     notify('Exported .fdx');
   };
   const exportOutline = useCallback((kind) => {
-    if (kind === 'md') {
+    if (kind === 'csv') {
+      const name = csvOutlineFileName(meta.title);
+      download(name, outlineCsv(beats, { scenes: boardScenes, mode: actMode }), 'text/csv;charset=utf-8');
+      notify(`Exported ${name}`);
+    } else if (kind === 'md') {
       download(`${base}-outline.md`, beatsToMarkdown(beats, meta.title, actMode), 'text/markdown;charset=utf-8');
       notify('Exported outline .md');
-    } else {
+    } else if (kind === 'fountain') {
       download(`${base}-outline.fountain`, beatsToFountain(beats, meta.title, actMode), 'text/plain;charset=utf-8');
       notify('Exported outline .fountain');
     }
-  }, [base, beats, meta.title, actMode, notify]);
+  }, [base, beats, meta.title, actMode, boardScenes, notify]);
 
   // ---- Projects ----
   /** Show a stored project: script, title page, beats, Bible; fresh undo history; nothing unsaved. */
@@ -704,6 +751,7 @@ function Workspace({ boot }) {
     setCharacters(doc.characters);
     setStoryNotes(doc.storyNotes);
     setStoryDna(doc.storyDna);
+    setProduction(doc.production);
     setRevisions(doc.revisions);
     noteSession.current = null;
     setNoteId(null);
@@ -714,7 +762,7 @@ function Workspace({ boot }) {
     setProjectId(rec.id);
     setSaved({
       meta: m, blocks: bl, beats: doc.beats, characters: doc.characters, storyNotes: doc.storyNotes, storyDna: doc.storyDna,
-      revisions: doc.revisions, at: rec.updatedAt, ok: true,
+      production: doc.production, revisions: doc.revisions, at: rec.updatedAt, ok: true,
     });
     projects.setActiveProjectId(rec.id);
   }, [reset]);
@@ -859,7 +907,7 @@ function Workspace({ boot }) {
     const s = latest.current;
     const live = {
       id: s.projectId, meta: s.meta, blocks: s.blocks, beats: s.beats, characters: s.characters,
-      storyNotes: s.storyNotes, storyDna: s.storyDna, revisions: s.revisions, pages: s.pages, scenes: s.scenes,
+      storyNotes: s.storyNotes, storyDna: s.storyDna, production: s.production, revisions: s.revisions, pages: s.pages, scenes: s.scenes,
     };
     // If storage is blocked the save fails, but the backup is still made from what's open.
     const rec = (await saveNow().catch(() => null)) || toRecord(live);
@@ -904,9 +952,11 @@ function Workspace({ boot }) {
       folderSync.writeSnapshot(before, { id: s.projectId, title: s.meta.title, createdAt: s.createdAt }, s.fileOptions);
     }
     const doc = revisionToDoc(rev);
-    const before = { meta: s.meta, beats: s.beats, characters: s.characters, storyNotes: s.storyNotes, storyDna: s.storyDna };
+    const before = { meta: s.meta, beats: s.beats, characters: s.characters, storyNotes: s.storyNotes, storyDna: s.storyDna, production: s.production };
     const after = {
       meta: { ...EMPTY_META, ...doc.meta }, beats: doc.beats, characters: doc.characters, storyNotes: doc.storyNotes, storyDna: doc.storyDna,
+      // A snapshot from before planning existed leaves today's breakdowns alone.
+      production: rev.production ? doc.production : s.production,
     };
     const applyParts = (x) => {
       setMeta(x.meta);
@@ -914,6 +964,7 @@ function Workspace({ boot }) {
       setCharacters(x.characters);
       setStoryNotes(x.storyNotes);
       setStoryDna(x.storyDna);
+      setProduction(x.production);
     };
     // The script step carries the rest, so Ctrl+Z takes the whole restore back at once.
     set(doc.blocks.length ? doc.blocks : [makeBlock('scene')], null, { undo: () => applyParts(before), redo: () => applyParts(after) });
@@ -994,6 +1045,7 @@ function Workspace({ boot }) {
   // DELETE. The folder copy goes into the folder's Trash/; if that move fails, the dialog asks
   // before erasing anything (DeleteProjectModal's 'hard' stage).
   const [pendingDelete, setPendingDelete] = useState(null); // { id, title, stage, failed, busy }
+  const [bibleExportOpen, setBibleExportOpen] = useState(false);
   const [libraryRev, setLibraryRev] = useState(0); // bumped when a deletion finishes: Projects re-reads its list
   const deleteProject = async (id, title) => {
     const others = (await projects.getAllProjects()).filter((p) => p.id !== id);
@@ -1139,7 +1191,7 @@ function Workspace({ boot }) {
     setView((v) => VIEWS[(VIEWS.findIndex((x) => x.id === v) + 1) % VIEWS.length].id);
   }, []);
 
-  // Print view is only mounted while printing (Export → Print Script / PDF, or Ctrl+P).
+  // Print view is only mounted while printing (File → Script (PDF), or Ctrl+P).
   useEffect(() => {
     const before = () => flushSync(() => setPrinting(true));
     const after = () => setPrinting(false);
@@ -1230,6 +1282,13 @@ function Workspace({ boot }) {
       } else if (mod && e.key.toLowerCase() === 's') {
         e.preventDefault();
         saveNow().then((rec) => notify(rec ? 'Saved to Projects · use Export for files' : 'Could not save — browser storage is full or blocked'));
+      } else if (mod && !e.altKey && !e.shiftKey && e.code === 'KeyO') {
+        e.preventDefault(); // the browser's own Open File
+        fileShortcuts.current.open?.();
+      } else if (mod && e.altKey && !e.shiftKey && e.code === 'KeyN') {
+        // Ctrl+N belongs to the browser (new window); Ctrl+Shift+Alt+N is Film Noir.
+        e.preventDefault();
+        fileShortcuts.current.new?.();
       } else if (e.altKey && !mod && e.code === 'KeyI') {
         e.preventDefault();
         setDock((d) => toggleDock(d, 'bible'));
@@ -1298,6 +1357,17 @@ function Workspace({ boot }) {
     requestAnimationFrame(() => requestAnimationFrame(() => editorRef.current?.pulseBlock(target.id)));
   };
   const stepSpeech = (dir) => jumpToSpeech(stepRisk(dialogueIndex, dialogueStopList.length, dir));
+  // Characters → Dialogue: picking a character turns the filter on, puts the stepper at "1 of N"
+  // and scrolls to their first line; picking it again (or nothing) clears the filter.
+  const selectCharacter = (name) => {
+    setSelectedChar(name);
+    if (!name) return;
+    const first = dialogueStops(analysis, name, { sceneOf: analysis.sceneOfBlock, scenes, pageOf: layout.pageOfBlock })[0];
+    if (!first) return;
+    setDialoguePos({ name: analysis.characters.get(name)?.name ?? name, index: 0 });
+    if (view === 'board' && !focusMode) setView('page');
+    requestAnimationFrame(() => requestAnimationFrame(() => editorRef.current?.pulseBlock(first.id)));
+  };
   const stepSpeechRef = useRef(stepSpeech);
   useLayoutEffect(() => {
     stepSpeechRef.current = stepSpeech;
@@ -1315,6 +1385,88 @@ function Workspace({ boot }) {
     return () => window.removeEventListener('keydown', onKey);
   }, [dialogueFilterOn]);
 
+  // ---- [ Write | Plan ] ----
+  // Leaving Write keeps the script and the Scene Board exactly where they were scrolled (both stay
+  // mounted, just hidden — and hiding drops scroll offsets); coming back puts them there again.
+  const writeScroll = useRef(0);
+  const boardScroll = useRef([]);
+  const switchWorkspace = (next) => {
+    if (next === workspace) return;
+    if (next === 'plan') {
+      writeScroll.current = scrollerEl.current?.scrollTop ?? 0;
+      const board = document.querySelector('.board');
+      boardScroll.current = board
+        ? [board, ...board.querySelectorAll('*')]
+          .filter((el) => el.scrollTop || el.scrollLeft)
+          .map((el) => [el, el.scrollTop, el.scrollLeft])
+        : [];
+    }
+    setWorkspace(next);
+  };
+  useLayoutEffect(() => {
+    if (workspace !== 'write') return;
+    if (scrollerEl.current && writeScroll.current) scrollerEl.current.scrollTop = writeScroll.current;
+    const saved = boardScroll.current.filter(([el]) => el.isConnected);
+    boardScroll.current = [];
+    if (!saved.length) return;
+    // A side panel coming back slides in over ~0.2s and narrows the board as it goes, so until then
+    // the board may not be scrollable that far: keep putting it back for a moment, unless the
+    // writer scrolls it themselves first.
+    const put = () => {
+      for (const [el, top, left] of saved) {
+        el.scrollTop = top;
+        el.scrollLeft = left;
+      }
+    };
+    put();
+    let frame = 0;
+    const until = performance.now() + 450;
+    const tick = () => {
+      put();
+      if (performance.now() < until) frame = requestAnimationFrame(tick);
+    };
+    frame = requestAnimationFrame(tick);
+    const stop = () => cancelAnimationFrame(frame);
+    const opts = { capture: true, once: true, passive: true };
+    for (const type of ['wheel', 'pointerdown', 'keydown', 'touchstart']) window.addEventListener(type, stop, opts);
+    return () => {
+      stop();
+      for (const type of ['wheel', 'pointerdown', 'keydown', 'touchstart']) window.removeEventListener(type, stop, opts);
+    };
+  }, [workspace]);
+  const openSceneInWrite = (id) => {
+    writeScroll.current = 0; // going somewhere specific: don't restore the old position over it
+    boardScroll.current = [];
+    setWorkspace('write');
+    if (view === 'board') setView('page');
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      editorRef.current?.pulseBlock(id);
+    }));
+  };
+  const exportBreakdown = async () => {
+    // The breakdown arithmetic loads with the Plan workspace (lib/productionEngine.js).
+    const { breakdownCsv, buildBreakdown } = await import('./lib/productionEngine.js');
+    const rows = buildBreakdown({ blocks, analysis, scenes, production });
+    const name = `${(meta.title.trim() || 'Untitled').replace(/[\\/:*?"<>|]+/g, ' ').replace(/\s+/g, '_')}_Breakdown.csv`;
+    download(name, breakdownCsv(rows), 'text/csv;charset=utf-8');
+    notify(`Exported ${name}`);
+  };
+
+  // Format stepper (status bar, while the Format Doctor has findings): where you are in the list
+  // follows the finding (by element), so fixing one keeps you near it; ✕ hides it until a new
+  // finding turns up.
+  const [formatAt, setFormatAt] = useState(null); // `${id}|${kind}` of the current finding
+  const [formatHidden, setFormatHidden] = useState(() => new Set());
+  const formatIndex = formatAt ? issues.findIndex((it) => issueKey(it) === formatAt) : -1;
+  const showFormatStepper = issues.some((it) => !formatHidden.has(issueKey(it)));
+  const jumpToIssue = (i) => {
+    const it = issues[i];
+    if (!it) return;
+    setFormatAt(issueKey(it));
+    if (view === 'board' && !focusMode) setView('page');
+    requestAnimationFrame(() => requestAnimationFrame(() => editorRef.current?.pulseBlock(it.id)));
+  };
+
   const jumpToRisk = (i) => {
     const target = density.list[i];
     if (!target) return;
@@ -1324,29 +1476,29 @@ function Workspace({ boot }) {
     requestAnimationFrame(() => requestAnimationFrame(() => editorRef.current?.pulseBlock(target.id)));
   };
 
-  // New · Open · Import · Title Page: four buttons on wide windows, the "File ▾" menu on narrow ones.
-  const runFileAction = (id) => {
-    if (id === 'new') newScript();
-    else if (id === 'open') fileInputRef.current?.click();
-    else if (id === 'import') setImportSeed({ text: '', name: '' });
-    else if (id === 'title') setTitleOpen(true);
-  };
-
-  const exportItems = [
-    { heading: 'Screenplay' },
-    { label: 'Fountain', hint: '.fountain', onSelect: exportFountain },
-    { label: 'Final Draft', hint: '.fdx', onSelect: exportFDX },
-    { divider: true },
-    { heading: 'Scene outline' },
-    { label: 'Fountain outline', hint: '.fountain', onSelect: () => exportOutline('fountain') },
-    { label: 'Markdown', hint: '.md', onSelect: () => exportOutline('md') },
-    { divider: true },
-    { heading: 'Document' },
-    { label: 'Print Script / PDF', hint: 'Ctrl+P', onSelect: printScript },
-    { divider: true },
-    { heading: 'Project' },
-    { label: 'Backup Project', hint: '.draftline', onSelect: backupProject },
-  ];
+  // The header's File ▾ menu (lib/toolbar.js fileMenuItems): Script · Export · Backup.
+  const fileItems = () => fileMenuItems({
+    onNew: () => newScript(),
+    onOpen: () => fileInputRef.current?.click(),
+    onImport: () => setImportSeed({ text: '', name: '' }),
+    onSample: loadSample,
+    onTitlePage: () => setTitleOpen(true),
+    onPrint: printScript,
+    onBible: () => setBibleExportOpen(true),
+    onFountain: exportFountain,
+    onFdx: exportFDX,
+    onOutlineCsv: () => exportOutline('csv'),
+    onOutlineMd: () => exportOutline('md'),
+    onOutlineFountain: () => exportOutline('fountain'),
+    onBackup: backupProject,
+    onSnapshots: () => setDock((d) => openDock(d, 'snapshots')),
+    snapshotCount: revisions.length,
+  });
+  // Ctrl+O and Ctrl+Alt+N (the global shortcuts below) run the same New / Open as the menu.
+  const fileShortcuts = useRef({});
+  useEffect(() => {
+    fileShortcuts.current = { open: () => fileInputRef.current?.click(), new: () => newScript() };
+  });
 
   return (
     <>
@@ -1354,7 +1506,7 @@ function Workspace({ boot }) {
         className={[
           'app',
           `view-${focusMode ? 'page' : view}`,
-          dock && !focusMode ? 'dock-open' : '',
+          dock && !focusMode && (!inPlan || dock === 'snapshots') ? 'dock-open' : '',
           navVisible ? 'nav-open' : '',
           focusMode ? 'focus-mode' : '',
           noir ? NOIR_CLASS : '',
@@ -1422,26 +1574,40 @@ function Workspace({ boot }) {
                 aria-label="Author"
               />
             </div>
+            {/* [ Write | Plan ]: the two workspaces. Everything left of here is shared by both. */}
+            <div className="seg ws-switch" role="radiogroup" aria-label="Workspace">
+              {WORKSPACES.map(({ id, label, title, Icon }) => (
+                <button
+                  key={id}
+                  type="button"
+                  role="radio"
+                  aria-checked={workspace === id}
+                  className={`seg-btn ws-btn${workspace === id ? ' is-on' : ''}`}
+                  onClick={() => switchWorkspace(id)}
+                  title={title}
+                  aria-label={label}
+                >
+                  <Icon size={14} strokeWidth={1.75} aria-hidden />
+                  <span className="ws-label">{label}</span>
+                </button>
+              ))}
+            </div>
+            {/* File ▾ (New · Open · Import · Title Page · exports · backup): with the identity, so it never
+                shrinks away; outside any clipping box, so its list can drop down. */}
+            <span className="file-menu">
+              <Menu label="File" items={fileItems} title="New, Open, Import, Title Page · Export · Backup" />
+            </span>
+            <input ref={fileInputRef} type="file" accept=".fountain,.spmd,.txt,.fdx,.draftline" hidden onChange={openFile} />
           </div>
 
-          {/* 2 · Middle zone: file actions, then the element & formatting tools */}
+          {/* 2 · Middle zone: File ▾, then the element & formatting tools */}
           <div className="bar-zone zone-middle">
           <span className="bar-sep" aria-hidden="true" />
-          {/* Under 1100px: one "File ▾" menu. It sits outside the clipping box so its list can drop down. */}
-          <span className="file-menu">
-            <Menu label="File" items={() => FILE_ACTIONS.map((a) => ({ ...a, onSelect: () => runFileAction(a.id) }))} title="New · Open · Import · Title Page" />
-          </span>
-          <input ref={fileInputRef} type="file" accept=".fountain,.spmd,.txt,.fdx,.draftline" hidden onChange={openFile} />
           {/* Shrinks and clips if it ever runs out of room — it can never paint over a neighbour. */}
           <div className="zone-middle-tools">
-          <div className="bar-group g-file file-inline">
-            {FILE_ACTIONS.map((a) => (
-              <button key={a.id} className="btn" onClick={() => runFileAction(a.id)} title={a.title}>{a.label}</button>
-            ))}
-          </div>
-
-          {/* Active element & formatting */}
-          <div className="bar-group g-format">
+          {/* Active element & formatting: only on a writing canvas (Page, Split, Focus) — not on the
+              Scene Board or in Plan, where there's nothing to format and the room is better spent. */}
+          <div className="bar-group g-format" hidden={!formatBarShown}>
             <select
               className="type-select"
               value={elementControlsEnabled ? activeBlock.type : ''}
@@ -1463,7 +1629,7 @@ function Workspace({ boot }) {
                 <option key={s.type} value={s.type}>{`${s.label}  ·  ${s.combo}`}</option>
               )))}
             </select>
-            <div className={`fmt-seg${isLocked ? ' is-locked' : ''}`} role="group" aria-label="Text formatting">
+            <div className={`fmt-seg${isLocked ? ' is-locked' : ''}${editControlsEnabled ? '' : ' is-disabled'}`} role="group" aria-label="Text formatting">
               {STYLES.map((k) => {
                 const on = fmtState[k] && elementControlsEnabled;
                 return (
@@ -1488,27 +1654,97 @@ function Workspace({ boot }) {
           </div>
           </div>
 
-          {/* 3 · Right zone: workspace views, output and side panels */}
+          {/* 3 · Right zone, the same slots in both workspaces:
+                 Write: [ Page | Split | Board ]  Focus · Story Bible · Characters   · Snapshot · ⋮
+                 Plan:  [ Breakdowns | Stripboard ]  Collapse All · Export Breakdown · Snapshot · ⋮ */}
           <div className="bar-zone zone-right">
           <span className="bar-sep" aria-hidden="true" />
-          <div className="seg" role="radiogroup" aria-label="Workspace view (Alt+B cycles)">
-            {VIEWS.map((v) => (
+          {inPlan ? (
+            <div className="seg plan-seg" role="radiogroup" aria-label="Plan view" ref={planSegRef}>
+              {PLAN_VIEWS.map(({ id, label, title, Icon }) => (
+                <button
+                  key={id}
+                  type="button"
+                  role="radio"
+                  aria-checked={planView === id}
+                  aria-label={label}
+                  className={`seg-btn${planView === id ? ' is-on' : ''}`}
+                  onClick={() => setPlanView(id)}
+                  title={`${label}: ${title}`}
+                >
+                  <Icon size={14} strokeWidth={1.75} aria-hidden />
+                  <span className="seg-label">{label}</span>
+                </button>
+              ))}
+            </div>
+          ) : (
+          <div className="seg view-seg" role="radiogroup" aria-label="Workspace view (Alt+B cycles)">
+            {VIEWS.map(({ id, label, title, Icon }) => (
               <button
-                key={v.id}
+                key={id}
+                type="button"
                 role="radio"
-                aria-checked={view === v.id}
-                className={`seg-btn${view === v.id ? ' is-on' : ''}`}
-                onClick={() => setView(v.id)}
-                title={`${v.title} · Alt+B cycles`}
+                aria-checked={view === id}
+                aria-label={label}
+                className={`seg-btn${view === id ? ' is-on' : ''}`}
+                onClick={() => setView(id)}
+                title={`${label}: ${title} · Alt+B cycles`}
               >
-                {v.label}
+                <Icon size={14} strokeWidth={1.75} aria-hidden />
+                <span className="seg-label">{label}</span>
               </button>
             ))}
           </div>
+          )}
 
-          {/* 5 · Output & side panels */}
+          {/* Workspace tools, then the utilities both share (Snapshot, ⋮) */}
           <div className="bar-group bar-right">
-            <Menu label="Export" items={exportItems} align="right" title="Export the screenplay or scene outline, print / save as PDF, or back up the project" />
+            {inPlan && planView === 'breakdowns' && (
+              <button
+                ref={planFoldBtnRef}
+                type="button"
+                className="btn btn-plan-fold"
+                onClick={foldAllPlan}
+                disabled={!scenes.length}
+                title="Open or fold every scene’s breakdown"
+              >
+                {planAllFolded ? 'Expand All' : 'Collapse All'}
+              </button>
+            )}
+            {inPlan && (
+              <button
+                ref={planExportBtnRef}
+                type="button"
+                className="btn btn-plan-export"
+                onClick={exportBreakdown}
+                disabled={!scenes.length}
+                title="Every scene’s breakdown as a spreadsheet (.csv)"
+              >
+                <span className="plan-lbl-long">Export Breakdown (.csv)</span>
+                <span className="plan-lbl-short">Export (.csv)</span>
+              </button>
+            )}
+            <button ref={focusBtnRef} className="btn btn-focus" hidden={inPlan} onClick={() => setFocusMode(true)} title="Hide everything but the page (Esc to exit)">Focus</button>
+            <button
+              ref={bibleBtnRef}
+              hidden={inPlan}
+              className={`btn btn-bible${bibleOpen ? ' is-on-subtle' : ''}`}
+              onClick={() => setDock((d) => toggleDock(d, 'bible'))}
+              title="Story Bible: DNA (Blueprint & Glossary) · Notes (Alt+I)"
+              aria-pressed={bibleOpen}
+            >
+              Story Bible
+            </button>
+            <button
+              ref={charactersBtnRef}
+              hidden={inPlan}
+              className={`btn btn-accent${charactersOpen ? ' is-on' : ''}`}
+              onClick={() => setDock((d) => toggleDock(d, 'characters'))}
+              title="Characters: Bios · Dialogue (Alt+C · Alt+T opens Dialogue)"
+              aria-pressed={charactersOpen}
+            >
+              Characters
+            </button>
             <button
               className={`btn btn-snapshot${snapshotsOpen ? ' is-on-subtle' : ''}`}
               onClick={() => setSnapshotPrompt(true)}
@@ -1522,36 +1758,18 @@ function Workspace({ boot }) {
               <span className="snap-label">Snapshot</span>
               {revisions.length > 0 && <span className="btn-count" aria-label={`${revisions.length} saved`}>{revisions.length}</span>}
             </button>
-            <button ref={focusBtnRef} className="btn btn-focus" onClick={() => setFocusMode(true)} title="Hide everything but the page (Esc to exit)">Focus</button>
-            <button
-              ref={bibleBtnRef}
-              className={`btn btn-bible${bibleOpen ? ' is-on-subtle' : ''}`}
-              onClick={() => setDock((d) => toggleDock(d, 'bible'))}
-              title="Story Bible: DNA (Blueprint & Glossary) · Notes (Alt+I)"
-              aria-pressed={bibleOpen}
-            >
-              Story Bible
-            </button>
-            <button
-              ref={charactersBtnRef}
-              className={`btn btn-accent${charactersOpen ? ' is-on' : ''}`}
-              onClick={() => setDock((d) => toggleDock(d, 'characters'))}
-              title="Characters: Bios · Dialogue (Alt+C · Alt+T opens Dialogue)"
-              aria-pressed={charactersOpen}
-            >
-              Characters
-            </button>
             <Menu
               label={<span className="kebab" aria-hidden="true">⋮</span>}
               caret={false}
               className="btn btn-kebab"
               align="right"
-              title="More: snapshots, margin notes, keyboard shortcuts, sample script, about"
+              title="More: snapshots, margin notes, Format Doctor, keyboard shortcuts, User Guide, about"
               ariaLabel="More"
               items={() => moreMenuItems({
-                // Checked as the menu opens: panels the toolbar is showing aren't repeated here.
-                bibleOnBar: isOnBar(bibleBtnRef.current, barRef.current),
-                charactersOnBar: isOnBar(charactersBtnRef.current, barRef.current),
+                // Checked as the menu opens: what the toolbar is showing isn't repeated here. In Plan
+                // the Write panels don't apply, so they never show; Plan's own tools do when tucked away.
+                bibleOnBar: inPlan || isOnBar(bibleBtnRef.current, barRef.current),
+                charactersOnBar: inPlan || isOnBar(charactersBtnRef.current, barRef.current),
                 onBible: () => setDock((d) => openDock(d, 'bible')),
                 onCharacters: () => setDock((d) => openDock(d, 'characters')),
                 onSnapshots: () => setDock((d) => openDock(d, 'snapshots')),
@@ -1562,11 +1780,22 @@ function Workspace({ boot }) {
                 },
                 noteCount,
                 onShortcuts: () => setHelpKind('shortcuts'),
-                onSample: loadSample,
+                onFormatDoctor: () => setDoctorOpen(true),
+                issueCount: issues.length,
                 onAbout: () => setHelpKind('about'),
                 onGuide: () => setGuideOpen(true),
-                focusOnBar: isOnBar(focusBtnRef.current, barRef.current),
+                focusOnBar: inPlan || isOnBar(focusBtnRef.current, barRef.current),
                 onFocus: () => setFocusMode(true),
+                planTools: inPlan ? {
+                  viewsOnBar: isOnBar(planSegRef.current, barRef.current),
+                  views: PLAN_VIEWS.map((v) => ({ label: v.label, on: planView === v.id, onSelect: () => setPlanView(v.id) })),
+                  hasScenes: scenes.length > 0,
+                  foldOnBar: planView !== 'breakdowns' || isOnBar(planFoldBtnRef.current, barRef.current),
+                  foldLabel: planAllFolded ? 'Expand All' : 'Collapse All',
+                  onFold: foldAllPlan,
+                  exportOnBar: isOnBar(planExportBtnRef.current, barRef.current),
+                  onExport: exportBreakdown,
+                } : null,
               })}
             />
           </div>
@@ -1585,16 +1814,9 @@ function Workspace({ boot }) {
         />
 
         <div className="workspace">
+          {/* Film Noir's coffee ring on the desk — before the pages, so the paper covers it */}
+          {noir && <div className="noir-coffee" aria-hidden="true" />}
           <main className="scroller" ref={scrollerRef} hidden={!showEditor}>
-            {filter && (
-              <div className="filter-banner" role="status">
-                <span className="filter-dot" aria-hidden="true" />
-                <span>{filterLabel(filter)}</span>
-                <button type="button" className="filter-clear" onClick={() => setSelectedChar(null)} title="Show the whole script again (Esc)">
-                  Clear Filter ✕
-                </button>
-              </div>
-            )}
             {coverVisible && (
               <div
                 className="cover-wrap"
@@ -1644,6 +1866,7 @@ function Workspace({ boot }) {
             />
           </main>
           {showBoard && (
+            <Suspense fallback={<div className="board-loading" aria-busy="true" />}>
             <BeatBoard
               key={projectId}
               beats={beats}
@@ -1656,13 +1879,33 @@ function Workspace({ boot }) {
               scenes={boardScenes}
               pageCount={layout.pageCount}
               onJump={jumpTo}
+              getBlocks={getBlocks}
+              hidden={inPlan}
             />
+            </Suspense>
+          )}
+          {inPlan && (
+            <Suspense fallback={<div className="plan" aria-busy="true" />}>
+              <PlanningWorkspace
+                view={planView}
+                fold={planFold}
+                onToggleCard={togglePlanCard}
+                blocks={blocks}
+                analysis={analysis}
+                scenes={scenes}
+                production={production}
+                onAdd={(id, bucket, text) => setProduction((p) => addAsset(p, id, bucket, text))}
+                onRemove={(id, bucket, text) => setProduction((p) => removeAsset(p, id, bucket, text))}
+                onNotes={(id, text) => setProduction((p) => setSceneNotes(p, id, text))}
+                onOpenScene={openSceneInWrite}
+              />
+            </Suspense>
           )}
         </div>
 
         <CharactersDrawer
           key={`characters-${projectId}`}
-          open={charactersOpen && !focusMode}
+          open={charactersOpen && !focusMode && !inPlan}
           onClose={() => setDock((d) => closeDock(d, 'characters'))}
           tab={characterTab}
           onTabChange={setCharacterTab}
@@ -1677,117 +1920,136 @@ function Workspace({ boot }) {
             analysis,
             pageOfBlock: layout.pageOfBlock,
             selected: selectedChar,
-            onSelect: setSelectedChar,
+            onSelect: selectCharacter,
             onEditText: updateBlockText,
             onJump: jumpTo,
             onHover: setHoverId,
           }}
         />
 
-        <footer className="status">
-          <span className="status-type">{activeBlock && showEditor ? ELEMENT_META[activeBlock.type].label : VIEWS.find((v) => v.id === view).label}</span>
-          {hints && showEditor && !isLocked && (
-            <span className="status-hints">
-              <kbd>Enter</kbd> {hints.enter}
-              <kbd>Tab</kbd> {hints.tab}
+        <footer className={`status${filter && densityMode && density.dense ? ' has-tools' : ''}`}>
+          {/* Left: what you're typing, then telemetry — saved / synced, Edit lock, scenes, notes, words.
+              Format Doctor isn't here: its stepper (right) is its control, and ⋮ → Format Doctor opens it any time. */}
+          <div className="status-left">
+            <span className="status-type">
+              {inPlan ? `Plan · ${PLAN_VIEWS.find((v) => v.id === planView).label}`
+                : activeBlock && showEditor ? ELEMENT_META[activeBlock.type].label : VIEWS.find((v) => v.id === view).label}
             </span>
-          )}
-          <button
-            className={`status-doctor${issues.length ? ' has-issues' : ''}`}
-            onClick={() => setDoctorOpen(true)}
-            title="Format Doctor: find mis-tagged sluglines, cues and dialogue"
-          >
-            <span className="doctor-dot" aria-hidden="true" />
-            Format Doctor{issues.length ? ` · ${issues.length}` : ''}
-          </button>
-          <span className="status-spacer" />
-          {filter && (
-            <DialogueStepper
-              name={filter.name}
-              stops={dialogueStopList}
-              index={dialogueIndex}
-              onStep={stepSpeech}
-              onGo={jumpToSpeech}
-              onClear={() => setSelectedChar(null)}
-            />
-          )}
-          <button
-            type="button"
-            className={`status-save is-${saveStatus.tone}`}
-            onClick={onSaveStatusClick}
-            title={[saveStatus.title, saved.at ? `Last saved ${timeLabel(saved.at)}` : ''].filter(Boolean).join(' · ')}
-          >
-            <span className="save-dot" aria-hidden="true" />
-            {saveStatus.label}
-          </button>
-          <LockBadge locked={isLocked} onToggle={toggleLock} />
-          {noir && (
-            <button type="button" className="status-noir" onClick={() => setNoirMode(false)} title={`Film Noir — ${NOIR_COMBO} or Esc to leave`}>
-              <span aria-hidden="true">🌧</span> Noir Active · Esc to exit
-            </button>
-          )}
-          <span>{analysis.sceneCount} scenes</span>
-          {noteCount > 0 && (
+            {hints && showEditor && !isLocked && (
+              <span className="status-hints">
+                <kbd>Enter</kbd> {hints.enter}
+                <kbd>Tab</kbd> {hints.tab}
+              </span>
+            )}
             <button
               type="button"
-              className="status-btn"
-              onClick={() => {
-                if (notesOpen) closeNotes(false);
-                else {
-                  setNoteId(null);
-                  setDock((d) => openDock(d, 'notes'));
-                }
-              }}
-              title="Margin notes — private, never printed or exported"
+              className={`status-save is-${saveStatus.tone}`}
+              onClick={onSaveStatusClick}
+              title={[saveStatus.title, saved.at ? `Last saved ${timeLabel(saved.at)}` : ''].filter(Boolean).join(' · ')}
             >
-              {noteCount} {noteCount === 1 ? 'note' : 'notes'}
+              <span className="save-dot" aria-hidden="true" />
+              {saveStatus.label}
             </button>
-          )}
-          <span>{analysis.words.toLocaleString()} words</span>
-          <DensityNav
-            density={density}
-            on={densityMode}
-            index={densityIndex}
-            locations={densityLocations}
-            onStart={({ jump }) => {
-              setDensityMode(true);
-              if (jump) jumpToRisk(stepRisk(-1, density.dense, 'first'));
-            }}
-            onStep={(dir) => jumpToRisk(stepRisk(densityIndex, density.dense, dir))}
-            onGo={(i) => jumpToRisk(stepRisk(densityIndex, density.dense, { type: 'go', index: i }))}
-            onOff={() => {
-              setDensityMode(false);
-              setDensityIndex(-1);
-            }}
-          />
-          <span title="54 lines per page">
-            {currentPage && showEditor ? `p. ${currentPage} of ${layout.pageCount}` : `${layout.pageCount} ${layout.pageCount === 1 ? 'page' : 'pages'}`}
-          </span>
-          <button
-            type="button"
-            className={`mini status-canvas is-${canvasTheme}`}
-            onClick={toggleCanvasTheme}
-            title={`Page colour: ${canvasThemeInfo(canvasTheme).label}. Switch to ${themeNext.label} — ${themeNext.hint}`}
-            aria-label={`Page colour: ${canvasThemeInfo(canvasTheme).label}. Switch to ${themeNext.label}`}
-          >
-            <span className="canvas-swatch" aria-hidden="true" />
-            {canvasThemeInfo(canvasTheme).label}
-          </button>
-          <span className="status-history">
-            <button className="mini" onClick={undo} disabled={!canUndo || isLocked} title="Undo script edit (Ctrl+Z)">↶</button>
-            <button className="mini" onClick={redo} disabled={!canRedo || isLocked} title="Redo (Ctrl+Shift+Z)">↷</button>
-          </span>
-          <span className="status-zoom">
-            <button className="mini" onClick={() => zoomBy(-1)} aria-label="Zoom out">−</button>
+            <LockBadge locked={isLocked} onToggle={toggleLock} />
+            <span>{analysis.sceneCount} scenes</span>
+            {noteCount > 0 && (
+              <button
+                type="button"
+                className="status-btn"
+                onClick={() => {
+                  if (notesOpen) closeNotes(false);
+                  else {
+                    setNoteId(null);
+                    setDock((d) => openDock(d, 'notes'));
+                  }
+                }}
+                title="Margin notes — private, never printed or exported"
+              >
+                {noteCount} {noteCount === 1 ? 'note' : 'notes'}
+              </button>
+            )}
+            <span>{analysis.words.toLocaleString()} words</span>
+          </div>
+          <span className="status-spacer" />
+          {/* Right: active tool steppers [Dialogue] [Density], then the view — page, paper, undo, zoom. */}
+          <div className="status-right">
+            <div className="status-tools" hidden={inPlan}>
+              {filter && (
+                <DialogueStepper
+                  name={filter.name}
+                  stops={dialogueStopList}
+                  index={dialogueIndex}
+                  onStep={stepSpeech}
+                  onGo={jumpToSpeech}
+                  onClear={() => setSelectedChar(null)}
+                />
+              )}
+              {showFormatStepper && (
+                <FormatStepper
+                  issues={issues}
+                  index={formatIndex}
+                  pageOfBlock={layout.pageOfBlock}
+                  onStep={(dir) => jumpToIssue(stepRisk(formatIndex, issues.length, dir))}
+                  onGo={jumpToIssue}
+                  onFix={(it) => fixIssues([it])}
+                  onIgnore={ignoreIssue}
+                  onOpenDoctor={() => setDoctorOpen(true)}
+                  onDismiss={() => setFormatHidden(new Set(issues.map(issueKey)))}
+                />
+              )}
+              <DensityStepper
+                density={density}
+                on={densityMode}
+                index={densityIndex}
+                locations={densityLocations}
+                onStep={(dir) => {
+                  setDensityMode(true); // ‹ › before the highlights are on turns them on
+                  jumpToRisk(stepRisk(densityMode ? densityIndex : -1, density.dense, dir));
+                }}
+                onGo={(i) => {
+                  setDensityMode(true);
+                  jumpToRisk(stepRisk(densityIndex, density.dense, { type: 'go', index: i }));
+                }}
+                onOff={() => {
+                  setDensityMode(false);
+                  setDensityIndex(-1);
+                }}
+              />
+              {noir && (
+                <button type="button" className="status-noir" onClick={() => setNoirMode(false)} title={`Film Noir — ${NOIR_COMBO} or Esc to leave`}>
+                  <span aria-hidden="true">🌧</span> Noir Active · Esc to exit
+                </button>
+              )}
+            </div>
+            <span title="54 lines per page">
+              {currentPage && showEditor ? `p. ${currentPage} of ${layout.pageCount}` : `${layout.pageCount} ${layout.pageCount === 1 ? 'page' : 'pages'}`}
+            </span>
             <button
-              className="mini zoom-val"
-              onClick={() => setZoom(1)}
-              title={isFitted ? 'Shrunk to fit beside the open panels · click to reset zoom' : 'Reset zoom'}
+              type="button"
+              className={`mini status-canvas is-${canvasTheme}`}
+              onClick={toggleCanvasTheme}
+              title={`Page colour: ${canvasThemeInfo(canvasTheme).label}. Switch to ${themeNext.label} — ${themeNext.hint}`}
+              aria-label={`Page colour: ${canvasThemeInfo(canvasTheme).label}. Switch to ${themeNext.label}`}
             >
-              {zoomPct(effectiveZoom)}%{isFitted ? ' fit' : ''}
+              <span className="canvas-swatch" aria-hidden="true" />
+              {canvasThemeInfo(canvasTheme).label}
             </button>
-            <button className="mini" onClick={() => zoomBy(1)} aria-label="Zoom in">+</button>
-          </span>
+            <span className="status-history">
+              <button className="mini" onClick={undo} disabled={!canUndo || isLocked} title="Undo script edit (Ctrl+Z)">↶</button>
+              <button className="mini" onClick={redo} disabled={!canRedo || isLocked} title="Redo (Ctrl+Shift+Z)">↷</button>
+            </span>
+            <span className="status-zoom">
+              <button className="mini" onClick={() => zoomBy(-1)} aria-label="Zoom out">−</button>
+              <button
+                className="mini zoom-val"
+                onClick={() => setZoom(1)}
+                title={isFitted ? 'Shrunk to fit beside the open panels · click to reset zoom' : 'Reset zoom'}
+              >
+                {zoomPct(effectiveZoom)}%{isFitted ? ' fit' : ''}
+              </button>
+              <button className="mini" onClick={() => zoomBy(1)} aria-label="Zoom in">+</button>
+            </span>
+          </div>
         </footer>
 
         {focusMode && (
@@ -1800,6 +2062,12 @@ function Workspace({ boot }) {
         )}
         {toast && <div className="toast" role="status">{toast}</div>}
         {milestone && <div className="milestone-toast" role="status" key={milestone}>{milestone}</div>}
+        {bibleExportOpen && (
+          // Export → Story Bible (PDF)…: loads (with lib/biblePdfExport.js) the first time it's opened.
+          <Suspense fallback={null}>
+            <ExportBibleModal project={{ meta, storyDna, storyNotes, characters, actMode }} onClose={() => setBibleExportOpen(false)} />
+          </Suspense>
+        )}
         {pendingDelete && (
           <DeleteProjectModal
             key={`${pendingDelete.id}-${pendingDelete.stage}`}
@@ -1818,7 +2086,7 @@ function Workspace({ boot }) {
 
         <ProjectBibleDrawer
           key={`bible-${projectId}`}
-          open={bibleOpen && !focusMode}
+          open={bibleOpen && !focusMode && !inPlan}
           onClose={() => setDock((d) => closeDock(d, 'bible'))}
           tab={bibleTab}
           onTabChange={setBibleTab}
@@ -1847,7 +2115,7 @@ function Workspace({ boot }) {
         />
 
         <NotesDrawer
-          open={notesOpen && !focusMode}
+          open={notesOpen && !focusMode && !inPlan}
           blocks={blocks}
           noteId={noteId}
           pageOf={layout.pageOfBlock}
@@ -1910,7 +2178,7 @@ function Workspace({ boot }) {
         {helpKind && (
           <HelpModal
             kind={helpKind}
-            storage={{ ok: saved.ok, savedAt: saved.at, bytes: JSON.stringify({ meta, blocks, beats, characters, storyNotes, storyDna }).length, countProjects: () => projects.getAllProjects().then((l) => l.length), sync }}
+            storage={{ ok: saved.ok, savedAt: saved.at, bytes: JSON.stringify({ meta, blocks, beats, characters, storyNotes, storyDna, production }).length, countProjects: () => projects.getAllProjects().then((l) => l.length), sync }}
             onBackup={backupProject}
             onClose={() => setHelpKind(null)}
           />
@@ -1922,6 +2190,7 @@ function Workspace({ boot }) {
             pageOfBlock={layout.pageOfBlock}
             onFix={(it) => fixIssues([it])}
             onFixAll={() => fixIssues(issues)}
+            onIgnore={ignoreIssue}
             onShow={(id) => {
               setDoctorOpen(false);
               requestAnimationFrame(() => jumpTo(id));
