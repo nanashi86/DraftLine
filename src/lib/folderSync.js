@@ -83,7 +83,30 @@ export const trashPath = (name) => `${TRASH_DIR}/${name}`;
 /** Where a snapshot file goes, relative to the linked folder. */
 export const snapshotPath = (name) => `${SNAPSHOT_DIR}/${name}`;
 
-const SNAPSHOT_FIELDS = ['id', 'label', 'timestamp', 'pages', 'scenes', 'words'];
+const SNAPSHOT_FIELDS = ['id', 'label', 'timestamp', 'pages', 'scenes', 'words', 'auto'];
+
+// ---- Automatic snapshots (rolling) ----
+// While a script is open with a folder linked, DraftLine writes an automatic snapshot every
+// AUTO_SNAPSHOT_INTERVAL_MS if the script changed since the last one, and always right before an
+// import, a Format Doctor Fix All, or deleting the script. They're ordinary snapshot files in
+// Snapshots/ (<slug>_<YYYY-MM-DD_HHmm>.draftline), marked `"auto": true` inside, and only the newest
+// AUTO_SNAPSHOT_KEEP of each script's automatic ones are kept. Snapshots you take yourself are never
+// trimmed, and neither is another script's, even one with the same title (matched by project id).
+export const AUTO_SNAPSHOT_INTERVAL_MS = 15 * 60 * 1000;
+export const AUTO_SNAPSHOT_KEEP = 15;
+
+/**
+ * Which snapshot files to delete so project `projectId` keeps its newest `keep` automatic ones:
+ *   files: [{ name, projectId, auto, lastModified, timestamp }] → [names], oldest first.
+ * Sorted by date modified (the snapshot's own time breaks ties, or stands in when a file has none).
+ */
+export function autoSnapshotsToPrune(files, projectId, keep = AUTO_SNAPSHOT_KEEP) {
+  const when = (f) => f.lastModified || Date.parse(f.timestamp) || 0;
+  const mine = files
+    .filter((f) => f.projectId === projectId && f.auto === true)
+    .sort((a, b) => when(a) - when(b) || (Date.parse(a.timestamp) || 0) - (Date.parse(b.timestamp) || 0) || a.name.localeCompare(b.name));
+  return mine.slice(0, Math.max(0, mine.length - keep)).map((f) => f.name);
+}
 
 /**
  * A snapshot as a file: a normal .draftline backup of the script as it was (so it opens anywhere),
@@ -123,6 +146,7 @@ export function snapshotFromFileText(text) {
     rev: {
       id: s.id, label: s.label, timestamp: s.timestamp, script, beatBoard: beats || [], meta, characters: characters || [],
       storyNotes, storyDna, ...(production ? { production } : {}), pages: s.pages ?? null, scenes: s.scenes ?? 0, words: s.words ?? 0,
+      ...(s.auto === true ? { auto: true } : {}),
     },
   };
 }
@@ -545,6 +569,36 @@ export function createFolderSync({ settings, win = globalThis, now = () => Date.
         emit({ syncing: false, error: null, lastSyncedAt: now() });
         return snapshotPath(name);
       }).then((r) => (r === 'error' || r === 'skipped' ? null : r));
+    },
+
+    /**
+     * An automatic snapshot (see AUTO_SNAPSHOT_KEEP): written like any snapshot, marked auto, then
+     * this script's automatic snapshots beyond the newest `keep` are deleted, oldest first.
+     * Resolves { path, pruned: [file names] } — path null if nothing was written (no folder linked).
+     */
+    async writeAutoSnapshot(rev, project, options, { keep = AUTO_SNAPSHOT_KEEP } = {}) {
+      const path = await this.writeSnapshot({ ...rev, auto: true }, project, options);
+      if (!path) return { path: null, pruned: [] };
+      const pruned = await enqueue(`prune:${project.id}`, async () => {
+        const dir = await snapshotsDir(false);
+        if (!dir) return [];
+        const files = [];
+        for (const [name, fh] of await listFiles(dir)) {
+          try {
+            const { text, lastModified } = await readText(fh);
+            const s = JSON.parse(text.replace(/^\uFEFF/, '')).snapshot;
+            if (s) files.push({ name, projectId: s.projectId, auto: s.auto === true, lastModified, timestamp: s.timestamp });
+          } catch {
+            // not a snapshot file DraftLine can read: never touched
+          }
+        }
+        const gone = [];
+        for (const name of autoSnapshotsToPrune(files, project.id, keep)) {
+          await dir.removeEntry(name).then(() => gone.push(name), () => {});
+        }
+        return gone;
+      });
+      return { path, pruned: Array.isArray(pruned) ? pruned : [] };
     },
 
     /** Snapshot files for project `id`: [{ fileName, rev }], newest first. */

@@ -36,7 +36,7 @@ import ProjectBibleDrawer from './components/ProjectBibleDrawer.jsx';
 import NotesDrawer from './components/NotesDrawer.jsx';
 import CueBioCard from './components/CueBioCard.jsx';
 import { RestorePrompt, SnapshotPrompt, SnapshotsDrawer } from './components/Snapshots.jsx';
-import { addRevision, createRevision, getRevision, removeRevision } from './lib/revisions.js';
+import { addRevision, changedSince, createRevision, getRevision, partsOf, removeRevision } from './lib/revisions.js';
 import { endNoteSession, hasNote, restoreNoteVersion, setNoteText, startNote } from './lib/editorialNotes.js';
 import { renameCharacter, revertRename } from './lib/renameCharacter.js';
 import { moveCardAndScene } from './lib/sceneSync.js';
@@ -76,7 +76,9 @@ import DensityStepper from './components/DensityStepper.jsx';
 import { MILESTONES, MILESTONE_TOAST_MS, finishedSentence, milestonesReached } from './lib/milestones.js';
 import { createNoirAudio } from './lib/noirAudio.js';
 import { NOIR_CLASS, NOIR_COMBO, noirGenrePicked, noirKeyAction } from './lib/noir.js';
-import { TRASH_DIR, createFolderSync, mergeProjectLists, saveProjectEverywhere, storageStatus } from './lib/folderSync.js';
+import {
+  AUTO_SNAPSHOT_INTERVAL_MS, TRASH_DIR, createFolderSync, mergeProjectLists, saveProjectEverywhere, storageStatus,
+} from './lib/folderSync.js';
 import './App.css';
 
 // Scripts live in IndexedDB (lib/projectStorage.js); localStorage keeps only UI prefs.
@@ -228,6 +230,7 @@ function Workspace({ boot }) {
   // Folder sync: where scripts are kept (browser only, or browser + a linked folder).
   const sync = useSyncExternalStore(folderSync.subscribe, folderSync.getState);
   const [folderSnaps, setFolderSnaps] = useState({ projectId: null, list: [] }); // <folder>/Snapshots files
+  const [autoSnapCount, setAutoSnapCount] = useState(0); // bumped per automatic snapshot: the drawer re-reads the folder
   const [focusStorage, setFocusStorage] = useState(0); // bumped by the status bar → Projects' storage block
 
   const [lineMap, setLineMap] = useState({});
@@ -546,7 +549,7 @@ function Workspace({ boot }) {
     return () => {
       live = false;
     };
-  }, [snapshotsOpen, sync.active, projectId, revisions.length]);
+  }, [snapshotsOpen, sync.active, projectId, revisions.length, autoSnapCount]);
 
   useEffect(() => {
     if (!dirty) return undefined;
@@ -696,9 +699,10 @@ function Workspace({ boot }) {
   const [densityMode, setDensityMode] = useState(false);
   const [densityIndex, setDensityIndex] = useState(-1); // which skim risk the stepper is on (-1: none yet)
   const noteCount = useMemo(() => blocks.filter((b) => hasNote(b) && b.note.trim()).length, [blocks]);
-  const fixIssues = useCallback((all) => {
+  const fixIssues = useCallback((all, { bulk = false } = {}) => {
     const list = all.filter((it) => canFix(it.kind)); // e.g. a heading missing its time of day: yours to write
     if (!list.length) return;
+    if (bulk) autoSnapshotRef.current('Fix All', { force: true }); // Fix All: the script as it was, first
     set(applyFixes(blocks, list));
     notify(list.length === 1 ? 'Fixed · Ctrl+Z to undo' : `Fixed ${list.length} elements · Ctrl+Z to undo`);
   }, [blocks, set, notify]);
@@ -927,6 +931,42 @@ function Workspace({ boot }) {
     return rev;
   }, [notify]);
 
+  // ---- Automatic snapshots (folderSync.js AUTO_SNAPSHOT_*): with a folder linked, every 15 minutes
+  // if the script changed since the last one, and always just before something that replaces a lot
+  // at once — an import, Format Doctor Fix All, deleting a script. Files in <folder>/Snapshots,
+  // marked automatic; each script keeps its newest 15 of them (yours are never trimmed). ----
+  const autoBaseline = useRef(null); // { projectId, parts } as of the last automatic snapshot (or opening)
+  /**
+   * Write one automatic snapshot of the open script now. `reason` labels it; `force` writes it even
+   * if nothing changed (the pre-destructive ones). The project's state is copied before this
+   * returns, so whatever runs next can't reach into it. Resolves the file's path, or null.
+   */
+  const autoSnapshot = useCallback(async (reason, { force = false } = {}) => {
+    const s = latest.current;
+    if (!sync.active) return null;
+    if (!force && !changedSince(autoBaseline.current, s)) return null;
+    const label = reason ? `Auto · before ${reason}` : 'Auto-snapshot';
+    const rev = createRevision(s, { label, pages: s.pages });
+    autoBaseline.current = { projectId: s.projectId, parts: partsOf(s) };
+    const { path } = await folderSync.writeAutoSnapshot(rev, { id: s.projectId, title: s.meta.title, createdAt: s.createdAt }, s.fileOptions)
+      .catch(() => ({ path: null }));
+    if (path) setAutoSnapCount((n) => n + 1);
+    return path;
+  }, [sync.active]);
+  // Opening a script is the baseline: the first automatic snapshot comes after you change something.
+  useEffect(() => {
+    autoBaseline.current = { projectId, parts: partsOf(latest.current) };
+  }, [projectId]);
+  const autoSnapshotRef = useRef(autoSnapshot);
+  useEffect(() => {
+    autoSnapshotRef.current = autoSnapshot;
+  });
+  useEffect(() => {
+    if (!sync.active) return undefined;
+    const t = setInterval(() => autoSnapshotRef.current(null), AUTO_SNAPSHOT_INTERVAL_MS);
+    return () => clearInterval(t);
+  }, [sync.active]);
+
   const deleteSnapshot = useCallback((id) => {
     const s = latest.current;
     const rev = getRevision(s.revisions, id) || getRevision(s.folderSnaps, id);
@@ -1060,6 +1100,19 @@ function Workspace({ boot }) {
     if (!d || d.busy) return;
     setPendingDelete({ ...d, busy: true });
     try {
+      // The script as it was, into <folder>/Snapshots first (the delete leaves that folder alone).
+      if (sync.active) {
+        if (d.id === projectId) await autoSnapshotRef.current('deleting', { force: true });
+        else {
+          const rec = await projects.getProject(d.id).catch(() => null);
+          if (rec) {
+            const doc = toDoc(rec);
+            const rev = createRevision(doc, { label: 'Auto · before deleting', pages: rec.pages });
+            await folderSync.writeAutoSnapshot(rev, { id: rec.id, title: rec.title, createdAt: rec.createdAt }, latest.current.fileOptions)
+              .catch(() => null);
+          }
+        }
+      }
       if (d.id === projectId) {
         // Move to the most recently edited other script first, then delete.
         const next = (await projects.getAllProjects()).find((p) => p.id !== d.id);
@@ -1147,6 +1200,7 @@ function Workspace({ boot }) {
       notify('Nothing to import — the preview is empty');
       return;
     }
+    autoSnapshotRef.current(mode === 'append' ? 'append' : 'import', { force: true }); // the script as it was, first
     if (mode === 'append') set((prev) => [...prev, ...incoming]);
     else set(incoming);
     if (detected) {
@@ -2216,7 +2270,7 @@ function Workspace({ boot }) {
             issues={issues}
             pageOfBlock={layout.pageOfBlock}
             onFix={(it) => fixIssues([it])}
-            onFixAll={() => fixIssues(issues)}
+            onFixAll={() => fixIssues(issues, { bulk: true })}
             onIgnore={ignoreIssue}
             onShow={(id) => {
               setDoctorOpen(false);

@@ -118,3 +118,14 @@ export function revisionRecord(rev) {
     production: r.production, // absent in older snapshots: empty breakdowns
   };
 }
+
+/** The parts of an open project a snapshot captures. React state is immutable, so same identity = unchanged. */
+export const partsOf = (s) => [s.blocks, s.meta, s.beats, s.characters, s.storyNotes, s.storyDna, s.production];
+
+/**
+ * Has project `s` changed since `baseline` ({ projectId, parts: partsOf(…) }) — the last automatic
+ * snapshot, or opening the script? True with no baseline, or for another script.
+ */
+export function changedSince(baseline, s) {
+  return !baseline || baseline.projectId !== s.projectId || partsOf(s).some((x, i) => x !== baseline.parts[i]);
+}

@@ -18,7 +18,7 @@ import { DUAL_SHORTCUT, ELEMENT_SHORTCUTS, SHORTCUTS } from '../lib/shortcuts.js
 import { CANVAS_THEMES } from '../lib/canvasTheme.js';
 import { ACTION_LINE_LIMIT } from '../lib/pacing.js';
 import { LOCK_COMBO } from '../lib/lock.js';
-import { SNAPSHOT_DIR } from '../lib/folderSync.js';
+import { AUTO_SNAPSHOT_INTERVAL_MS, AUTO_SNAPSHOT_KEEP, SNAPSHOT_DIR } from '../lib/folderSync.js';
 import { SPEC_STAMP_ANGLE, SPEC_STAMP_TEXT } from '../lib/specStamp.js';
 import { AUTHOR_PLACEHOLDER } from '../lib/authorDefaults.js';
 import { LATE_NIGHT_HOURS, MILESTONES, PAGE_MILESTONES, SESSION_WORD_GOAL } from '../lib/milestones.js';
@@ -111,6 +111,8 @@ export function guideValues(f = FEATURES) {
   v['plan.pageLines'] = String(PAGE_LINES); // Plan: page eighths are measured against this
   v['lock.combo'] = `\`${f.lock.combo}\``;
   v['sync.snapshotDir'] = f.sync.snapshotDir;
+  v['snapshots.autoMinutes'] = String(AUTO_SNAPSHOT_INTERVAL_MS / 60000);
+  v['snapshots.autoKeep'] = String(AUTO_SNAPSHOT_KEEP);
   v['themes'] = f.canvasThemes.map((t) => `${bold(t.label)} (${t.hint.charAt(0).toLowerCase()}${t.hint.slice(1)})`).join(' or ');
   for (const e of f.elements) v[`element.${e.type}`] = `${bold(e.label)} (\`${e.combo}\`)`;
   v['element.dual'] = `\`${DUAL_SHORTCUT.combo}\``;

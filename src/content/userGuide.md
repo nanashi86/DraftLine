@@ -53,6 +53,7 @@ A snapshot is a named checkpoint of the whole project: script, title page, Scene
 - **⋮ → View Snapshots** lists them, newest first. **Restore** puts a snapshot back. It offers to snapshot your current draft first (on by default), and {{key:Ctrl+Z}} undoes the restore.
 - Snapshots are saved with the script and included in backups.
 - With Folder Sync on, each snapshot is also written to `{{sync.snapshotDir}}/Your-Title_YYYY-MM-DD_HHmm.draftline` inside the linked folder. Snapshots found only in that folder (from another computer, for example) show **In folder** and can be restored like any other.
+- **Automatic snapshots** (Folder Sync on): every {{snapshots.autoMinutes}} minutes, if the script has changed since the last one, DraftLine writes one to `{{sync.snapshotDir}}` named **Auto-snapshot**. It also writes one right before anything that replaces a lot at once: an import (**Auto · before import**), a Format Doctor **Fix All**, or deleting a script. Each script keeps its newest {{snapshots.autoKeep}} automatic snapshots; older ones are removed as new ones arrive. Snapshots you take yourself are never removed automatically. Automatic snapshots appear in **View Snapshots** with the rest and restore the same way.
 
 ### Backups
 
