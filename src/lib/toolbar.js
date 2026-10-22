@@ -56,8 +56,8 @@ export function fileMenuItems({
   return [
     { heading: 'Script' },
     { label: 'New Script', hint: 'Ctrl+Alt+N', onSelect: onNew, title: 'Start a new script (your others stay in Projects)' },
-    { label: 'Open…', hint: 'Ctrl+O', onSelect: onOpen, title: 'Open a .fountain, .fdx, .txt or .draftline file' },
-    { label: 'Import…', hint: 'Docs · Word · PDF', onSelect: onImport, title: 'Paste or load a script from Google Docs, Word, a PDF or plain text' },
+    { label: 'Open…', hint: 'Ctrl+O', onSelect: onOpen, title: 'Open a .fountain, .fdx, .docx, .txt or .draftline file' },
+    { label: 'Import…', hint: 'Word · Docs · PDF', onSelect: onImport, title: 'Load a script from Word (.docx), Final Draft, Fountain or plain text, or paste one from Google Docs or a PDF' },
     { label: 'Load Sample Script', hint: 'The Last Ferry', onSelect: onSample, title: 'Add the sample script to your Projects (your scripts stay as they are)' },
     { label: 'Title Page Settings…', onSelect: onTitlePage },
     { divider: true },

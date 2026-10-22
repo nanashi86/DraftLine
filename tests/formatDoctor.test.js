@@ -164,7 +164,7 @@ describe('Format Doctor: the dialog and the status-bar list', () => {
   });
   it('the status-bar list: title + page tag, then the line in Courier; Fix / Ignore pinned right; floats 4px above the bar', () => {
     const fs = read('components/FormatStepper.jsx');
-    assert.match(fs, /label: ISSUE_KINDS\[it\.kind\]\.label,\s*tag: `p\. \$\{pageOfBlock\[it\.id\] \?\? '–'\}`,\s*sub: firstLine\(it\.text\),\s*mono: true,/);
+    assert.match(fs, /label: ISSUE_KINDS\[it\.kind\]\.label,\s*tag: `p\. \$\{pageOfBlock\[it\.id\] \?\? '–'\}`,\s*sub: findingPreview\(it\),\s*mono: true,/);
     const ss = read('components/StatusStepper.jsx');
     assert.match(ss, /bottom: window\.innerHeight - barTop \+ 4/);
     const app = read('App.css');
@@ -226,5 +226,31 @@ describe('Format Doctor: scene headings stay UPPERCASE, modifiers included; pare
     assert.ok(blocks.some((b) => b.type === 'parenthetical' && b.text === '(quietly)'), 'the dialogue parenthetical keeps its case');
     const fdx = toFDX({ blocks });
     assert.ok(fdx.includes('(FLASHBACK)') && fdx.includes('(MOVING)') && !/\((?:Flashback|Moving)\)/.test(fdx));
+  });
+});
+
+describe('Format Doctor: a heading is judged the way it shows — in capitals', () => {
+  it('EXT. CROIX-DES-BOSSALES - NIGHT (FLASHBACK) produces no findings', () => {
+    assert.deepEqual(auditScript([B('s', 'scene', 'EXT. CROIX-DES-BOSSALES - NIGHT (FLASHBACK)'), B('a', 'action', 'Rain.')]), []);
+  });
+  it('typed in mixed case (it still shows, prints and exports in capitals): no "Scene heading format" finding', () => {
+    for (const h of ['Ext. Croix-des-Bossales - Night (Flashback)', 'int. car (moving) - day', 'Later', 'Moments later']) {
+      assert.deepEqual(kinds(auditScript([B('s', 'scene', h), B('a', 'action', 'x')])), [], h);
+    }
+  });
+  it('real layout problems are still found, and the fix comes out in capitals', () => {
+    const s = [B('s', 'scene', 'Int kitchen–night (Flashback)')];
+    const found = auditScript(s);
+    assert.deepEqual(kinds(found), ['s:slugformat']);
+    assert.equal(applyFixes(s, found)[0].text, 'INT. KITCHEN - NIGHT (FLASHBACK)');
+  });
+  it('previews show a heading in capitals, never "ext." or "(Flashback)"', async () => {
+    const { findingPreview } = await import('../src/lib/formatDoctor.js');
+    assert.equal(findingPreview({ from: 'scene', text: 'Int kitchen–night (Flashback)' }), 'INT KITCHEN–NIGHT (FLASHBACK)');
+    assert.equal(findingPreview({ from: 'action', text: 'Marie walks in.\nMore.' }), 'Marie walks in.', 'other elements as written');
+    assert.equal(findingPreview({ from: 'scene', text: '  ' }), '(empty line)');
+    const read = (p) => readFileSync(new URL(`../src/${p}`, import.meta.url), 'utf8');
+    assert.match(read('components/FormatDoctorModal.jsx'), /\{findingPreview\(it\)\}/);
+    assert.match(read('components/FormatStepper.jsx'), /sub: findingPreview\(it\),/);
   });
 });

@@ -304,8 +304,8 @@ Your lists and notes are saved with the script, inside the project, and kept by 
 
 ### Opening and importing
 
-- **File → Open…** ({{key:Ctrl+O}}) reads `.fountain`, `.fdx`, `.txt` and `.draftline` files. Each opens as a new script; your others stay in Projects.
-- **File → Import…** takes a script copied from Google Docs, Word, a PDF or plain text, detects its elements, and shows a preview before anything changes. **Join wrapped lines** repairs lines broken by a PDF. You can add the import after your current script instead of starting a new one.
+- **File → Open…** ({{key:Ctrl+O}}) reads `.fountain`, `.fdx`, `.docx`, `.txt` and `.draftline` files. Fountain and Final Draft files open as a new script (your others stay in Projects); Word and text files go through the importer first, so you can check how each line was read.
+- **File → Import…** takes a Word document (`.docx`), a Final Draft file, a Fountain or plain-text file, or a script pasted from Google Docs or a PDF. Drop the file on the dialog or choose it. DraftLine detects each element and shows the result line by line before anything changes. In Word, each paragraph is one line and empty paragraphs are blank lines; a Shift+Enter line break stays a line break. **Join wrapped lines** repairs lines broken by a PDF. You can add the import after your current script instead of starting a new one. Older `.doc` files need saving as `.docx` first.
 
 ### Printing and PDF
 

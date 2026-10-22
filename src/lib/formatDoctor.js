@@ -30,6 +30,17 @@ export const ISSUE_KINDS = {
   intro: { label: 'Character introduced in lowercase', fix: 'Capitalize name', verb: 'Fix' },
   spacing: { label: 'Double blank lines', fix: 'Strip blank lines', verb: 'Strip' },
 };
+/**
+ * A finding's first line, as it shows on the page (the Format Doctor rows and the status-bar list):
+ * scene headings in capitals, the way the editor, print and exports show them — never "Ext. … (Flashback)".
+ */
+export function findingPreview(it) {
+  const t = String(it.text || '').trim();
+  if (!t) return '(empty line)';
+  const line = t.split('\n')[0];
+  return it.from === 'scene' ? line.toUpperCase() : line;
+}
+
 /** Kinds the Fix All button (and a row's Fix) can repair. */
 export const canFix = (kind) => !!ISSUE_KINDS[kind]?.fix;
 
@@ -77,7 +88,8 @@ export function hasTimeOfDayPart(text) {
 
 /** Prefix and time of day both there (or a sequence heading like MONTAGE, or a secondary one like LATER)? */
 export function isCompleteSlugline(text) {
-  const t = stripInline(text || '').trim();
+  // Read as it shows: headings always display, print and export in capitals, so "Later" is LATER.
+  const t = stripInline(text || '').trim().toUpperCase();
   if (isSecondarySlugline(t) || SEQUENCE_HEADING.test(t) || t.startsWith('.')) return true;
   return isSlugline(t) && (hasTimeOfDaySuffix(t) || hasTimeOfDayPart(t));
 }
@@ -254,7 +266,10 @@ export function auditScript(blocks, { skipId = null, ignore = new Set() } = {}) 
     // Scene headings: the standard layout first (fixable), then what's missing (yours to add).
     if (b.type === 'scene' && b.id !== skipId && !t.startsWith('.')) {
       const plain = stripInline(t);
-      if (formatSlugline(plain) !== plain) {
+      // Compared in capitals: a heading always shows, prints and exports in capitals (Editor.css,
+      // Fountain / FDX), so how it was typed — "Ext. … (Flashback)" — is never a finding by itself.
+      // Only real layout (periods, dashes, spacing, a missing prefix period) is.
+      if (formatSlugline(plain) !== plain.toUpperCase()) {
         if (issue('slugformat', 'scene', { fixed: formatSlugline(b.text) })) return;
       }
       if (!isCompleteSlugline(plain)) {

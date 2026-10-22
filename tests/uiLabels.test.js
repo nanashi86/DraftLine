@@ -71,7 +71,7 @@ describe('toolbar: File ▾ holds Print; panels stay visible on laptops', () => 
     const items = fileMenuItems(h);
     const shape = items.map((it) => (it.divider ? '---' : it.heading ? `# ${it.heading}` : `${it.label}${it.hint ? ` [${it.hint}]` : ''}`));
     assert.deepEqual(shape, [
-      '# Script', 'New Script [Ctrl+Alt+N]', 'Open… [Ctrl+O]', 'Import… [Docs · Word · PDF]', 'Load Sample Script [The Last Ferry]',
+      '# Script', 'New Script [Ctrl+Alt+N]', 'Open… [Ctrl+O]', 'Import… [Word · Docs · PDF]', 'Load Sample Script [The Last Ferry]',
       'Title Page Settings…', '---',
       '# Export Script', 'Script (PDF) [Ctrl+P]', 'Fountain (.fountain)', 'Final Draft (.fdx)', '---',
       '# Export Outline & Bible', 'Story Bible (PDF)… [.pdf]', 'Spreadsheet Outline (.csv)', 'Markdown Outline (.md)',

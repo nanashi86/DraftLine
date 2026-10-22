@@ -1,10 +1,9 @@
 import { Stethoscope } from 'lucide-react';
 import StatusStepper from './StatusStepper.jsx';
-import { ISSUE_KINDS, canFix } from '../lib/formatDoctor.js';
+import { ISSUE_KINDS, canFix, findingPreview } from '../lib/formatDoctor.js';
 import { stepperPosition } from '../lib/dialogueFilter.js';
 
 const ICON = <Stethoscope size={14} strokeWidth={1.75} aria-hidden />;
-const firstLine = (t) => (t.trim() ? t.trim().split('\n')[0] : '(empty line)');
 
 /**
  * Status bar, while the Format Doctor has findings (StatusStepper's shared capsule):
@@ -40,7 +39,7 @@ export default function FormatStepper({ issues, index, pageOfBlock = {}, onStep,
           key: `${it.id}:${it.kind}`,
           label: ISSUE_KINDS[it.kind].label,
           tag: `p. ${pageOfBlock[it.id] ?? '–'}`,
-          sub: firstLine(it.text),
+          sub: findingPreview(it),
           mono: true,
           actions: [
             ...(canFix(it.kind) ? [{ label: 'Fix', primary: true, title: ISSUE_KINDS[it.kind].fix, onClick: () => onFix(it) }] : []),

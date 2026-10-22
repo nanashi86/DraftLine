@@ -1,10 +1,14 @@
 import { useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
 import { ELEMENT_META } from '../lib/screenplay.js';
 import { parseTextScript } from '../lib/textScriptParser.js';
+import { docxToScriptText, readAsArrayBuffer } from '../lib/docxImport.js';
+import { parseFDX } from '../lib/fdx.js';
+import { toFountain } from '../lib/fountain.js';
 import './ImportModal.css';
 
 const PREVIEW_LIMIT = 400;
-const ACCEPT = '.txt,.text,.fountain,.md,.draftline';
+const DOCX_MIME = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+const ACCEPT = '.docx,.fdx,.fountain,.txt,.draftline,application/vnd.openxmlformats-officedocument.wordprocessingml.document';
 
 const LAYOUT_NOTES = {
   compact: 'One paragraph per line (Google Docs / Word paste)',
@@ -56,10 +60,38 @@ export default function ImportModal({ initialText = '', initialName = '', curren
       if (result !== true) setError(typeof result === 'string' ? result : 'That .draftline file couldn’t be restored.');
       return;
     }
-    if (/\.(docx?|pdf|fdx)$/i.test(file.name)) {
-      setError(/\.fdx$/i.test(file.name)
-        ? 'Final Draft files open directly — use Open in the toolbar.'
-        : 'This reads plain text. In Word or Google Docs, use File → Download → Plain text (.txt), or copy and paste the script here.');
+    // Word: the paragraphs' text (mammoth, loaded now), then the same element detection as pasted text.
+    if (/\.docx$/i.test(file.name) || file.type === DOCX_MIME) {
+      setError('');
+      setFileName(`${file.name} · reading…`);
+      try {
+        const { text: extracted } = await docxToScriptText(await readAsArrayBuffer(file));
+        if (!extracted.trim()) throw new Error('That Word file has no text in it.');
+        setText(extracted);
+        setFileName(file.name);
+      } catch (err) {
+        setFileName('');
+        setError(err.message);
+      }
+      return;
+    }
+    // Final Draft: read exactly (lib/fdx.js), shown here as Fountain so it previews element by element.
+    if (/\.fdx$/i.test(file.name)) {
+      try {
+        const parsed = parseFDX(await file.text());
+        if (!parsed.blocks.length) throw new Error('No screenplay elements found in that Final Draft file.');
+        setError('');
+        setText(toFountain(parsed));
+        setFileName(file.name);
+      } catch (err) {
+        setError(err.message || 'That Final Draft file couldn’t be read.');
+      }
+      return;
+    }
+    if (/\.(doc|pdf)$/i.test(file.name)) {
+      setError(/\.doc$/i.test(file.name)
+        ? 'That’s an older Word file (.doc). In Word, use File → Save As → Word Document (.docx), or copy and paste the script here.'
+        : 'PDFs can’t be read directly. Open it, select all, and paste the script here — then turn on Join wrapped lines if lines are broken.');
       return;
     }
     setError('');
@@ -104,7 +136,7 @@ export default function ImportModal({ initialText = '', initialName = '', curren
         <section className="im-input">
           <header>
             <h2>Import Script</h2>
-            <p className="im-sub">From Google Docs, Word, a PDF or any plain text. Nothing changes until you load it.</p>
+            <p className="im-sub">From Word, Final Draft, Google Docs, Fountain, or plain text. Nothing changes until you load it.</p>
           </header>
 
           <div
@@ -119,7 +151,7 @@ export default function ImportModal({ initialText = '', initialName = '', curren
             <div className="im-drop-row">
               <span className="im-drop-icon" aria-hidden="true">⤓</span>
               <span>
-                Drop a <b>.txt</b> script or a <b>.draftline</b> backup here, or{' '}
+                Drop your script or backup file here, or{' '}
                 <button type="button" className="im-link" onClick={() => fileRef.current?.click()}>choose one</button>
                 {fileName && <span className="im-file"> · {fileName}</span>}
               </span>

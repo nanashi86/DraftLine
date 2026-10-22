@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { ELEMENT_META } from '../lib/screenplay.js';
-import { ISSUE_KINDS, canFix } from '../lib/formatDoctor.js';
+import { ISSUE_KINDS, canFix, findingPreview } from '../lib/formatDoctor.js';
 import './FormatDoctorModal.css';
 
 const typeLabel = (t) => (t ? ELEMENT_META[t].label : 'Removed');
@@ -74,7 +74,7 @@ export default function FormatDoctorModal({ issues, pageOfBlock, onFix, onFixAll
               <span className={`fd-kind fd-k-${it.kind}`} title={kind.label}>{kind.label}</span>
               <span className="fd-page">p.{pageOfBlock[it.id] ?? '–'}</span>
               <span className="fd-snippet">
-                <span className="fd-text">{it.text.trim() ? it.text.trim().split('\n')[0] : '(empty line)'}</span>
+                <span className="fd-text">{findingPreview(it)}</span>
                 <span className="fd-change">{change}</span>
               </span>
               {/* One button each: the fix (short verb, the full change in its tooltip), Show, Ignore. */}

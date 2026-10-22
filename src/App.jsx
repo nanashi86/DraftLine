@@ -1103,6 +1103,14 @@ function Workspace({ boot }) {
     e.target.value = '';
     if (!file) return;
     try {
+      // Word: its text goes through the importer, previewed element by element (lib/docxImport.js).
+      if (/\.docx$/i.test(file.name)) {
+        const { docxToScriptText, readAsArrayBuffer } = await import('./lib/docxImport.js');
+        const { text: extracted } = await docxToScriptText(await readAsArrayBuffer(file));
+        if (!extracted.trim()) throw new Error('That Word file has no text in it.');
+        setImportSeed({ text: extracted, name: file.name });
+        return;
+      }
       const text = await file.text();
       if (isBackupFile(file.name)) {
         await restoreBackup(text, file.name, { toastErrors: true });
@@ -1597,7 +1605,7 @@ function Workspace({ boot }) {
             <span className="file-menu">
               <Menu label="File" items={fileItems} title="New, Open, Import, Title Page · Export · Backup" />
             </span>
-            <input ref={fileInputRef} type="file" accept=".fountain,.spmd,.txt,.fdx,.draftline" hidden onChange={openFile} />
+            <input ref={fileInputRef} type="file" accept=".fountain,.spmd,.txt,.fdx,.docx,.draftline" hidden onChange={openFile} />
           </div>
 
           {/* 2 · Middle zone: File ▾, then the element & formatting tools */}
