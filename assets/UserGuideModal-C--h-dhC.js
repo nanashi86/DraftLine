@@ -1,4 +1,4 @@
-import{i as e,t}from"./react-DpjQJ7Lb.js";import{$ as n,Ct as r,Q as i,S as a,X as o,Y as s,Z as c,_t as l,a as u,at as d,b as f,bt as p,ct as ee,dt as te,ft as ne,i as re,it as ie,lt as m,mt as h,n as g,nt as _,o as v,pt as y,r as b,rt as ae,s as x,t as S,tt as C,ut as oe,vt as se,x as w,y as T,yt as E}from"./index-CtQ1YL6a.js";import{r as D,t as O}from"./printTitle-C1qWomuv.js";/* empty css                  */var k=e(),A=`# DraftLine User Guide
+import{i as e,t}from"./react-DpjQJ7Lb.js";import{$ as n,Ct as r,Q as i,S as a,X as o,Y as s,Z as c,_t as l,a as u,at as d,b as f,bt as p,ct as ee,dt as te,ft as ne,i as re,it as ie,lt as m,mt as h,n as g,nt as _,o as v,pt as y,r as b,rt as ae,s as x,t as S,tt as C,ut as oe,vt as se,x as w,y as T,yt as E}from"./index-R21gdqgb.js";import{r as D,t as O}from"./printTitle-C1qWomuv.js";/* empty css                  */var k=e(),A=`# DraftLine User Guide
 
 DraftLine is a distraction-free screenwriting app that runs in your browser. It writes in Courier Prime at 12 pt with standard screenplay margins, saves as you type, and works offline. This guide covers everything from your first scene heading to the final PDF.
 
@@ -15,7 +15,7 @@ The top bar holds your script's title, the **Write | Plan** switch, the **File �
 - The **Scenes** sidebar ({{key:Alt+S}}) lists every scene with its length in eighths of a page. Click one to jump to it, or type to find a scene.
 - **Write | Plan** switches between writing the script and planning the shoot (see Production & Planning). Write is where you start.
 - The status bar's steppers (**Format · 1 of 7**, **Density · 1 of 9**, a character's **MARIE · 1 of 8**) all work the same way: ‹ › step through, clicking the name lists every one, and ✕ closes it.
-- **File ▾** holds everything to do with files, in three parts. **Script**: New Script ({{key:Ctrl+Alt+N}}), Open… ({{key:Ctrl+O}}), Import…, Load Sample Script (adds *The Last Ferry* to your Projects) and Title Page Settings…. **Export**: Export Script (PDF), Export Story Bible (PDF)…, Fountain, Final Draft and Spreadsheet Outline. **Backup**: Backup Project and Snapshot History.
+- **File ▾** holds everything to do with files, in three parts. **Script**: New Script ({{key:Ctrl+Alt+N}}), Open… ({{key:Ctrl+O}}), Import…, Load Sample Script (adds *The Last Ferry* to your Projects) and Title Page Settings…. **Export Script**: Script (PDF), Fountain (.fountain) and Final Draft (.fdx). **Export Outline & Bible**: Story Bible (PDF)…, and the Scene Board as a Spreadsheet (.csv), Markdown (.md) or Fountain (.fountain) outline. **Backup**: Backup Project and Snapshot History.
 - Narrow windows move panels you can't see on the bar into the **⋮** menu.
 
 ### Projects and browser storage
@@ -232,7 +232,7 @@ Once cards are linked to scenes, each act column shows how many pages its scenes
 
 ### Outline export
 
-The Scene Board's **Export Outline** downloads the board as a **Fountain Outline**, **Markdown**, or a **Spreadsheet** (.csv, named "Title_Scene_Outline.csv") with one row per card: scene number, act, heading, summary, tags, Value Shift and page. The spreadsheet is also **File → Spreadsheet Outline**.
+The Scene Board's **Export Outline** downloads the board as a **Fountain Outline**, **Markdown**, or a **Spreadsheet** (.csv, named "Title_Scene_Outline.csv") with one row per card: scene number, act, heading, summary, tags, Value Shift and page. The same three are in **File ▾ → Export Outline & Bible**.
 
 ## Production & Planning
 
@@ -274,7 +274,7 @@ Your lists and notes are saved with the script, inside the project, and kept by 
 - **.fdx**: Final Draft's format, for sending to Final Draft users and productions.
 - **Scene outline**: a Fountain Outline, Markdown, or a Spreadsheet (.csv), from the Scene Board.
 - **Breakdown**: **Export Breakdown** in Plan, a spreadsheet (.csv) of every scene's breakdown (see Production & Planning).
-- **Story Bible (PDF)**: **File → Export Story Bible (PDF)…** turns Story DNA, Story Notes and Character Bios (any or all of them) into a formatted dossier headed with the title, author and "Story Bible & Project Dossier", each section starting on a new page. Choose **Save as PDF** in the print dialog; the file is named "<Title> - Story Bible". Story Notes go in this order: Logline, Tone, Pitch, Timeline, Synopsis, then the Treatment by act. Of your own note cards, only those with "Note" in the title are included ("Note: Haiti 1986", "Note Revisions"); research questions and brainstorms stay in DraftLine, and the Scratchpad never goes. Only characters with something in their bio are included.
+- **Story Bible (PDF)**: **File → Story Bible (PDF)…** turns Story DNA, Story Notes and Character Bios (any or all of them) into a formatted dossier headed with the title, author and "Story Bible & Project Dossier", each section starting on a new page. Choose **Save as PDF** in the print dialog; the file is named "<Title> - Story Bible". Story Notes go in this order: Logline, Tone, Pitch, Timeline, Synopsis, then the Treatment by act. Of your own note cards, only those with "Note" in the title are included ("Note: Haiti 1986", "Note Revisions"); research questions and brainstorms stay in DraftLine, and the Scratchpad never goes. Only characters with something in their bio are included.
 
 ### Opening and importing
 
@@ -283,7 +283,7 @@ Your lists and notes are saved with the script, inside the project, and kept by 
 
 ### Printing and PDF
 
-**File → Export Script (PDF)** ({{key:Ctrl+P}}) prints exactly what the editor shows: Courier Prime 12 pt, standard margins and the same page breaks. The title page prints first, unnumbered, and page numbers start on page 2. Choose **Save as PDF** in the print dialog for a PDF. Margin notes, highlights and the Midnight page colour never print.
+**File → Script (PDF)** ({{key:Ctrl+P}}) prints exactly what the editor shows: Courier Prime 12 pt, standard margins and the same page breaks. The title page prints first, unnumbered, and page numbers start on page 2. Choose **Save as PDF** in the print dialog for a PDF. Margin notes, highlights and the Midnight page colour never print.
 
 ## Editor Curiosities & Secrets
 
