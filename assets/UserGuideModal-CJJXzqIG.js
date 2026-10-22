@@ -1,4 +1,4 @@
-import{i as e,t}from"./react-DpjQJ7Lb.js";import{$ as n,Ct as r,Q as i,S as a,X as o,Y as s,Z as c,_t as l,a as u,at as d,b as f,bt as p,ct as ee,dt as te,ft as ne,i as re,it as ie,lt as m,mt as h,n as g,nt as _,o as v,pt as y,r as b,rt as ae,s as x,t as S,tt as C,ut as oe,vt as se,x as w,y as T,yt as E}from"./index-DkHCoK7I.js";import{r as D,t as O}from"./printTitle-C1qWomuv.js";/* empty css                  */var k=e(),A=`# DraftLine User Guide
+import{i as e,t}from"./react-DpjQJ7Lb.js";import{$ as n,Ct as r,Q as i,S as a,X as o,Y as s,Z as c,_t as l,a as u,at as d,b as f,bt as p,ct as ee,dt as te,ft as ne,i as re,it as ie,lt as m,mt as h,n as g,nt as _,o as v,pt as y,r as b,rt as ae,s as x,t as S,tt as C,ut as oe,vt as se,x as w,y as T,yt as E}from"./index-CtQ1YL6a.js";import{r as D,t as O}from"./printTitle-C1qWomuv.js";/* empty css                  */var k=e(),A=`# DraftLine User Guide
 
 DraftLine is a distraction-free screenwriting app that runs in your browser. It writes in Courier Prime at 12 pt with standard screenplay margins, saves as you type, and works offline. This guide covers everything from your first scene heading to the final PDF.
 
@@ -15,7 +15,7 @@ The top bar holds your script's title, the **Write | Plan** switch, the **File �
 - The **Scenes** sidebar ({{key:Alt+S}}) lists every scene with its length in eighths of a page. Click one to jump to it, or type to find a scene.
 - **Write | Plan** switches between writing the script and planning the shoot (see Production & Planning). Write is where you start.
 - The status bar's steppers (**Format · 1 of 7**, **Density · 1 of 9**, a character's **MARIE · 1 of 8**) all work the same way: ‹ › step through, clicking the name lists every one, and ✕ closes it.
-- **File ▾** holds everything to do with files, in three parts. **Script**: New Script ({{key:Ctrl+Alt+N}}), Open… ({{key:Ctrl+O}}), Import… and Title Page Settings…. **Export**: Export Script (PDF), Export Story Bible (PDF)…, Fountain, Final Draft and Spreadsheet Outline. **Backup**: Backup Project and Snapshot History.
+- **File ▾** holds everything to do with files, in three parts. **Script**: New Script ({{key:Ctrl+Alt+N}}), Open… ({{key:Ctrl+O}}), Import…, Load Sample Script (adds *The Last Ferry* to your Projects) and Title Page Settings…. **Export**: Export Script (PDF), Export Story Bible (PDF)…, Fountain, Final Draft and Spreadsheet Outline. **Backup**: Backup Project and Snapshot History.
 - Narrow windows move panels you can't see on the bar into the **⋮** menu.
 
 ### Projects and browser storage
