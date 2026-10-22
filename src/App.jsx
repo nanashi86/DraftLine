@@ -1138,7 +1138,15 @@ function Workspace({ boot }) {
 
   /** Load parsed text into the editor. Replacing is one undoable step (Ctrl+Z restores the old script). */
   const importScript = ({ blocks: parsed, meta: detected, mode, stats }) => {
-    const incoming = parsed.map((b) => makeBlock(b.type, b.text, blockExtras(b)));
+    // The editor's own element shape — { id, type, text, …extras } — with any type the editor doesn't
+    // know (an odd file, a future parser) read as Action rather than left unrenderable.
+    const incoming = parsed
+      .filter((b) => b && typeof b.text === 'string')
+      .map((b) => makeBlock(ELEMENT_META[b.type] ? b.type : 'action', b.text, blockExtras(b)));
+    if (!incoming.length) {
+      notify('Nothing to import — the preview is empty');
+      return;
+    }
     if (mode === 'append') set((prev) => [...prev, ...incoming]);
     else set(incoming);
     if (detected) {
@@ -1155,8 +1163,21 @@ function Workspace({ boot }) {
     }
     setImportSeed(null);
     setSelectedChar(null);
-    setActiveId(null);
+    // Show what was loaded, wherever you were: Write, on the page (not the Board or Plan), and —
+    // replacing — page 1 with the cursor in its first element; appending, the first appended one.
+    const first = incoming[0];
+    writeScroll.current = 0;
+    setWorkspace('write');
     if (view === 'board') setView('page');
+    setActiveId(first.id);
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      if (mode === 'append') {
+        editorRef.current?.focusBlock(first.id, { at: 'start' });
+        return;
+      }
+      if (scrollerEl.current) scrollerEl.current.scrollTop = 0;
+      editorRef.current?.focusBlock(first.id, { scroll: false, at: 'start' });
+    }));
     notify(`${mode === 'append' ? 'Appended' : 'Imported'} ${stats.scene} scenes · ${stats.dialogue} dialogue blocks · Ctrl+Z to undo`);
   };
 

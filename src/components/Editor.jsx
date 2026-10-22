@@ -476,12 +476,15 @@ export default function Editor({
     pulseBlock(id) {
       return revealAndPulse(els.current.get(id)?.closest('.el') || null);
     },
-    focusBlock(id) {
+    /** Put the cursor in element `id` (at its end; `{ at: 'start' }` for its start), scrolling it to the
+     *  middle unless `{ scroll: false }` — an import puts it on page 1 without moving the page. */
+    focusBlock(id, { scroll = true, at = 'end' } = {}) {
       const el = els.current.get(id);
       if (!el) return;
-      el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      if (scroll) el.scrollIntoView({ block: 'center', behavior: 'smooth' });
       el.focus({ preventScroll: true });
-      el.setSelectionRange(el.value.length, el.value.length);
+      const pos = at === 'start' ? 0 : el.value.length;
+      el.setSelectionRange(pos, pos);
     },
   }), [setTypeAt, toggleDual, formatAt, onNotice]);
 

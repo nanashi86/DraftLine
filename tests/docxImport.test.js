@@ -70,3 +70,27 @@ describe('Import dialog and File ▾ → Open… take .docx', () => {
     assert.match(pkg.dependencies.mammoth, /^\d+\.\d+\.\d+$/);
   });
 });
+
+describe('Load into Editor / Append: the import lands where you can see it', () => {
+  const app = read('App.jsx');
+  const fn = app.slice(app.indexOf('const importScript = ('), app.indexOf('const printScript = '));
+  it('commits the previewed elements in the editor’s shape; unknown types become Action; an empty preview commits nothing', () => {
+    assert.match(fn, /makeBlock\(ELEMENT_META\[b\.type\] \? b\.type : 'action', b\.text, blockExtras\(b\)\)/);
+    assert.match(fn, /if \(mode === 'append'\) set\(\(prev\) => \[\.\.\.prev, \.\.\.incoming\]\);\s*else set\(incoming\);/);
+    assert.match(fn, /if \(!incoming\.length\) \{\s*notify\('Nothing to import/);
+  });
+  it('then: Write (out of Plan), the page (out of the Board), page 1 with the cursor in the first element', () => {
+    assert.match(fn, /setWorkspace\('write'\);/);
+    assert.match(fn, /if \(view === 'board'\) setView\('page'\);/);
+    assert.match(fn, /setActiveId\(first\.id\);/);
+    assert.match(fn, /scrollerEl\.current\.scrollTop = 0;\s*editorRef\.current\?\.focusBlock\(first\.id, \{ scroll: false, at: 'start' \}\);/);
+    assert.match(fn, /if \(mode === 'append'\) \{\s*editorRef\.current\?\.focusBlock\(first\.id, \{ at: 'start' \}\);/, 'appending: the first appended element');
+    assert.match(read('components/Editor.jsx'), /focusBlock\(id, \{ scroll = true, at = 'end' \} = \{\}\)/);
+  });
+  it('the dialog hands over exactly what it previews', () => {
+    const modal = read('components/ImportModal.jsx');
+    assert.match(modal, /onImport\(\{\s*blocks,\s*meta: useTitle && hasTitle \? meta : null,\s*mode,\s*stats,\s*\}\);/);
+    assert.match(modal, /onClick=\{\(\) => submit\('replace'\)\}/);
+    assert.match(modal, /onClick=\{\(\) => submit\('append'\)\}/);
+  });
+});
