@@ -1,4 +1,4 @@
-import{i as e,t}from"./react-DpjQJ7Lb.js";import{$ as n,Ct as r,Q as i,S as a,X as o,Y as s,Z as c,_t as l,a as u,at as d,b as f,bt as p,ct as ee,dt as te,ft as ne,i as re,it as ie,lt as m,mt as h,n as g,nt as _,o as v,pt as y,r as b,rt as ae,s as x,t as S,tt as C,ut as oe,vt as se,x as w,y as T,yt as E}from"./index-BPTOlysr.js";import{r as D,t as O}from"./printTitle-C1qWomuv.js";/* empty css                  */var k=e(),A=`# DraftLine User Guide
+import{i as e,t}from"./react-DpjQJ7Lb.js";import{$ as n,Ct as r,Q as i,S as a,X as o,Y as s,Z as c,_t as l,a as u,at as d,b as f,bt as p,ct as ee,dt as te,ft as ne,i as re,it as ie,lt as m,mt as h,n as g,nt as _,o as v,pt as y,r as b,rt as ae,s as x,t as S,tt as C,ut as oe,vt as se,x as w,y as T,yt as E}from"./index-BnOCVMrj.js";import{r as D,t as O}from"./printTitle-C1qWomuv.js";/* empty css                  */var k=e(),A=`# DraftLine User Guide
 
 DraftLine is a distraction-free screenwriting app that runs in your browser. It writes in Courier Prime at 12 pt with standard screenplay margins, saves as you type, and works offline. This guide covers everything from your first scene heading to the final PDF.
 
@@ -120,8 +120,8 @@ Select text and press {{key:Ctrl+B}} (bold), {{key:Ctrl+I}} (italic), {{key:Ctrl
 
 ### Checking your pages
 
-- **Format Doctor** (status bar) checks the script against spec-script conventions (see below) and fixes what it can in one click, or all at once.
-- While it has findings, a **Format · 1 of 7** stepper sits in the status bar: ‹ › go from one to the next, clicking **Format** lists them all with **Fix** and **Ignore** on each (Ignore hides one for this session), and ✕ hides the stepper until something new turns up.
+- **Format Doctor** checks the script against spec-script conventions (see below) and fixes what it can in one click, or all at once. Open it from **⋮ → Format Doctor** at any time; the menu shows how many findings there are, or **Clean**.
+- While it has findings, a **Format · 1 of 7** stepper sits on the right of the status bar, and it's the Format Doctor's only control there: ‹ › go from one to the next, clicking **Format** lists them all with **Fix** and **Ignore** on each (Ignore hides one for this session), and ✕ hides the stepper until something new turns up.
 - **Density** (status bar) flags Action paragraphs that run past {{density.lines}} lines, or that are walls of text. Click it to highlight them and jump to the first; the pill then reads **Density · 1 of 9**. Step through them with ‹ ›, click **Density** for a list of every one by scene and page, and close it with ✕.
 - **Hover a character cue** to see that character's bio card. Click **Edit in Bios →** to open their bio.
 
@@ -213,6 +213,7 @@ The **Scene Board** (formerly the Beat Board; **Board** or **Split** view) lays 
 - Switch between **3 Acts** ({{board.columns.3}}, with a Midpoint divider in Act 2) and **4 Acts** ({{board.columns.4}}). Switching never moves or loses a card. It's the same setting as the act switch in Notes, so it also splits or joins Act II of the Synopsis and Treatment (see Synopsis & Treatment).
 - Each card has a headline, a synopsis and colour tags: {{board.tags}}. Click a tag in the legend to show only those cards.
 - **Value Shift** (the **+/−** button on a card) records how the scene's emotional charge turns: **+ / −** (a setback), **− / +** (a small win or insight), or **+ / +** and **− / −**, which are marked as warnings because the scene doesn't turn. It's saved with the project.
+- **Analyze Value Shifts** (beside Populate from Script) reads every scene and suggests its Value Shift. It compares the opening quarter of the scene's Action and Dialogue with the closing quarter: calm, help and agreement count as **+**; threats, obstacles and tension as **−**, and at the end, interruptions, weapons, violence, sudden exits and discoveries count double. The list shows each scene's number, slugline, the suggested shift and the card's current one. Hover a suggestion to see the words it's based on; **weak** means the scene gave little to go on. ✓ sets one card, **Apply to All Cards** sets every linked card (with Undo). Scenes without a card need **Populate from Script** first. It's a word-level reading, so treat it as a second opinion.
 - **+ Add Card** adds a card to a column. Drag cards by their grip to reorder them or move them between acts.
 
 ### Linking cards to scenes
