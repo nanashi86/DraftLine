@@ -1,4 +1,4 @@
-import{i as e,t}from"./react-DpjQJ7Lb.js";import{$ as n,Ct as r,Q as i,S as a,X as o,Y as s,Z as c,_t as l,a as u,at as d,b as f,bt as p,ct as ee,dt as te,ft as ne,i as re,it as ie,lt as m,mt as h,n as g,nt as _,o as v,pt as y,r as b,rt as ae,s as x,t as S,tt as C,ut as oe,vt as se,x as w,y as T,yt as E}from"./index-BnOCVMrj.js";import{r as D,t as O}from"./printTitle-C1qWomuv.js";/* empty css                  */var k=e(),A=`# DraftLine User Guide
+import{i as e,t}from"./react-DpjQJ7Lb.js";import{$ as n,Ct as r,Q as i,S as a,X as o,Y as s,Z as c,_t as l,a as u,at as d,b as f,bt as p,ct as ee,dt as te,ft as ne,i as re,it as ie,lt as m,mt as h,n as g,nt as _,o as v,pt as y,r as b,rt as ae,s as x,t as S,tt as C,ut as oe,vt as se,x as w,y as T,yt as E}from"./index-DkHCoK7I.js";import{r as D,t as O}from"./printTitle-C1qWomuv.js";/* empty css                  */var k=e(),A=`# DraftLine User Guide
 
 DraftLine is a distraction-free screenwriting app that runs in your browser. It writes in Courier Prime at 12 pt with standard screenplay margins, saves as you type, and works offline. This guide covers everything from your first scene heading to the final PDF.
 
@@ -8,14 +8,15 @@ Press {{key:F1}} at any time to open this guide. {{key:Ctrl+/}} shows every keyb
 
 ### The workspace
 
-The top bar holds your script's title, the **Write | Plan** switch, file actions (New, Open, Import, Title Page), the Element picker, the B / I / U / S formatting buttons, the view switch (**Page**, **Split**, **Board**) and the Export menu. Story Bible and Characters open as panels on the right. The status bar at the bottom shows the current element, where your work is saved, scene and word counts, page count, page colour, undo / redo and zoom.
+The top bar holds your script's title, the **Write | Plan** switch, the **File ▾** menu, the Element picker and the B / I / U / S formatting buttons (only while you're on the page: **Page**, **Split** or Focus), the view switch (**Page**, **Split**, **Board**) and **Snapshot**. Story Bible and Characters open as panels on the right. The status bar at the bottom shows the current element, where your work is saved, scene and word counts, page count, page colour, undo / redo and zoom.
 
 - **Page** shows the script. **Split** shows the script beside the Scene Board. **Board** shows the Scene Board alone. {{key:Alt+B}} cycles through them.
 - **Focus** hides everything but the page. Press {{key:Esc}} to come back.
 - The **Scenes** sidebar ({{key:Alt+S}}) lists every scene with its length in eighths of a page. Click one to jump to it, or type to find a scene.
 - **Write | Plan** switches between writing the script and planning the shoot (see Production & Planning). Write is where you start.
 - The status bar's steppers (**Format · 1 of 7**, **Density · 1 of 9**, a character's **MARIE · 1 of 8**) all work the same way: ‹ › step through, clicking the name lists every one, and ✕ closes it.
-- Narrow windows tuck File actions into a **File ▾** menu, and panels you can't see on the bar move into the **⋮** menu.
+- **File ▾** holds everything to do with files, in three parts. **Script**: New Script ({{key:Ctrl+Alt+N}}), Open… ({{key:Ctrl+O}}), Import… and Title Page Settings…. **Export**: Export Script (PDF), Export Story Bible (PDF)…, Fountain, Final Draft and Spreadsheet Outline. **Backup**: Backup Project and Snapshot History.
+- Narrow windows move panels you can't see on the bar into the **⋮** menu.
 
 ### Projects and browser storage
 
@@ -55,7 +56,7 @@ A snapshot is a named checkpoint of the whole project: script, title page, Scene
 
 ### Backups
 
-**Export → Backup Project (.draftline)** downloads one file holding everything the project is: script, formatting, margin notes, title page, Scene Board, Story Bible, characters and snapshots. Open it with **Open** on any computer to restore it exactly. A restored backup never overwrites an existing script; if the same script is already there, the backup comes in beside it.
+**File → Backup Project (.draftline)** downloads one file holding everything the project is: script, formatting, margin notes, title page, Scene Board, Story Bible, characters and snapshots. Open it with **File → Open…** on any computer to restore it exactly. A restored backup never overwrites an existing script; if the same script is already there, the backup comes in beside it.
 
 About DraftLine (**⋮ → About DraftLine**) has a **Backup Project** button too, and shows where your scripts are stored.
 
@@ -108,7 +109,7 @@ Select text and press {{key:Ctrl+B}} (bold), {{key:Ctrl+I}} (italic), {{key:Ctrl
 
 ### Title page
 
-**Title Page** in the top bar edits the title, credit, author, source material, draft version and date, and contact details, plus the title's font, size and weight. The title page shows above page 1 and prints first.
+**File → Title Page Settings…** edits the title, credit, author, source material, draft version and date, and contact details, plus the title's font, size and weight. The title page shows above page 1 and prints first.
 
 ### Margin notes
 
@@ -122,7 +123,7 @@ Select text and press {{key:Ctrl+B}} (bold), {{key:Ctrl+I}} (italic), {{key:Ctrl
 
 - **Format Doctor** checks the script against spec-script conventions (see below) and fixes what it can in one click, or all at once. Open it from **⋮ → Format Doctor** at any time; the menu shows how many findings there are, or **Clean**.
 - While it has findings, a **Format · 1 of 7** stepper sits on the right of the status bar, and it's the Format Doctor's only control there: ‹ › go from one to the next, clicking **Format** lists them all with **Fix** and **Ignore** on each (Ignore hides one for this session), and ✕ hides the stepper until something new turns up.
-- **Density** (status bar) flags Action paragraphs that run past {{density.lines}} lines, or that are walls of text. Click it to highlight them and jump to the first; the pill then reads **Density · 1 of 9**. Step through them with ‹ ›, click **Density** for a list of every one by scene and page, and close it with ✕.
+- **Density** (status bar) flags Action paragraphs that run past {{density.lines}} lines, or that are walls of text. It's the same compact stepper as Format: **Density · – of 9**. ‹ › highlight them and step from one to the next (the pill then reads **Density · 1 of 9**), click **Density** for a list of every one by scene and page, and ✕ turns the highlights off.
 - **Hover a character cue** to see that character's bio card. Click **Edit in Bios →** to open their bio.
 
 ### What the Format Doctor checks
@@ -231,7 +232,7 @@ Once cards are linked to scenes, each act column shows how many pages its scenes
 
 ### Outline export
 
-**Export → Scene outline** downloads the board as a **Fountain Outline**, **Markdown**, or a **Spreadsheet** (.csv, named "Title_Scene_Outline.csv") with one row per card: scene number, act, heading, summary, tags, Value Shift and page.
+The Scene Board's **Export Outline** downloads the board as a **Fountain Outline**, **Markdown**, or a **Spreadsheet** (.csv, named "Title_Scene_Outline.csv") with one row per card: scene number, act, heading, summary, tags, Value Shift and page. The spreadsheet is also **File → Spreadsheet Outline**.
 
 ## Production & Planning
 
@@ -240,7 +241,7 @@ Once cards are linked to scenes, each act column shows how many pages its scenes
 ### Write and Plan
 
 - **Write** is the screenplay editor, with **Page**, **Split** and **Board**, **Focus**, **Story Bible** and **Characters**. **Plan** swaps those for **Breakdowns** and **Stripboard**, plus **Expand All / Collapse All** and **Export Breakdown**.
-- The title, the Projects library, **Export**, **Snapshot** and the ⋮ menu (About, User Guide) stay in both.
+- The title, the Projects library, **File ▾**, **Snapshot** and the ⋮ menu (About, User Guide) stay in both.
 - Switching never loses anything. Your script stays exactly as it was, unsaved typing included, and it keeps saving. Coming back to Write puts the script and the Scene Board where you'd scrolled them.
 - **Write** on a breakdown card, or a click on a strip, takes you back to Write at that scene.
 
@@ -273,16 +274,16 @@ Your lists and notes are saved with the script, inside the project, and kept by 
 - **.fdx**: Final Draft's format, for sending to Final Draft users and productions.
 - **Scene outline**: a Fountain Outline, Markdown, or a Spreadsheet (.csv), from the Scene Board.
 - **Breakdown**: **Export Breakdown** in Plan, a spreadsheet (.csv) of every scene's breakdown (see Production & Planning).
-- **Story Bible (PDF)**: **Export → Export Story Bible (PDF)…** turns Story DNA, Story Notes and Character Bios (any or all of them) into a formatted dossier headed with the title, author and "Story Bible & Project Dossier", each section starting on a new page. Choose **Save as PDF** in the print dialog; the file is named "<Title> - Story Bible". Story Notes go in this order: Logline, Tone, Pitch, Timeline, Synopsis, then the Treatment by act. Of your own note cards, only those with "Note" in the title are included ("Note: Haiti 1986", "Note Revisions"); research questions and brainstorms stay in DraftLine, and the Scratchpad never goes. Only characters with something in their bio are included.
+- **Story Bible (PDF)**: **File → Export Story Bible (PDF)…** turns Story DNA, Story Notes and Character Bios (any or all of them) into a formatted dossier headed with the title, author and "Story Bible & Project Dossier", each section starting on a new page. Choose **Save as PDF** in the print dialog; the file is named "<Title> - Story Bible". Story Notes go in this order: Logline, Tone, Pitch, Timeline, Synopsis, then the Treatment by act. Of your own note cards, only those with "Note" in the title are included ("Note: Haiti 1986", "Note Revisions"); research questions and brainstorms stay in DraftLine, and the Scratchpad never goes. Only characters with something in their bio are included.
 
 ### Opening and importing
 
-- **Open** reads \`.fountain\`, \`.fdx\`, \`.txt\` and \`.draftline\` files. Each opens as a new script; your others stay in Projects.
-- **Import** takes a script copied from Google Docs, Word, a PDF or plain text, detects its elements, and shows a preview before anything changes. **Join wrapped lines** repairs lines broken by a PDF. You can add the import after your current script instead of starting a new one.
+- **File → Open…** ({{key:Ctrl+O}}) reads \`.fountain\`, \`.fdx\`, \`.txt\` and \`.draftline\` files. Each opens as a new script; your others stay in Projects.
+- **File → Import…** takes a script copied from Google Docs, Word, a PDF or plain text, detects its elements, and shows a preview before anything changes. **Join wrapped lines** repairs lines broken by a PDF. You can add the import after your current script instead of starting a new one.
 
 ### Printing and PDF
 
-**Export → Export Script (PDF)** ({{key:Ctrl+P}}) prints exactly what the editor shows: Courier Prime 12 pt, standard margins and the same page breaks. The title page prints first, unnumbered, and page numbers start on page 2. Choose **Save as PDF** in the print dialog for a PDF. Margin notes, highlights and the Midnight page colour never print.
+**File → Export Script (PDF)** ({{key:Ctrl+P}}) prints exactly what the editor shows: Courier Prime 12 pt, standard margins and the same page breaks. The title page prints first, unnumbered, and page numbers start on page 2. Choose **Save as PDF** in the print dialog for a PDF. Margin notes, highlights and the Midnight page colour never print.
 
 ## Editor Curiosities & Secrets
 
