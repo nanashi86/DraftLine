@@ -1,4 +1,4 @@
-import{i as e,t}from"./react-DpjQJ7Lb.js";import{$ as n,Ct as r,Q as i,S as a,X as o,Y as s,Z as c,_t as l,a as u,at as d,b as f,bt as p,ct as ee,dt as te,ft as ne,i as re,it as ie,lt as m,mt as h,n as g,nt as _,o as v,pt as y,r as b,rt as ae,s as x,t as S,tt as C,ut as oe,vt as se,x as w,y as T,yt as E}from"./index-Dg9qM8Js.js";import{r as D,t as O}from"./printTitle-C1qWomuv.js";/* empty css                  */var k=e(),A=`# DraftLine User Guide
+import{i as e,t}from"./react-DpjQJ7Lb.js";import"./formatting-CXVlQ9TD.js";import{$ as n,Ct as r,Q as i,S as a,X as o,Y as s,Z as c,_t as l,a as u,at as d,b as f,bt as p,ct as ee,dt as te,ft as ne,i as re,it as ie,lt as m,mt as h,n as g,nt as _,o as v,pt as y,r as b,rt as ae,s as x,t as S,tt as C,ut as oe,vt as se,x as w,y as T,yt as E}from"./index-_9X5wIry.js";import{r as D,t as O}from"./printTitle-C1qWomuv.js";/* empty css                  */var k=e(),A=`# DraftLine User Guide
 
 DraftLine is a distraction-free screenwriting app that runs in your browser. It writes in Courier Prime at 12 pt with standard screenplay margins, saves as you type, and works offline. This guide covers everything from your first scene heading to the final PDF.
 
@@ -130,9 +130,34 @@ Select text and press {{key:Ctrl+B}} (bold), {{key:Ctrl+I}} (italic), {{key:Ctrl
 
 - Elements that are probably tagged wrong: a scene heading or a character cue typed as Action, dialogue with no character above it, empty elements.
 - A character cue with no dialogue under it, or a parenthetical with no dialogue after it.
-- Scene headings: case, periods and dashes are fixed for you (\`int kitchen–night\` becomes \`INT. KITCHEN - NIGHT\`). A heading with no INT. / EXT. or no time of day is flagged for you to complete.
+- Scene headings: case, periods and dashes are fixed for you (\`int kitchen–night\` becomes \`INT. KITCHEN - NIGHT\`). A heading with no INT. / EXT. or no time of day is flagged for you to complete. \`INT./EXT.\`, \`INT/EXT.\` and \`I/E.\` are all accepted, and a time of day still counts with more after it (\`- NIGHT - BACK TO SCENE\`, \`- NEXT DAY\`, \`- NIGHT (FLASHBACK)\`).
 - A speaking character whose first mention in the Action isn't in capitals ("Marie" for MARIE). The fix capitalizes it.
 - Double blank lines inside an element, which are stripped.
+
+### Scene headings: formatting tips
+
+A scene heading (slugline) goes from the biggest place to the smallest, then the time:
+
+\`INT./EXT. MASTER LOCATION - SPECIFIC ROOM OR AREA - TIME OF DAY\`
+
+**Hyphens ( - ) are for physical spaces.** Each one steps further in:
+
+- \`INT. BOUCHARD RESIDENCE - MASTER BEDROOM - NIGHT\`
+- \`INT. POLICE STATION - INTERROGATION ROOM - DAY\`
+- \`EXT. CINEUS RESIDENCE - BACKYARD - NIGHT\`
+
+**Parentheses ( ) are for everything that isn't a place**: the state of a vehicle, the mode of the story, the camera or the sound.
+
+- Vehicle state: \`INT. TAP-TAP - NIGHT (MOVING)\`
+- Story mode: \`(FLASHBACK)\`, \`(DREAM)\`, \`(FANTASY)\`
+- Sound and perspective: \`(INTERCUT)\`, \`(PRE-LAP)\`
+- Sequence: \`(SERIES OF SHOTS)\`
+
+Keeping them apart pays off later: Plan reads the hyphenated parts as the location and shows the parentheses as a separate tag, so \`EXT. CROIX-DES-BOSSALES - NIGHT (FLASHBACK)\` schedules as a night exterior at Croix-des-Bossales, marked FLASHBACK.
+
+**Interior and exterior together.** Write the combined prefix with no spaces around the slash (\`INT./EXT.\`, or \`INT/EXT.\`), and lead with the side where the camera setup begins: \`INT./EXT. CAR - NIGHT\` when we start inside, \`EXT./INT. PORCH - DAY\` when we start outside. Plan colours the strip by the side you lead with.
+
+**Time of day.** DAY and NIGHT are the clearest, and anything containing them works too (\`NEXT DAY\`, \`LATER THAT NIGHT\`). CONTINUOUS, LATER and MOMENTS LATER say the scene follows straight on, so it keeps the previous scene's light.
 
 ### Page colour and zoom
 
@@ -248,8 +273,9 @@ The Scene Board's **Export Outline** downloads the board as a **Fountain Outline
 ### What comes from the script
 
 - **Scene number and slugline**: every scene heading, numbered in script order.
-- **INT / EXT**: from the start of the heading. INT./EXT. (or I/E) counts as exterior on the stripboard, since it needs the exterior's light.
-- **Day or night**: from the end of the heading. DAY, MORNING, AFTERNOON, DAWN and SUNRISE are day; NIGHT, EVENING, DUSK and SUNSET are night. CONTINUOUS, LATER and MOMENTS LATER take the light of the scene before. A heading without one is marked **DAY/NIGHT?**.
+- **INT / EXT**: from the start of the heading, as written: INT, EXT, INT/EXT or EXT/INT. A combined heading is coloured by the side it leads with: INT./EXT. (and I/E) as an interior, EXT./INT. as an exterior.
+- **Day or night**: from the part after the location that holds a day or night word, so \`NEXT DAY\`, \`FOLLOWING NIGHT\`, \`LATER THAT DAY\` and \`DAY - CONTINUOUS\` all read. DAY, MORNING, AFTERNOON, DAWN and SUNRISE are day; NIGHT, EVENING, DUSK and SUNSET are night. CONTINUOUS, LATER and MOMENTS LATER take the light of the scene before. The stripboard's D/N column shows the result as DAY or NIGHT; a heading without one is marked **DAY/NIGHT?**.
+- **Modifiers**: anything in parentheses — \`(FLASHBACK)\`, \`(DREAM)\`, \`(MOVING)\` — is shown as a tag beside the location and never hides the time of day (see Scene headings: formatting tips).
 - **Page eighths**: each scene's length in eighths of a page, the way a call sheet counts it: **6/8**, **1 2/8**. It's measured from the lines the scene takes on the page (a page is {{plan.pageLines}} lines), and every scene counts as at least 1/8.
 - **Cast (Speaking)**: everyone with a line in the scene, from the character cues (extensions like (V.O.) and (CONT'D) are left off). Each character gets a **cast number**, as on a call sheet: 1 is the character with the most lines in the script, then 2, 3 …
 
