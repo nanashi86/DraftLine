@@ -189,33 +189,18 @@ describe('Film Noir mode', () => {
     assert.ok(!/rainLoop/.test(app));
     assert.match(app, /\{noir && \(\s*<button type="button" className="status-noir" onClick=\{\(\) => setNoirMode\(false\)\}[^>]*>\s*<span aria-hidden="true">🌧<\/span> Noir Active · Esc to exit/);
   });
-  it('the look: 1940s paper, a dark vignetted desk, soft 18deg Venetian blinds falling from the window, 35 mm grain', () => {
+  it('the look: warm monochrome, a vignette, soft Venetian-blind shadows and 35 mm grain', () => {
     const css = read('App.css');
-    const page = /\.app\.film-noir-mode,\s*\.app\.film-noir-mode\[data-canvas\] \{([^}]*)\}/.exec(css)[1];
-    assert.ok(page.includes('--paper: #f3efe6'), 'typed-paper stock');
-    assert.ok(page.includes('--ink: #111111'), 'typewriter ink');
-    assert.doesNotMatch(css, /\.film-noir-mode \.scroller[^{]*\{[^}]*filter/, 'no filter on the page, so the paper colour is exact');
-    assert.match(css, /\.film-noir-mode \.board \{ filter: grayscale\(1\) sepia\(0\.18\) contrast\(1\.18\) brightness\(0\.94\); \}/);
-    assert.match(css, /\.film-noir-mode \.workspace \{[^}]*background: radial-gradient\(circle at 20% 20%, #1a1a1c 0%, #0a0a0c 100%\);/);
+    assert.match(css, /\.film-noir-mode \.scroller,\s*\.film-noir-mode \.board \{ filter: grayscale\(1\) sepia\(0\.18\) contrast\(1\.18\) brightness\(0\.94\); \}/);
     const over = /\.film-noir-mode \.workspace::after \{([^}]*)\}/.exec(css)[1];
-    assert.ok(over.includes('repeating-linear-gradient(18deg'), 'blinds at 18deg');
-    const alphas = [...over.split('mask-image')[0].matchAll(/rgba\(0, 0, 0, ([\d.]+)\)/g)].map((m) => Number(m[1])).filter((a) => a > 0);
-    assert.ok(alphas.length >= 6, 'soft multi-stop slats');
-    assert.ok(Math.max(...alphas) <= 0.06 && Math.max(...alphas) >= 0.04, `slats peak at 4–6%: ${Math.max(...alphas)}`);
-    assert.match(over, /mask-image: radial-gradient\(ellipse 120% 110% at 0% 0%/, 'light falls off from the top-left window');
-    assert.match(over, /-webkit-mask-image:/);
+    assert.ok(over.includes('radial-gradient(ellipse at center, transparent 65%, rgba(0, 0, 0, 0.45) 100%)'), 'vignette');
+    assert.ok(over.includes('repeating-linear-gradient(-28deg'), 'blinds');
+    const alphas = [...over.matchAll(/rgba\(0, 0, 0, ([\d.]+)\)/g)].map((m) => Number(m[1])).filter((a) => a > 0 && a !== 0.45);
+    assert.deepEqual([Math.min(...alphas), Math.max(...alphas)], [0.12, 0.24], 'slats between 0.12 and 0.24');
     assert.ok(over.includes('pointer-events: none'));
     const grain = /\.film-noir-mode \.workspace::before \{([^}]*)\}/.exec(css)[1];
     for (const d of ['opacity: 0.04', 'feTurbulence', 'animation: noir-grain', 'pointer-events: none']) assert.ok(grain.includes(d), d);
     assert.match(css, /@keyframes noir-grain/);
-  });
-  it('a faint coffee ring on the desk: fixed, 8%, never clickable, under the paper, not printed', () => {
-    const css = read('App.css');
-    const app = read('App.jsx');
-    const ring = /\.noir-coffee \{([^}]*)\}/.exec(css)[1];
-    for (const d of ['position: fixed', 'opacity: 0.08', 'pointer-events: none', 'z-index: 0']) assert.ok(ring.includes(d), d);
-    assert.match(ring, /data:image\/svg\+xml,.*ellipse.*ellipse.*feDisplacementMap.*feGaussianBlur|data:image\/svg\+xml,.*feDisplacementMap.*feGaussianBlur.*ellipse.*ellipse/s, 'an uneven double ring with a soft bleed');
-    assert.match(app, /\{noir && <div className="noir-coffee" aria-hidden="true" \/>\}\s*<main className="scroller"/, 'before the pages, so the paper covers it');
-    assert.match(css, /@media print \{ \.film-noir-mode \.workspace::after, \.film-noir-mode \.workspace::before, \.noir-coffee \{ display: none; \}/);
+    assert.match(css, /@media print \{ \.film-noir-mode \.workspace::after, \.film-noir-mode \.workspace::before \{ display: none; \}/);
   });
 });

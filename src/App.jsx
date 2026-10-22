@@ -1814,8 +1814,6 @@ function Workspace({ boot }) {
         />
 
         <div className="workspace">
-          {/* Film Noir's coffee ring on the desk — before the pages, so the paper covers it */}
-          {noir && <div className="noir-coffee" aria-hidden="true" />}
           <main className="scroller" ref={scrollerRef} hidden={!showEditor}>
             {coverVisible && (
               <div

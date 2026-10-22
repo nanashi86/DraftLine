@@ -174,3 +174,57 @@ describe('Format Doctor: the dialog and the status-bar list', () => {
     assert.match(app, /\.stepper-list-actions \{[^}]*flex: none;[^}]*white-space: nowrap;/);
   });
 });
+
+describe('Format Doctor: scene headings stay UPPERCASE, modifiers included; parenthetical case is never touched', async () => {
+  const { parseTextScript } = await import('../src/lib/textScriptParser.js');
+  const { parseFountain, toFountain } = await import('../src/lib/fountain.js');
+  const { toFDX } = await import('../src/lib/fdx.js');
+  const HEADINGS = [
+    'EXT. CROIX-DES-BOSSALES - NIGHT (FLASHBACK)', 'INT. CAR (MOVING) - DAY', 'INT. BEDROOM - DAY (DREAM)',
+    'EXT. FIELD - NIGHT (FLASHBACK) (1986)', 'INT./EXT. TAP-TAP - NIGHT (MOVING)',
+  ];
+  const script = (heading) => [
+    B('s', 'scene', heading), B('a', 'action', 'Rain.'),
+    B('c', 'character', 'MARIE'), B('p', 'parenthetical', '(quietly)'), B('d', 'dialogue', 'Here.'),
+    B('c2', 'character', 'THEO'), B('p2', 'parenthetical', '(FLASHBACK)'), B('d2', 'dialogue', 'Then.'),
+  ];
+  it('uppercase headings with (FLASHBACK) / (MOVING) / (DREAM) are not flagged, and Fix All leaves them as written', () => {
+    for (const h of HEADINGS) {
+      const s = script(h);
+      assert.deepEqual(kinds(auditScript(s)), [], h);
+      assert.equal(applyFixes(s, auditScript(s))[0].text, h, h);
+      assert.equal(formatSlugline(h), h, h);
+    }
+  });
+  it('the only case change a heading ever gets is toward UPPERCASE — modifier included, prefix never lowered', () => {
+    assert.equal(formatSlugline('ext. croix-des-bossales - night (flashback)'), 'EXT. CROIX-DES-BOSSALES - NIGHT (FLASHBACK)');
+    assert.equal(formatSlugline('Int. Car (Moving) - Day'), 'INT. CAR (MOVING) - DAY');
+    for (const h of HEADINGS) assert.doesNotMatch(formatSlugline(h), /\p{Ll}/u, h);
+  });
+  it('heading rules only ever look at scene headings; no rule re-cases a dialogue parenthetical', () => {
+    const s = [...script('int kitchen–night (flashback)'), B('c3', 'character', 'FITO'), B('p3', 'parenthetical', '(Beat)'), B('d3', 'dialogue', 'Go.')];
+    const found = auditScript(s);
+    for (const it of found.filter((x) => x.kind === 'slugformat' || x.kind === 'slugincomplete')) {
+      assert.equal(s.find((b) => b.id === it.id).type, 'scene', 'heading rules apply to scene headings only');
+    }
+    const fixed = applyFixes(s, found);
+    assert.equal(fixed[0].text, 'INT. KITCHEN - NIGHT (FLASHBACK)');
+    for (const id of ['p', 'p2', 'p3']) {
+      assert.equal(fixed.find((b) => b.id === id).text, s.find((b) => b.id === id).text, `${id}: parentheticals keep the writer's case`);
+    }
+  });
+  it('import and export keep the modifier UPPERCASE (plain text, Fountain, Final Draft)', () => {
+    const src = 'EXT. CROIX-DES-BOSSALES - NIGHT (FLASHBACK)\n\nRain.\n\nMARIE\n(quietly)\nHere.\n\nINT. CAR (MOVING) - DAY\n\nEngine noise.';
+    const scenes = (blocks) => blocks.filter((b) => b.type === 'scene').map((b) => b.text);
+    const want = ['EXT. CROIX-DES-BOSSALES - NIGHT (FLASHBACK)', 'INT. CAR (MOVING) - DAY'];
+    const text = parseTextScript(src);
+    const blocks = text.blocks || text;
+    assert.deepEqual(scenes(blocks), want);
+    assert.deepEqual(scenes(parseFountain(src).blocks || parseFountain(src)), want);
+    const round = parseFountain(toFountain({ blocks }));
+    assert.deepEqual(scenes(round.blocks || round), want);
+    assert.ok(blocks.some((b) => b.type === 'parenthetical' && b.text === '(quietly)'), 'the dialogue parenthetical keeps its case');
+    const fdx = toFDX({ blocks });
+    assert.ok(fdx.includes('(FLASHBACK)') && fdx.includes('(MOVING)') && !/\((?:Flashback|Moving)\)/.test(fdx));
+  });
+});

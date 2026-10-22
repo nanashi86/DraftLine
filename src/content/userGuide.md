@@ -334,4 +334,4 @@ A small note pops up in the corner of the window, once per session, when your ow
 
 ### Film Noir mode
 
-Press {{curiosities.noirCombo}} or select **{{curiosities.noirGenre}}** under Story DNA → Genre to turn the room 1940s: typed paper on a dark desk with a coffee ring, Venetian-blind light falling from the window, film grain, and ambient rain audio. Press `Esc` to exit.
+Press {{curiosities.noirCombo}} or select **{{curiosities.noirGenre}}** under Story DNA → Genre to transform the workspace into 1940s monochrome complete with blind shadows, vintage grading, and ambient rain audio. Press `Esc` to exit.
