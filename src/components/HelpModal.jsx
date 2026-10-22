@@ -94,7 +94,7 @@ export default function HelpModal({ kind, storage, onBackup, onClose }) {
               I began storytelling at eight on my father’s electric typewriter. Decades later, while writing my first
               feature, <em>What Happened to Haiti?</em>, I refused to pay bloated subscriptions and drafted all six
               drafts in raw Google Docs. That grind taught me structure and what tools screenwriters truly need. So I
-              teamed up with my AI buddies to build DraftLine: a clean, independent editor with dramatic
+              built DraftLine: a clean, independent editor with dramatic
               architecture built right in.
             </p>
           </section>

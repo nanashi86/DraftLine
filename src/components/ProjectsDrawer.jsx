@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { Lock, LockOpen } from 'lucide-react';
 import Menu from './Menu.jsx';
 import StorageDestination from './StorageDestination.jsx';
 import { relativeTime } from '../lib/projectStorage.js';
@@ -64,11 +65,12 @@ function RenameInput({ initial, onDone }) {
 
 /**
  * Projects drawer: every script in the local library, most recently edited first.
- * Click a card to switch; ⋮ on a card to rename, duplicate, export or delete it.
+ * Click a card to switch; ⋮ on a card to rename, duplicate, export or delete it. The padlock beside ⋮
+ * locks a script (Project Lock): it can't be deleted, and imports or snapshot restores never overwrite it.
  * `live` carries the open script's unsaved title/author/counts so its card is current.
  */
 export default function ProjectsDrawer({
-  open, activeId, live, loadProjects, onClose, onSwitch, onCreate, onRename, onDuplicate, onExport, onDelete, libraryRev = 0,
+  open, activeId, live, loadProjects, onClose, onSwitch, onCreate, onRename, onDuplicate, onExport, onDelete, onToggleLock, libraryRev = 0,
   storage, // { sync, onChoose, onLink, onDisconnect, onAllow } — the Storage Destination block
   focusStorage = 0, // bumped by the status bar: open on the storage settings
 }) {
@@ -243,6 +245,24 @@ export default function ProjectsDrawer({
                     {p.source === 'folder-newer' && !isActive && (
                       <span className="pd-badge is-folder" title="The copy in the synced folder is newer (edited on another computer?) — opening the script loads it">Newer in folder</span>
                     )}
+                    {onToggleLock && (
+                      <button
+                        type="button"
+                        className={`pd-lock${p.isLocked ? ' is-locked' : ''}`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (!busy) act(() => onToggleLock(p.id));
+                        }}
+                        onKeyDown={(e) => e.stopPropagation()}
+                        aria-pressed={p.isLocked === true}
+                        aria-label={p.isLocked ? `Unlock “${title}”` : `Lock “${title}”`}
+                        title={p.isLocked ? 'Project locked (Deletions and overwrites disabled)' : 'Lock project'}
+                      >
+                        {p.isLocked
+                          ? <Lock size={14} strokeWidth={2} aria-hidden />
+                          : <LockOpen size={14} strokeWidth={1.75} aria-hidden />}
+                      </button>
+                    )}
                     <div className="pd-more" onClick={(e) => e.stopPropagation()}>
                       <Menu
                         label={<span aria-hidden="true">⋮</span>}
@@ -262,8 +282,9 @@ export default function ProjectsDrawer({
                           {
                             label: 'Delete…',
                             danger: true,
-                            disabled: count <= 1,
-                            hint: count <= 1 ? 'only script' : undefined,
+                            disabled: count <= 1 || p.isLocked === true,
+                            hint: p.isLocked ? 'locked' : count <= 1 ? 'only script' : undefined,
+                            title: p.isLocked ? 'Unlock the script (the padlock) to delete it' : undefined,
                             onSelect: () => act(() => onDelete(p.id, title)),
                           },
                         ]}

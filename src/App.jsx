@@ -221,6 +221,9 @@ function Workspace({ boot }) {
   const [storyDna, setStoryDna] = useState(initialDoc.storyDna);
   // Plan workspace: per-scene asset lists (lib/productionEngine.js), saved with the project.
   const [production, setProduction] = useState(initialDoc.production); // toDoc normalized it
+  // Project Lock (Projects → padlock) on the open script: saved on its record by setProjectLock, read here
+  // to guard imports and snapshot restores. Not the View Only lock (isLocked: this session's editing).
+  const [projectLocked, setProjectLocked] = useState(initialDoc.isLocked === true);
   const [revisions, setRevisions] = useState(initialDoc.revisions); // Snapshots (lib/revisions.js)
   const [snapshotPrompt, setSnapshotPrompt] = useState(false);
   const [restoreId, setRestoreId] = useState(null); // the snapshot waiting on "Restore?"
@@ -479,6 +482,7 @@ function Workspace({ boot }) {
       // What a synced .draftline file carries beside the project (same as Backup Project).
       fileOptions: { actMode, dictionary: dictOverrides, appVersion: pkg.version },
       folderSnaps: shownFolderSnaps,
+      projectLocked,
     };
   });
 
@@ -757,6 +761,7 @@ function Workspace({ boot }) {
     setStoryDna(doc.storyDna);
     setProduction(doc.production);
     setRevisions(doc.revisions);
+    setProjectLocked(doc.isLocked === true);
     noteSession.current = null;
     setNoteId(null);
     setRestoreId(null);
@@ -984,6 +989,10 @@ function Workspace({ boot }) {
     const rev = getRevision(s.revisions, id) || getRevision(s.folderSnaps, id); // or a file in <folder>/Snapshots
     setRestoreId(null);
     if (!rev) return;
+    if (s.projectLocked) {
+      notify('This script is locked — unlock it (the padlock in Projects) to restore a snapshot over it');
+      return;
+    }
     endNoteEditing();
     let list = s.revisions;
     if (keepCurrent) {
@@ -1069,6 +1078,22 @@ function Workspace({ boot }) {
     notify(`Exported ${name}.${kind}`);
   };
 
+  /** Projects → padlock: lock or unlock script `id` (stored, and written to the synced folder). */
+  const toggleProjectLock = async (id) => {
+    try {
+      const cur = await projects.getProject(id);
+      if (!cur) throw new Error('That script no longer exists');
+      if (id === projectId) await flushSave();
+      const rec = await projects.setProjectLock(id, cur.isLocked !== true);
+      folderSync.writeProject(rec, latest.current.fileOptions);
+      if (id === latest.current.projectId) setProjectLocked(rec.isLocked);
+      const title = rec.title?.trim() || 'Untitled';
+      notify(rec.isLocked ? `Locked “${title}” · it can’t be deleted or overwritten` : `Unlocked “${title}”`);
+    } catch (e) {
+      notify(e.message || 'Couldn’t change the lock');
+    }
+  };
+
   const renameProject = async (id, title) => {
     if (id === projectId) setMeta((m) => ({ ...m, title }));
     else folderSync.writeProject(await projects.renameProject(id, title), latest.current.fileOptions);
@@ -1088,6 +1113,10 @@ function Workspace({ boot }) {
   const [bibleExportOpen, setBibleExportOpen] = useState(false);
   const [libraryRev, setLibraryRev] = useState(0); // bumped when a deletion finishes: Projects re-reads its list
   const deleteProject = async (id, title) => {
+    if ((await projects.getProject(id))?.isLocked) {
+      notify(`“${title}” is locked — unlock it (the padlock in Projects) to delete it`);
+      return;
+    }
     const others = (await projects.getAllProjects()).filter((p) => p.id !== id);
     if (!others.length) {
       notify('This is your only script — create another before deleting it.');
@@ -1198,6 +1227,27 @@ function Workspace({ boot }) {
       .map((b) => makeBlock(ELEMENT_META[b.type] ? b.type : 'action', b.text, blockExtras(b)));
     if (!incoming.length) {
       notify('Nothing to import — the preview is empty');
+      return;
+    }
+    // A locked script is never overwritten or added to: the import becomes a new script of its own.
+    if (projectLocked) {
+      const lockedTitle = meta.title.trim() || 'Untitled';
+      const title = detected?.title?.trim() || `${lockedTitle} (Imported)`;
+      const titlePage = {};
+      if (detected) for (const k of ['credit', 'author', 'basedOn', 'draftVersion', 'draftDate', 'contact']) if (detected[k]) titlePage[k] = detected[k];
+      setImportSeed(null);
+      setSelectedChar(null);
+      openAsNewProject(
+        { meta: { ...EMPTY_META, ...newProjectMeta({ title }), ...titlePage, title }, blocks: incoming, beats: [] },
+        `“${lockedTitle}” is locked — imported as a new script, “${title}”`,
+      ).then(() => {
+        setWorkspace('write');
+        if (view === 'board') setView('page');
+        requestAnimationFrame(() => requestAnimationFrame(() => {
+          if (scrollerEl.current) scrollerEl.current.scrollTop = 0;
+          editorRef.current?.focusBlock(incoming[0].id, { scroll: false, at: 'start' });
+        }));
+      });
       return;
     }
     autoSnapshotRef.current(mode === 'append' ? 'append' : 'import', { force: true }); // the script as it was, first
@@ -2247,6 +2297,7 @@ function Workspace({ boot }) {
           onDuplicate={duplicateProject}
           onExport={exportProject}
           onDelete={deleteProject}
+          onToggleLock={toggleProjectLock}
         />
 
         {guideOpen && (
@@ -2284,6 +2335,8 @@ function Workspace({ boot }) {
             initialText={importSeed.text}
             initialName={importSeed.name}
             currentBlockCount={blocks.length}
+            locked={projectLocked}
+            lockedTitle={meta.title.trim() || 'Untitled'}
             onImport={importScript}
             onBackup={restoreBackup}
             onClose={() => setImportSeed(null)}

@@ -193,3 +193,6 @@
 }
 
 .im-note-chip { margin-left: 8px; padding: 0 5px; border-radius: 3px; background: #fbe9a0; color: #6f5608; font: 600 10px/1.5 var(--ui-font); vertical-align: 1px; }
+
+/* Project Lock on the open script: the footer says the import becomes a new script. */
+.im-hint.is-locked { display: inline-flex; align-items: center; gap: 6px; color: var(--accent-amber); }

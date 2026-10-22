@@ -83,7 +83,7 @@ export function projectStats(blocks) {
 
 /** Editor document ({ meta, blocks, beats }) → stored record. */
 export function toRecord({
-  id, meta = {}, blocks = [], beats = [], characters = [], storyNotes, storyDna, production, revisions, pages, scenes,
+  id, meta = {}, blocks = [], beats = [], characters = [], storyNotes, storyDna, production, revisions, pages, scenes, isLocked,
 }, now = Date.now()) {
   const rec = { id: id || newProjectId() };
   for (const k of META_FIELDS) rec[k] = meta[k] ?? EMPTY_META[k];
@@ -96,6 +96,9 @@ export function toRecord({
   // Snapshots (revisions.js). Left out when the caller doesn't know them — saving then keeps
   // whatever the library already has (see saveActiveProject).
   if (revisions !== undefined) rec.revisions = normalizeRevisions(revisions);
+  // Project Lock (Projects → padlock): no deleting, no import or snapshot restore over it. Left out
+  // when the caller doesn't say — the editor's saves never do — so saving keeps it (saveActiveProject).
+  if (isLocked !== undefined) rec.isLocked = isLocked === true;
   const est = pages == null || scenes == null ? projectStats(blocks) : null;
   rec.pages = pages ?? est.pages;
   rec.scenes = scenes ?? est.scenes;
@@ -120,6 +123,7 @@ export function toDoc(rec) {
     ...pickBible(migrateStoryBible(rec.storyNotes, rec.storyDna)),
     production: normalizeProduction(rec.production),
     revisions: normalizeRevisions(rec.revisions),
+    isLocked: rec.isLocked === true,
     createdAt: rec.createdAt,
     updatedAt: rec.updatedAt,
   };
@@ -253,6 +257,10 @@ export function createProjectStore({ indexedDB = globalThis.indexedDB, now = Dat
           if (prev?.createdAt) rec.createdAt = prev.createdAt;
           // A save that doesn't carry snapshots (crash-recovery journal, older callers) keeps them.
           if (projectData.revisions === undefined && prev?.revisions) rec.revisions = prev.revisions;
+          // …and the Project Lock, which only setProjectLock changes.
+          if (projectData.isLocked === undefined) rec.isLocked = prev?.isLocked === true;
+        } else if (rec.isLocked === undefined) {
+          rec.isLocked = false;
         }
         await b.put(rec);
         return rec;
@@ -317,6 +325,22 @@ export function createProjectStore({ indexedDB = globalThis.indexedDB, now = Dat
       });
     },
 
+    /**
+     * Project Lock on or off (the Projects drawer's padlock). Stamped as an edit, so the synced
+     * folder's copy picks it up and the newest copy wins on another computer. Returns the record.
+     */
+    setProjectLock(id, locked) {
+      return serial(async () => {
+        const b = await backend();
+        const rec = await b.get(id);
+        if (!rec) throw new Error('That project no longer exists');
+        rec.isLocked = locked === true;
+        rec.updatedAt = stamp();
+        await b.put(rec);
+        return rec;
+      });
+    },
+
     /** Clone a project as "[Title] (Copy)" with a new id. Returns the copy. */
     duplicateProject(id) {
       return serial(async () => {
@@ -324,18 +348,21 @@ export function createProjectStore({ indexedDB = globalThis.indexedDB, now = Dat
         const src = await b.get(id);
         if (!src) throw new Error('That project no longer exists');
         const t = stamp();
-        const copy = { ...clone(src), id: newProjectId(), title: `${src.title?.trim() || 'Untitled'} (Copy)`, createdAt: t, updatedAt: t };
+        // A copy is a fresh working draft: it starts unlocked.
+        const copy = { ...clone(src), id: newProjectId(), title: `${src.title?.trim() || 'Untitled'} (Copy)`, createdAt: t, updatedAt: t, isLocked: false };
         await b.put(copy);
         return copy;
       });
     },
 
-    /** Delete a project. Guarded: the last remaining project can't be deleted. */
+    /** Delete a project. Guarded: the last remaining project, and a locked one, can't be deleted. */
     deleteProject(id) {
       return serial(async () => {
         const b = await backend();
         const all = await b.getAll();
-        if (!all.some((p) => p.id === id)) return false;
+        const target = all.find((p) => p.id === id);
+        if (!target) return false;
+        if (target.isLocked === true) throw new Error(`“${target.title?.trim() || 'Untitled'}” is locked — unlock it in Projects to delete it`);
         if (all.length <= 1) throw new Error('You can’t delete your only script');
         await b.del(id);
         if ((await b.getSetting('activeProjectId')) === id) {

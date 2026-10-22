@@ -22,6 +22,8 @@ The top bar holds your script's title, the **Write | Plan** switch, the **File �
 
 Every script lives in your **Projects** library ({{key:Alt+P}}, or the ▾ beside the title). From there you can create, switch, rename, duplicate, export or delete scripts. Deleting asks first: the **Delete Screenplay?** dialog only deletes when you press **Permanently Delete**; **Cancel** leaves everything as it was.
 
+**Project Lock.** The padlock to the left of a script's ⋮ menu locks it (it turns amber). A locked script can't be deleted, and nothing is loaded over it: Import and pasted scripts open as a new script beside it (Append is hidden), and snapshots can't be restored over it. You can still type in it; for a read-only session use View Only ({{key:Ctrl+Alt+L}}). The lock is saved with the script, in backups and in a linked folder. Click the padlock again to unlock. Duplicates start unlocked.
+
 By default, scripts are saved in this browser's own database (IndexedDB) on this computer. Saving is automatic, about half a second after you stop typing. {{key:Ctrl+S}} saves immediately. Nothing is uploaded and no account is needed.
 
 Browser storage belongs to this browser profile. Clearing the browser's site data removes those scripts, so keep backups (see below) or link a folder.
