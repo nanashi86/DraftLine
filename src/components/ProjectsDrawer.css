@@ -128,6 +128,27 @@
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
+/* Project Lock: a padlock just left of ⋮ — muted and open until clicked; warm amber and closed while locked. */
+.pd-lock {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  margin-left: auto;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: #52525b;
+  cursor: pointer;
+  transition: color 120ms ease, background 120ms ease;
+}
+.pd-lock:hover { color: #a1a1aa; background: rgba(255, 255, 255, 0.06); }
+.pd-lock.is-locked { color: var(--accent-amber); }
+.pd-lock.is-locked:hover { color: #fbbf24; background: rgba(245, 158, 11, 0.12); }
+.pd-lock:focus-visible { outline: 2px solid var(--accent-amber); outline-offset: 1px; }
+.pd-card-top .pd-lock + .pd-more { margin-left: 0; }
 .pd-more { flex: none; margin-right: -6px; opacity: 0.55; transition: opacity 120ms ease; }
 .pd-card:hover .pd-more,
 .pd-card:focus-within .pd-more,

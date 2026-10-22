@@ -4,6 +4,7 @@ import { parseTextScript } from '../lib/textScriptParser.js';
 import { docxToScriptText, readAsArrayBuffer } from '../lib/docxImport.js';
 import { parseFDX } from '../lib/fdx.js';
 import { toFountain } from '../lib/fountain.js';
+import { Lock } from 'lucide-react';
 import './ImportModal.css';
 
 const PREVIEW_LIMIT = 400;
@@ -25,7 +26,10 @@ function plural(n, one, many = `${one}s`) {
  * Import a script from plain text: drop a .txt file or paste, preview how each line
  * was classified, then replace the current script (undoable) or append to it.
  */
-export default function ImportModal({ initialText = '', initialName = '', currentBlockCount, onImport, onBackup, onClose }) {
+export default function ImportModal({
+  initialText = '', initialName = '', currentBlockCount, onImport, onBackup, onClose,
+  locked = false, lockedTitle = '', // Project Lock on the open script: the import becomes a new script
+}) {
   const dialogRef = useRef(null);
   const fileRef = useRef(null);
   const [text, setText] = useState(initialText);
@@ -242,26 +246,31 @@ export default function ImportModal({ initialText = '', initialName = '', curren
           </ol>
 
           <footer className="im-actions">
-            <span className="im-hint">
-              {currentBlockCount > 1 ? 'Replacing can be undone with Ctrl+Z.' : ''}
+            <span className={`im-hint${locked ? ' is-locked' : ''}`}>
+              {locked
+                ? <><Lock size={12} strokeWidth={2} aria-hidden /> “{lockedTitle}” is locked, so this loads as a new script.</>
+                : currentBlockCount > 1 ? 'Replacing can be undone with Ctrl+Z.' : ''}
             </span>
             <button type="button" className="btn" onClick={onClose}>Cancel</button>
-            <button
-              type="button"
-              className="btn btn-outline"
-              disabled={!blocks.length}
-              onClick={() => submit('append')}
-              title="Add the imported script after your current one"
-            >
-              Append
-            </button>
+            {!locked && (
+              <button
+                type="button"
+                className="btn btn-outline"
+                disabled={!blocks.length}
+                onClick={() => submit('append')}
+                title="Add the imported script after your current one"
+              >
+                Append
+              </button>
+            )}
             <button
               type="button"
               className="btn btn-primary"
               disabled={!blocks.length}
               onClick={() => submit('replace')}
+              title={locked ? `“${lockedTitle}” is locked: the import opens as a new script beside it` : undefined}
             >
-              Load into Editor
+              {locked ? 'Load as New Script' : 'Load into Editor'}
             </button>
           </footer>
         </section>
