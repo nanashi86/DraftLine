@@ -1,0 +1,481 @@
+{
+ "logo/draftline-mark": {
+  "w": 512,
+  "h": 512,
+  "transparent": true,
+  "files": [
+   [
+    0.25,
+    "logo/draftline-mark-128.png"
+   ],
+   [
+    0.5,
+    "logo/draftline-mark-256.png"
+   ],
+   [
+    1,
+    "logo/draftline-mark-512.png"
+   ],
+   [
+    2,
+    "logo/draftline-mark-1024.png"
+   ]
+  ],
+  "publish_svg": "logo/draftline-mark.svg"
+ },
+ "logo/draftline-icon-round-safe": {
+  "w": 1024,
+  "h": 1024,
+  "transparent": false,
+  "files": [
+   [
+    1,
+    "logo/draftline-icon-round-safe-1024.png"
+   ]
+  ],
+  "publish_svg": "logo/draftline-icon-round-safe.svg"
+ },
+ "logo/draftline-d-white": {
+  "w": 512,
+  "h": 512,
+  "transparent": true,
+  "files": [
+   [
+    1,
+    "logo/draftline-d-white-512.png"
+   ]
+  ],
+  "publish_svg": "logo/draftline-d-white.svg"
+ },
+ "logo/draftline-d-black": {
+  "w": 512,
+  "h": 512,
+  "transparent": true,
+  "files": [
+   [
+    1,
+    "logo/draftline-d-black-512.png"
+   ]
+  ],
+  "publish_svg": "logo/draftline-d-black.svg"
+ },
+ "logo/draftline-wordmark-for-dark-bg": {
+  "w": 1150,
+  "h": 240,
+  "transparent": true,
+  "files": [
+   [
+    1,
+    "logo/draftline-wordmark-for-dark-bg.png"
+   ],
+   [
+    2,
+    "logo/draftline-wordmark-for-dark-bg@2x.png"
+   ]
+  ],
+  "publish_svg": "logo/draftline-wordmark-for-dark-bg.svg"
+ },
+ "logo/draftline-wordmark-for-light-bg": {
+  "w": 1150,
+  "h": 240,
+  "transparent": true,
+  "files": [
+   [
+    1,
+    "logo/draftline-wordmark-for-light-bg.png"
+   ],
+   [
+    2,
+    "logo/draftline-wordmark-for-light-bg@2x.png"
+   ]
+  ],
+  "publish_svg": "logo/draftline-wordmark-for-light-bg.svg"
+ },
+ "logo/draftline-lockup-for-dark-bg": {
+  "w": 1056,
+  "h": 260,
+  "transparent": true,
+  "files": [
+   [
+    1,
+    "logo/draftline-lockup-for-dark-bg.png"
+   ],
+   [
+    2,
+    "logo/draftline-lockup-for-dark-bg@2x.png"
+   ]
+  ],
+  "publish_svg": "logo/draftline-lockup-for-dark-bg.svg"
+ },
+ "logo/draftline-lockup-for-light-bg": {
+  "w": 1056,
+  "h": 260,
+  "transparent": true,
+  "files": [
+   [
+    1,
+    "logo/draftline-lockup-for-light-bg.png"
+   ],
+   [
+    2,
+    "logo/draftline-lockup-for-light-bg@2x.png"
+   ]
+  ],
+  "publish_svg": "logo/draftline-lockup-for-light-bg.svg"
+ },
+ "patreon/patreon-cover-1600x400": {
+  "w": 1600,
+  "h": 400,
+  "transparent": false,
+  "files": [
+   [
+    1,
+    "patreon/patreon-cover-1600x400.png"
+   ],
+   [
+    2,
+    "patreon/patreon-cover-3200x800.png"
+   ]
+  ],
+  "publish_svg": null
+ },
+ "patreon/patreon-avatar-1024": {
+  "w": 1024,
+  "h": 1024,
+  "transparent": false,
+  "files": [
+   [
+    1,
+    "patreon/patreon-avatar-1024.png"
+   ]
+  ],
+  "publish_svg": null
+ },
+ "patreon/patreon-tier-writer-460x200": {
+  "w": 460,
+  "h": 200,
+  "transparent": false,
+  "files": [
+   [
+    1,
+    "patreon/patreon-tier-writer-460x200.png"
+   ],
+   [
+    2,
+    "patreon/patreon-tier-writer-920x400.png"
+   ]
+  ],
+  "publish_svg": null
+ },
+ "patreon/patreon-tier-beta-tester-460x200": {
+  "w": 460,
+  "h": 200,
+  "transparent": false,
+  "files": [
+   [
+    1,
+    "patreon/patreon-tier-beta-tester-460x200.png"
+   ],
+   [
+    2,
+    "patreon/patreon-tier-beta-tester-920x400.png"
+   ]
+  ],
+  "publish_svg": null
+ },
+ "patreon/patreon-tier-patron-460x200": {
+  "w": 460,
+  "h": 200,
+  "transparent": false,
+  "files": [
+   [
+    1,
+    "patreon/patreon-tier-patron-460x200.png"
+   ],
+   [
+    2,
+    "patreon/patreon-tier-patron-920x400.png"
+   ]
+  ],
+  "publish_svg": null
+ },
+ "patreon/patreon-post-1920x1080": {
+  "w": 1920,
+  "h": 1080,
+  "transparent": false,
+  "files": [
+   [
+    1,
+    "patreon/patreon-post-1920x1080.png"
+   ]
+  ],
+  "publish_svg": null
+ },
+ "discord/discord-server-icon-1024": {
+  "w": 1024,
+  "h": 1024,
+  "transparent": false,
+  "files": [
+   [
+    0.5,
+    "discord/discord-server-icon-512.png"
+   ],
+   [
+    1,
+    "discord/discord-server-icon-1024.png"
+   ]
+  ],
+  "publish_svg": null
+ },
+ "discord/discord-server-banner-1920x1080": {
+  "w": 1920,
+  "h": 1080,
+  "transparent": false,
+  "files": [
+   [
+    1,
+    "discord/discord-server-banner-1920x1080.png"
+   ]
+  ],
+  "publish_svg": null
+ },
+ "discord/discord-invite-splash-1920x1080": {
+  "w": 1920,
+  "h": 1080,
+  "transparent": false,
+  "files": [
+   [
+    1,
+    "discord/discord-invite-splash-1920x1080.png"
+   ]
+  ],
+  "publish_svg": null
+ },
+ "discord/discord-profile-banner-680x240": {
+  "w": 680,
+  "h": 240,
+  "transparent": false,
+  "files": [
+   [
+    1,
+    "discord/discord-profile-banner-680x240.png"
+   ],
+   [
+    2,
+    "discord/discord-profile-banner-1360x480.png"
+   ]
+  ],
+  "publish_svg": null
+ },
+ "ko-fi/kofi-cover-1200x400": {
+  "w": 1200,
+  "h": 400,
+  "transparent": false,
+  "files": [
+   [
+    1,
+    "ko-fi/kofi-cover-1200x400.png"
+   ],
+   [
+    2,
+    "ko-fi/kofi-cover-2400x800.png"
+   ]
+  ],
+  "publish_svg": null
+ },
+ "ko-fi/kofi-avatar-1024": {
+  "w": 1024,
+  "h": 1024,
+  "transparent": false,
+  "files": [
+   [
+    1,
+    "ko-fi/kofi-avatar-1024.png"
+   ]
+  ],
+  "publish_svg": null
+ },
+ "github/github-social-preview-1280x640": {
+  "w": 1280,
+  "h": 640,
+  "transparent": false,
+  "files": [
+   [
+    1,
+    "github/github-social-preview-1280x640.png"
+   ]
+  ],
+  "publish_svg": null
+ },
+ "github/readme-banner-1280x320": {
+  "w": 1280,
+  "h": 320,
+  "transparent": false,
+  "files": [
+   [
+    1,
+    "github/readme-banner-1280x320.png"
+   ],
+   [
+    2,
+    "github/readme-banner-2560x640.png"
+   ]
+  ],
+  "publish_svg": null
+ },
+ "X/x-avatar": {
+  "w": 800,
+  "h": 800,
+  "transparent": false,
+  "files": [
+   [
+    1,
+    "X/x-avatar.png"
+   ]
+  ],
+  "publish_svg": null
+ },
+ "X/x-banner": {
+  "w": 1500,
+  "h": 500,
+  "transparent": false,
+  "files": [
+   [
+    1,
+    "X/x-banner.png"
+   ]
+  ],
+  "publish_svg": null
+ },
+ "X/draftline-x-full-logo-dark": {
+  "w": 1056,
+  "h": 260,
+  "transparent": true,
+  "files": [
+   [
+    2,
+    "X/draftline-x-full-logo-dark.png"
+   ]
+  ],
+  "publish_svg": null
+ },
+ "X/draftline-x-full-logo-light": {
+  "w": 1056,
+  "h": 260,
+  "transparent": true,
+  "files": [
+   [
+    2,
+    "X/draftline-x-full-logo-light.png"
+   ]
+  ],
+  "publish_svg": null
+ },
+ "X/draftline-x-full-logo": {
+  "w": 1056,
+  "h": 260,
+  "transparent": false,
+  "files": [],
+  "publish_svg": "X/draftline-x-full-logo.svg"
+ },
+ "X/x-banner-minimal": {
+  "w": 1500,
+  "h": 500,
+  "transparent": false,
+  "files": [
+   [
+    1,
+    "X/x-banner-minimal.png"
+   ]
+  ],
+  "publish_svg": null
+ },
+ "patreon/patreon-cover-minimal-1600x400": {
+  "w": 1600,
+  "h": 400,
+  "transparent": false,
+  "files": [
+   [
+    1,
+    "patreon/patreon-cover-minimal-1600x400.png"
+   ],
+   [
+    2,
+    "patreon/patreon-cover-minimal-3200x800.png"
+   ]
+  ],
+  "publish_svg": null
+ },
+ "discord/discord-server-banner-minimal-1920x1080": {
+  "w": 1920,
+  "h": 1080,
+  "transparent": false,
+  "files": [
+   [
+    1,
+    "discord/discord-server-banner-minimal-1920x1080.png"
+   ]
+  ],
+  "publish_svg": null
+ },
+ "discord/discord-profile-banner-minimal-680x240": {
+  "w": 680,
+  "h": 240,
+  "transparent": false,
+  "files": [
+   [
+    1,
+    "discord/discord-profile-banner-minimal-680x240.png"
+   ],
+   [
+    2,
+    "discord/discord-profile-banner-minimal-1360x480.png"
+   ]
+  ],
+  "publish_svg": null
+ },
+ "ko-fi/kofi-cover-minimal-1200x400": {
+  "w": 1200,
+  "h": 400,
+  "transparent": false,
+  "files": [
+   [
+    1,
+    "ko-fi/kofi-cover-minimal-1200x400.png"
+   ],
+   [
+    2,
+    "ko-fi/kofi-cover-minimal-2400x800.png"
+   ]
+  ],
+  "publish_svg": null
+ },
+ "github/github-social-preview-minimal-1280x640": {
+  "w": 1280,
+  "h": 640,
+  "transparent": false,
+  "files": [
+   [
+    1,
+    "github/github-social-preview-minimal-1280x640.png"
+   ]
+  ],
+  "publish_svg": null
+ },
+ "github/readme-banner-minimal-1280x320": {
+  "w": 1280,
+  "h": 320,
+  "transparent": false,
+  "files": [
+   [
+    1,
+    "github/readme-banner-minimal-1280x320.png"
+   ],
+   [
+    2,
+    "github/readme-banner-minimal-2560x640.png"
+   ]
+  ],
+  "publish_svg": null
+ }
+}

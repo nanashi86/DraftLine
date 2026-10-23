@@ -1,12 +1,19 @@
-"""DraftLine brand kit generator: every asset is an SVG with all text outlined, then rendered to PNG."""
-import json, os
+"""DraftLine brand kit generator: every asset is an SVG with all text outlined, then rendered to PNG.
+
+Run from anywhere (needs Python with fonttools, uharfbuzz and brotli, and Node with Playwright):
+    python3 brand/source/gen.py      # writes brand/source/svg/** and brand/source/svg/manifest.json
+    node brand/source/render.mjs     # renders every PNG straight into brand/<platform>/ under its final name
+Each asset names its own output files (see add()), so a rerun refreshes the whole kit in place,
+including brand/X/. Fonts are bundled in brand/source/fonts/ (both SIL Open Font License).
+"""
+import json, os, re, sys
 import uharfbuzz as hb
 from fontTools.ttLib import TTFont
 from fontTools.pens.svgPathPen import SVGPathPen
 from fontTools.pens.transformPen import TransformPen
 
-HERE = os.path.dirname(os.path.abspath(__file__))
-OUT = os.path.join(HERE, 'out')
+HERE = os.path.dirname(os.path.abspath(__file__))       # brand/source
+SVG_OUT = os.path.join(HERE, 'svg')                      # editable sources + manifest.json
 
 # ---- palette (from DraftLine's own theme tokens) ----
 ACCENT = '#c8553d'      # --accent / icon tile
@@ -23,9 +30,9 @@ AMBER = '#f59e0b'
 FONTS = {
     'cp-bold': os.path.join(HERE, 'fonts/CourierPrime-Bold.ttf'),
     'cp': os.path.join(HERE, 'fonts/CourierPrime-Regular.ttf'),
-    'inter': '/usr/share/fonts/opentype/inter/Inter-Medium.otf',
-    'inter-semi': '/usr/share/fonts/opentype/inter/Inter-SemiBold.otf',
-    'inter-bold': '/usr/share/fonts/opentype/inter/Inter-Bold.otf',
+    'inter': os.path.join(HERE, 'fonts/Inter-Medium.otf'),
+    'inter-semi': os.path.join(HERE, 'fonts/Inter-SemiBold.otf'),
+    'inter-bold': os.path.join(HERE, 'fonts/Inter-Bold.otf'),
 }
 _cache = {}
 
@@ -178,24 +185,45 @@ def backdrop(w, h, glow_cx=None, glow_cy=None, glow_r=None):
 
 ASSETS = {}
 
-def add(path, w, h, body, bg=INK_BG, transparent=False, scales=(1,)):
-    ASSETS[path] = {'w': w, 'h': h, 'svg': svg(w, h, body, None if transparent else bg), 'transparent': transparent, 'scales': list(scales)}
+def png_name(path, scale):
+    """Default PNG name: a size in the name tracks the scale (cover-1600x400 @2x -> cover-3200x800,
+    icon-1024 @0.5 -> icon-512); otherwise @2x is appended."""
+    m = re.search(r'-(\d+)x(\d+)$', path)
+    if m:
+        return path[:m.start()] + f'-{round(int(m[1]) * scale)}x{round(int(m[2]) * scale)}'
+    m = re.search(r'-(\d+)$', path)
+    if m:
+        return path[:m.start()] + f'-{round(int(m[1]) * scale)}'
+    return path if scale == 1 else f'{path}@{scale:g}x'
+
+def add(path, w, h, body, bg=INK_BG, transparent=False, scales=(1,), files=None, publish_svg=None, raw=None):
+    """One asset. path: its source SVG, brand/source/svg/<path>.svg.
+    files: [(scale, 'folder/name')] PNGs to write under brand/ (default: one per scale, named by png_name).
+    publish_svg: also copy the SVG to brand/<publish_svg>.svg (vector deliverables).
+    raw: use this SVG text as is instead of wrapping body."""
+    files = files if files is not None else [(s, png_name(path, s)) for s in scales]
+    ASSETS[path] = {'w': w, 'h': h, 'svg': raw or svg(w, h, body, None if transparent else bg), 'transparent': transparent,
+                    'files': [[s, f + '.png'] for s, f in files], 'publish_svg': publish_svg + '.svg' if publish_svg else None}
 
 # =================== LOGO ===================
-add('logo/draftline-mark', 512, 512, mark(0, 0, 512), transparent=True, scales=(0.25, 0.5, 1, 2))
-add('logo/draftline-icon-round-safe', 1024, 1024, circle_icon(1024))
-g = glyph_only(0, 0, 512, '#fff'); add('logo/draftline-d-white', 512, 512, g, transparent=True)
-g = glyph_only(0, 0, 512, INK_BG); add('logo/draftline-d-black', 512, 512, g, transparent=True)
+add('logo/draftline-mark', 512, 512, mark(0, 0, 512), transparent=True, publish_svg='logo/draftline-mark',
+    files=[(s, f'logo/draftline-mark-{round(512 * s)}') for s in (0.25, 0.5, 1, 2)])
+add('logo/draftline-icon-round-safe', 1024, 1024, circle_icon(1024), publish_svg='logo/draftline-icon-round-safe',
+    files=[(1, 'logo/draftline-icon-round-safe-1024')])
+g = glyph_only(0, 0, 512, '#fff')
+add('logo/draftline-d-white', 512, 512, g, transparent=True, publish_svg='logo/draftline-d-white', files=[(1, 'logo/draftline-d-white-512')])
+g = glyph_only(0, 0, 512, INK_BG)
+add('logo/draftline-d-black', 512, 512, g, transparent=True, publish_svg='logo/draftline-d-black', files=[(1, 'logo/draftline-d-black-512')])
 
 # wordmarks on transparent
 wm, ww = wordmark(0, 0, 200)
 W = int(ww + 40); H = 240
-wm, _ = wordmark(20, 172, 200, TEXT); add('logo/draftline-wordmark-for-dark-bg', W, H, wm, transparent=True, scales=(1, 2))
-wm, _ = wordmark(20, 172, 200, INK); add('logo/draftline-wordmark-for-light-bg', W, H, wm, transparent=True, scales=(1, 2))
+wm, _ = wordmark(20, 172, 200, TEXT); add('logo/draftline-wordmark-for-dark-bg', W, H, wm, transparent=True, scales=(1, 2), publish_svg='logo/draftline-wordmark-for-dark-bg')
+wm, _ = wordmark(20, 172, 200, INK); add('logo/draftline-wordmark-for-light-bg', W, H, wm, transparent=True, scales=(1, 2), publish_svg='logo/draftline-wordmark-for-light-bg')
 lk, lw = lockup(0, 0, 200)
 W = int(lw + 60); H = 260
-lk, _ = lockup(30, 130, 200, TEXT); add('logo/draftline-lockup-for-dark-bg', W, H, lk, transparent=True, scales=(1, 2))
-lk, _ = lockup(30, 130, 200, INK); add('logo/draftline-lockup-for-light-bg', W, H, lk, transparent=True, scales=(1, 2))
+lk, _ = lockup(30, 130, 200, TEXT); add('logo/draftline-lockup-for-dark-bg', W, H, lk, transparent=True, scales=(1, 2), publish_svg='logo/draftline-lockup-for-dark-bg')
+lk, _ = lockup(30, 130, 200, INK); add('logo/draftline-lockup-for-light-bg', W, H, lk, transparent=True, scales=(1, 2), publish_svg='logo/draftline-lockup-for-light-bg')
 
 # =================== shared banner composition ===================
 def hero(w, h, tagline, sub=None, lock_h=None, cy=None, pages=True, url=None, sub2=None):
@@ -292,9 +320,123 @@ add('ko-fi/kofi-avatar-1024', 1024, 1024, circle_icon(1024))
 add('github/github-social-preview-1280x640', 1280, 640, hero(1280, 640, TAG, SUB, lock_h=140, cy=250, url=URL))
 add('github/readme-banner-1280x320', 1280, 320, hero(1280, 320, TAG, SUB, lock_h=78, cy=118), scales=(1, 2))
 
-os.makedirs(OUT, exist_ok=True)
+# =================== X (TWITTER) ===================
+# Profile photo: 400x400 shown as a circle (2 MB max); made at 800 for sharp retina display.
+# Header: 1500x500 (3:1). The avatar covers roughly the bottom-left 400x200, and phones crop the top and
+# bottom, so everything that matters sits in x >= 440 and y 110..400.
+LUCIDE = {  # Lucide line icons (24 px grid, 2 px stroke), the app's icon set: no emoji anywhere.
+    'coffee': ['M10 2v2', 'M14 2v2', 'M16 8a1 1 0 0 1 1 1v8a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V9a1 1 0 0 1 1-1h14a4 4 0 1 1 0 8h-1', 'M6 2v2'],
+    'heart': ['M2 9.5a5.5 5.5 0 0 1 9.591-3.676.56.56 0 0 0 .818 0A5.49 5.49 0 0 1 22 9.5c0 2.29-1.5 4-3 5.5l-5.492 5.313a2 2 0 0 1-3 .019L5 15c-1.5-1.5-3-3.2-3-5.5'],
+    'message-circle': ['M2.992 16.342a2 2 0 0 1 .094 1.167l-1.065 3.29a1 1 0 0 0 1.236 1.168l3.413-.998a2 2 0 0 1 1.099.092 10 10 0 1 0-4.777-4.719'],
+    'code-xml': ['m18 16 4-4-4-4', 'm6 8-4 4 4 4', 'm14.5 4-5 16'],
+}
+
+def icon(name, x, y, size, color):
+    paths = ''.join(f'<path d="{d}"/>' for d in LUCIDE[name])
+    return (f'<g transform="translate({x:.2f} {y:.2f}) scale({size / 24:.4f})" fill="none" stroke="{color}" '
+            f'stroke-width="2" stroke-linecap="round" stroke-linejoin="round">{paths}</g>')
+
+def noir_defs(w, h):
+    """The app's Film Noir look: Venetian-blind slats at -28 deg (lib/noir.js), a vignette and 35 mm grain."""
+    return (
+        '<defs>'
+        # light through the blinds, on the backdrop
+        '<pattern id="shafts" patternUnits="userSpaceOnUse" width="52" height="52" patternTransform="rotate(-28)">'
+        '<rect width="52" height="30" fill="#fff" opacity="0.045"/></pattern>'
+        '<linearGradient id="shaftfade" x1="1" y1="0" x2="0.2" y2="1">'
+        '<stop offset="0" stop-color="#fff" stop-opacity="1"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>'
+        '<mask id="shaftmask"><rect width="100%" height="100%" fill="url(#shaftfade)"/></mask>'
+        # the blind's shadow, across the page
+        '<pattern id="slats" patternUnits="userSpaceOnUse" width="52" height="52" patternTransform="rotate(-34)">'
+        '<rect y="34" width="52" height="18" fill="#000" opacity="0.13"/></pattern>'
+        '<radialGradient id="vignette" cx="50%" cy="50%" r="75%">'
+        '<stop offset="0.55" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity="0.55"/></radialGradient>'
+        '<filter id="grain" x="0" y="0" width="100%" height="100%">'
+        '<feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" stitchTiles="stitch"/>'
+        '<feColorMatrix type="saturate" values="0"/></filter>'
+        '</defs>')
+
+def noir_page(x, y, w, rot):
+    """A screenplay page lying in the blinds' light: the page() fragment with slat shadows across it."""
+    g = page(x, y, w, rot=rot)
+    h = w * 0.62
+    return g[:-len('</g>')] + f'<rect width="{w}" height="{h:.2f}" fill="url(#slats)"/></g>'
+
+def pill(x, y, name, label, size=15):
+    """A community badge: line icon + label in a dark capsule. Returns svg, width."""
+    lw = measure('inter-semi', label, size)
+    w = 16 + 18 + 9 + lw + 18
+    b = (f'<rect x="{x:.2f}" y="{y}" width="{w:.2f}" height="40" rx="20" fill="#222327" stroke="#3a3b42"/>'
+         + icon(name, x + 16, y + 11, 18, ACCENT_HI))
+    t, _ = text('inter-semi', label, size, x + 16 + 18 + 9, y + 25.5, TEXT)
+    return b + t, w
+
+def x_banner(w=1500, h=500):
+    cx = 700                                              # content column, left of centre to balance the page
+    b = noir_defs(w, h)
+    b += f'<rect width="{w}" height="{h}" fill="url(#shafts)" mask="url(#shaftmask)"/>'
+    b += f'<ellipse cx="{cx}" cy="210" rx="560" ry="300" fill="url(#glow)" opacity="0.8"/>'
+    b += noir_page(w - 430, 64, 560, rot=6)
+    lk, _ = lockup(cx, 168, 92, anchor='middle'); b += lk
+    t, _ = text('inter-semi', 'Fast, distraction-free screenwriting.', 30, cx, 268, TEXT, anchor='middle'); b += t
+    t, _ = text('inter', '100% local, open-source.', 22, cx, 304, MUTED, anchor='middle', tracking=0.01); b += t
+    pills = [('coffee', 'Ko-fi'), ('heart', 'Patreon'), ('message-circle', 'Discord'), ('code-xml', 'GitHub')]
+    widths = [pill(0, 0, n, l)[1] for n, l in pills]
+    gap = 12
+    x = cx - (sum(widths) + gap * (len(pills) - 1)) / 2
+    for (n, l), pw in zip(pills, widths):
+        p, _ = pill(x, 348, n, l); b += p; x += pw + gap
+    b += f'<rect width="{w}" height="{h}" fill="url(#vignette)"/>'
+    b += f'<rect width="{w}" height="{h}" filter="url(#grain)" opacity="0.05"/>'
+    return b
+
+def x_avatar(size=800):
+    """The app icon, centred on the dark ground with room to spare inside X's circular crop."""
+    tile = size * 0.6
+    b = f'<ellipse cx="{size / 2}" cy="{size / 2}" rx="{size * 0.5}" ry="{size * 0.5}" fill="url(#glow)" opacity="0.7"/>'
+    return b + mark((size - tile) / 2, (size - tile) / 2, tile)
+
+add('X/x-avatar', 800, 800, x_avatar(800), files=[(1, 'X/x-avatar')])
+add('X/x-banner', 1500, 500, x_banner(), files=[(1, 'X/x-banner')])
+
+lk, lw = lockup(0, 0, 200)
+W = int(lw + 60); H = 260
+lk, _ = lockup(30, 130, 200, TEXT)
+add('X/draftline-x-full-logo-dark', W, H, lk, transparent=True, files=[(2, 'X/draftline-x-full-logo-dark')])
+lk, _ = lockup(30, 130, 200, INK)
+add('X/draftline-x-full-logo-light', W, H, lk, transparent=True, files=[(2, 'X/draftline-x-full-logo-light')])
+# One vector for both: the wordmark follows the viewer's light / dark setting where SVG styles apply.
+lk, _ = lockup(30, 130, 200, TEXT)
+adaptive = (f'<svg xmlns="http://www.w3.org/2000/svg" width="{W}" height="{H}" viewBox="0 0 {W} {H}">'
+            '<title>DraftLine</title>'
+            f'<style>.ink{{fill:{INK}}}@media (prefers-color-scheme: dark){{.ink{{fill:{TEXT}}}}}</style>'
+            + lk.replace(f'fill="{TEXT}"', 'class="ink"') + '</svg>\n')
+add('X/draftline-x-full-logo', W, H, None, raw=adaptive, files=[], publish_svg='X/draftline-x-full-logo')
+
+# =================== MINIMAL BANNERS ===================
+# The logo with the name (light lettering, as in logo/draftline-lockup-for-dark-bg) alone on solid black,
+# at each platform's banner size. Each one keeps clear of what that platform lays over its banner.
+BLACK = '#000000'
+
+def minimal(w, h, lock_h, cx=None, cy=None):
+    lk, _ = lockup(w / 2 if cx is None else cx, h / 2 if cy is None else cy, lock_h, TEXT, anchor='middle')
+    return lk
+
+# X: the avatar covers the bottom-left and phones crop 60 px top and bottom, so the logo sits a touch high.
+add('X/x-banner-minimal', 1500, 500, minimal(1500, 500, 120, cy=235), bg=BLACK, files=[(1, 'X/x-banner-minimal')])
+add('patreon/patreon-cover-minimal-1600x400', 1600, 400, minimal(1600, 400, 110), bg=BLACK, scales=(1, 2))
+# Discord server banner: shown small under the server name, which covers the top ~20%.
+add('discord/discord-server-banner-minimal-1920x1080', 1920, 1080, minimal(1920, 1080, 200, cy=600), bg=BLACK)
+# Discord profile banner: the avatar overlaps the bottom-left.
+add('discord/discord-profile-banner-minimal-680x240', 680, 240, minimal(680, 240, 56, cx=422, cy=105), bg=BLACK, scales=(1, 2))
+add('ko-fi/kofi-cover-minimal-1200x400', 1200, 400, minimal(1200, 400, 96, cy=190), bg=BLACK, scales=(1, 2))
+add('github/github-social-preview-minimal-1280x640', 1280, 640, minimal(1280, 640, 150), bg=BLACK)
+add('github/readme-banner-minimal-1280x320', 1280, 320, minimal(1280, 320, 86), bg=BLACK, scales=(1, 2))
+
+# =================== write the sources ===================
 for path, a in ASSETS.items():
-    p = os.path.join(OUT, 'svg', path + '.svg'); os.makedirs(os.path.dirname(p), exist_ok=True)
-    open(p, 'w').write(a['svg'])
-json.dump({k: {kk: v for kk, v in a.items() if kk != 'svg'} for k, a in ASSETS.items()}, open(os.path.join(OUT, 'manifest.json'), 'w'), indent=1)
-print(len(ASSETS), 'assets')
+    p = os.path.join(SVG_OUT, path + '.svg'); os.makedirs(os.path.dirname(p), exist_ok=True)
+    open(p, 'w', encoding='utf-8', newline='\n').write(a['svg'])
+json.dump({k: {kk: v for kk, v in a.items() if kk != 'svg'} for k, a in ASSETS.items()},
+          open(os.path.join(SVG_OUT, 'manifest.json'), 'w'), indent=1)
+print(len(ASSETS), 'assets ->', SVG_OUT)
