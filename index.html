@@ -2,16 +2,18 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <!-- DraftLine's red "D" mark: SVG for tabs and bookmarks, PNG for browsers without SVG icons. -->
-    <link rel="icon" type="image/svg+xml" href="/DraftLine/favicon.svg" />
-    <link rel="icon" type="image/png" sizes="192x192" href="/DraftLine/icon-192.png" />
+    <!-- DraftLine's red "D" mark: SVG for tabs and bookmarks, PNG for browsers without SVG icons.
+         ?v= is the icon version: bump it (here and in manifest.json) when the icons are redrawn, so
+         browsers drop the favicon / bookmark / installed-app icon they cached under the old URL. -->
+    <link rel="icon" type="image/svg+xml" href="/DraftLine/favicon.svg?v=2" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/DraftLine/icon-192.png?v=2" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="format-detection" content="telephone=no" />
     <!-- Installable, offline-capable app (PWA): manifest + service worker (src/pwa/). -->
     <link rel="manifest" href="/DraftLine/manifest.json" />
     <meta name="theme-color" content="#18181b" />
     <meta name="description" content="DraftLine — a fast, distraction-free screenwriting app that works offline." />
-    <link rel="apple-touch-icon" href="/DraftLine/apple-touch-icon.png" />
+    <link rel="apple-touch-icon" href="/DraftLine/apple-touch-icon.png?v=2" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-title" content="DraftLine" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -33,13 +35,13 @@
       <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Cinzel+Decorative:wght@400;700&family=Playfair+Display:wght@400;700&family=Cormorant+Garamond:wght@400;700&family=Abril+Fatface&family=Rye&family=Montserrat:wght@400;800&family=Roboto:wght@400;700&family=Zen+Maru+Gothic:wght@400;700&family=Oswald:wght@400;700&family=Bebas+Neue&family=Orbitron:wght@400;800&family=Audiowide&family=Amatic+SC:wght@400;700&family=Special+Elite&family=Great+Vibes&family=Pacifico&family=Caveat:wght@400;700&family=Google+Sans:wght@400;700&family=Anta&family=Asimovian&family=Boldonse&family=Manufacturing+Consent&family=Anton+SC&family=Danfo&family=Sankofa+Display&family=Matemasie&family=Tilt+Neon&family=Doto:wght@400;800&family=Tiny5&family=Playwrite+ZA&family=Playwrite+US+Modern&family=Delicious+Handrawn&family=Mynerve&family=Bonheur+Royale&family=Miss+Fajardose&display=swap" rel="stylesheet" />
     </noscript>
     <title>DraftLine</title>
-    <script type="module" crossorigin src="/DraftLine/assets/index-Bc3iQ_ll.js"></script>
+    <script type="module" crossorigin src="/DraftLine/assets/index-PKL_y7at.js"></script>
     <link rel="modulepreload" crossorigin href="/DraftLine/assets/rolldown-runtime-BCiCTKAo.js">
     <link rel="modulepreload" crossorigin href="/DraftLine/assets/react-DgawKyfb.js">
     <link rel="modulepreload" crossorigin href="/DraftLine/assets/formatting-CXVlQ9TD.js">
     <link rel="modulepreload" crossorigin href="/DraftLine/assets/sluglines-C2ChrzlQ.js">
     <link rel="modulepreload" crossorigin href="/DraftLine/assets/titleFonts-CncB-K-b.js">
-    <link rel="stylesheet" crossorigin href="/DraftLine/assets/index-Bt9wKPtT.css">
+    <link rel="stylesheet" crossorigin href="/DraftLine/assets/index-Co3RUHJy.css">
   </head>
   <body>
     <div id="root"></div>
