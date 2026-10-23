@@ -6,6 +6,7 @@
      Fonts, so DraftLine starts and runs fully offline after one visit.
    • Pages: network first (you get the newest deploy when online), cached index.html offline.
    • Built files (hashed names, never change): cache first.
+   • credits.json (About's backers roll): network first, cached copy offline.
    • Google Fonts: cached as they're used (title-page fonts too), served from cache after that.
    • Your scripts never touch this: they live in IndexedDB. Nothing is sent anywhere. */
 
@@ -76,6 +77,22 @@ self.addEventListener('fetch', (event) => {
         return res;
       } catch {
         return (await cache.match('./index.html', { ignoreVary: true })) || (await cache.match('./', { ignoreVary: true })) || Response.error();
+      }
+    })());
+    return;
+  }
+
+  // credits.json (About → Executive Producers & Patrons): network first, so backers added in a
+  // deploy show up while online; offline, the copy cached at install (or last fetched) is used.
+  if (url.pathname.endsWith('/credits.json')) {
+    event.respondWith((async () => {
+      const cache = await caches.open(SHELL_CACHE);
+      try {
+        const res = await fetch(req);
+        if (res.ok) cache.put('./credits.json', res.clone());
+        return res;
+      } catch {
+        return (await cache.match('./credits.json', { ignoreSearch: true, ignoreVary: true })) || Response.error();
       }
     })());
     return;
