@@ -68,7 +68,10 @@ def cap_height(key):
 
 # ---- the mark: exactly the app icon (public/favicon.svg) ----
 D_PATH = ('M1155 594Q1155 406 1088 272.5Q1021 139 895 69.5Q769 0 594 0H123Q99 0 86 8Q73 16 66.5 38Q60 60 60 102Q60 144 66.5 166Q73 188 86 196.5Q99 205 123 205H220V982H123Q99 982 86 990Q73 998 66.5 1020Q60 1042 60 1084Q60 1126 66.5 1148Q73 1170 86 1178.5Q99 1187 123 1187H594Q769 1187 895 1118Q1021 1049 1088 915.5Q1155 782 1155 594ZM470 215H574Q729 215 808 311.5Q887 408 887 594Q887 780 808 876Q729 972 574 972H470Z')
-D_IN_TILE = 'matrix(0.145833 0 0 -0.145833 166.46 321.62)'  # D inside the 512 tile
+# D inside the 512 tile: outline centred left-right, and 8 px above true centre top-to-bottom (optical centre).
+# Courier Prime Bold D ink: x 60..1155, y 0..1187 font units; at this scale it is 159.7 x 173.1 px.
+# (Until Oct 2026 this was 166.46 321.62, which left the D 21 px high and 1 px left.)
+D_IN_TILE = 'matrix(0.145833 0 0 -0.145833 167.406 334.552)'
 
 def mark(x, y, size, tile=ACCENT, glyph='#fff', rounded=True):
     s = size / 512

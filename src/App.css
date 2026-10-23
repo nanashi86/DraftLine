@@ -110,8 +110,9 @@
   border-radius: 5px;
   background: var(--accent);
   color: var(--on-accent);
-  font: 700 14px 'Courier Prime', 'Courier New', monospace;
 }
+/* The D itself is components/BrandMark.jsx: the favicon's outline, filling the square. */
+.brand-mark svg { display: block; width: 100%; height: 100%; }
 .brand-name { font-weight: 650; letter-spacing: 0.01em; }
 
 /* The title is capped at 200px and ends in "…" when longer (full title on focus). */

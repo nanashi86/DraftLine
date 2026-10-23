@@ -34,9 +34,8 @@ describe('About DraftLine', () => {
     const story = text(block.slice(block.indexOf('<p>'), block.indexOf('</p>'))).trim(); // the paragraph, not the signature after it
     assert.equal(story, 'I began storytelling at eight on my father’s electric typewriter. Decades later, while writing '
       + 'my first feature, What Happened to Haiti?, I refused to pay bloated subscriptions and drafted all six '
-      + 'drafts in raw Google Docs. That grind taught me structure and what tools screenwriters truly need. So I teamed '
-      + 'up with my AI buddies to build DraftLine: a clean, independent editor with dramatic architecture '
-      + 'built right in.');
+      + 'drafts in raw Google Docs. That grind taught me structure and what tools screenwriters truly need. So I built '
+      + 'DraftLine: a clean, independent editor with dramatic architecture built right in.');
     assert.match(block, /<h3 id="hm-origin-title">Origin Story<\/h3>/);
     assert.match(block, /my first\s+feature, <em>What Happened to Haiti\?<\/em>, I refused/, 'the screenplay title is italic');
     assert.ok(!/features writers/.test(block));

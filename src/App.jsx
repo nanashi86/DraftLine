@@ -73,6 +73,7 @@ import { SAMPLE_SCRIPT } from './lib/sampleScript.js';
 import { effectiveZoomFor } from './lib/zoom.js';
 import { actionDensity, riskLocations, stepRisk } from './lib/pacing.js';
 import DensityStepper from './components/DensityStepper.jsx';
+import BrandMark from './components/BrandMark.jsx';
 import { MILESTONES, MILESTONE_TOAST_MS, finishedSentence, milestonesReached } from './lib/milestones.js';
 import { createNoirAudio } from './lib/noirAudio.js';
 import { NOIR_CLASS, NOIR_COMBO, noirGenrePicked, noirKeyAction } from './lib/noir.js';
@@ -1672,7 +1673,7 @@ function Workspace({ boot }) {
               aria-label="About DraftLine"
               aria-haspopup="dialog"
             >
-              <span className="brand-mark">D</span>
+              <BrandMark />
               <span className="brand-name">DraftLine</span>
             </button>
             <div className={`doc-meta${authorCramped ? ' is-cramped' : ''}`}>
