@@ -6,41 +6,43 @@
      Fonts, so DraftLine starts and runs fully offline after one visit.
    • Pages: network first (you get the newest deploy when online), cached index.html offline.
    • Built files (hashed names, never change): cache first.
+   • credits.json (About's backers roll): network first, cached copy offline.
    • Google Fonts: cached as they're used (title-page fonts too), served from cache after that.
    • Your scripts never touch this: they live in IndexedDB. Nothing is sent anywhere. */
 
-const VERSION = "e3034f4ce9dc";
+const VERSION = "eccb210cae9a";
 const PRECACHE = [
   "./",
   "./apple-touch-icon.png",
+  "./assets/BeatBoard-D0FP7Y8I.js",
   "./assets/BeatBoard-D7X5VAq8.css",
-  "./assets/BeatBoard-EoRskXGb.js",
   "./assets/ExportBibleModal-C9aHjvc7.css",
-  "./assets/ExportBibleModal-COeseMJ9.js",
+  "./assets/ExportBibleModal-DzA6bXKQ.js",
   "./assets/FormatDoctorModal-BJL8Li-2.css",
-  "./assets/FormatDoctorModal-BsnWshif.js",
+  "./assets/FormatDoctorModal-CcYknydz.js",
   "./assets/HelpModal-B-DYcPIu.js",
   "./assets/HelpModal-CPqierns.css",
-  "./assets/HelpModal-CWsXvea-.js",
+  "./assets/HelpModal-DcbS4D5S.js",
   "./assets/ImportModal-D6R5UZVT.css",
-  "./assets/ImportModal-DcVT42gu.js",
-  "./assets/PlanningWorkspace-Cyd5Jkah.js",
+  "./assets/ImportModal-Dw3cjKFv.js",
+  "./assets/PlanningWorkspace-Bl5vkxVJ.js",
   "./assets/PlanningWorkspace-sup1MTJn.css",
-  "./assets/RenameCharacterModal-CkJMXSsc.js",
+  "./assets/RenameCharacterModal-8GnV69Ll.js",
   "./assets/RenameCharacterModal-DagY3wg-.css",
   "./assets/UserGuideModal-BVWC8KuI.css",
-  "./assets/UserGuideModal-DAhhqgMt.js",
-  "./assets/docxImport-DIr18ePb.js",
+  "./assets/UserGuideModal-COqeHYK2.js",
+  "./assets/docxImport-FUbHYnBK.js",
   "./assets/formatting-CXVlQ9TD.js",
+  "./assets/index-Cia_YarM.js",
   "./assets/index-Co3RUHJy.css",
-  "./assets/index-DjgR_912.js",
   "./assets/lib-DI1hcji2.js",
   "./assets/printTitle-C1qWomuv.js",
-  "./assets/productionEngine-C1CMmO3X.js",
+  "./assets/productionEngine-PlV4hiYv.js",
   "./assets/react-DgawKyfb.js",
   "./assets/rolldown-runtime-BCiCTKAo.js",
   "./assets/sluglines-C2ChrzlQ.js",
   "./assets/titleFonts-CncB-K-b.js",
+  "./credits.json",
   "./favicon.svg",
   "./icon-192.png",
   "./icon-512.png",
@@ -113,6 +115,22 @@ self.addEventListener('fetch', (event) => {
         return res;
       } catch {
         return (await cache.match('./index.html', { ignoreVary: true })) || (await cache.match('./', { ignoreVary: true })) || Response.error();
+      }
+    })());
+    return;
+  }
+
+  // credits.json (About → Executive Producers & Patrons): network first, so backers added in a
+  // deploy show up while online; offline, the copy cached at install (or last fetched) is used.
+  if (url.pathname.endsWith('/credits.json')) {
+    event.respondWith((async () => {
+      const cache = await caches.open(SHELL_CACHE);
+      try {
+        const res = await fetch(req);
+        if (res.ok) cache.put('./credits.json', res.clone());
+        return res;
+      } catch {
+        return (await cache.match('./credits.json', { ignoreSearch: true, ignoreVary: true })) || Response.error();
       }
     })());
     return;
