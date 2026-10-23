@@ -1,6 +1,9 @@
 [![DraftLine App](https://img.shields.io/badge/Launch-DraftLine-E05A47?style=for-the-badge)](https://nanashi86.github.io/DraftLine/)
+[![Ko-fi](https://img.shields.io/badge/Ko--fi-Tip%20Jar-FF5E5B?style=for-the-badge&logo=kofi&logoColor=white)](https://ko-fi.com/draftline)
 [![Patreon](https://img.shields.io/badge/Patreon-Support-F96854?style=for-the-badge&logo=patreon)](https://patreon.com/DraftLine)
 [![Discord](https://img.shields.io/badge/Discord-Community-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/8ytSsSWsPX)
+
+# DraftLine
 
 # DraftLine
 
