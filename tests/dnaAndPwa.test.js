@@ -152,7 +152,7 @@ describe('PWA', () => {
     assert.equal(manifest.start_url, './');
     assert.equal(manifest.scope, './');
     assert.ok(manifest.icons.some((i) => i.sizes === '512x512' && i.purpose === 'maskable'));
-    for (const i of manifest.icons) assert.ok(readFileSync(new URL(`../public/${i.src}`, import.meta.url)).length > 500, i.src);
+    for (const i of manifest.icons) assert.ok(readFileSync(new URL(`../public/${i.src.split('?')[0]}`, import.meta.url)).length > 500, i.src);
   });
   it('index.html links the manifest and theme colour under the app’s base path', () => {
     const html = read('index.html');

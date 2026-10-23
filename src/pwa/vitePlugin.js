@@ -13,8 +13,9 @@ import { join } from 'node:path';
 
 export const CORE_FONTS_CSS = 'https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400;1,700&family=Inter:wght@400;500;600;700;800&display=swap';
 
-/** r2: the edge-to-edge maskable icon (icon-maskable-512.png) and manifest icon purposes. */
-export const CACHE_REVISION = 2;
+/** r2: the edge-to-edge maskable icon (icon-maskable-512.png) and manifest icon purposes.
+ *  r3: every icon redrawn with the D optically centred (Oct 2026). */
+export const CACHE_REVISION = 3;
 
 const TEMPLATE = new URL('./sw.template.js', import.meta.url);
 

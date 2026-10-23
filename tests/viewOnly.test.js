@@ -77,7 +77,7 @@ describe('View Only lock: wiring', () => {
 
 describe('Header: the red D opens About DraftLine', () => {
   const app = read('App.jsx');
-  const brand = app.slice(app.indexOf('className={`brand'), app.indexOf('<span className="brand-mark">D</span>'));
+  const brand = app.slice(app.indexOf('className={`brand'), app.indexOf('<BrandMark />'));
   it('clicking it opens the About modal, not Projects', () => {
     assert.match(brand, /onClick=\{\(\) => setHelpKind\('about'\)\}/);
     assert.match(brand, /aria-label="About DraftLine"/);

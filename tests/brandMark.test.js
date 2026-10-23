@@ -79,10 +79,10 @@ describe('Maskable icon (Android / ChromeOS shelf)', () => {
   });
   it('the manifest declares each icon with an explicit purpose', () => {
     assert.deepEqual(JSON.parse(read('public/manifest.json')).icons, [
-      { src: './favicon.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'any' },
-      { src: './icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
-      { src: './icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
-      { src: './icon-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+      { src: './favicon.svg?v=2', sizes: 'any', type: 'image/svg+xml', purpose: 'any' },
+      { src: './icon-192.png?v=2', sizes: '192x192', type: 'image/png', purpose: 'any' },
+      { src: './icon-512.png?v=2', sizes: '512x512', type: 'image/png', purpose: 'any' },
+      { src: './icon-maskable-512.png?v=2', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
     ]);
   });
 });
@@ -98,7 +98,7 @@ describe('Brand mark: favicon and icons match the in-app "D" badge', () => {
     assert.ok(Math.abs(Number(rect.match(/rx="([\d.]+)"/)[1]) - px('border-radius') * scale) < 0.01, 'radius 5/24 of the size');
     assert.equal(rect.match(/fill="(#[0-9a-f]{6})"/i)[1].toLowerCase(), accent);
     assert.match(badge, /background:\s*var\(--accent\)/);
-    assert.match(badge, /Courier Prime/);
+    assert.match(read('src/components/BrandMark.jsx'), /fill="currentColor"/, 'the D takes the badge colour');
     assert.match(svg, /<path fill="#fff"/);
     assert.ok(!/vite|#863bff|c2pa/i.test(svg), 'no template logo or embedded metadata');
   });
@@ -110,10 +110,53 @@ describe('Brand mark: favicon and icons match the in-app "D" badge', () => {
   });
   it('index.html and the manifest point at them; the template icons are gone', () => {
     const html = read('index.html');
-    assert.match(html, /rel="icon" type="image\/svg\+xml" href="%BASE_URL%favicon\.svg"/);
-    assert.match(html, /rel="icon" type="image\/png" sizes="192x192" href="%BASE_URL%icon-192\.png"/);
+    assert.match(html, /rel="icon" type="image\/svg\+xml" href="%BASE_URL%favicon\.svg\?v=\d+"/);
+    assert.match(html, /rel="icon" type="image\/png" sizes="192x192" href="%BASE_URL%icon-192\.png\?v=\d+"/);
     const icons = JSON.parse(read('public/manifest.json')).icons.map((i) => i.src);
-    for (const f of ['icon-192.png', 'icon-512.png', 'icon-maskable-512.png']) assert.ok(icons.some((s) => s.endsWith(f)), f);
+    for (const f of ['icon-192.png', 'icon-512.png', 'icon-maskable-512.png']) assert.ok(icons.some((s) => s.split('?')[0].endsWith(f)), f);
     assert.equal(existsSync(new URL('public/icons.svg', root)), false);
+  });
+});
+
+describe('Brand mark: the D is optically centred in every icon', () => {
+  // Optical centre: the D's outline centred left-right, and its middle ~4.6% of its own height above the
+  // tile's middle (8 px on the 512 app icon). Before Oct 2026 it sat ~12% high and 1 px left.
+  const whiteBox = (p) => {
+    const img = decodePng(p);
+    let minX = img.w; let maxX = -1; let minY = img.h; let maxY = -1;
+    for (let y = 0; y < img.h; y++) {
+      for (let x = 0; x < img.w; x++) {
+        const [r, g, b, a] = img.px(x, y);
+        if (a === 255 && r > 230 && g > 230 && b > 230) {
+          minX = Math.min(minX, x); maxX = Math.max(maxX, x); minY = Math.min(minY, y); maxY = Math.max(maxY, y);
+        }
+      }
+    }
+    return { img, minX, maxX, minY, maxY };
+  };
+  for (const f of ['public/icon-512.png', 'public/icon-192.png', 'public/apple-touch-icon.png', 'public/icon-maskable-512.png']) {
+    it(f, () => {
+      const { img, minX, maxX, minY, maxY } = whiteBox(f);
+      const h = maxY - minY + 1;
+      const lift = (img.h / 2 - (minY + maxY + 1) / 2) / h;
+      assert.ok(lift > 0.01 && lift < 0.09, `D centre lift ${(lift * 100).toFixed(1)}% of its height`);
+      assert.ok(Math.abs((minX + maxX + 1) / 2 - img.w / 2) <= 1, `centred left-right (${minX}..${maxX} of ${img.w})`);
+    });
+  }
+  it('favicon.svg places the D the same way', () => {
+    const svg = read('public/favicon.svg');
+    const [sc, , , , x0, base] = svg.match(/matrix\(([^)]+)\)/)[1].split(/\s+/).map(Number);
+    const w = Number(svg.match(/viewBox="0 0 (\d+)/)[1]);
+    const inkL = x0 + 60 * sc; const inkR = x0 + 1155 * sc; const top = base - 1187 * sc;
+    assert.ok(Math.abs((inkL + inkR) / 2 - w / 2) < 0.5, 'centred left-right');
+    const lift = (w / 2 - (top + base) / 2) / (base - top);
+    assert.ok(Math.abs(lift - 0.0462) < 0.005, `lift ${lift}`);
+  });
+  it('the in-app badge draws the favicon\'s own D, in the same place', () => {
+    const fav = read('public/favicon.svg'); const mark = read('src/components/BrandMark.jsx');
+    const [, transform, outline] = fav.match(/transform="(matrix\([^)]+\))" d="([^"]+)"/);
+    assert.ok(mark.includes(`'${transform}'`) && mark.includes(`'${outline}'`), 'same transform and outline as favicon.svg');
+    assert.match(mark, /viewBox="0 0 512 512"/);
+    for (const f of ['src/App.jsx', 'src/components/HelpModal.jsx']) assert.match(read(f), /<BrandMark \/>/, f);
   });
 });

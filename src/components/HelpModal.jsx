@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { SHORTCUT_SECTIONS as SECTIONS, keycaps } from '../lib/shortcuts.js';
 import pkg from '../../package.json';
+import BrandMark from './BrandMark.jsx';
 import './HelpModal.css';
 
 const IS_MAC = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent);
@@ -78,7 +79,7 @@ export default function HelpModal({ kind, storage, onBackup, onClose }) {
       ) : (
         <div className="hm-about">
           <div className="hm-brand">
-            <span className="brand-mark" aria-hidden="true">D</span>
+            <BrandMark />
             <div>
               <div className="hm-name">DraftLine</div>
               <div className="hm-version">Version {pkg.version}</div>
@@ -94,8 +95,7 @@ export default function HelpModal({ kind, storage, onBackup, onClose }) {
               I began storytelling at eight on my father’s electric typewriter. Decades later, while writing my first
               feature, <em>What Happened to Haiti?</em>, I refused to pay bloated subscriptions and drafted all six
               drafts in raw Google Docs. That grind taught me structure and what tools screenwriters truly need. So I
-              built DraftLine: a clean, independent editor with dramatic
-              architecture built right in.
+              built DraftLine: a clean, independent editor with dramatic architecture built right in.
             </p>
           </section>
           {onBackup && (
@@ -146,8 +146,8 @@ export default function HelpModal({ kind, storage, onBackup, onClose }) {
               </div>
             )}
             <div><dt>Network</dt><dd>
-                {navigator.onLine ? 'Online' : 'Offline'} — {storage.sync?.active
-                  ? `DraftLine uploads nothing — if “${storage.sync.folderName}” is a Drive folder, your Drive app syncs it`
+                {navigator.onLine ? 'Online' : 'Offline'} – {storage.sync?.active
+                  ? `DraftLine uploads nothing – if "${storage.sync.folderName}" is a Drive folder, your Drive app syncs it`
                   : 'your script never leaves this computer'}
               </dd></div>
           </dl>
