@@ -139,3 +139,101 @@
 @media (max-width: 520px) {
   .hm-backup { flex-direction: column; align-items: stretch; }
 }
+
+/* About → Support & Community · Executive Producers & Patrons · Your Data */
+.hm-community, .hm-credits, .hm-privacy { margin-top: 18px; }
+.hm-community h3, .hm-credits h3, .hm-privacy h3 {
+  margin: 0 0 8px;
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.hm-links {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 8px;
+}
+.hm-pill {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 48px;
+  padding: 8px 12px 8px 8px;
+  border: 1px solid var(--line-soft);
+  border-radius: 12px;
+  background: var(--field);
+  color: var(--text);
+  text-decoration: none;
+  transition: border-color 0.15s, background-color 0.15s;
+}
+.hm-pill:hover {
+  border-color: color-mix(in srgb, var(--accent) 65%, var(--line-soft));
+  background: color-mix(in srgb, var(--accent) 9%, var(--field));
+}
+.hm-pill:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.hm-pill-icon {
+  flex: none;
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+  color: color-mix(in srgb, var(--accent) 70%, var(--text));
+}
+.hm-pill-text { min-width: 0; display: grid; line-height: 1.3; }
+.hm-pill-text b { font-size: 13px; font-weight: 600; }
+.hm-pill-text small { font-size: 11.5px; color: var(--muted); }
+.hm-pill-out { flex: none; margin-left: auto; color: var(--muted); opacity: 0.7; }
+.hm-pill:hover .hm-pill-out { opacity: 1; color: var(--text); }
+
+/* The credits roll: centred, set in the script font, like the end of a film. */
+.hm-credits {
+  padding: 14px 16px 16px;
+  border: 1px solid var(--line-soft);
+  border-top: 2px solid color-mix(in srgb, var(--accent) 55%, transparent);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--field) 55%, transparent);
+  text-align: center;
+}
+.hm-credits h3 { margin-bottom: 6px; }
+.hm-credits-tier + .hm-credits-tier { margin-top: 10px; }
+.hm-credits-tier h4 {
+  margin: 6px 0 2px;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--accent) 70%, var(--text));
+}
+.hm-credits-tier ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font: 400 14px/1.75 'Courier Prime', 'Courier New', monospace;
+}
+.hm-credits-empty { margin: 0 auto; max-width: 40ch; font-size: 12.5px; line-height: 1.55; color: var(--muted); }
+.hm-credits-empty a,
+.hm-credits-empty a:visited { color: color-mix(in srgb, var(--accent) 70%, var(--text)); text-underline-offset: 2px; }
+
+.hm-privacy {
+  padding: 12px 14px 12px 16px;
+  border: 1px solid var(--line-soft);
+  border-left: 3px solid color-mix(in srgb, var(--accent) 55%, transparent);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--field) 55%, transparent);
+}
+.hm-privacy ul { margin: 0; padding-left: 16px; font-size: 12.5px; line-height: 1.5; color: var(--muted); }
+.hm-privacy li + li { margin-top: 5px; }
+.hm-privacy b { color: var(--text); font-weight: 600; }
+
+@media (max-width: 520px) {
+  .hm-links { grid-template-columns: 1fr; }
+  .hm-credits { padding: 12px; }
+}

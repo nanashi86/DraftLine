@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
+import { CodeXml, Coffee, ExternalLink, Heart, MessageCircle } from 'lucide-react';
 import { SHORTCUT_SECTIONS as SECTIONS, keycaps } from '../lib/shortcuts.js';
 import pkg from '../../package.json';
 import BrandMark from './BrandMark.jsx';
+import { CREDIT_TIERS, loadCredits } from '../lib/credits.js';
 import './HelpModal.css';
 
 const IS_MAC = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent);
@@ -15,6 +17,40 @@ function Keys({ combo }) {
   );
 }
 
+/** About → Support & Community: where DraftLine lives outside the app. */
+const COMMUNITY_LINKS = [
+  { href: 'https://ko-fi.com/draftline', label: 'Ko-fi', sub: '$99 Desktop Milestone', Icon: Coffee },
+  { href: 'https://patreon.com/DraftLine', label: 'Patreon', sub: 'Monthly Tiers & Roadmap', Icon: Heart },
+  { href: 'https://discord.gg/8ytSsSWsPX', label: 'Discord', sub: "Writers' Room", Icon: MessageCircle },
+  { href: 'https://github.com/nanashi86/DraftLine', label: 'GitHub', sub: 'Source & Issues', Icon: CodeXml },
+];
+const PATREON_URL = COMMUNITY_LINKS[1].href;
+
+/** About → Executive Producers & Patrons: names live in public/credits.json (see lib/credits.js). */
+const CREDITS_URL = `${import.meta.env.BASE_URL}credits.json`;
+
+function Credits({ credits }) {
+  if (!credits.length) {
+    return (
+      <p className="hm-credits-empty">
+        Special thanks to our early community backers.{' '}
+        <a href={PATREON_URL} target="_blank" rel="noopener noreferrer">Join on Patreon</a> to have your name credited
+        inside every build.
+      </p>
+    );
+  }
+  return CREDIT_TIERS.map((tier) => {
+    const names = credits.filter((c) => c.tier === tier).map((c) => c.name);
+    if (!names.length) return null;
+    return (
+      <div key={tier} className="hm-credits-tier">
+        <h4>{tier === 'Patron' ? 'Patrons' : `${tier}s`}</h4>
+        <ul>{names.map((n, i) => <li key={`${i}-${n}`}>{n}</li>)}</ul>
+      </div>
+    );
+  });
+}
+
 function fmtBytes(n) {
   return n < 1024 ? `${n} bytes` : `${(n / 1024).toFixed(n < 10240 ? 1 : 0)} KB`;
 }
@@ -23,6 +59,7 @@ function fmtBytes(n) {
 export default function HelpModal({ kind, storage, onBackup, onClose }) {
   const dialogRef = useRef(null);
   const [lib, setLib] = useState({ count: null, persisted: null, usage: null });
+  const [credits, setCredits] = useState([]);
 
   // About: how many scripts, whether the browser has promised not to evict them, space used.
   useEffect(() => {
@@ -31,6 +68,17 @@ export default function HelpModal({ kind, storage, onBackup, onClose }) {
     navigator.storage?.persisted?.().then((persisted) => setLib((l) => ({ ...l, persisted })), () => {});
     navigator.storage?.estimate?.().then(({ usage }) => setLib((l) => ({ ...l, usage })), () => {});
   }, [kind, storage]);
+
+  // About: the backers roll, fetched each time About opens. Any failure (offline, missing file,
+  // bad JSON) just leaves the invitation showing; loadCredits never rejects.
+  useEffect(() => {
+    if (kind !== 'about') return undefined;
+    const ctrl = new AbortController();
+    loadCredits(CREDITS_URL, { signal: ctrl.signal }).then((list) => {
+      if (!ctrl.signal.aborted) setCredits(list);
+    });
+    return () => ctrl.abort();
+  }, [kind]);
 
   const askPersist = () => {
     navigator.storage?.persist?.().then((persisted) => setLib((l) => ({ ...l, persisted })), () => {});
@@ -92,7 +140,7 @@ export default function HelpModal({ kind, storage, onBackup, onClose }) {
           <section className="hm-origin" aria-labelledby="hm-origin-title">
             <h3 id="hm-origin-title">Origin Story</h3>
             <p>
-              I began storytelling at eight on my father’s electric typewriter. Decades later, while writing my first
+              I began storytelling at eight on my father&apos;s electric typewriter. Decades later, while writing my first
               feature, <em>What Happened to Haiti?</em>, I refused to pay bloated subscriptions and drafted all six
               drafts in raw Google Docs. That grind taught me structure and what tools screenwriters truly need. So I
               built DraftLine: a clean, independent editor with dramatic architecture built right in.
@@ -109,6 +157,27 @@ export default function HelpModal({ kind, storage, onBackup, onClose }) {
               </span>
             </div>
           )}
+          <section className="hm-community" aria-labelledby="hm-community-title">
+            <h3 id="hm-community-title">Support &amp; Community</h3>
+            <ul className="hm-links">
+              {COMMUNITY_LINKS.map(({ href, label, sub, Icon }) => (
+                <li key={label}>
+                  <a className="hm-pill" href={href} target="_blank" rel="noopener noreferrer">
+                    <span className="hm-pill-icon"><Icon size={16} strokeWidth={1.75} aria-hidden /></span>
+                    <span className="hm-pill-text">
+                      <b>{label}</b>
+                      <small>{sub}</small>
+                    </span>
+                    <ExternalLink className="hm-pill-out" size={13} strokeWidth={1.75} aria-hidden />
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </section>
+          <section className="hm-credits" aria-labelledby="hm-credits-title">
+            <h3 id="hm-credits-title">Executive Producers &amp; Patrons</h3>
+            <Credits credits={credits} />
+          </section>
           <dl className="hm-facts">
             <div><dt>Created by</dt><dd>Eric Lemaire Jr.</dd></div>
             <div>
@@ -151,13 +220,17 @@ export default function HelpModal({ kind, storage, onBackup, onClose }) {
                   : 'your script never leaves this computer'}
               </dd></div>
           </dl>
-          <p className="hm-note">
-            Everything runs locally: nothing is uploaded and no account is needed, so writing works offline. The only
-            network use is loading Google Fonts (cached after the first visit). By default, scripts belong to this browser
-            profile. If you link a local or Google Drive folder, your scripts and snapshots save directly to disk with every
-            edit. Without folder sync, clearing browser site data removes local drafts — so use
-            Export (.draftline / .fountain / .fdx) or Backup Project to keep offline copies.
-          </p>
+          <section className="hm-privacy" aria-labelledby="hm-privacy-title">
+            <h3 id="hm-privacy-title">Your Data</h3>
+            <ul>
+              <li><b>100% Local:</b> Scripts never touch an external server; zero cloud telemetry or account logins.</li>
+              <li><b>Drive Sync:</b> Linking a Google Drive or local folder autosaves changes and snapshots straight to disk.</li>
+              <li>
+                <b>Browser Data Notice:</b> Clearing browser site data removes local drafts unless synced or backed up via
+                .draftline, .fountain, or .fdx.
+              </li>
+            </ul>
+          </section>
         </div>
       )}
     </dialog>

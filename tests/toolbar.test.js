@@ -81,7 +81,7 @@ describe('toolbar & About wiring', () => {
     assert.ok(!/>\s*Dialogue\s*</.test(right), 'no separate Dialogue toolbar button');
   });
   it('About points to .draftline and has a Backup Project button', () => {
-    assert.match(about, /Export \(\.draftline \/ \.fountain \/ \.fdx\)/);
+    assert.match(about, /backed up via\s+\.draftline, \.fountain, or \.fdx\./);
     assert.match(about, /Backup Project \(\.draftline\)/);
     assert.match(about, /onClick=\{onBackup\}/);
     assert.match(app, /onBackup=\{backupProject\}/);
