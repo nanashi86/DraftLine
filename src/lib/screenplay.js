@@ -8,18 +8,21 @@
 export const ELEMENT_TYPES = ['scene', 'format_cue', 'action', 'character', 'parenthetical', 'dialogue', 'transition', 'centered'];
 
 export const ELEMENT_META = {
-  //              label shown in UI        chars/line  indent (chars)  blank lines before
-  scene:         { label: 'Scene Heading', cpl: 60, indent: 0,  spaceBefore: 2 },
-  action:        { label: 'Action',        cpl: 60, indent: 0,  spaceBefore: 1 },
-  character:     { label: 'Character',     cpl: 38, indent: 22, spaceBefore: 1 },
-  parenthetical: { label: 'Parenthetical', cpl: 25, indent: 16, spaceBefore: 0 },
-  dialogue:      { label: 'Dialogue',      cpl: 35, indent: 10, spaceBefore: 0 },
-  transition:    { label: 'Transition',    cpl: 60, indent: 0,  spaceBefore: 1 },
+  //              label shown in UI        chars/line  indent (chars)  blank lines before  spell-checked
+  scene:         { label: 'Scene Heading', cpl: 60, indent: 0,  spaceBefore: 2, spellcheck: false },
+  action:        { label: 'Action',        cpl: 60, indent: 0,  spaceBefore: 1, spellcheck: true },
+  character:     { label: 'Character',     cpl: 38, indent: 22, spaceBefore: 1, spellcheck: false },
+  parenthetical: { label: 'Parenthetical', cpl: 25, indent: 16, spaceBefore: 0, spellcheck: false },
+  dialogue:      { label: 'Dialogue',      cpl: 35, indent: 10, spaceBefore: 0, spellcheck: true },
+  transition:    { label: 'Transition',    cpl: 60, indent: 0,  spaceBefore: 1, spellcheck: false },
   // Language / sequence / technical directions: IN CREOLE WITH ENGLISH SUBTITLES:, BEGIN FLASHBACK…
-  format_cue:    { label: 'Format Cue',    cpl: 60, indent: 0,  spaceBefore: 1 },
+  format_cue:    { label: 'Format Cue',    cpl: 60, indent: 0,  spaceBefore: 1, spellcheck: false },
   // Centered text (Fountain's > THE END <): the script's closing "THE END", two lines down.
-  centered:      { label: 'Centered',      cpl: 60, indent: 0,  spaceBefore: 2 },
+  centered:      { label: 'Centered',      cpl: 60, indent: 0,  spaceBefore: 2, spellcheck: true },
 };
+// Spell-checking: prose (Action, Dialogue, Centered) is checked and autocorrected; names, sluglines,
+// transitions, parentheticals and format cues are not, so character names and scene tags don't
+// collect red underlines. Editor.jsx reads `spellcheck` per element.
 
 /** Column metrics inside a dual-dialogue pair (each column is 3in wide). */
 export const DUAL_CPL = { character: 27, parenthetical: 20, dialogue: 27 };
@@ -303,33 +306,64 @@ function spaceBefore(item) {
   return item.kind === 'dual' ? 1 : ELEMENT_META[item.type].spaceBefore;
 }
 
+/** The Character line that resumes a speech on the next page: "FITOH (CONT'D)", keeping (V.O.) etc. */
+export function contdCue(cueText) {
+  const base = String(cueText || '').replace(/^@/, '').replace(/\^\s*$/, '').trim().toUpperCase();
+  return /\(CONT['’]D\)/.test(base) ? base : `${base} (CONT'D)`;
+}
+
+/** Page-seam minimums: lines of dialogue that must stay on each side of a split speech. */
+export const SPLIT_MIN_LINES = 2;
+/** Lines of following action / dialogue a scene heading needs on its page. */
+const HEADING_MIN_FOLLOW = 2;
+
 /**
- * Lays items onto 54-line pages.
- *   - A Character cue never sits alone at the bottom of a page: a whole speech
- *     (cue + parentheticals + dialogue) moves together; if a speech is longer than
- *     a page it may break, but never directly after the cue or a parenthetical.
- *   - Scene headings stay with the element that follows them.
- *   - Transitions never start a page; they stay with what precedes them.
+ * Lays items onto 54-line pages, with the industry's page-seam rules:
+ *   - Speeches (cue + parentheticals + dialogue) move to the next page whole — unless at least
+ *     2 lines of dialogue fit here and at least 2 remain. Then the speech splits at a dialogue
+ *     line: "(MORE)" under the last line on this page, "NAME (CONT'D)" above the rest on the
+ *     next. A split never falls inside or directly after a parenthetical, and dual dialogue
+ *     never splits. (MORE) and (CONT'D) are layout only: nothing is added to the script.
+ *   - A scene heading is never the last thing on a page: it moves with at least 2 lines of
+ *     what follows it.
+ *   - Transitions (and THE END) never start a page; they stay with what precedes them.
  *   - Blank spacing lines are dropped at the top of a page.
  *
  * `measured` maps item key → line count reported by the browser; anything not yet
  * measured falls back to the wrap model.
+ *
+ * Returns { place, pageCount, pageOfBlock, pageOfKey, endPos }. place[k] is where item k starts
+ * (page, topLine, pos), its line count, and the margin above it in the editor's continuous
+ * column. An item that sits at a seam also has `pieces`: [{ page, topLine, from, to, more, cont,
+ * marginLines, marginGaps }] — the lines [from, to) of the element on that page, with
+ * `more` (a (MORE) line follows) and `cont` (a "NAME (CONT'D)" line comes first).
  */
 export function paginate(items, measured = {}) {
   const lines = items.map((it) => measured[it.key] ?? estimateItemLines(it));
+  const type = (k) => items[k].type;
+  const splittable = (k) => items[k].kind === 'block' && type(k) === 'dialogue';
 
   // 1. Atomic units: speeches.
   const raw = [];
   for (let i = 0; i < items.length;) {
     let end = i + 1;
-    if (items[i].type === 'character') {
-      while (end < items.length && (items[end].type === 'dialogue' || items[end].type === 'parenthetical')) end++;
+    if (type(i) === 'character') {
+      while (end < items.length && (type(end) === 'dialogue' || type(end) === 'parenthetical')) end++;
     }
     raw.push([i, end]);
     i = end;
   }
 
-  // 2. Keep transitions (and THE END) with what precedes them; keep headings with what follows.
+  // 2. Keep transitions (and THE END) with what precedes them; keep headings (and opening
+  //    format cues) with what follows — for a heading, at least 2 lines of it.
+  const followsHeading = (u) => {
+    let h = -1;
+    for (let k = u[0]; k < u[1]; k++) if (type(k) === 'scene') h = k;
+    if (h < 0) return Infinity;
+    let n = 0;
+    for (let k = h + 1; k < u[1]; k++) n += lines[k];
+    return n;
+  };
   const units = [];
   let carry = null;
   for (const u of raw) {
@@ -341,7 +375,7 @@ export function paginate(items, measured = {}) {
     carry = null;
     const tail = items[cur[1] - 1];
     // Format cues that open something ("BEGIN FLASHBACK", "IN CREOLE…:") travel with what follows.
-    if (tail.type === 'scene' || (tail.type === 'format_cue' && !isClosingCue(tail.block))) {
+    if (tail.type === 'scene' || (tail.type === 'format_cue' && !isClosingCue(tail.block)) || followsHeading(cur) < HEADING_MIN_FOLLOW) {
       carry = cur;
       continue;
     }
@@ -349,72 +383,188 @@ export function paginate(items, measured = {}) {
   }
   if (carry) units.push(carry);
 
-  // 3. Greedy placement.
-  const place = new Array(items.length);
+  // 3. Placement.
+  const pieces = items.map(() => []);
   let page = 0;
   let used = 0;
+  let pendingCont = null; // "NAME (CONT'D)" waiting at the top of a fresh page
 
-  const put = (k) => {
-    const sp = used === 0 ? 0 : spaceBefore(items[k]);
-    place[k] = { page, topLine: used + sp };
-    used += sp + lines[k];
+  const piece = (k, from, to, sp) => {
+    const top = used + sp;
+    const pc = { page, topLine: top, from, to, more: false, cont: null };
+    if (pendingCont) {
+      pc.cont = pendingCont;
+      pendingCont = null;
+    }
+    pieces[k].push(pc);
+    used = top + (to - from);
     if (used > PAGE_LINES) {
       // A single element longer than the remaining page (huge paragraph): let it run on.
       const extra = Math.floor((used - 1) / PAGE_LINES);
       page += extra;
       used -= extra * PAGE_LINES;
     }
+    return pc;
   };
   const newPage = () => {
     page += 1;
     used = 0;
   };
+  // Blank lines before item k when it starts (not continues) here.
+  const gapBefore = (k, off) => (used === 0 || off > 0 ? 0 : spaceBefore(items[k]));
+
+  /** The cue of the speech item k belongs to, or -1. */
+  const cueOf = (k) => {
+    let c = k;
+    while (c >= 0 && (type(c) === 'dialogue' || type(c) === 'parenthetical')) c--;
+    return c >= 0 && type(c) === 'character' ? c : -1;
+  };
+
+  /**
+   * The latest legal split of [ (k0, off0) … e ) on the current page: { k, at } where `at` lines
+   * of item k stay here. null if none: then the rest moves on whole.
+   */
+  const findSplit = (k0, off0, e) => {
+    // Dialogue lines left in the speech from item k (offset off) onward.
+    const dlgAfter = (k, off) => {
+      let n = 0;
+      for (let j = k; j < e && (j === k || type(j) === 'dialogue' || type(j) === 'parenthetical'); j++) {
+        if (type(j) === 'dialogue') n += lines[j] - (j === k ? off : 0);
+      }
+      return n;
+    };
+    let y = used;
+    let dlgHere = 0; // dialogue lines of the current speech already on this page
+    let best = null;
+    for (let k = k0; k < e; k++) {
+      const off = k === k0 ? off0 : 0;
+      const sp = y === 0 || off > 0 ? 0 : spaceBefore(items[k]);
+      const n = lines[k] - off;
+      if (type(k) === 'character') dlgHere = 0;
+      if (splittable(k) && cueOf(k) >= 0) {
+        for (let m = 1; m <= n; m++) {
+          if (y + sp + m + 1 > PAGE_LINES) break; // + the (MORE) line
+          const atEnd = m === n;
+          // At an element boundary the next part of the speech must exist and not be another cue.
+          if (atEnd && !(k + 1 < e && (type(k + 1) === 'dialogue' || type(k + 1) === 'parenthetical'))) continue;
+          if (dlgHere + m < SPLIT_MIN_LINES) continue;
+          if (dlgAfter(k, off + m) < SPLIT_MIN_LINES) continue;
+          best = { k, at: off + m };
+        }
+      }
+      y += sp + n;
+      if (type(k) === 'dialogue') dlgHere += n;
+      if (y >= PAGE_LINES) break;
+    }
+    return best;
+  };
+
+  let fresh = true; // nothing on this page yet but, at most, a (CONT'D) line
+  let last = null; // the last piece placed
+  const put = (k, from, to) => {
+    last = piece(k, from, to, fresh && from === 0 ? 0 : gapBefore(k, from));
+    fresh = false;
+    return last;
+  };
+  // Is item k (from offset off) the continuation of a speech whose cue is already placed?
+  const midSpeech = (k, off) => off > 0 || ((type(k) === 'dialogue' || type(k) === 'parenthetical') && cueOf(k) >= 0 && pieces[cueOf(k)].length > 0);
+  const turnPage = (cueK) => {
+    newPage();
+    fresh = true;
+    if (cueK >= 0) {
+      pendingCont = contdCue(items[cueK].block.text);
+      used = 1; // NAME (CONT'D)
+    }
+  };
 
   for (const [s, e] of units) {
-    let total = 0;
-    for (let k = s; k < e; k++) total += lines[k] + (k > s ? spaceBefore(items[k]) : 0);
-    if (total <= PAGE_LINES) {
-      if (used > 0 && used + spaceBefore(items[s]) + total > PAGE_LINES) newPage();
-      for (let k = s; k < e; k++) put(k);
-    } else {
-      for (let k = s; k < e; k++) {
-        const sp = used === 0 ? 0 : spaceBefore(items[k]);
-        const prevType = k > s ? items[k - 1].type : null;
-        const canBreak = k === s || !['character', 'parenthetical', 'scene'].includes(prevType);
-        if (used > 0 && canBreak && used + sp + lines[k] > PAGE_LINES) newPage();
-        put(k);
+    let k = s;
+    let off = 0;
+    while (k < e) {
+      // Lines the rest of the unit needs here.
+      let total = 0;
+      for (let j = k; j < e; j++) total += (j === k ? gapBefore(j, off) : spaceBefore(items[j])) + lines[j] - (j === k ? off : 0);
+      if (used + total <= PAGE_LINES) {
+        for (; k < e; k++, off = 0) put(k, off, lines[k]);
+        break;
       }
+      const split = findSplit(k, off, e);
+      if (split) {
+        for (; k < split.k; k++, off = 0) put(k, off, lines[k]);
+        put(split.k, off, split.at).more = true;
+        used += 1; // (MORE)
+        turnPage(cueOf(split.k));
+        if (split.at >= lines[split.k]) {
+          k = split.k + 1;
+          off = 0;
+        } else {
+          k = split.k;
+          off = split.at;
+        }
+        continue;
+      }
+      if (!fresh) {
+        // Doesn't fit and can't split here: the rest starts a fresh page (still a speech? cue it).
+        const mid = midSpeech(k, off);
+        if (mid && last && used < PAGE_LINES) {
+          last.more = true;
+          used += 1;
+        }
+        turnPage(mid ? cueOf(k) : -1);
+        continue;
+      }
+      // Longer than a whole page with no legal split: place one element (a huge paragraph runs
+      // on) and carry on with the next.
+      put(k, off, lines[k]);
+      k += 1;
+      off = 0;
     }
   }
 
-  // 4. Margins (in lines + inter-page gaps) between consecutive items in one
-  //    continuous column, so items land exactly on their page cards.
+  // 4. Margins (in lines + inter-page gaps) between consecutive pieces in one continuous
+  //    column, so everything lands exactly on its page card. A piece's (CONT'D) line sits
+  //    just above it; its (MORE) line just below.
+  const place = new Array(items.length);
   const pageOfBlock = {};
   const pageOfKey = {};
+  let prev = null; // { page, end } of the last piece, (MORE) included
   for (let k = 0; k < items.length; k++) {
-    const p = place[k];
-    if (k === 0) {
-      p.marginLines = p.topLine;
-      p.marginGaps = 0;
-    } else {
-      const q = place[k - 1];
-      const dp = p.page - q.page;
-      p.marginLines = dp * PAGE_HEIGHT_LINES + p.topLine - q.topLine - lines[k - 1];
-      p.marginGaps = dp;
+    const ps = pieces[k];
+    for (const pc of ps) {
+      const start = pc.topLine - (pc.cont ? 1 : 0);
+      if (!prev) {
+        pc.marginLines = start;
+        pc.marginGaps = 0;
+      } else {
+        const dp = pc.page - prev.page;
+        pc.marginLines = dp * PAGE_HEIGHT_LINES + start - prev.end;
+        pc.marginGaps = dp;
+      }
+      prev = { page: pc.page, end: pc.topLine + (pc.to - pc.from) + (pc.more ? 1 : 0) };
     }
-    p.lines = lines[k];
-    p.pos = p.page * PAGE_LINES + p.topLine;
-    pageOfKey[items[k].key] = p.page + 1;
-    for (const b of items[k].blocks) pageOfBlock[b.id] = p.page + 1;
+    const first = ps[0];
+    const seam = ps.length > 1 || first.more || !!first.cont;
+    place[k] = {
+      page: first.page,
+      topLine: first.topLine,
+      lines: lines[k],
+      pos: first.page * PAGE_LINES + first.topLine,
+      marginLines: first.marginLines,
+      marginGaps: first.marginGaps,
+      ...(seam ? { pieces: ps } : {}),
+    };
+    pageOfKey[items[k].key] = first.page + 1;
+    for (const b of items[k].blocks) pageOfBlock[b.id] = first.page + 1;
   }
 
-  const last = place[place.length - 1];
+  const lastPieces = pieces[pieces.length - 1];
+  const tail = lastPieces?.[lastPieces.length - 1];
   return {
     place,
     pageCount: Math.max(1, page + 1),
     pageOfBlock,
     pageOfKey,
-    endPos: last ? last.pos + last.lines : 0,
+    endPos: tail ? tail.page * PAGE_LINES + tail.topLine + (tail.to - tail.from) : 0,
   };
 }
 

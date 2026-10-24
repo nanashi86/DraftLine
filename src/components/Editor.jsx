@@ -79,6 +79,29 @@ function formatKey(e) {
   return { KeyB: 'b', KeyI: 'i', KeyU: 'u' }[e.code] || null;
 }
 
+/**
+ * The visual line (0-based) the caret is on in a textarea, as the browser wraps it: a hidden copy
+ * of the text up to the caret, in the same box and font, and where its end lands. (The arithmetic
+ * wrap model can differ from the browser by a word near a line end; page seams must not.)
+ */
+function caretLine(ta, pos) {
+  const mirror = document.createElement('div');
+  const cs = getComputedStyle(ta);
+  mirror.className = 'el-text';
+  Object.assign(mirror.style, {
+    position: 'absolute', visibility: 'hidden', top: '0', left: '0', width: `${ta.clientWidth}px`,
+    textTransform: cs.textTransform, textAlign: cs.textAlign, fontWeight: cs.fontWeight,
+  });
+  mirror.textContent = ta.value.slice(0, pos);
+  const mark = document.createElement('span');
+  mark.textContent = ta.value.slice(pos, pos + 1) || '\u200b';
+  mirror.appendChild(mark);
+  ta.parentElement.appendChild(mirror);
+  const line = Math.round(mark.offsetTop / (parseFloat(cs.lineHeight) || 1));
+  mirror.remove();
+  return Math.max(0, line);
+}
+
 function marginStyle(lines, gaps) {
   if (!lines && !gaps) return undefined;
   return { marginTop: `calc(var(--line) * ${lines} + var(--gap) * ${gaps})` };
@@ -119,49 +142,81 @@ function NoteMarker({ block, open, onOpen }) {
   );
 }
 
+/**
+ * Page seams (screenplay.js paginate): a speech split across a page shows "(MORE)" under its last
+ * line on the first page and "NAME (CONT'D)" over the rest on the next. Both are drawn here, never
+ * written into the script. A dialogue element split mid-paragraph is shown as two clipped views of
+ * the same text — each a real, editable textarea — one per page; the caret hands over between them
+ * as it crosses the seam (see routeCaret in Editor).
+ */
+function seamClip(piece) {
+  return {
+    clip: { height: `calc(var(--line) * ${piece.to - piece.from})`, overflow: 'hidden' },
+    body: piece.from ? { marginTop: `calc(var(--line) * ${-piece.from})` } : undefined,
+  };
+}
+
 const Block = memo(function Block({
   block, sceneNumber, isActive, isHighlighted, isDim, isDense, marginLines, marginGaps,
   register, observe, onText, onKey, onFocusBlock,
   noteOpen, onOpenNote, locked = false,
+  piece = null, split = false, partIndex = 0,
 }) {
-  const setRef = useCallback((el) => register(block.id, el), [register, block.id]);
+  const setRef = useCallback((el) => register(block.id, el, partIndex), [register, block.id, partIndex]);
   const meta = ELEMENT_META[block.type];
+  const primary = partIndex === 0;
+  const { clip, body } = split ? seamClip(piece) : {};
   return (
     <div
-      ref={observe}
-      data-key={observe ? block.id : undefined}
-      className={`el el-${block.type}${isActive ? ' is-active' : ''}${isHighlighted ? ' is-highlighted' : ''}${isDim ? ' is-dim' : ''}${isDense ? ' is-dense' : ''}${hasNote(block) ? ' has-note' : ''}${noteOpen ? ' is-note-open' : ''}${hasMarks(block.marks) ? ' has-fmt' : ''}`}
-      style={observe ? marginStyle(marginLines, marginGaps) : undefined}
+      className={`el el-${block.type}${isActive ? ' is-active' : ''}${isHighlighted ? ' is-highlighted' : ''}${isDim ? ' is-dim' : ''}${isDense ? ' is-dense' : ''}${hasNote(block) ? ' has-note' : ''}${noteOpen ? ' is-note-open' : ''}${hasMarks(block.marks) ? ' has-fmt' : ''}${split ? ' is-split' : ''}`}
+      style={observe || !primary ? marginStyle(marginLines, marginGaps) : undefined}
     >
+      {piece?.cont ? <div className="el-seam el-contd" aria-hidden="true">{piece.cont}</div> : null}
       {sceneNumber != null && (
         <>
           <span className="scene-no scene-no-left" aria-hidden="true">{sceneNumber}</span>
           <span className="scene-no scene-no-right" aria-hidden="true">{sceneNumber}</span>
         </>
       )}
-      {hasMarks(block.marks) && (
-        // A textarea can't style part of its text, so a formatted element shows an exact,
-        // styled copy of its text laid over the (then transparent) textarea, which keeps
-        // the caret, selection and typing. Courier is monospaced in every weight and slant,
-        // so both wrap identically.
-        <FormattedText className="el-text el-fmt" aria-hidden="true" text={block.text} marks={block.marks} />
-      )}
-      <AutoTextarea
-        ref={setRef}
-        className="el-input"
-        value={block.text}
-        measureKey={block.type}
-        snapToLines
-        spellCheck
-        placeholder={isActive && !locked ? meta.label : ''}
-        readOnly={locked}
-        aria-label={meta.label}
-        data-id={block.id}
-        onChange={(e) => onText(block.id, e.target.value)}
-        onKeyDown={(e) => onKey(e, block.id)}
-        onFocus={() => onFocusBlock(block.id)}
-      />
-      {onOpenNote && <NoteMarker block={block} open={noteOpen} onOpen={onOpenNote} />}
+      <div className="el-clip" style={clip}>
+        <div
+          className="el-body"
+          ref={primary ? observe : undefined}
+          data-key={primary && observe ? block.id : undefined}
+          style={body}
+        >
+          {hasMarks(block.marks) && (
+            // A textarea can't style part of its text, so a formatted element shows an exact,
+            // styled copy of its text laid over the (then transparent) textarea, which keeps
+            // the caret, selection and typing. Courier is monospaced in every weight and slant,
+            // so both wrap identically.
+            <FormattedText className="el-text el-fmt" aria-hidden="true" text={block.text} marks={block.marks} />
+          )}
+          <AutoTextarea
+            ref={setRef}
+            className="el-input"
+            value={block.text}
+            measureKey={block.type}
+            snapToLines
+            spellCheck={meta.spellcheck}
+            autoCorrect={meta.spellcheck ? 'on' : 'off'}
+            placeholder={isActive && !locked && primary ? meta.label : ''}
+            readOnly={locked}
+            aria-label={meta.label}
+            aria-hidden={primary ? undefined : 'true'}
+            tabIndex={primary ? undefined : -1}
+            data-id={block.id}
+            data-part={split ? partIndex : undefined}
+            data-from={split ? piece.from : undefined}
+            data-to={split ? piece.to : undefined}
+            onChange={(e) => onText(block.id, e.target.value)}
+            onKeyDown={(e) => onKey(e, block.id)}
+            onFocus={() => onFocusBlock(block.id)}
+          />
+        </div>
+      </div>
+      {piece?.more ? <div className="el-seam el-more" aria-hidden="true">(MORE)</div> : null}
+      {onOpenNote && primary && <NoteMarker block={block} open={noteOpen} onOpen={onOpenNote} />}
     </div>
   );
 });
@@ -275,6 +330,10 @@ export default function Editor({
   const [dismissed, setDismissed] = useState(null);
   const [acState, setAcState] = useState({ sig: '', index: 0 });
   const lastSel = useRef(null); // { id, start, end } of the last selection inside the script
+  // The second (third…) view of a split element (page seams), by `${id}#${part}`; see register.
+  const partEls = useRef(new Map());
+  const partFocusLost = useRef(null);
+  const pointerDown = useRef(false); // while a click or drag is placing the caret, don't route it
   const lastFmt = useRef('');
   const onFormatStateRef = useRef(onFormatState);
 
@@ -312,6 +371,28 @@ export default function Editor({
     el.setSelectionRange(c, e2);
   });
 
+  /**
+   * A split dialogue element is two (or more) clipped views of one text. When the caret sits on a
+   * line outside the view that has focus, move focus — same selection — to the view showing it.
+   */
+  const routeCaret = useCallback((el) => {
+    if (pointerDown.current || !el?.dataset || el.dataset.to == null || !sheetRef.current?.contains(el)) return;
+    const id = el.dataset.id;
+    const b = blocksRef.current.find((x) => x.id === id);
+    if (!b) return;
+    const caret = el.selectionDirection === 'backward' ? el.selectionStart : el.selectionEnd;
+    const line = caretLine(el, caret);
+    const inView = (v, l) => l >= Number(v.dataset.from) && l < Number(v.dataset.to);
+    if (inView(el, line)) return;
+    const views = [els.current.get(id), ...[1, 2, 3, 4].map((i) => partEls.current.get(`${id}#${i}`))].filter(Boolean);
+    const target = views.find((v) => v.dataset.to != null && inView(v, line));
+    if (!target || target === el) return;
+    const { selectionStart: a, selectionEnd: z, selectionDirection: dir } = el;
+    target.focus({ preventScroll: true });
+    target.setSelectionRange(a, z, dir);
+    target.closest('.el')?.scrollIntoView({ block: 'nearest' });
+  }, []);
+
   // ---- Formatting: report which styles the selection has (drives the toolbar's B I U S) ----
   const syncFormat = useCallback(() => {
     const sel = lastSel.current;
@@ -330,11 +411,42 @@ export default function Editor({
       if (!el?.classList?.contains('el-input') || !sheetRef.current?.contains(el)) return;
       lastSel.current = { id: el.dataset.id, start: el.selectionStart, end: el.selectionEnd };
       syncFormat();
+      routeCaret(el);
     };
     // Capture phase: Chrome fires selectionchange at the textarea itself.
     document.addEventListener('selectionchange', onSel, true);
-    return () => document.removeEventListener('selectionchange', onSel, true);
-  }, [syncFormat]);
+    // A click sets the caret on mouseup; route only once it has landed.
+    const onDown = (e) => {
+      if (sheetRef.current?.contains(e.target)) pointerDown.current = true;
+    };
+    const onUp = () => {
+      if (!pointerDown.current) return;
+      pointerDown.current = false;
+      setTimeout(() => routeCaret(document.activeElement), 0);
+    };
+    document.addEventListener('mousedown', onDown, true);
+    document.addEventListener('mouseup', onUp, true);
+    return () => {
+      document.removeEventListener('selectionchange', onSel, true);
+      document.removeEventListener('mousedown', onDown, true);
+      document.removeEventListener('mouseup', onUp, true);
+    };
+  }, [syncFormat, routeCaret]);
+
+  // After every render: a seam that moved (or closed) may have left the caret outside the view
+  // that has focus — or taken that view away.
+  useLayoutEffect(() => {
+    const lost = partFocusLost.current;
+    if (lost) {
+      partFocusLost.current = null;
+      const el = els.current.get(lost.id);
+      if (el) {
+        el.focus({ preventScroll: true });
+        el.setSelectionRange(lost.start, lost.end, lost.dir);
+      }
+    }
+    routeCaret(document.activeElement);
+  });
 
   useLayoutEffect(() => syncFormat());
 
@@ -366,9 +478,25 @@ export default function Editor({
     return () => ro.unobserve(el);
   }, []);
 
-  const register = useCallback((id, el) => {
-    if (el) els.current.set(id, el);
-    else els.current.delete(id);
+  // Element textareas by block id. The second (third…) view of a split element is kept apart, in
+  // partEls, so focusing a block always means its first view; routeCaret moves on from there.
+  const register = useCallback((id, el, part = 0) => {
+    if (!part) {
+      if (el) els.current.set(id, el);
+      else els.current.delete(id);
+      return;
+    }
+    const key = `${id}#${part}`;
+    if (el) {
+      partEls.current.set(key, el);
+      return;
+    }
+    // A seam view going away (the split closed up) while it had the caret: hand it back.
+    const old = partEls.current.get(key);
+    if (old && document.activeElement === old) {
+      partFocusLost.current = { id, start: old.selectionStart, end: old.selectionEnd, dir: old.selectionDirection };
+    }
+    partEls.current.delete(key);
   }, []);
 
   const focusNow = useCallback((id, caret) => {
@@ -773,27 +901,34 @@ export default function Editor({
           );
         }
         const b = it.block;
-        return (
+        // At a page seam an element comes in pieces (one per page); the first keeps the element's
+        // key, so its textarea is never remounted while a seam opens or closes around it.
+        const pieces = pl.pieces || [null];
+        const split = pieces.length > 1;
+        return pieces.map((pc, i) => (
           <Block
-            key={it.key}
+            key={i === 0 ? it.key : `${it.key}#${i}`}
             block={b}
-            sceneNumber={sceneNumbers[b.id]}
+            sceneNumber={i === 0 ? sceneNumbers[b.id] : undefined}
             isActive={b.id === activeId}
             isHighlighted={b.id === highlightId}
             isDim={!!spotlight && !spotlight.has(b.id)}
             isDense={!!dense && dense.has(b.id)}
-            marginLines={pl.marginLines}
-            marginGaps={pl.marginGaps}
+            marginLines={pc ? pc.marginLines : pl.marginLines}
+            marginGaps={pc ? pc.marginGaps : pl.marginGaps}
             register={register}
-            observe={observe}
+            observe={i === 0 ? observe : undefined}
             onText={handleText}
             onKey={handleKeyDown}
             onFocusBlock={handleFocus}
             noteOpen={b.id === openNoteId}
             onOpenNote={onOpenNote}
             locked={locked}
+            piece={pc}
+            split={split}
+            partIndex={i}
           />
-        );
+        ));
       })}
 
       {suggestions.length > 0 && activeBlock && (
