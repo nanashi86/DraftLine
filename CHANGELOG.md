@@ -15,6 +15,10 @@ All notable changes to DraftLine are recorded here. The format follows [Keep a C
 - Orphan prevention: a scene heading needs at least 2 lines of what follows on its page, or it moves to the next one. Transitions still never start a page.
 - Long scripts run shorter where speeches used to jump whole to the next page and now split instead.
 
+### Fixed
+
+- Scene Board drag-reorder stopped moving scenes in the script after **File → Import… → Load into Editor**: the import gave every element a new id and left the scene cards pointing at the old ones, so a drag only moved the board. Scene cards now follow their headings into an imported script (in the same Ctrl+Z step), boards already left unlinked mend themselves when the project opens, and every drag checks the links first.
+
 ### Notes
 
 - `(MORE)` and `(CONT'D)` are layout only. They never enter the script data, Fountain, Final Draft or `.draftline` exports.

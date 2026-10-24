@@ -39,7 +39,7 @@ import { RestorePrompt, SnapshotPrompt, SnapshotsDrawer } from './components/Sna
 import { addRevision, changedSince, createRevision, getRevision, partsOf, removeRevision } from './lib/revisions.js';
 import { endNoteSession, hasNote, restoreNoteVersion, setNoteText, startNote } from './lib/editorialNotes.js';
 import { renameCharacter, revertRename } from './lib/renameCharacter.js';
-import { moveCardAndScene } from './lib/sceneSync.js';
+import { moveCardStep, relinkSceneCards } from './lib/sceneSync.js';
 import { dialogueFilter, dialogueKeyAction, dialogueStops } from './lib/dialogueFilter.js';
 import { canvasThemeInfo, nextCanvasTheme, readCanvasTheme, writeCanvasTheme } from './lib/canvasTheme.js';
 import { mergeDictionary } from './lib/structureDictionary.js';
@@ -68,7 +68,7 @@ import { fileMenuItems, isOnBar, moreMenuItems } from './lib/toolbar.js';
 import { newProjectMeta, rememberAuthorDefaults } from './lib/authorDefaults.js';
 import { parseFountain, toFountain } from './lib/fountain.js';
 import { parseFDX, toFDX } from './lib/fdx.js';
-import { beatsToFountain, beatsToMarkdown, byAct, moveBeat, sampleBeats } from './lib/beats.js';
+import { beatsToFountain, beatsToMarkdown, sampleBeats } from './lib/beats.js';
 import { SAMPLE_SCRIPT } from './lib/sampleScript.js';
 import { effectiveZoomFor } from './lib/zoom.js';
 import { actionDensity, riskLocations, stepRisk } from './lib/pacing.js';
@@ -208,7 +208,8 @@ function bootMessage(boot) {
 function Workspace({ boot }) {
   const [initialDoc] = useState(() => {
     const d = toDoc(boot.project);
-    return { ...d, blocks: d.blocks.length ? d.blocks : [makeBlock('scene')] };
+    const bl = d.blocks.length ? d.blocks : [makeBlock('scene')];
+    return { ...d, blocks: bl, beats: relinkSceneCards(d.beats, bl) };
   });
   const [initialPrefs] = useState(() => readJSON(PREFS_KEY) || {});
   const [projectId, setProjectId] = useState(boot.project.id);
@@ -756,7 +757,7 @@ function Workspace({ boot }) {
     const bl = doc.blocks.length ? doc.blocks : [makeBlock('scene')];
     setMeta(m);
     reset(bl);
-    setBeats(doc.beats);
+    setBeats(relinkSceneCards(doc.beats, bl)); // scene cards a replaced script left unlinked find their scenes again
     setCharacters(doc.characters);
     setStoryNotes(doc.storyNotes);
     setStoryDna(doc.storyDna);
@@ -830,29 +831,19 @@ function Workspace({ boot }) {
   // ---- Scene Board → script: moving a scene card moves its scene (one undo step) ----
   const moveCard = (id, act, index) => {
     const s = latest.current;
-    const r = moveCardAndScene(s.beats, s.blocks, id, act, index);
+    const r = moveCardStep(s.beats, s.blocks, id, act, index);
     if (!r.scriptMoved) {
       setBeats(r.beats); // your own cards, or a move that keeps the scene order: board only
       return;
     }
-    const before = s.beats;
-    const after = r.beats;
-    const old = before.find((b) => b.id === id);
-    const oldIndex = byAct(before)[old.act].indexOf(old);
-    // Script and board change together; Ctrl+Z / Ctrl+Shift+Z take both back and forth.
+    // Script and board change together, at once, with no confirm step; Ctrl+Z / Ctrl+Shift+Z
+    // take both back and forth.
     set(r.blocks, null, {
-      undo: () => {
-        const cur = latest.current.beats;
-        setBeats(cur === after ? before : moveBeat(cur, id, old.act, oldIndex));
-      },
-      redo: () => {
-        const cur = latest.current.beats;
-        setBeats(cur === before ? after : moveBeat(cur, id, act, index));
-      },
+      undo: () => setBeats(r.undoBeats(latest.current.beats)),
+      redo: () => setBeats(r.redoBeats(latest.current.beats)),
     });
-    setBeats(after);
-    const heading = r.blocks.find((b) => b.id === old.sceneId)?.text.trim() || 'Scene';
-    notify(`Moved ${heading} in the script · Ctrl+Z to undo`);
+    setBeats(r.beats);
+    notify(`Moved ${r.heading} in the script · Ctrl+Z to undo`);
   };
 
   // ---- Rename a character everywhere (one undo step) ----
@@ -1253,7 +1244,17 @@ function Workspace({ boot }) {
     }
     autoSnapshotRef.current(mode === 'append' ? 'append' : 'import', { force: true }); // the script as it was, first
     if (mode === 'append') set((prev) => [...prev, ...incoming]);
-    else set(incoming);
+    else {
+      // The new elements have new ids: scene cards follow their headings into the imported script,
+      // so the board keeps driving it. Ctrl+Z takes the script and the links back together.
+      const beforeBeats = latest.current.beats;
+      const afterBeats = relinkSceneCards(beforeBeats, incoming);
+      set(incoming, null, afterBeats === beforeBeats ? null : {
+        undo: () => setBeats(beforeBeats),
+        redo: () => setBeats(afterBeats),
+      });
+      setBeats(afterBeats);
+    }
     if (detected) {
       setMeta((m) => ({
         ...m,

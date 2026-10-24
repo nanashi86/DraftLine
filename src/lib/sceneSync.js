@@ -107,14 +107,68 @@ export function renumberSceneCards(beats, blocks) {
 }
 
 /**
+ * Reconnect scene cards whose scene no longer exists by that id. Replacing the script
+ * (File → Import… → Load into Editor) gives every element a new id, which used to leave each
+ * scene card pointing at nothing: it still looked like a scene card, but dragging it only
+ * moved the board. A card whose title is still in its generated "N. HEADING" form is matched
+ * to a scene with that heading that no other card holds: the one numbered N if there are
+ * several, otherwise the first. Cards you've retitled, and cards with no match, are left as
+ * they are. Returns the same array when nothing changes.
+ */
+export function relinkSceneCards(beats, blocks) {
+  const headings = blocks.filter((b) => b.type === 'scene');
+  const live = new Set(headings.map((b) => b.id));
+  const stale = beats.filter((b) => b.sceneId && !live.has(b.sceneId));
+  if (!stale.length) return beats;
+  const claimed = new Set(beats.filter((b) => b.sceneId && live.has(b.sceneId)).map((b) => b.sceneId));
+  const num = sceneNumbersOf(blocks);
+  const fresh = new Map();
+  for (const card of boardOrder(stale)) {
+    const m = GENERATED.exec(card.title.trim());
+    if (!m) continue;
+    const want = m[2].trim().toUpperCase();
+    const open = headings.filter((h) => !claimed.has(h.id) && h.text.trim().toUpperCase() === want);
+    if (!open.length) continue;
+    const pick = open.find((h) => num[h.id] === Number(m[1])) || open[0];
+    claimed.add(pick.id);
+    fresh.set(card.id, pick.id);
+  }
+  if (!fresh.size) return beats;
+  return beats.map((b) => (fresh.has(b.id) ? { ...b, sceneId: fresh.get(b.id) } : b));
+}
+
+/**
  * Drop / keyboard-move a card: the board change plus, for a scene card, the script change.
  * Returns { beats, blocks, scriptMoved }.
  */
 export function moveCardAndScene(beats, blocks, id, act, index) {
-  const moved = moveBeat(beats, id, act, index);
+  const moved = moveBeat(relinkSceneCards(beats, blocks), id, act, index);
   const card = moved.find((b) => b.id === id);
   if (!card?.sceneId) return { beats: moved, blocks, scriptMoved: false };
   const nextBlocks = moveSceneForBeats(blocks, moved, card.sceneId);
   if (nextBlocks === blocks) return { beats: moved, blocks, scriptMoved: false };
   return { beats: renumberSceneCards(moved, nextBlocks), blocks: nextBlocks, scriptMoved: true };
+}
+
+/**
+ * One Scene Board move as an undo step: moveCardAndScene plus how Ctrl+Z / Ctrl+Shift+Z put
+ * the board back and forth. The script side is the history's own (its previous and next block
+ * arrays); `undoBeats(cur)` / `redoBeats(cur)` turn the board as it is at that moment into the
+ * board before / after the move — exactly, if nothing else changed it since, or by moving just
+ * that card back if you've edited other cards in between.
+ * Returns { blocks, beats, scriptMoved, heading, undoBeats, redoBeats }.
+ */
+export function moveCardStep(beats, blocks, id, act, index) {
+  const r = moveCardAndScene(beats, blocks, id, act, index);
+  const before = relinkSceneCards(beats, blocks);
+  const after = r.beats;
+  const old = before.find((b) => b.id === id);
+  if (!r.scriptMoved || !old) return { ...r, heading: null, undoBeats: () => before, redoBeats: () => after };
+  const oldIndex = byAct(before)[old.act].indexOf(old);
+  return {
+    ...r,
+    heading: r.blocks.find((b) => b.id === old.sceneId)?.text.trim() || 'Scene',
+    undoBeats: (cur) => (cur === after ? before : moveBeat(cur, id, old.act, oldIndex)),
+    redoBeats: (cur) => (cur === before ? after : moveBeat(cur, id, act, index)),
+  };
 }

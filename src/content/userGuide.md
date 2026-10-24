@@ -252,7 +252,7 @@ The **Scene Board** (formerly the Beat Board; **Board** or **Split** view) lays 
 - **Auto-Distribute (% Targets)** places scenes by page: about {{board.targets.3}} for 3 acts, or {{board.targets.4}} for 4 acts.
 - **Manual Scene Ranges…** lets you say which scenes belong to each act (for example 1–12, 13–40, 41–55).
 
-Moving a linked card also moves its scene in the script (one undo step).
+Moving a linked card also moves its scene in the script (one undo step). Cards keep their link when you replace the script with **Load into Editor**, as long as the card's title is still the generated "12. INT. HOUSE - NIGHT" one and the scene keeps its heading.
 
 ### Pacing distribution
 

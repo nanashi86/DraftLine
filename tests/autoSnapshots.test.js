@@ -117,7 +117,7 @@ describe('Automatic snapshots: wiring in the app', () => {
   it('forced just before an import, a Format Doctor Fix All, and deleting a script', () => {
     const fn = (start, end) => app.slice(app.indexOf(start), app.indexOf(end, app.indexOf(start)));
     const imp = fn('const importScript = (', 'const printScript = ');
-    assert.ok(imp.indexOf("autoSnapshotRef.current(mode === 'append' ? 'append' : 'import', { force: true })") < imp.indexOf('set(incoming)'), 'before the script is replaced');
+    assert.ok(imp.indexOf("autoSnapshotRef.current(mode === 'append' ? 'append' : 'import', { force: true })") < imp.indexOf('set(incoming, null,'), 'before the script is replaced');
     const fix = fn('const fixIssues = useCallback(', 'const ignoreIssue');
     assert.ok(fix.indexOf("if (bulk) autoSnapshotRef.current('Fix All', { force: true })") < fix.indexOf('set(applyFixes('), 'before Fix All');
     assert.match(app, /onFixAll=\{\(\) => fixIssues\(issues, \{ bulk: true \}\)\}/, 'Fix All always counts, however many findings');

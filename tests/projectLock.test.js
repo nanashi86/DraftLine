@@ -96,7 +96,7 @@ describe('Project Lock: guards in the app', () => {
   it('import / paste-import into a locked script makes a new script instead (Append too)', () => {
     const fn = app.slice(app.indexOf('const importScript = ('), app.indexOf('const printScript = '));
     const guard = fn.indexOf('if (projectLocked) {');
-    assert.ok(guard > 0 && guard < fn.indexOf('set(incoming)') && guard < fn.indexOf('set((prev) => [...prev, ...incoming])'));
+    assert.ok(guard > 0 && guard < fn.indexOf('set(incoming, null,') && guard < fn.indexOf('set((prev) => [...prev, ...incoming])'));
     assert.match(fn, /openAsNewProject\(\s*\{ meta: \{ \.\.\.EMPTY_META, \.\.\.newProjectMeta\(\{ title \}\), \.\.\.titlePage, title \}, blocks: incoming, beats: \[\] \}/);
     assert.match(modal, /\{locked \? 'Load as New Script' : 'Load into Editor'\}/);
     assert.match(modal, /\{!locked && \(\s*<button[\s\S]*?Append/);

@@ -76,7 +76,8 @@ describe('Load into Editor / Append: the import lands where you can see it', () 
   const fn = app.slice(app.indexOf('const importScript = ('), app.indexOf('const printScript = '));
   it('commits the previewed elements in the editor’s shape; unknown types become Action; an empty preview commits nothing', () => {
     assert.match(fn, /makeBlock\(ELEMENT_META\[b\.type\] \? b\.type : 'action', b\.text, blockExtras\(b\)\)/);
-    assert.match(fn, /if \(mode === 'append'\) set\(\(prev\) => \[\.\.\.prev, \.\.\.incoming\]\);\s*else set\(incoming\);/);
+    assert.match(fn, /if \(mode === 'append'\) set\(\(prev\) => \[\.\.\.prev, \.\.\.incoming\]\);\s*else \{/);
+    assert.match(fn, /set\(incoming, null, afterBeats === beforeBeats \? null : \{/, 'replacing: the script, with the scene-card links carried in the same undo step');
     assert.match(fn, /if \(!incoming\.length\) \{\s*notify\('Nothing to import/);
   });
   it('then: Write (out of Plan), the page (out of the Board), page 1 with the cursor in the first element', () => {
