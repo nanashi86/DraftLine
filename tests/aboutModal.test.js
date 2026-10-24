@@ -15,27 +15,26 @@ describe('About DraftLine', () => {
       return i;
     };
     const order = [
-      at('className="hm-name"'), at('className="hm-version"'), at('A fast, distraction‑free screenwriting app using Courier Prime at 12 pt.'),
+      at('className="hm-name"'), at('className="hm-version"'), at('A fast, distraction‑free screenwriting app designed for pure flow.'),
       at('className="hm-origin"'), at('Backup Project (.draftline)'), at('className="hm-community"'), at('className="hm-credits"'),
       at('<dt>Storage</dt>'), at('<dt>Last saved</dt>'), at('<dt>This script</dt>'), at('<dt>Protected</dt>'), at('className="hm-privacy"'),
     ];
     for (let i = 1; i < order.length; i++) assert.ok(order[i] > order[i - 1], `item ${i} out of order`);
   });
 
-  it('the description: Courier Prime at 12 pt, native .draftline, Fountain or Final Draft', () => {
+  it('the description: pure flow, in the browser, export to Fountain or Final Draft', () => {
     const p = about.slice(about.indexOf('<p>'), about.indexOf('</p>'));
-    assert.equal(text(p).trim(), 'A fast, distraction‑free screenwriting app using Courier Prime at 12 pt. Projects save in '
-      + 'DraftLine’s native .draftline format and export to Fountain or Final Draft (.fdx).');
-    assert.match(p, /native <b>\.draftline<\/b> format/);
+    assert.equal(text(p).trim(), 'A fast, distraction‑free screenwriting app designed for pure flow. Write natively in your '
+      + 'browser, maintain absolute focus, and export effortlessly to Fountain or Final Draft (.fdx).');
   });
 
   it('the Origin Story reads exactly as written', () => {
     const block = about.slice(about.indexOf('className="hm-origin"'), about.indexOf('</section>'));
     const story = text(block.slice(block.indexOf('<p>'), block.indexOf('</p>'))).trim(); // the paragraph, not the signature after it
     assert.equal(story, 'I began storytelling at eight on my father\'s electric typewriter. Decades later, while writing '
-      + 'my first feature, What Happened to Haiti?, I refused to pay bloated subscriptions and drafted all six '
+      + 'my first feature, What Happened to Haiti?, I refused to pay bloated subscriptions and wrote all six '
       + 'drafts in raw Google Docs. That grind taught me structure and what tools screenwriters truly need. So I built '
-      + 'DraftLine: a clean, independent editor with dramatic architecture built right in.');
+      + 'DraftLine: a clean, fast, distraction‑free editor with dramatic architecture built right in.');
     assert.match(block, /<h3 id="hm-origin-title">Origin Story<\/h3>/);
     assert.match(block, /my first\s+feature, <em>What Happened to Haiti\?<\/em>, I refused/, 'the screenplay title is italic');
     assert.ok(!/features writers/.test(block));
