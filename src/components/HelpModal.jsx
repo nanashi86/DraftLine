@@ -149,16 +149,16 @@ export default function HelpModal({ kind, storage, onBackup, onClose }) {
             </div>
           </div>
           <p>
-            A fast, distraction‑free screenwriting app using Courier Prime at 12 pt. Projects save in DraftLine’s
-            native <b>.draftline</b> format and export to Fountain or Final Draft (.fdx).
+            A fast, distraction‑free screenwriting app designed for pure flow. Write natively in your browser, maintain
+            absolute focus, and export effortlessly to Fountain or Final Draft (.fdx).
           </p>
           <section className="hm-origin" aria-labelledby="hm-origin-title">
             <h3 id="hm-origin-title">Origin Story</h3>
             <p>
               I began storytelling at eight on my father&apos;s electric typewriter. Decades later, while writing my first
-              feature, <em>What Happened to Haiti?</em>, I refused to pay bloated subscriptions and drafted all six
+              feature, <em>What Happened to Haiti?</em>, I refused to pay bloated subscriptions and wrote all six
               drafts in raw Google Docs. That grind taught me structure and what tools screenwriters truly need. So I
-              built DraftLine: a clean, independent editor with dramatic architecture built right in.
+              built DraftLine: a clean, fast, distraction‑free editor with dramatic architecture built right in.
             </p>
           </section>
           {onBackup && (
