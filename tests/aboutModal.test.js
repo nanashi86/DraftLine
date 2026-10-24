@@ -42,6 +42,13 @@ describe('About DraftLine', () => {
     assert.match(block, /my father&apos;s electric typewriter/, 'apostrophe as a JSX entity');
   });
 
+  it('the Backup Project box says what the download includes', () => {
+    const box = about.slice(about.indexOf('className="hm-backup"'), about.indexOf('</div>', about.indexOf('className="hm-backup"')));
+    const note = text(box.slice(box.indexOf('<span>'), box.indexOf('</span>'))).trim();
+    assert.equal(note, 'Downloads this script complete — Title Page, Scene Board, Story Bible and Outline included — to restore '
+      + 'here or on any other browser.');
+  });
+
   it('the facts list leads with "Created by: Eric Lemaire Jr.", then the five storage rows, all one label width', () => {
     const facts = about.slice(about.indexOf('className="hm-facts"'), about.indexOf('</dl>'));
     const labels = [...facts.matchAll(/<dt>([^<]+)<\/dt>/g)].map((m) => m[1]);
