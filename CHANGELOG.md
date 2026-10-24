@@ -18,6 +18,7 @@ All notable changes to DraftLine are recorded here. The format follows [Keep a C
 
 ### Fixed
 
+- Right-click on script text is never redirected: the sheet's click-to-nearest-line handler and the page-seam caret routing now act on the left button only, and every layer over the text is click-through, so the browser's own menu (spelling suggestions, Add to dictionary) opens on the word under the pointer. A chosen suggestion is an ordinary edit: it updates the script and is undoable with Ctrl+Z.
 - Scene Board drag-reorder stopped moving scenes in the script after **File → Import… → Load into Editor**: the import gave every element a new id and left the scene cards pointing at the old ones, so a drag only moved the board. Scene cards now follow their headings into an imported script (in the same Ctrl+Z step), boards already left unlinked mend themselves when the project opens, and every drag checks the links first.
 
 ### Notes

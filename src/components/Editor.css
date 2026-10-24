@@ -70,7 +70,11 @@
   overflow-wrap: break-word;
 }
 
+/* The textarea is always what the pointer hits on a line of script — overlays (formatting copy,
+   seam lines, scene numbers, tags) are pointer-events: none — so a right-click reaches it and
+   opens the browser's own menu with spelling suggestions. */
 .el-input {
+  pointer-events: auto;
   outline: none;
   resize: none;
   overflow: hidden;
@@ -205,6 +209,7 @@
   border-radius: 2px;
   background: transparent;
   transition: background 120ms ease;
+  pointer-events: none;
 }
 .sheet .el-character::before,
 .sheet .el-parenthetical::before,

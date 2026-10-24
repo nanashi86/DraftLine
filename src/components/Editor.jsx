@@ -416,11 +416,13 @@ export default function Editor({
     // Capture phase: Chrome fires selectionchange at the textarea itself.
     document.addEventListener('selectionchange', onSel, true);
     // A click sets the caret on mouseup; route only once it has landed.
+    // Left button only: a right-click keeps the caret and focus exactly where the browser put them,
+    // so its spelling suggestions apply to the word under the pointer.
     const onDown = (e) => {
-      if (sheetRef.current?.contains(e.target)) pointerDown.current = true;
+      if (e.button === 0 && sheetRef.current?.contains(e.target)) pointerDown.current = true;
     };
-    const onUp = () => {
-      if (!pointerDown.current) return;
+    const onUp = (e) => {
+      if (e.button !== 0 || !pointerDown.current) return;
       pointerDown.current = false;
       setTimeout(() => routeCaret(document.activeElement), 0);
     };
@@ -837,6 +839,9 @@ export default function Editor({
 
   // Clicking empty paper focuses the nearest line instead of doing nothing.
   const onSheetMouseDown = (e) => {
+    // Left button only: a right-click (or middle-click) is never cancelled or redirected here, so
+    // the browser's own context menu — spelling suggestions, Add to dictionary — always opens.
+    if (e.button !== 0) return;
     if (!e.target.classList.contains('page-card') && e.target !== sheetRef.current) return;
     e.preventDefault();
     let best = null;
