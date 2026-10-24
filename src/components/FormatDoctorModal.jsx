@@ -9,7 +9,7 @@ const typeLabel = (t) => (t ? ELEMENT_META[t].label : 'Removed');
  * Lists the Format Doctor's findings. Each can be fixed on its own or all at once;
  * every fix is a normal edit, so Ctrl+Z undoes it.
  */
-export default function FormatDoctorModal({ issues, pageOfBlock, onFix, onFixAll, onIgnore, onShow, onClose }) {
+export default function FormatDoctorModal({ issues, pageOfBlock, onFix, onFixAll, onIgnore, onShow, onClose, supportFooter = null }) {
   const dialogRef = useRef(null);
 
   useEffect(() => {
@@ -64,6 +64,8 @@ export default function FormatDoctorModal({ issues, pageOfBlock, onFix, onFixAll
             No unclassified or badly formatted sluglines, stray or orphaned cues and parentheticals, untagged or run-in format cues, false or orphaned dialogue, lowercase character introductions, double blank lines, misaligned endings or empty lines.
           </li>
         )}
+        {/* App passes this only for a clean report, at most every 30 days (lib/supportTips.js). */}
+        {issues.length === 0 && supportFooter && <li className="fd-support-row">{supportFooter}</li>}
         {issues.map((it) => {
           const kind = ISSUE_KINDS[it.kind];
           const change = it.from === it.to

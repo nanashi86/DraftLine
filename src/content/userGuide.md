@@ -130,6 +130,8 @@ Select text and press {{key:Ctrl+B}} (bold), {{key:Ctrl+I}} (italic), {{key:Ctrl
 - **Density** (status bar) flags Action paragraphs that run past {{density.lines}} lines, or that are walls of text. It's the same compact stepper as Format: **Density · – of 9**. ‹ › highlight them and step from one to the next (the pill then reads **Density · 1 of 9**), click **Density** for a list of every one by scene and page, and ✕ turns the highlights off.
 - **Hover a character cue** to see that character's bio card. Click **Edit in Bios →** to open their bio.
 
+When the Format Doctor finds nothing at all (findings you've ignored count as unresolved), its report may end with one quiet line about supporting DraftLine, at most once a month. **Dismiss** turns it off for good in this browser.
+
 ### What the Format Doctor checks
 
 - Elements that are probably tagged wrong: a scene heading or a character cue typed as Action, dialogue with no character above it, empty elements.
@@ -305,6 +307,8 @@ Your lists and notes are saved with the script, inside the project, and kept by 
 - **Scene outline**: a Fountain Outline, Markdown, or a Spreadsheet (.csv), from the Scene Board.
 - **Breakdown**: **Export Breakdown** in Plan, a spreadsheet (.csv) of every scene's breakdown (see Production & Planning).
 - **Story Bible (PDF)**: **File → Story Bible** turns Story DNA, Story Notes and Character Bios (any or all of them) into a formatted dossier headed with the title, author and "Story Bible & Project Dossier", each section starting on a new page. Choose **Save as PDF** in the print dialog; the file is named "<Title> - Story Bible". Story Notes go in this order: Logline, Tone, Pitch, Timeline, Synopsis, then the Treatment by act. Of your own note cards, only those with "Note" in the title are included ("Note: Haiti 1986", "Note Revisions"); research questions and brainstorms stay in DraftLine, and the Scratchpad never goes. Only characters with something in their bio are included.
+
+Each script export (.fountain, .fdx, .draftline, and the print dialog) is confirmed in a small note in the bottom-right corner that closes itself after 8 seconds; point at it to keep it open. At most once every two weeks it adds a line about supporting DraftLine on Ko-fi or Patreon. **Don't show again**, or closing the note while that line is showing, turns it off for good in this browser.
 
 ### Opening and importing
 

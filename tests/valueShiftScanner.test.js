@@ -160,7 +160,7 @@ describe('Status bar: one Format Doctor control', () => {
   });
   it('the Format stepper on the right is its control there', () => {
     const right = app.slice(app.indexOf('<div className="status-right">'));
-    assert.match(right, /<FormatStepper[\s\S]*onOpenDoctor=\{\(\) => setDoctorOpen\(true\)\}/);
+    assert.match(right, /<FormatStepper[\s\S]*onOpenDoctor=\{openDoctor\}/);
     assert.doesNotMatch(read('src/App.css'), /\.status-doctor/);
   });
   it('⋮ → Format Doctor opens it any time (with the count, or Clean)', () => {
@@ -171,6 +171,6 @@ describe('Status bar: one Format Doctor control', () => {
     fd.onSelect();
     assert.ok(opened);
     assert.equal(moreMenuItems({ onFormatDoctor() {} }).find((i) => i.label === 'Format Doctor').hint, 'Clean');
-    assert.match(app, /onFormatDoctor: \(\) => setDoctorOpen\(true\)/);
+    assert.match(app, /onFormatDoctor: openDoctor,/);
   });
 });

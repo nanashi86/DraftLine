@@ -262,6 +262,13 @@ nothing uploaded, works offline). Click the title's **▾** or the **D** logo (o
 
 ## Files
 
+Every script export (`.fountain`, `.fdx`, `.draftline`, print / PDF) is confirmed in a bottom-right toast that closes
+itself after 8 seconds, never takes focus and pauses while hovered. At most every 14 days it also carries one line
+about supporting DraftLine on Ko-fi or Patreon; a clean Format Doctor report (no findings, ignored ones included) can
+end with a similar line at most every 30 days. Both are throttled and muted per browser in `localStorage`
+(`last_export_tip_shown` / `export_tip_muted`, `last_format_doctor_tip_shown` / `format_doctor_tip_muted`; see
+`src/lib/supportTips.js`), and stay silent when storage is unavailable.
+
 - **Open** reads `.fountain`, `.spmd` and `.fdx` (including title pages and dual dialogue); `.txt` files go to Import.
 - **Import** brings in scripts from Google Docs, Word, PDFs or any plain text: drop a `.txt` or paste, check the
   live preview (each line tagged Scene Heading / Action / Character / Parenthetical / Dialogue / Transition, with

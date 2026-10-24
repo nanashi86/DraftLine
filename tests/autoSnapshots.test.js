@@ -119,7 +119,7 @@ describe('Automatic snapshots: wiring in the app', () => {
     const imp = fn('const importScript = (', 'const printScript = ');
     assert.ok(imp.indexOf("autoSnapshotRef.current(mode === 'append' ? 'append' : 'import', { force: true })") < imp.indexOf('set(incoming, null,'), 'before the script is replaced');
     const fix = fn('const fixIssues = useCallback(', 'const ignoreIssue');
-    assert.ok(fix.indexOf("if (bulk) autoSnapshotRef.current('Fix All', { force: true })") < fix.indexOf('set(applyFixes('), 'before Fix All');
+    assert.ok(fix.indexOf("if (bulk) autoSnapshotRef.current('Fix All', { force: true })") < fix.indexOf('applyFixes(blocks, list)'), 'before Fix All');
     assert.match(app, /onFixAll=\{\(\) => fixIssues\(issues, \{ bulk: true \}\)\}/, 'Fix All always counts, however many findings');
     assert.match(app, /onFix=\{\(it\) => fixIssues\(\[it\]\)\}/, 'a single Fix doesn’t snapshot');
     const del = fn('const confirmDelete = async () => {', 'const hardDelete = ');

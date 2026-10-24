@@ -74,6 +74,8 @@ import { SAMPLE_SCRIPT } from './lib/sampleScript.js';
 import { effectiveZoomFor } from './lib/zoom.js';
 import { actionDensity, riskLocations, stepRisk } from './lib/pacing.js';
 import DensityStepper from './components/DensityStepper.jsx';
+import { DoctorSupportFooter, ExportToast } from './components/SupportCallouts.js';
+import { EXPORT_TIP, FORMAT_DOCTOR_TIP, claimTip, muteTip } from './lib/supportTips.js';
 import BrandMark from './components/BrandMark.jsx';
 import { MILESTONES, MILESTONE_TOAST_MS, finishedSentence, milestonesReached } from './lib/milestones.js';
 import { createNoirAudio } from './lib/noirAudio.js';
@@ -432,6 +434,19 @@ function Workspace({ boot }) {
     toastTimer.current = setTimeout(() => setToast(null), 2400);
   }, []);
 
+  // ---- Export toast (components/SupportCallouts.js, lib/supportTips.js) ----
+  // Every script export (.fountain, .fdx, .draftline, print / PDF) confirms in a corner toast that
+  // closes itself after 8 s. At most once every 14 days it also carries a quiet support note,
+  // which ✕ or "Don't show again" mutes for good in this browser.
+  const [exportToast, setExportToast] = useState(null); // { key, fileName, message, tip }
+  const showExportToast = useCallback((fileName, message) => {
+    setExportToast({ key: Date.now(), fileName, message, tip: claimTip(EXPORT_TIP) });
+  }, []);
+  const closeExportToast = useCallback(({ mute } = {}) => {
+    if (mute) muteTip(EXPORT_TIP);
+    setExportToast(null);
+  }, []);
+
   // ---- Writing milestones & the FADE OUT. bell (lib/milestones.js) ----
   // Only your own edits count (an edit sets lastEdit), measured from where this session started on
   // this script; each milestone shows once per session, in a corner toast for 3.5 s.
@@ -707,13 +722,28 @@ function Workspace({ boot }) {
   const [densityMode, setDensityMode] = useState(false);
   const [densityIndex, setDensityIndex] = useState(-1); // which skim risk the stepper is on (-1: none yet)
   const noteCount = useMemo(() => blocks.filter((b) => hasNote(b) && b.note.trim()).length, [blocks]);
+  // Format Doctor support line (lib/supportTips.js): decided when the report opens clean, or when a
+  // fix in it resolves the last finding, and at most every 30 days. "Clean" means no findings at
+  // all, ignored ones included: Ignore hides a finding, it doesn't resolve it.
+  const [doctorTip, setDoctorTip] = useState(false);
+  const scriptIsClean = useCallback((b) => auditScript(b, { skipId: activeId }).length === 0, [activeId]);
+  const openDoctor = useCallback(() => {
+    setDoctorTip(scriptIsClean(blocks) && claimTip(FORMAT_DOCTOR_TIP));
+    setDoctorOpen(true);
+  }, [blocks, scriptIsClean]);
+  const closeDoctor = useCallback(() => {
+    setDoctorOpen(false);
+    setDoctorTip(false);
+  }, []);
   const fixIssues = useCallback((all, { bulk = false } = {}) => {
     const list = all.filter((it) => canFix(it.kind)); // e.g. a heading missing its time of day: yours to write
     if (!list.length) return;
     if (bulk) autoSnapshotRef.current('Fix All', { force: true }); // Fix All: the script as it was, first
-    set(applyFixes(blocks, list));
+    const next = applyFixes(blocks, list);
+    set(next);
+    if (doctorOpen && !doctorTip && scriptIsClean(next)) setDoctorTip(claimTip(FORMAT_DOCTOR_TIP));
     notify(list.length === 1 ? 'Fixed · Ctrl+Z to undo' : `Fixed ${list.length} elements · Ctrl+Z to undo`);
-  }, [blocks, set, notify]);
+  }, [blocks, set, notify, doctorOpen, doctorTip, scriptIsClean]);
   const ignoreIssue = useCallback((it) => {
     setIgnoredIssues((prev) => new Set(prev).add(`${it.id}|${it.kind}`));
     notify('Ignored for this session');
@@ -731,11 +761,11 @@ function Workspace({ boot }) {
   const base = slugify(meta.title);
   const exportFountain = () => {
     download(`${base}.fountain`, toFountain({ meta, blocks }), 'text/plain;charset=utf-8');
-    notify('Exported .fountain');
+    showExportToast(`${base}.fountain`);
   };
   const exportFDX = () => {
     download(`${base}.fdx`, toFDX({ meta, blocks }), 'application/xml;charset=utf-8');
-    notify('Exported .fdx');
+    showExportToast(`${base}.fdx`);
   };
   const exportOutline = useCallback((kind) => {
     if (kind === 'csv') {
@@ -903,7 +933,7 @@ function Workspace({ boot }) {
   const downloadBackup = (rec) => {
     const name = backupFileName(rec.title);
     download(name, serializeBackup(rec, { actMode, dictionary: dictOverrides, appVersion: pkg.version }), BACKUP_MIME);
-    notify(`Backed up ${name}`);
+    showExportToast(name);
   };
 
   /** Back up the open project: saved first, so the file matches what's on screen. */
@@ -1070,7 +1100,7 @@ function Workspace({ boot }) {
     const name = slugify(doc.meta.title);
     if (kind === 'fdx') download(`${name}.fdx`, toFDX(doc), 'application/xml;charset=utf-8');
     else download(`${name}.fountain`, toFountain(doc), 'text/plain;charset=utf-8');
-    notify(`Exported ${name}.${kind}`);
+    showExportToast(`${name}.${kind}`);
   };
 
   /** Projects → padlock: lock or unlock script `id` (stored, and written to the synced folder). */
@@ -1332,14 +1362,19 @@ function Workspace({ boot }) {
   // Print view is only mounted while printing (File → Script (PDF), or Ctrl+P).
   useEffect(() => {
     const before = () => flushSync(() => setPrinting(true));
-    const after = () => setPrinting(false);
+    // The browser doesn't say whether you printed, saved a PDF or cancelled, so the toast says
+    // only what happened: the script went to the print dialog.
+    const after = () => {
+      setPrinting(false);
+      showExportToast(null, 'Script sent to the print dialog');
+    };
     window.addEventListener('beforeprint', before);
     window.addEventListener('afterprint', after);
     return () => {
       window.removeEventListener('beforeprint', before);
       window.removeEventListener('afterprint', after);
     };
-  }, []);
+  }, [showExportToast]);
 
   // Milestones, checked after each edit (layout and word count are up to date here).
   useEffect(() => {
@@ -1918,7 +1953,7 @@ function Workspace({ boot }) {
                 },
                 noteCount,
                 onShortcuts: () => setHelpKind('shortcuts'),
-                onFormatDoctor: () => setDoctorOpen(true),
+                onFormatDoctor: openDoctor,
                 issueCount: issues.length,
                 onAbout: () => setHelpKind('about'),
                 onGuide: () => setGuideOpen(true),
@@ -2129,7 +2164,7 @@ function Workspace({ boot }) {
                   onGo={jumpToIssue}
                   onFix={(it) => fixIssues([it])}
                   onIgnore={ignoreIssue}
-                  onOpenDoctor={() => setDoctorOpen(true)}
+                  onOpenDoctor={openDoctor}
                   onDismiss={() => setFormatHidden(new Set(issues.map(issueKey)))}
                 />
               )}
@@ -2197,6 +2232,15 @@ function Workspace({ boot }) {
           </div>
         )}
         {toast && <div className="toast" role="status">{toast}</div>}
+        {exportToast && (
+          <ExportToast
+            key={exportToast.key}
+            fileName={exportToast.fileName}
+            message={exportToast.message || undefined}
+            tip={exportToast.tip}
+            onClose={closeExportToast}
+          />
+        )}
         {milestone && <div className="milestone-toast" role="status" key={milestone}>{milestone}</div>}
         {bibleExportOpen && (
           // Export → Story Bible (PDF)…: loads (with lib/biblePdfExport.js) the first time it's opened.
@@ -2339,10 +2383,18 @@ function Workspace({ boot }) {
             onFixAll={() => fixIssues(issues, { bulk: true })}
             onIgnore={ignoreIssue}
             onShow={(id) => {
-              setDoctorOpen(false);
+              closeDoctor();
               requestAnimationFrame(() => jumpTo(id));
             }}
-            onClose={() => setDoctorOpen(false)}
+            onClose={closeDoctor}
+            supportFooter={doctorTip && issues.length === 0 ? (
+              <DoctorSupportFooter
+                onDismiss={() => {
+                  muteTip(FORMAT_DOCTOR_TIP);
+                  setDoctorTip(false);
+                }}
+              />
+            ) : null}
           />
         )}
         {importSeed && (
