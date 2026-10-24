@@ -3,16 +3,30 @@ import FormattedText from './FormattedText.jsx';
 import { pageLabel } from '../lib/screenplay.js';
 import './PrintView.css';
 
-function PrintBlock({ block, sceneNumber, style }) {
+/**
+ * One element — or, at a page seam, one page's piece of it: "NAME (CONT'D)" above, "(MORE)" below,
+ * and for a dialogue paragraph split mid-way, only lines [from, to) of it (the same clipping the
+ * editor uses, so print matches the screen line for line).
+ */
+function PrintBlock({ block, sceneNumber, style, piece = null, split = false }) {
   return (
     <div className={`el el-${block.type}`} style={style}>
+      {piece?.cont && <div className="el-seam el-contd">{piece.cont}</div>}
       {sceneNumber != null && (
         <>
           <span className="scene-no scene-no-left">{sceneNumber}</span>
           <span className="scene-no scene-no-right">{sceneNumber}</span>
         </>
       )}
-      <FormattedText className="el-text" text={block.text || '\u00A0'} marks={block.marks} />
+      <div className="el-clip" style={split ? { height: `calc(var(--line) * ${piece.to - piece.from})`, overflow: 'hidden' } : undefined}>
+        <FormattedText
+          className="el-text"
+          text={block.text || '\u00A0'}
+          marks={block.marks}
+          style={split && piece.from ? { marginTop: `calc(var(--line) * ${-piece.from})` } : undefined}
+        />
+      </div>
+      {piece?.more && <div className="el-seam el-more">(MORE)</div>}
     </div>
   );
 }
@@ -27,11 +41,16 @@ function hasTitlePage(meta) {
  * The title page prints first as "page 0" (unnumbered); numbering starts on page 2.
  */
 export default function PrintView({ meta, items, layout, sceneNumbers }) {
+  // Each page lists the pieces on it: [item index, piece] (piece null for an element in one piece).
   const pages = Array.from({ length: layout.pageCount }, () => []);
   items.forEach((it, k) => {
     const p = layout.place[k];
-    if (p) pages[Math.min(p.page, pages.length - 1)].push(k);
+    if (!p) return;
+    for (const pc of p.pieces || [null]) pages[Math.min((pc || p).page, pages.length - 1)].push([k, pc]);
   });
+  // Where a piece starts (its CONT'D line included) and ends (its MORE line included), in page lines.
+  const startOf = (k, pc) => (pc ? pc.topLine - (pc.cont ? 1 : 0) : layout.place[k].topLine);
+  const endOf = (k, pc) => (pc ? pc.topLine + (pc.to - pc.from) + (pc.more ? 1 : 0) : layout.place[k].topLine + layout.place[k].lines);
 
   return (
     <div className="print-root">
@@ -40,12 +59,11 @@ export default function PrintView({ meta, items, layout, sceneNumbers }) {
       {pages.map((ks, p) => (
         <section className="print-page" key={p}>
           {p > 0 && <span className="print-page-no">{pageLabel(p)}</span>}
-          {ks.map((k, n) => {
+          {ks.map(([k, pc], n) => {
             const it = items[k];
-            const pl = layout.place[k];
-            const prev = n > 0 ? layout.place[ks[n - 1]] : null;
-            const gap = prev ? pl.topLine - prev.topLine - prev.lines : pl.topLine;
+            const gap = n > 0 ? startOf(k, pc) - endOf(...ks[n - 1]) : startOf(k, pc);
             const style = gap > 0 ? { marginTop: `calc(var(--line) * ${gap})` } : undefined;
+            const split = (layout.place[k].pieces?.length || 0) > 1;
             if (it.kind === 'dual') {
               return (
                 <div key={it.key} className="dual-row" style={style}>
@@ -58,7 +76,16 @@ export default function PrintView({ meta, items, layout, sceneNumbers }) {
                 </div>
               );
             }
-            return <PrintBlock key={it.key} block={it.block} sceneNumber={sceneNumbers[it.key]} style={style} />;
+            return (
+              <PrintBlock
+                key={`${it.key}#${pc ? pc.from : 0}`}
+                block={it.block}
+                sceneNumber={!pc || pc.from === 0 ? sceneNumbers[it.key] : undefined}
+                style={style}
+                piece={pc}
+                split={split}
+              />
+            );
           })}
         </section>
       ))}

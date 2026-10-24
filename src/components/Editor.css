@@ -94,6 +94,22 @@
 
 .el-transition :is(.el-input, .el-text) { text-transform: uppercase; text-align: right; }
 
+/* The text box of an element: the formatting overlay is positioned against it. */
+.el-body { position: relative; }
+
+/* ---- Page seams (screenplay.js paginate) ----
+   A speech split across pages: "(MORE)" under its last line on the first page, "NAME (CONT'D)"
+   over the rest on the next, both at the Character cue's indent whatever element they sit in.
+   Layout only: drawn here and in print, never part of the script or its exports. */
+.el-seam {
+  margin-left: calc(var(--in) * 2.2 - var(--el-left));
+  white-space: nowrap;
+  text-transform: uppercase;
+  user-select: none;
+  pointer-events: none;
+}
+.sheet .el-seam { opacity: 0.6; }
+
 /* Characters → Dialogue filter: everything but the chosen character's speeches fades back. */
 .el { transition: opacity 160ms ease; }
 .el.is-dim { opacity: 0.22; }
@@ -132,8 +148,8 @@
   pointer-events: none;
   user-select: none;
 }
-.has-fmt > .el-input,
-.has-fmt > .el-input::selection { color: transparent; }
+.has-fmt .el-input,
+.has-fmt .el-input::selection { color: transparent; }
 .sheet .el-format_cue .el-fmt { color: var(--fmt-ink); }
 .el-text span {
   text-decoration-thickness: from-font;
