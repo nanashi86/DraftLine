@@ -32,7 +32,7 @@ describe('Scene Board (formerly Beat Board)', () => {
     assert.ok(!/Beat Board/.test(readFileSync(new URL('../README.md', import.meta.url), 'utf8')));
   });
   it('File ▾ says "Spreadsheet Outline"; outline files say Scene Outline', () => {
-    assert.match(read('lib/toolbar.js'), /label: 'Spreadsheet Outline \(\.csv\)'/);
+    assert.match(read('lib/toolbar.js'), /label: 'Spreadsheet Outline', ext: '\.csv'/);
     const beats = [{ id: 'b', act: 0, title: '', synopsis: '', tags: [] }];
     assert.match(beatsToMarkdown(beats, 'Run!'), /^# Run! — Scene Outline/);
     assert.match(beatsToFountain(beats, 'Run!'), /## Untitled card/);

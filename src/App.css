@@ -46,7 +46,7 @@
 .plan-seg .seg-btn { display: inline-flex; align-items: center; gap: 6px; }
 .btn-plan-fold:disabled,
 .btn-plan-export:disabled { opacity: 0.45; cursor: default; }
-.file-menu .menu-pop { min-width: 300px; } /* one line per item: "Export Story Bible (PDF)…  .pdf" */
+.file-menu .menu-pop { min-width: 300px; } /* one line per item: "Spreadsheet Outline  .csv" */
 .bar-sep { flex: none; width: 1px; height: 22px; background: var(--line-soft); }
 
 .brand {
@@ -360,6 +360,8 @@
 .menu-item.is-danger:not(:disabled) { color: #f0a090; }
 .menu-item.is-danger:hover:not(:disabled) { background: #b5402c; color: #fff; }
 .menu-hint { opacity: 0.6; font-size: 12px; white-space: nowrap; }
+/* A file type on the right (.fountain, .fdx, .pdf, .csv, .md, .draftline): the hint column, in monospace. */
+.menu-ext { font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; font-size: 11.5px; letter-spacing: 0; }
 .menu-label { display: flex; flex-direction: column; gap: 1px; white-space: nowrap; }
 .menu-sub { font-size: 11.5px; opacity: 0.65; font-variant-numeric: tabular-nums; }
 

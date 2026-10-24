@@ -159,9 +159,9 @@ describe('Story Bible export: the document and printing', () => {
     assert.equal(calls[0].title, 'The Last Ferry - Story Bible');
     assert.ok(calls[0].html.includes('id="characters"') && !calls[0].html.includes('id="dna"') && !calls[0].html.includes('id="notes"'));
   });
-  it('the app: File ▸ Export Outline & Bible ▸ "Story Bible (PDF)…" opens the dialog (loaded on first use)', () => {
+  it('the app: File ▸ Export Outline & Bible ▸ "Story Bible" (.pdf) opens the dialog (loaded on first use)', () => {
     const app = read('App.jsx');
-    assert.match(read('lib/toolbar.js'), /\{ label: 'Story Bible \(PDF\)…', hint: '\.pdf', onSelect: onBible,/);
+    assert.match(read('lib/toolbar.js'), /\{ label: 'Story Bible', ext: '\.pdf', onSelect: onBible,/);
     assert.match(app, /onBible: \(\) => setBibleExportOpen\(true\),/);
     assert.match(app, /const ExportBibleModal = lazy\(\(\) => import\('\.\/components\/ExportBibleModal\.jsx'\)\);/);
     assert.match(app, /<ExportBibleModal project=\{\{ meta, storyDna, storyNotes, characters, actMode \}\} onClose=\{\(\) => setBibleExportOpen\(false\)\} \/>/);

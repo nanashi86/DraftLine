@@ -64,6 +64,7 @@ export default function Menu({
                 </span>
               ) : <span>{it.label}</span>}
               {it.hint && <span className="menu-hint">{it.hint}</span>}
+              {it.ext && <span className="menu-hint menu-ext">{it.ext}</span>}
             </button>
           )))}
         </div>

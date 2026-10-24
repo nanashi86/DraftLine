@@ -69,20 +69,29 @@ describe('toolbar: File ▾ holds Print; panels stay visible on laptops', () => 
     const calls = [];
     const h = new Proxy({}, { get: (_, k) => (k === 'snapshotCount' ? 2 : () => calls.push(k)) });
     const items = fileMenuItems(h);
-    const shape = items.map((it) => (it.divider ? '---' : it.heading ? `# ${it.heading}` : `${it.label}${it.hint ? ` [${it.hint}]` : ''}`));
+    const shape = items.map((it) => (it.divider ? '---' : it.heading ? `# ${it.heading}`
+      : `${it.label}${it.hint ? ` [${it.hint}]` : ''}${it.ext ? ` {${it.ext}}` : ''}`));
     assert.deepEqual(shape, [
-      '# Script', 'New Script [Ctrl+Alt+N]', 'Open… [Ctrl+O]', 'Import… [Word · Docs · PDF]', 'Load Sample Script [The Last Ferry]',
-      'Title Page Settings…', '---',
-      '# Export Script', 'Script (PDF) [Ctrl+P]', 'Fountain (.fountain)', 'Final Draft (.fdx)', '---',
-      '# Export Outline & Bible', 'Story Bible (PDF)… [.pdf]', 'Spreadsheet Outline (.csv)', 'Markdown Outline (.md)',
-      'Fountain Outline (.fountain)', '---',
-      '# Backup', 'Backup Project [.draftline]', 'Snapshot History [2]',
+      '# Script', 'New… [Ctrl+Alt+N]', 'Open… [Ctrl+O]', 'Import… [Word · Docs · PDF]', 'Sample… [The Last Ferry]',
+      'Edit Title…', '---',
+      '# Export Script', 'Script (PDF) [Ctrl+P]', 'Fountain {.fountain}', 'Final Draft {.fdx}', '---',
+      '# Export Outline & Bible', 'Story Bible {.pdf}', 'Spreadsheet Outline {.csv}', 'Markdown Outline {.md}',
+      'Fountain Outline {.fountain}', '---',
+      '# Backup', 'Backup Project {.draftline}', 'Snapshot History [2]',
     ]);
     items.filter((i) => i.onSelect).forEach((i) => i.onSelect());
     assert.deepEqual(calls, ['onNew', 'onOpen', 'onImport', 'onSample', 'onTitlePage', 'onPrint', 'onFountain', 'onFdx', 'onBible', 'onOutlineCsv', 'onOutlineMd',
       'onOutlineFountain', 'onBackup', 'onSnapshots']);
     assert.match(app, /onPrint: printScript,/);
     assert.ok(!/Print Script \/ PDF|Fountain outline'/.test(app), 'no legacy slash label or lower-case outline');
+  });
+  it('file types sit in the hint column, all with one monospace badge style', () => {
+    const menu = readFileSync(join(root, 'components/Menu.jsx'), 'utf8');
+    assert.match(menu, /\{it\.ext && <span className="menu-hint menu-ext">\{it\.ext\}<\/span>\}/);
+    assert.match(css, /\.menu-ext \{ font-family: ui-monospace,[^}]*\}/);
+    const exts = fileMenuItems({}).filter((i) => i.ext).map((i) => i.ext);
+    assert.deepEqual(exts, ['.fountain', '.fdx', '.pdf', '.csv', '.md', '.fountain', '.draftline']);
+    assert.ok(fileMenuItems({}).every((i) => !i.label || !/\(\.\w+\)/.test(i.label)), 'no "(.ext)" left in labels');
   });
   it('its shortcut hints are real: Ctrl+O opens, Ctrl+Alt+N starts a script (not Film Noir’s Ctrl+Shift+Alt+N)', () => {
     assert.match(app, /mod && !e\.altKey && !e\.shiftKey && e\.code === 'KeyO'\) \{\s*e\.preventDefault\(\);[^\n]*\n\s*fileShortcuts\.current\.open\?\.\(\);/);
