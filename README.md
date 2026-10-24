@@ -5,8 +5,6 @@
 
 # DraftLine
 
-# DraftLine
-
 A fast, distraction-free screenwriting app built on open formats (Fountain, Final Draft XML).
 
 ```bash
