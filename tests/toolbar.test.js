@@ -80,10 +80,10 @@ describe('toolbar & About wiring', () => {
     assert.deepEqual([...pos].sort((a, b) => a - b), pos);
     assert.ok(!/>\s*Dialogue\s*</.test(right), 'no separate Dialogue toolbar button');
   });
-  it('About points to .draftline and has a Backup Project button', () => {
+  it('About points to .draftline; Backup Project itself lives in File ▾', () => {
     assert.match(about, /backed up via\s+\.draftline, \.fountain, or \.fdx\./);
-    assert.match(about, /Backup Project \(\.draftline\)/);
-    assert.match(about, /onClick=\{onBackup\}/);
-    assert.match(app, /onBackup=\{backupProject\}/);
+    assert.ok(!/Backup Project \(\.draftline\)|onClick=\{onBackup\}/.test(about), 'no backup button in About');
+    assert.match(app, /onBackup: backupProject,/, 'File ▾ → Backup Project');
+    assert.ok(!/<HelpModal[\s\S]{0,400}onBackup=/.test(app), 'About is no longer handed the backup');
   });
 });

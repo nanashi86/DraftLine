@@ -25,6 +25,7 @@ const COMMUNITY_LINKS = [
   { href: 'https://github.com/nanashi86/DraftLine', label: 'GitHub', sub: 'Source & Issues', Icon: CodeXml },
 ];
 const PATREON_URL = COMMUNITY_LINKS[1].href;
+const LICENSE_URL = 'https://github.com/nanashi86/DraftLine/blob/main/LICENSE';
 
 /** About → Credits: the names live in public/credits.json (see lib/credits.js); nothing here changes to add one. */
 const CREDITS_URL = `${import.meta.env.BASE_URL}credits.json`;
@@ -71,7 +72,7 @@ function fmtBytes(n) {
 }
 
 /** Keyboard Shortcuts or About DraftLine, from the ⋮ menu. */
-export default function HelpModal({ kind, storage, onBackup, onClose }) {
+export default function HelpModal({ kind, storage, onClose }) {
   const dialogRef = useRef(null);
   const [lib, setLib] = useState({ count: null, persisted: null, usage: null });
   const [credits, setCredits] = useState(() => normalizeCredits(null));
@@ -161,17 +162,6 @@ export default function HelpModal({ kind, storage, onBackup, onClose }) {
               built DraftLine: a clean, fast, distraction‑free editor with dramatic architecture built right in.
             </p>
           </section>
-          {onBackup && (
-            <div className="hm-backup">
-              <button type="button" className="btn btn-primary" onClick={onBackup}>
-                Backup Project (.draftline)
-              </button>
-              <span>
-                Downloads this script complete — Title Page, Scene Board, Story Bible and Outline included — to restore here
-                or on any other browser.
-              </span>
-            </div>
-          )}
           <section className="hm-community" aria-labelledby="hm-community-title">
             <h3 id="hm-community-title">Support &amp; Community</h3>
             <ul className="hm-links">
@@ -246,6 +236,10 @@ export default function HelpModal({ kind, storage, onBackup, onClose }) {
               </li>
             </ul>
           </section>
+          <p className="hm-license">
+            DraftLine is free &amp; open source under the{' '}
+            <a href={LICENSE_URL} target="_blank" rel="noopener noreferrer">MIT License</a>
+          </p>
         </div>
       )}
     </dialog>
