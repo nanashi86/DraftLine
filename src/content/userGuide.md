@@ -61,7 +61,7 @@ A snapshot is a named checkpoint of the whole project: script, title page, Scene
 
 **File → Backup Project (.draftline)** downloads one file holding everything the project is: script, formatting, margin notes, title page, Scene Board, Story Bible, characters and snapshots. Open it with **File → Open…** on any computer to restore it exactly. A restored backup never overwrites an existing script; if the same script is already there, the backup comes in beside it.
 
-About DraftLine (**⋮ → About DraftLine**) has a **Backup Project** button too, and shows where your scripts are stored.
+About DraftLine (**⋮ → About DraftLine**) shows where your scripts are stored.
 
 ## Screenplay Editor
 

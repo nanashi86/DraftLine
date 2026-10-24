@@ -116,30 +116,6 @@
   cursor: pointer;
 }
 
-/* About → Backup Project (.draftline) */
-.hm-backup {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-top: 14px;
-  padding: 12px 14px;
-  border: 1px solid var(--line-soft);
-  border-radius: 9px;
-  background: color-mix(in srgb, var(--accent) 7%, transparent);
-}
-.hm-backup .btn-primary {
-  flex: none;
-  padding: 7px 14px;
-  background: var(--accent);
-  color: var(--on-accent);
-  font-weight: 600;
-}
-.hm-backup .btn-primary:hover { filter: brightness(1.08); }
-.hm-backup span { font-size: 12px; line-height: 1.45; color: var(--muted); }
-@media (max-width: 520px) {
-  .hm-backup { flex-direction: column; align-items: stretch; }
-}
-
 /* About → Support & Community · Credits · Your Data */
 .hm-community, .hm-credits, .hm-privacy { margin-top: 18px; }
 .hm-community h3, .hm-credits h3, .hm-privacy h3 {
@@ -270,3 +246,16 @@
   .hm-links { grid-template-columns: 1fr; }
   .hm-credits { padding: 12px; }
 }
+
+/* About → the last line: the license, quiet and centred. */
+.hm-license {
+  margin: 0;
+  padding: 20px 0 12px;
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: #71717a; /* zinc-500 */
+  text-align: center;
+}
+.hm-license a,
+.hm-license a:visited { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
+.hm-license a:hover { color: var(--text); }

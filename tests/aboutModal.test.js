@@ -8,7 +8,7 @@ const about = jsx.slice(jsx.indexOf('className="hm-about"'));
 const text = (src) => src.replace(/<\/?[a-z][^>]*>/g, '').replace(/&apos;/g, "'").replace(/&amp;/g, '&').replace(/\s+/g, ' ');
 
 describe('About DraftLine', () => {
-  it('keeps the order: title & version · description · Origin Story · Backup · community · credits · facts · privacy card', () => {
+  it('keeps the order: title & version · description · Origin Story · community · credits · facts · privacy card · license', () => {
     const at = (needle) => {
       const i = about.indexOf(needle);
       assert.ok(i >= 0, needle);
@@ -16,8 +16,8 @@ describe('About DraftLine', () => {
     };
     const order = [
       at('className="hm-name"'), at('className="hm-version"'), at('A fast, distraction‑free screenwriting app designed for pure flow.'),
-      at('className="hm-origin"'), at('Backup Project (.draftline)'), at('className="hm-community"'), at('className="hm-credits"'),
-      at('<dt>Storage</dt>'), at('<dt>Last saved</dt>'), at('<dt>This script</dt>'), at('<dt>Protected</dt>'), at('className="hm-privacy"'),
+      at('className="hm-origin"'), at('className="hm-community"'), at('className="hm-credits"'),
+      at('<dt>Storage</dt>'), at('<dt>Last saved</dt>'), at('<dt>This script</dt>'), at('<dt>Protected</dt>'), at('className="hm-privacy"'), at('className="hm-license"'),
     ];
     for (let i = 1; i < order.length; i++) assert.ok(order[i] > order[i - 1], `item ${i} out of order`);
   });
@@ -41,20 +41,13 @@ describe('About DraftLine', () => {
     assert.match(block, /my father&apos;s electric typewriter/, 'apostrophe as a JSX entity');
   });
 
-  it('the Backup Project box says what the download includes', () => {
-    const box = about.slice(about.indexOf('className="hm-backup"'), about.indexOf('</div>', about.indexOf('className="hm-backup"')));
-    const note = text(box.slice(box.indexOf('<span>'), box.indexOf('</span>'))).trim();
-    assert.equal(note, 'Downloads this script complete — Title Page, Scene Board, Story Bible and Outline included — to restore '
-      + 'here or on any other browser.');
-  });
-
   it('the facts list leads with "Created by: Eric Lemaire Jr.", then the five storage rows, all one label width', () => {
     const facts = about.slice(about.indexOf('className="hm-facts"'), about.indexOf('</dl>'));
     const labels = [...facts.matchAll(/<dt>([^<]+)<\/dt>/g)].map((m) => m[1]);
     assert.deepEqual(labels, ['Created by', 'Storage', 'Last saved', 'This script', 'Protected', 'Network']);
     assert.match(facts, /<dt>Created by<\/dt><dd>Eric Lemaire Jr\.<\/dd>/);
     assert.match(css, /\.hm-facts dt \{ flex: none; width: 92px;/);
-    assert.ok(about.indexOf('className="hm-facts"') > about.indexOf('Backup Project (.draftline)'), 'below the backup box');
+    assert.ok(about.indexOf('className="hm-facts"') > about.indexOf('className="hm-credits"'), 'below the credits');
   });
 
   it('the story has comfortable line height and the About pane scrolls inside the dialog', () => {
@@ -66,6 +59,28 @@ describe('About DraftLine', () => {
     // The dialog must not share the pane's class, or the whole dialog (header included) scrolls instead.
     assert.match(jsx, /className=\{`hm-modal is-\$\{kind\}`\}/);
     assert.match(css, /\.hm-modal\.is-about \{ width/);
+  });
+});
+
+describe('About: no Backup card; MIT license footer', () => {
+  it('the Backup Project card is gone (backups live in File ▾)', () => {
+    assert.ok(!/hm-backup|Backup Project \(\.draftline\)|onBackup/.test(jsx + css));
+  });
+  it('the last line links the MIT License in a new tab', () => {
+    const foot = about.slice(about.indexOf('className="hm-license"'), about.indexOf('</p>', about.indexOf('className="hm-license"')));
+    assert.equal(text(foot.replace(/^[^>]*>/, '')).replace(/\{' '\}/g, ' ').replace(/\s+/g, ' ').trim(),
+      'DraftLine is free & open source under the MIT License');
+    assert.match(foot, /<a href=\{LICENSE_URL\} target="_blank" rel="noopener noreferrer">MIT License<\/a>/);
+    assert.match(jsx, /const LICENSE_URL = 'https:\/\/github\.com\/nanashi86\/DraftLine\/blob\/main\/LICENSE';/);
+    assert.ok(about.indexOf('className="hm-license"') > about.indexOf('className="hm-privacy"'), 'at the very bottom');
+    const rule = css.match(/\.hm-license \{[^}]*\}/)[0];
+    for (const d of [/padding: 20px 0 12px/, /font-size: 11\.5px/, /color: #71717a/, /text-align: center/]) assert.match(rule, d);
+  });
+  it('the repo has an MIT LICENSE, and package.json says so', () => {
+    const lic = readFileSync(new URL('../LICENSE', import.meta.url), 'utf8');
+    assert.match(lic, /^MIT License\n\nCopyright \(c\) 2026 Eric Lemaire Jr\.\n/);
+    assert.match(lic, /THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND/);
+    assert.equal(JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8')).license, 'MIT');
   });
 });
 
