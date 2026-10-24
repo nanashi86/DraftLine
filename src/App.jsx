@@ -222,6 +222,7 @@ function Workspace({ boot }) {
   const { present: blocks, set, undo, redo, reset, canUndo, canRedo } = useHistory(initialDoc.blocks, reconcileMarks);
   const [beats, setBeats] = useState(initialDoc.beats);
   const [characters, setCharacters] = useState(initialDoc.characters); // Story Bible
+  const castNames = useMemo(() => (characters || []).map((c) => c.name).filter(Boolean), [characters]);
   const [storyNotes, setStoryNotes] = useState(initialDoc.storyNotes);
   const [storyDna, setStoryDna] = useState(initialDoc.storyDna);
   // Plan workspace: per-scene asset lists (lib/productionEngine.js), saved with the project.
@@ -1320,6 +1321,28 @@ function Workspace({ boot }) {
     notify(`${mode === 'append' ? 'Appended' : 'Imported'} ${stats.scene} scenes · ${stats.dialogue} dialogue blocks · Ctrl+Z to undo`);
   };
 
+  // File → Export PDF (Compiled): the PDF is built off the main thread (lib/pdf/), with Courier
+  // Prime embedded, and downloaded as <title>.pdf; typing carries on while it compiles.
+  const compilingPdf = useRef(false);
+  const exportCompiledPdf = async () => {
+    if (compilingPdf.current) return;
+    compilingPdf.current = true;
+    notify('Compiling PDF…');
+    try {
+      const { compilePdfAsync } = await import('./lib/pdf/compilePdfAsync.js');
+      const s = latest.current;
+      const r = await compilePdfAsync({ meta: s.meta, blocks: s.blocks, sceneNumbers: analysis.sceneNumbers, appVersion: pkg.version });
+      const name = `${slugify(s.meta.title)}.pdf`;
+      download(name, r.bytes, 'application/pdf');
+      if (r.missing) notify(`${r.missing} character${r.missing === 1 ? '' : 's'} Courier Prime can’t show printed as “?”`);
+      showExportToast(name);
+    } catch (err) {
+      notify(`Couldn’t compile the PDF: ${err.message}`);
+    } finally {
+      compilingPdf.current = false;
+    }
+  };
+
   const printScript = () => {
     flushSync(() => setPrinting(true));
     window.print();
@@ -1657,6 +1680,7 @@ function Workspace({ boot }) {
     onSample: loadSample,
     onTitlePage: () => setTitleOpen(true),
     onPrint: printScript,
+    onCompiledPdf: exportCompiledPdf,
     onBible: () => setBibleExportOpen(true),
     onFountain: exportFountain,
     onFdx: exportFDX,
@@ -2016,6 +2040,7 @@ function Workspace({ boot }) {
               items={items}
               layout={layout}
               sceneNumbers={analysis.sceneNumbers}
+              cast={castNames}
               activeId={activeId}
               highlightId={hoverId}
               spotlight={filter?.ids ?? null}

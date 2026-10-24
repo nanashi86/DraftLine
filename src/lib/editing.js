@@ -22,6 +22,15 @@ function withoutNote(block) {
 }
 
 /**
+ * Backspace on an empty element steps it back to Action first (an empty Character, Dialogue,
+ * Transition … line becomes an empty Action line); only an empty Action line is then removed.
+ * Returns the type to change to, or null when backspaceAt should handle the key.
+ */
+export const backspaceStepBack = (b, start, end) => (
+  b && start === 0 && end === 0 && isEmpty(b) && b.type !== 'action' ? 'action' : null
+);
+
+/**
  * Backspace with the caret at `start`/`end` in blocks[idx].
  *   • Empty element → removed. Focus moves to the end of the element above, or —
  *     when it was the very first element — to the start of the one below, which

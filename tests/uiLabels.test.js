@@ -74,13 +74,13 @@ describe('toolbar: File ▾ holds Print; panels stay visible on laptops', () => 
     assert.deepEqual(shape, [
       '# Script', 'New… [Ctrl+Alt+N]', 'Open… [Ctrl+O]', 'Import… [Word · Docs · PDF]', 'Sample… [The Last Ferry]',
       'Edit Title…', '---',
-      '# Export Script', 'Script (PDF) [Ctrl+P]', 'Fountain {.fountain}', 'Final Draft {.fdx}', '---',
+      '# Export Script', 'Script (PDF) [Ctrl+P]', 'Export PDF (Compiled) {.pdf}', 'Fountain {.fountain}', 'Final Draft {.fdx}', '---',
       '# Export Outline & Bible', 'Story Bible {.pdf}', 'Spreadsheet Outline {.csv}', 'Markdown Outline {.md}',
       'Fountain Outline {.fountain}', '---',
       '# Backup', 'Backup Project {.draftline}', 'Snapshot History [2]',
     ]);
     items.filter((i) => i.onSelect).forEach((i) => i.onSelect());
-    assert.deepEqual(calls, ['onNew', 'onOpen', 'onImport', 'onSample', 'onTitlePage', 'onPrint', 'onFountain', 'onFdx', 'onBible', 'onOutlineCsv', 'onOutlineMd',
+    assert.deepEqual(calls, ['onNew', 'onOpen', 'onImport', 'onSample', 'onTitlePage', 'onPrint', 'onCompiledPdf', 'onFountain', 'onFdx', 'onBible', 'onOutlineCsv', 'onOutlineMd',
       'onOutlineFountain', 'onBackup', 'onSnapshots']);
     assert.match(app, /onPrint: printScript,/);
     assert.ok(!/Print Script \/ PDF|Fountain outline'/.test(app), 'no legacy slash label or lower-case outline');

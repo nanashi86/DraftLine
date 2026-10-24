@@ -16,25 +16,26 @@ npm run dev
 
 Each line is a screenplay element. The status bar always shows where Enter and Tab will take you.
 
-| In…           | Enter →        | Tab →                                   |
-|---------------|----------------|-----------------------------------------|
-| Scene Heading | Action         | Action                                  |
-| Action        | Action         | Character (new cue below)               |
-| Character     | Dialogue       | Transition (when empty)                 |
-| Dialogue      | Dialogue       | Parenthetical (inserted at the caret)   |
-| Parenthetical | Dialogue       | Dialogue                                |
-| Transition    | Action         | Scene Heading                           |
-| Format Cue    | Action         | Action                                  |
-| Centered      | Action         | Action                                  |
+| In…           | Enter →        | Tab →                                                             |
+|---------------|----------------|-------------------------------------------------------------------|
+| Scene Heading | Action         | `INT. HOUSE` → `INT. HOUSE - ` (times of day open); complete → Action below |
+| Action        | Action         | Character (new cue below; an empty line becomes the cue)          |
+| Character     | Dialogue       | Cycles the extension: (O.S.) → (V.O.) → (CONT'D) → none; empty → Transition |
+| Dialogue      | Action         | Parenthetical (inserted at the caret)                              |
+| Parenthetical | Dialogue       | Dialogue                                                          |
+| Transition    | Action         | Scene Heading                                                     |
+| Format Cue    | Action         | Action                                                            |
+| Centered      | Action         | Action                                                            |
 
-- **Enter on an empty** Character / Dialogue / Parenthetical / Transition turns it into Action — so after a line of
-  dialogue, **Enter** starts another Dialogue paragraph and **Enter, Enter** steps out of the speech into Action
-  (then **Tab** for the next Character).
+- **Enter at the end of a Dialogue line** ends the speech and starts Action, as in Final Draft; **Enter** in the middle
+  of a Dialogue line splits the speech into two Dialogue paragraphs. **Enter on an empty** Character / Dialogue /
+  Parenthetical / Transition turns it into Action.
 - Typing **(** at the start of an empty Dialogue line makes it a Parenthetical — `()` with the caret inside.
 - **Shift+Tab** cycles the type backwards; **Alt+1…8** sets it directly.
 - **Shift+Enter** adds a line break inside Action or Dialogue.
-- **Backspace** or **Delete** on an empty element removes it. An empty first element is removed and the next one
-  moves up to line 1 of Page 1.
+- **Backspace** on an empty Character, Dialogue, Transition, Scene Heading … line first steps it back to Action;
+  **Backspace** on an empty Action line (or **Delete** on any empty element) removes it. An empty first element is
+  removed and the next one moves up to line 1 of Page 1.
 - **Backspace** at the very start of an element with text merges it onto the end of the element above (which keeps
   its own type). **Delete** at the very end pulls the element below up into it.
 
@@ -84,8 +85,8 @@ Title page fields accept the same Markdown emphasis on the cover, in print and i
 
 ### Autocomplete
 
-- **Scene Headings** suggest `INT.` / `EXT.` / `INT./EXT.` (typed `INT/EXT`, `EXT./INT.`, `I/E` and their variants still work), then locations you've already used, then times of day.
-- **Character** cues suggest names already in the script as soon as you type a letter; type `(` for `(V.O.)`, `(O.S.)`, `(CONT'D)`.
+- **Scene Headings** suggest `INT.` / `EXT.` / `INT./EXT.` from the first letter (typed `INT/EXT`, `EXT./INT.`, `I/E` and their variants still work), then locations you've already used — most used first, ties going to the one used most recently above — then times of day.
+- **Character** cues suggest names as soon as you type a letter: whoever speaks in the current scene first, then the rest of the script by how often and how recently they speak, then Story Bible characters who haven't spoken yet. Type `(` for `(V.O.)`, `(O.S.)`, `(CONT'D)`, or press **Tab** on a finished name to cycle them.
 - **↑/↓** move through suggestions, **Enter** or **Tab** accepts — on a Character cue either one drops you straight into its Dialogue line; on a Scene Heading **Tab** completes it in place — and **Esc** dismisses. Suggestions are computed in memory from the open script, with no network or library involved.
 
 ### Pages
@@ -95,6 +96,8 @@ The canvas is paginated live at 54 lines per page (1in margins, Courier 12pt) wi
 - **Orphan prevention:** a scene heading is never the last line on a page. It needs at least 2 lines of what follows on the same page, or it moves to the next one. Transitions never stand alone at the top of a page; they stay with the action before them.
 - **Dialogue splitting:** a long speech can break across pages when at least 2 dialogue lines fit on this page and at least 2 go on to the next. DraftLine then draws a centred `(MORE)` at the bottom of the page and `NAME (CONT'D)` at the top of the next. It never splits inside or straight after a parenthetical, and a Character cue never leaves its dialogue. When those rules can't be met, the whole speech moves.
 - `(MORE)` and `(CONT'D)` are layout only: you can keep typing through the seam, and they never enter the script, Fountain, Final Draft or `.draftline` files. Print and PDF show the same breaks.
+- **Taller than a page:** an element longer than a whole page (a pasted wall of text) breaks at the page edge, with
+  at least 2 lines on each side, instead of running off the paper; a heading above it stays with its first lines.
 - **Spellcheck per element:** the browser's spellcheck and autocorrect run on Action, Dialogue and Centered text, and stay off for Scene Headings, Character cues, Parentheticals, Transitions and Format Cues, so names and sluglines aren't underlined.
 
 ### Dual dialogue
@@ -262,6 +265,15 @@ nothing uploaded, works offline). Click the title's **▾** or the **D** logo (o
 
 ## Files
 
+**File → Export PDF (Compiled)** builds the PDF inside DraftLine instead of through the browser's print dialog:
+US Letter, Courier Prime 12 pt embedded (only the styles the script uses), margins 1.5 in left and 1 in elsewhere,
+54 lines a page, Character at 3.7 in, Parenthetical 3.1 in, Dialogue 2.5 in (3.5 in wide), Transitions flush right,
+page numbers top right from page 2, the title page first. Page breaks come from the same pagination as the editor
+(orphaned headings moved, speeches split with `(MORE)` / `NAME (CONT'D)`), so the file matches the screen and is the
+same on every machine. It compiles in a Web Worker (`src/lib/pdf/`, no dependencies) and downloads `<title>.pdf`.
+Text outside Latin-1 and typographic punctuation prints as `?` (you're told how many characters). The title is set in
+Courier Prime whatever title font you chose; **Script (PDF)** (print) keeps the chosen font.
+
 Every script export (`.fountain`, `.fdx`, `.draftline`, print / PDF) is confirmed in a bottom-right toast that closes
 itself after 8 seconds, never takes focus and pauses while hovered. At most every 14 days it also carries one line
 about supporting DraftLine on Ko-fi or Patreon; a clean Format Doctor report (no findings, ignored ones included) can
@@ -404,6 +416,7 @@ src/
   lib/bible.js             Story Bible model: characters, story notes, notes import, Markdown reader
   lib/editorialNotes.js    margin notes: quoting, editing sessions, history, the drawer's list
   lib/revisions.js         Snapshots: create, list, restore (whole-project checkpoints)
+  lib/pdf/                 Export PDF (Compiled): layout (scriptPdf.js), PDF writer, TrueType reader, worker
   lib/scriptDiff.js        Snapshot Compare: Myers diff by element and word (+ scriptDiff.worker.js, scriptDiffAsync.js)
   lib/storyDna.js          Story DNA blueprint model
   lib/structureDictionary.js  the 11 structure terms (starter wording) and your overrides

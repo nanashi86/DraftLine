@@ -89,15 +89,18 @@ You rarely need the mouse. **Enter** moves on to the element that usually comes 
 - Action → Action
 - Character → Dialogue
 - Parenthetical → Dialogue
-- Dialogue → Dialogue
+- Dialogue → Action (Enter in the middle of a Dialogue line splits it into two Dialogue paragraphs instead)
 - Transition, Format Cue or Centered → Action
 
 **Tab** branches or changes the type:
 
 - In Action with text, Tab starts a **Character** cue.
 - In Dialogue with text, Tab inserts a **Parenthetical**.
+- In a Scene Heading, Tab after the location adds ` - ` and shows the times of day; on a finished heading it starts the Action line below.
+- On a Character name, Tab cycles its extension: **(O.S.)**, **(V.O.)**, **(CONT'D)**, then none.
 - On an empty line, Tab cycles Action → Character → Transition → Scene Heading → Action. {{key:Shift+Tab}} goes backwards.
 - Pressing Enter on an empty Character, Dialogue or Parenthetical line steps back out to Action.
+- **Backspace** on an empty line that isn't Action first turns it into Action; press it again to remove the line.
 - Typing `(` at the start of an empty Dialogue line turns it into a Parenthetical.
 - {{key:Shift+Enter}} adds a line break inside Action or Dialogue.
 
@@ -105,7 +108,7 @@ The status bar always shows what Enter and Tab will do next.
 
 ### Autocomplete
 
-Scene Headings suggest INT. / EXT., locations you've used and times of day. Character cues suggest names already in the script. Use ↑ ↓ to pick, then Enter or Tab to accept. {{key:Esc}} dismisses the list.
+Scene Headings suggest INT. / EXT. from the first letter, then the locations you've used (most used first, then most recent), then times of day. Character cues suggest names as you type: whoever speaks in the current scene first, then the rest of the cast, then Story Bible characters who haven't spoken yet. Use ↑ ↓ to pick, then Enter or Tab to accept: a name goes straight to its Dialogue line. {{key:Esc}} dismisses the list.
 
 ### Formatting
 
@@ -318,6 +321,8 @@ Each script export (.fountain, .fdx, .draftline, and the print dialog) is confir
 ### Printing and PDF
 
 **File → Script (PDF)** ({{key:Ctrl+P}}) prints exactly what the editor shows: Courier Prime 12 pt, standard margins and the same page breaks, including `(MORE)` and `(CONT'D)` where a speech carries over to the next page. The title page prints first, unnumbered, and page numbers start on page 2. Choose **Save as PDF** in the print dialog for a PDF. Margin notes, highlights and the Midnight page colour never print.
+
+**File → Export PDF (Compiled)** makes the PDF inside DraftLine instead of through the print dialog, and downloads it straight away: Courier Prime embedded, US Letter, the same page breaks as the editor (including `(MORE)` and `(CONT'D)`), page numbers from page 2 and your title page first. It's the same file on every computer, and you can keep writing while it's made. Characters Courier Prime can't show print as "?", and DraftLine tells you how many; the title uses Courier Prime even if you picked another title font (Script (PDF) keeps that font).
 
 ## Editor Curiosities & Secrets
 

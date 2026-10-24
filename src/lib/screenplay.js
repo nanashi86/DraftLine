@@ -46,7 +46,7 @@ export const ENTER_NEXT = {
   action: 'action',
   character: 'dialogue',
   parenthetical: 'dialogue',
-  dialogue: 'dialogue',
+  dialogue: 'action', // a speech ends on Enter, as in Final Draft; Tab adds a parenthetical
   transition: 'action',
   format_cue: 'action',
   centered: 'action',
@@ -90,6 +90,12 @@ export function enterFlow(block) {
   return { next: ENTER_NEXT[block.type] };
 }
 
+/**
+ * The element Enter makes after `block` when `after` (the text past the caret) moves down with it:
+ * ENTER_NEXT, except that splitting a speech mid-line keeps both halves Dialogue.
+ */
+export const enterNextType = (block, after = '') => (block.type === 'dialogue' && after.trim() ? 'dialogue' : ENTER_NEXT[block.type]);
+
 /** Typing "(" at the start of an empty Dialogue line makes it a Parenthetical "()" (caret inside). */
 export const opensParenthetical = (block, key) => key === '(' && block?.type === 'dialogue' && block.text.trim() === '';
 
@@ -98,6 +104,8 @@ export function flowHints(type) {
   const tab =
     type === 'action' ? 'Character' :
     type === 'dialogue' ? 'Parenthetical' :
+    type === 'character' ? 'Extension' :
+    type === 'scene' ? 'Time of day' :
     ELEMENT_META[TAB_NEXT[type]].label;
   return { enter, tab };
 }
@@ -503,7 +511,33 @@ export function paginate(items, measured = {}) {
         }
         continue;
       }
+      // An element taller than a whole page (a long Action paragraph, a pasted block) can never
+      // fit: it breaks at the page edge, line by line, with at least 2 lines on each side —
+      // otherwise it would run off the bottom of the paper in print and PDF.
+      const rest = lines[k] - off;
+      if (rest > PAGE_LINES && type(k) !== 'dialogue' && type(k) !== 'parenthetical') {
+        const room = PAGE_LINES - used - (fresh && off === 0 ? 0 : gapBefore(k, off));
+        if (room >= SPLIT_MIN_LINES) {
+          put(k, off, off + room);
+          turnPage(-1);
+          off += room;
+          continue;
+        }
+      }
       if (!fresh) {
+        // The unit leads up to an element taller than a page (a heading, then a huge paragraph):
+        // fill this page — heading included — if at least 2 of its lines fit, rather than leaving
+        // the page nearly empty. The big element then breaks at the page edge (above).
+        let h = k;
+        let need = 0;
+        while (h < e && !(lines[h] - (h === k ? off : 0) > PAGE_LINES && type(h) !== 'dialogue' && type(h) !== 'parenthetical')) {
+          need += (h === k ? gapBefore(h, off) : spaceBefore(items[h])) + lines[h] - (h === k ? off : 0);
+          h++;
+        }
+        if (h < e && h > k && used + need + spaceBefore(items[h]) + SPLIT_MIN_LINES <= PAGE_LINES) {
+          for (; k < h; k++, off = 0) put(k, off, lines[k]);
+          continue;
+        }
         // Doesn't fit and can't split here: the rest starts a fresh page (still a speech? cue it).
         const mid = midSpeech(k, off);
         if (mid && last && used < PAGE_LINES) {

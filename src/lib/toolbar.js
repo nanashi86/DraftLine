@@ -50,7 +50,7 @@ export function moreMenuItems({
  * same three outlines; Plan's breakdown CSV is on Plan's own bar.)
  */
 export function fileMenuItems({
-  onNew, onOpen, onImport, onSample, onTitlePage, onPrint, onBible, onFountain, onFdx, onOutlineCsv, onOutlineMd, onOutlineFountain,
+  onNew, onOpen, onImport, onSample, onTitlePage, onPrint, onCompiledPdf, onBible, onFountain, onFdx, onOutlineCsv, onOutlineMd, onOutlineFountain,
   onBackup, onSnapshots, snapshotCount = 0,
 }) {
   return [
@@ -63,6 +63,7 @@ export function fileMenuItems({
     { divider: true },
     { heading: 'Export Script' },
     { label: 'Script (PDF)', hint: 'Ctrl+P', onSelect: onPrint, title: 'Print or save as PDF — exactly the pages on screen' },
+    ...(onCompiledPdf ? [{ label: 'Export PDF (Compiled)', ext: '.pdf', onSelect: onCompiledPdf, title: 'A ready-made PDF, built in DraftLine with Courier Prime embedded: the same file on every computer' }] : []),
     { label: 'Fountain', ext: '.fountain', onSelect: onFountain, title: 'Plain-text screenplay for Highland, Slugline, Fade In…' },
     { label: 'Final Draft', ext: '.fdx', onSelect: onFdx, title: 'For Final Draft users and productions' },
     { divider: true },

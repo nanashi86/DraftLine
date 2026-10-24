@@ -5,13 +5,13 @@ import { linePxFor } from '../lib/zoom.js';
 import { lockedKeyAction } from '../lib/lock.js';
 import { revealAndPulse } from '../lib/reveal.js';
 import { measureTextarea } from '../lib/measure.js';
-import { backspaceAt, deleteAt } from '../lib/editing.js';
+import { backspaceAt, backspaceStepBack, deleteAt } from '../lib/editing.js';
 import {
   ELEMENT_META,
-  ENTER_NEXT,
   SHIFT_TAB_NEXT,
   TAB_NEXT,
   enterFlow,
+  enterNextType,
   isBlank,
   lineIndexOf,
   makeBlock,
@@ -21,7 +21,7 @@ import {
   wrapOffsets,
 } from '../lib/screenplay.js';
 import { elementForCode } from '../lib/shortcuts.js';
-import { acceptAdvances, getSuggestions } from '../lib/autocomplete.js';
+import { acceptAdvances, cycleExtension, getSuggestions, sceneTab } from '../lib/autocomplete.js';
 import FormattedText from './FormattedText.jsx';
 import {
   STYLES, activeStyles, clearMarks, hasMarks, sliceMarks, targetRange, toggleStyle, withMarks,
@@ -290,6 +290,8 @@ function Suggestions({ anchorId, els, sheetRef, list, index, onPick, onHover }) 
 
 // ---------------------------------------------------------------------------
 
+const NO_CAST = [];
+
 export default function Editor({
   ref,
   blocks,
@@ -298,6 +300,7 @@ export default function Editor({
   sceneNumbers,
   activeId,
   highlightId,
+  cast = NO_CAST, // Story Bible character names, offered by Character autocomplete
   dense = null, // Density Mode: Set of dense action block ids to mark in the gutter (lib/pacing.js)
   spotlight = null, // Set of block ids to keep bright (Characters → Dialogue filter); the rest dim
   zoom,
@@ -343,8 +346,8 @@ export default function Editor({
     if (!activeBlock || locked) return [];
     if (typedIn !== activeBlock.id && activeBlock.text !== '') return [];
     if (dismissed === `${activeBlock.id}:${activeBlock.text}`) return [];
-    return getSuggestions(activeBlock, blocks);
-  }, [activeBlock, blocks, typedIn, dismissed, locked]);
+    return getSuggestions(activeBlock, blocks, { cast });
+  }, [activeBlock, blocks, typedIn, dismissed, locked, cast]);
   const sig = suggestions.map((s) => s.value).join('|');
   const acIndex = acState.sig === sig ? Math.min(acState.index, suggestions.length - 1) : 0;
 
@@ -747,7 +750,7 @@ export default function Editor({
 
         const before = text.slice(0, s).replace(/[ \t]+$/, '');
         const after = text.slice(en).replace(/^[ \t]+/, '');
-        const nb = tailBlock(ENTER_NEXT[b.type], b, after);
+        const nb = tailBlock(enterNextType(b, after), b, after);
         commit(splice(cur, idx, 1, withPart(b, before, 0, before.length), nb), { id: nb.id, caret: 0 });
         return;
       }
@@ -759,6 +762,25 @@ export default function Editor({
           return;
         }
         const blank = isBlank(text);
+        // Scene Heading: on to the time of day ("INT. HOUSE" → "INT. HOUSE - ", its list opens),
+        // and once complete, down to a new Action line.
+        if (!blank && b.type === 'scene') {
+          const st = sceneTab(text);
+          if (st.text !== undefined) {
+            commit(splice(cur, idx, 1, { ...b, text: st.text }), { id: b.id, caret: st.text.length });
+            setTypedIn(b.id);
+          } else if (st.advance) {
+            const nb = makeBlock('action');
+            commit(splice(cur, idx, 1, b, nb), { id: nb.id, caret: 0 });
+          }
+          return;
+        }
+        // Character cue: cycle the extension — (O.S.) → (V.O.) → (CONT'D) → none.
+        if (!blank && b.type === 'character') {
+          const next = cycleExtension(text);
+          commit(splice(cur, idx, 1, { ...b, text: next }), { id: b.id, caret: next.replace(/\s*\^\s*$/, '').length });
+          return;
+        }
         if (!blank && b.type === 'action') {
           const before = text.slice(0, start).replace(/\s+$/, '');
           const after = text.slice(end).replace(/^\s+/, '');
@@ -788,6 +810,15 @@ export default function Editor({
           e.preventDefault();
           setTypeAt(idx, 'dialogue', 0);
           return;
+        }
+        // An empty Character / Dialogue / … line steps back to Action before anything is deleted.
+        {
+          const step = backspaceStepBack(b, start, end);
+          if (step) {
+            e.preventDefault();
+            setTypeAt(idx, step, 0);
+            return;
+          }
         }
         {
           const r = backspaceAt(cur, idx, start, end);

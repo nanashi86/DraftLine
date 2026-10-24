@@ -134,6 +134,27 @@ describe('Page seams: splitting dialogue with (MORE) and (CONT\'D)', () => {
   });
 });
 
+describe('Page seams: an element taller than a page', () => {
+  it('breaks at the page edge, line by line, with no (MORE) or (CONT\'D), and never runs off the paper', () => {
+    const { at, layout } = lay([...opening(8), ['action', 130], ['action', 2]]);
+    const ps = at(2).pieces;
+    assert.deepEqual(ps.map((p) => [p.page, p.topLine, p.from, p.to]), [[0, 11, 0, 43], [1, 0, 43, 97], [2, 0, 97, 130]]);
+    assert.ok(ps.every((p) => !p.more && !p.cont));
+    assert.ok(ps.every((p) => p.topLine + (p.to - p.from) <= PAGE_LINES), 'each piece fits its page');
+    assert.deepEqual([at(3).page, at(3).topLine], [2, 34], 'what follows comes right after');
+    assert.equal(layout.pageCount, 3);
+  });
+  it('a heading above it stays on the page with the start of it, instead of leaving the page empty', () => {
+    const { at } = lay([['transition', 1, 'FADE IN:'], ['scene', 1, 'EXT. HARBOR - DAWN'], ['action', 90]]);
+    assert.deepEqual([at(1).page, at(1).topLine], [0, 3]);
+    assert.deepEqual(at(2).pieces.map((p) => [p.page, p.topLine, p.from, p.to]), [[0, 5, 0, 49], [1, 0, 49, 90]]);
+  });
+  it('keeps at least 2 lines on the first page, or starts the paragraph on the next', () => {
+    const { at } = lay([['action', 52], ['action', 80]]);
+    assert.equal(at(1).pieces[0].page, 1, 'only 1 line of room: it starts page 2');
+  });
+});
+
 describe('Page seams are layout only', () => {
   it('pagination never changes the script', () => {
     const { blocks } = lay([...opening(41), ['character', 1, 'FITOH'], ['dialogue', 12, 'All the words.']]);

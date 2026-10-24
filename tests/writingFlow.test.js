@@ -2,7 +2,7 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import {
-  ENTER_NEXT, SHIFT_TAB_NEXT, TAB_NEXT, enterFlow, flowHints, opensParenthetical,
+  ENTER_NEXT, SHIFT_TAB_NEXT, TAB_NEXT, enterFlow, enterNextType, flowHints, opensParenthetical,
 } from '../src/lib/screenplay.js';
 import { acceptAdvances, getSuggestions } from '../src/lib/autocomplete.js';
 import { PACING_TOLERANCE, actPacing, formatPacingPages } from '../src/lib/beats.js';
@@ -21,8 +21,10 @@ describe('Tab & Enter flow', () => {
   it('Character + Enter → a Dialogue line below', () => {
     assert.deepEqual(enterFlow(B('c', 'character', 'MARIE')), { next: 'dialogue' });
   });
-  it('Dialogue with text + Enter → another Dialogue line; Enter again on that empty line → Action', () => {
-    assert.deepEqual(enterFlow(B('d', 'dialogue', 'We go now.')), { next: 'dialogue' });
+  it('Dialogue with text + Enter → Action (a speech ends, as in Final Draft); an empty Dialogue line steps out to Action', () => {
+    assert.deepEqual(enterFlow(B('d', 'dialogue', 'We go now.')), { next: 'action' });
+    assert.equal(enterNextType(B('d', 'dialogue', 'We go now.'), ''), 'action', 'Enter at the end');
+    assert.equal(enterNextType(B('d', 'dialogue', 'We go'), 'now.'), 'dialogue', 'Enter mid-line splits the speech in two');
     assert.deepEqual(enterFlow(B('d2', 'dialogue', '')), { convertTo: 'action' });
     assert.deepEqual(enterFlow(B('d3', 'dialogue', '   ')), { convertTo: 'action' });
   });
@@ -46,7 +48,9 @@ describe('Tab & Enter flow', () => {
     assert.deepEqual(enterFlow(B('a', 'action', '')), { next: 'action' }, 'an empty Action line just adds another');
   });
   it('the status bar hints follow the rules', () => {
-    assert.equal(flowHints('dialogue').enter, 'Dialogue');
+    assert.equal(flowHints('dialogue').enter, 'Action');
+    assert.equal(flowHints('character').tab, 'Extension');
+    assert.equal(flowHints('scene').tab, 'Time of day');
     assert.equal(flowHints('transition').enter, 'Action');
     assert.equal(flowHints('character').enter, 'Dialogue');
   });
