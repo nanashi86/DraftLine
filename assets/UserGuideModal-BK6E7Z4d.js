@@ -1,4 +1,4 @@
-import{i as e,t}from"./react-DgawKyfb.js";import"./formatting-CXVlQ9TD.js";import{At as n,D as r,Dt as i,E as a,Et as o,O as s,T as c,Tt as l,_t as u,a as d,at as f,bt as p,ct as m,dt as h,ft as g,gt as _,ht as v,i as y,it as b,l as x,lt as S,n as C,nt as ee,o as te,ot as ne,r as re,tt as ie,u as ae,ut as oe,vt as w,w as T,wt as E,xt as D,yt as O}from"./index-VcSlKttP.js";import{r as k,t as A}from"./printTitle-C1qWomuv.js";/* empty css                  */var j=e(),M=`# DraftLine User Guide
+import{i as e,t}from"./react-DgawKyfb.js";import"./formatting-CXVlQ9TD.js";import{At as n,D as r,Dt as i,E as a,Et as o,O as s,T as c,Tt as l,_t as u,a as d,at as f,bt as p,ct as m,dt as h,ft as g,gt as _,ht as v,i as y,it as b,l as x,lt as S,n as C,nt as ee,o as te,ot as ne,r as re,tt as ie,u as ae,ut as oe,vt as w,w as T,wt as E,xt as D,yt as O}from"./index-BMG94r_7.js";import{r as k,t as A}from"./printTitle-C1qWomuv.js";/* empty css                  */var j=e(),M=`# DraftLine User Guide
 
 DraftLine is a distraction-free screenwriting app that runs in your browser. It writes in Courier Prime at 12 pt with standard screenplay margins, saves as you type, and works offline. This guide covers everything from your first scene heading to the final PDF.
 
@@ -15,7 +15,7 @@ The top bar holds your script's title, the **Write | Plan** switch, the **File �
 - The **Scenes** sidebar ({{key:Alt+S}}) lists every scene with its length in eighths of a page. Click one to jump to it, or type to find a scene.
 - **Write | Plan** switches between writing the script and planning the shoot (see Production & Planning). Write is where you start.
 - The status bar's steppers (**Format · 1 of 7**, **Density · 1 of 9**, a character's **MARIE · 1 of 8**) all work the same way: ‹ › step through, clicking the name lists every one, and ✕ closes it.
-- **File ▾** holds everything to do with files, in three parts. **Script**: New Script ({{key:Ctrl+Alt+N}}), Open… ({{key:Ctrl+O}}), Import…, Load Sample Script (adds *The Last Ferry* to your Projects) and Title Page Settings…. **Export Script**: Script (PDF), Fountain (.fountain) and Final Draft (.fdx). **Export Outline & Bible**: Story Bible (PDF)…, and the Scene Board as a Spreadsheet (.csv), Markdown (.md) or Fountain (.fountain) outline. **Backup**: Backup Project and Snapshot History.
+- **File ▾** holds everything to do with files, in three parts. **Script**: New… ({{key:Ctrl+Alt+N}}), Open… ({{key:Ctrl+O}}), Import…, Sample… (adds *The Last Ferry* to your Projects) and Edit Title…. **Export Script**: Script (PDF), Fountain and Final Draft. **Export Outline & Bible**: Story Bible, and the Scene Board as a Spreadsheet, Markdown or Fountain Outline. **Backup**: Backup Project and Snapshot History. Each export shows its file type on the right (.fountain, .fdx, .pdf, .csv, .md, .draftline).
 - Narrow windows move panels you can't see on the bar into the **⋮** menu.
 
 ### Projects and browser storage
@@ -112,7 +112,7 @@ Select text and press {{key:Ctrl+B}} (bold), {{key:Ctrl+I}} (italic), {{key:Ctrl
 
 ### Title page
 
-**File → Title Page Settings…** edits the title, credit, author, source material, draft version and date, and contact details, plus the title's font, size and weight. The title page shows above page 1 and prints first.
+**File → Edit Title…** edits the title, credit, author, source material, draft version and date, and contact details, plus the title's font, size and weight. The title page shows above page 1 and prints first.
 
 ### Margin notes
 
@@ -303,7 +303,7 @@ Your lists and notes are saved with the script, inside the project, and kept by 
 - **.fdx**: Final Draft's format, for sending to Final Draft users and productions.
 - **Scene outline**: a Fountain Outline, Markdown, or a Spreadsheet (.csv), from the Scene Board.
 - **Breakdown**: **Export Breakdown** in Plan, a spreadsheet (.csv) of every scene's breakdown (see Production & Planning).
-- **Story Bible (PDF)**: **File → Story Bible (PDF)…** turns Story DNA, Story Notes and Character Bios (any or all of them) into a formatted dossier headed with the title, author and "Story Bible & Project Dossier", each section starting on a new page. Choose **Save as PDF** in the print dialog; the file is named "<Title> - Story Bible". Story Notes go in this order: Logline, Tone, Pitch, Timeline, Synopsis, then the Treatment by act. Of your own note cards, only those with "Note" in the title are included ("Note: Haiti 1986", "Note Revisions"); research questions and brainstorms stay in DraftLine, and the Scratchpad never goes. Only characters with something in their bio are included.
+- **Story Bible (PDF)**: **File → Story Bible** turns Story DNA, Story Notes and Character Bios (any or all of them) into a formatted dossier headed with the title, author and "Story Bible & Project Dossier", each section starting on a new page. Choose **Save as PDF** in the print dialog; the file is named "<Title> - Story Bible". Story Notes go in this order: Logline, Tone, Pitch, Timeline, Synopsis, then the Treatment by act. Of your own note cards, only those with "Note" in the title are included ("Note: Haiti 1986", "Note Revisions"); research questions and brainstorms stay in DraftLine, and the Scratchpad never goes. Only characters with something in their bio are included.
 
 ### Opening and importing
 
