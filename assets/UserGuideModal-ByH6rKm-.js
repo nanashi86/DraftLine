@@ -1,4 +1,4 @@
-import{i as e,t}from"./react-DgawKyfb.js";import"./formatting-CXVlQ9TD.js";import{At as n,D as r,Dt as i,E as a,Et as o,O as s,T as c,Tt as l,_t as u,a as d,at as f,bt as p,ct as m,dt as h,ft as g,gt as _,ht as v,i as y,it as b,l as x,lt as S,n as C,nt as ee,o as te,ot as ne,r as re,tt as ie,u as ae,ut as oe,vt as w,w as T,wt as E,xt as D,yt as O}from"./index-CmBL8J9g.js";import{r as k,t as A}from"./printTitle-C1qWomuv.js";/* empty css                  */var j=e(),M=`# DraftLine User Guide
+import{i as e,t}from"./react-DgawKyfb.js";import"./formatting-CXVlQ9TD.js";import{At as n,D as r,Dt as i,E as a,Et as o,O as s,T as c,Tt as l,_t as u,a as d,at as f,bt as p,ct as m,dt as h,ft as g,gt as _,ht as v,i as y,it as b,l as x,lt as S,n as C,nt as ee,o as te,ot as ne,r as re,tt as ie,u as ae,ut as oe,vt as w,w as T,wt as E,xt as D,yt as O}from"./index-D2ZigMOR.js";import{r as k,t as A}from"./printTitle-C1qWomuv.js";/* empty css                  */var j=e(),M=`# DraftLine User Guide
 
 DraftLine is a distraction-free screenwriting app that runs in your browser. It writes in Courier Prime at 12 pt with standard screenplay margins, saves as you type, and works offline. This guide covers everything from your first scene heading to the final PDF.
 
@@ -61,7 +61,7 @@ A snapshot is a named checkpoint of the whole project: script, title page, Scene
 
 **File → Backup Project (.draftline)** downloads one file holding everything the project is: script, formatting, margin notes, title page, Scene Board, Story Bible, characters and snapshots. Open it with **File → Open…** on any computer to restore it exactly. A restored backup never overwrites an existing script; if the same script is already there, the backup comes in beside it.
 
-About DraftLine (**⋮ → About DraftLine**) has a **Backup Project** button too, and shows where your scripts are stored.
+About DraftLine (**⋮ → About DraftLine**) shows where your scripts are stored.
 
 ## Screenplay Editor
 
