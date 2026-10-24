@@ -304,10 +304,11 @@ nothing uploaded, works offline). Click the title's **▾** or the **D** logo (o
 - **Page colour** (status bar, or the top-right corner in Focus mode): **Paper** — the classic ivory page with black
   ink — or **Midnight**, a dark page (#1f1f22) with soft light text (#e4e4e7) that matches the app around it.
   Remembered in this browser (`draftline_canvas_theme`). Printing and PDFs are always black on white either way.
-- **Export** has four sections: **Screenplay** (Fountain `.fountain`, Final Draft `.fdx`), **Beat outline** (Fountain
-  outline, Markdown), **Document** (**Print Script / PDF**, also **Ctrl+P** — a paginated PDF with the title page as
-  page 0; page 1 is unnumbered, pages 2 onward carry a right-aligned "2.", "3." …) and **Project** (**Backup
-  Project**, `.draftline`).
+- **File ▾** has four sections: **Script** (**New…**, **Open…**, **Import…**, **Sample…**, **Edit Title…**),
+  **Export Script** (**Script (PDF)**, also **Ctrl+P** — a paginated PDF with the title page as page 0; page 1 is
+  unnumbered, pages 2 onward carry a right-aligned "2.", "3." … — plus **Fountain** `.fountain` and **Final Draft**
+  `.fdx`), **Export Outline & Bible** (**Story Bible** `.pdf`, **Spreadsheet**, **Markdown** and **Fountain
+  Outline**) and **Backup** (**Backup Project** `.draftline`, **Snapshot History**).
 - The toolbar keeps **Story Bible** and **Characters** visible down to 1380px wide (about a laptop screen); below that,
   Story Bible moves into **⋮** (and stays on Alt+I). Below 1300px the toolbar scrolls sideways.
 - **⋮** (far right of the toolbar): **Keyboard Shortcuts** (also Ctrl+/), **Load Sample** (*The Last Ferry*) and

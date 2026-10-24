@@ -43,9 +43,9 @@ describe('Scene outline → Spreadsheet (.csv)', () => {
   });
   it('File ▸ the three outlines, each wired to its own exporter; and the board’s own Export Outline', () => {
     const tb = read('lib/toolbar.js');
-    assert.match(tb, /\{ label: 'Spreadsheet Outline \(\.csv\)', onSelect: onOutlineCsv,/);
-    assert.match(tb, /\{ label: 'Markdown Outline \(\.md\)', onSelect: onOutlineMd,/);
-    assert.match(tb, /\{ label: 'Fountain Outline \(\.fountain\)', onSelect: onOutlineFountain,/);
+    assert.match(tb, /\{ label: 'Spreadsheet Outline', ext: '\.csv', onSelect: onOutlineCsv,/);
+    assert.match(tb, /\{ label: 'Markdown Outline', ext: '\.md', onSelect: onOutlineMd,/);
+    assert.match(tb, /\{ label: 'Fountain Outline', ext: '\.fountain', onSelect: onOutlineFountain,/);
     const app = read('App.jsx');
     assert.match(app, /onOutlineCsv: \(\) => exportOutline\('csv'\),\s*onOutlineMd: \(\) => exportOutline\('md'\),\s*onOutlineFountain: \(\) => exportOutline\('fountain'\),/);
     // each kind has its own branch: an unknown kind writes nothing rather than a Fountain file

@@ -14,7 +14,7 @@ export function isOnBar(el, bar) {
 
 /**
  * The ⋮ menu, top to bottom: View Snapshots · Margin Notes · Format Doctor — Keyboard Shortcuts —
- * User Guide · About DraftLine (Load Sample Script is in File ▾), plus Focus, Story Bible and/or Characters first (toolbar order), but only while
+ * User Guide · About DraftLine (Sample… is in File ▾), plus Focus, Story Bible and/or Characters first (toolbar order), but only while
  * the toolbar can't show them itself (narrow windows). Snapshots and Notes show their counts.
  */
 export function moreMenuItems({
@@ -46,7 +46,7 @@ export function moreMenuItems({
 
 /**
  * The header's one "File ▾" menu: Script · Export Script · Export Outline & Bible · Backup. Labels
- * name the file each export writes; hints are shortcuts. (The Scene Board's Export Outline offers the
+ * name what each export writes and `ext` its file type (.fountain, .pdf…); hints are shortcuts. (The Scene Board's Export Outline offers the
  * same three outlines; Plan's breakdown CSV is on Plan's own bar.)
  */
 export function fileMenuItems({
@@ -55,25 +55,25 @@ export function fileMenuItems({
 }) {
   return [
     { heading: 'Script' },
-    { label: 'New Script', hint: 'Ctrl+Alt+N', onSelect: onNew, title: 'Start a new script (your others stay in Projects)' },
+    { label: 'New…', hint: 'Ctrl+Alt+N', onSelect: onNew, title: 'Start a new script (your others stay in Projects)' },
     { label: 'Open…', hint: 'Ctrl+O', onSelect: onOpen, title: 'Open a .fountain, .fdx, .docx, .txt or .draftline file' },
     { label: 'Import…', hint: 'Word · Docs · PDF', onSelect: onImport, title: 'Load a script from Word (.docx), Final Draft, Fountain or plain text, or paste one from Google Docs or a PDF' },
-    { label: 'Load Sample Script', hint: 'The Last Ferry', onSelect: onSample, title: 'Add the sample script to your Projects (your scripts stay as they are)' },
-    { label: 'Title Page Settings…', onSelect: onTitlePage },
+    { label: 'Sample…', hint: 'The Last Ferry', onSelect: onSample, title: 'Add the sample script to your Projects (your scripts stay as they are)' },
+    { label: 'Edit Title…', onSelect: onTitlePage, title: 'Title page: title, credit, author, draft and contact' },
     { divider: true },
     { heading: 'Export Script' },
     { label: 'Script (PDF)', hint: 'Ctrl+P', onSelect: onPrint, title: 'Print or save as PDF — exactly the pages on screen' },
-    { label: 'Fountain (.fountain)', onSelect: onFountain, title: 'Plain-text screenplay for Highland, Slugline, Fade In…' },
-    { label: 'Final Draft (.fdx)', onSelect: onFdx, title: 'For Final Draft users and productions' },
+    { label: 'Fountain', ext: '.fountain', onSelect: onFountain, title: 'Plain-text screenplay for Highland, Slugline, Fade In…' },
+    { label: 'Final Draft', ext: '.fdx', onSelect: onFdx, title: 'For Final Draft users and productions' },
     { divider: true },
     { heading: 'Export Outline & Bible' },
-    { label: 'Story Bible (PDF)…', hint: '.pdf', onSelect: onBible, title: 'Story DNA, Notes and Character Bios as a dossier' },
-    { label: 'Spreadsheet Outline (.csv)', onSelect: onOutlineCsv, title: 'One row per Scene Board card' },
-    { label: 'Markdown Outline (.md)', onSelect: onOutlineMd, title: 'The Scene Board as a Markdown outline' },
-    { label: 'Fountain Outline (.fountain)', onSelect: onOutlineFountain, title: 'The Scene Board as Fountain sections and synopses' },
+    { label: 'Story Bible', ext: '.pdf', onSelect: onBible, title: 'Story DNA, Notes and Character Bios as a dossier' },
+    { label: 'Spreadsheet Outline', ext: '.csv', onSelect: onOutlineCsv, title: 'One row per Scene Board card' },
+    { label: 'Markdown Outline', ext: '.md', onSelect: onOutlineMd, title: 'The Scene Board as a Markdown outline' },
+    { label: 'Fountain Outline', ext: '.fountain', onSelect: onOutlineFountain, title: 'The Scene Board as Fountain sections and synopses' },
     { divider: true },
     { heading: 'Backup' },
-    { label: 'Backup Project', hint: '.draftline', onSelect: onBackup },
+    { label: 'Backup Project', ext: '.draftline', onSelect: onBackup },
     { label: 'Snapshot History', hint: String(snapshotCount), onSelect: onSnapshots },
   ];
 }
