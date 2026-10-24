@@ -101,46 +101,56 @@ describe('About: Support & Community and the credits roll', () => {
   it('credits come from public/credits.json, fetched under the app\'s base path when About opens', () => {
     assert.ok(!/patreonCredits/.test(src), 'no names hard-coded in the component');
     assert.match(src, /const CREDITS_URL = `\$\{import\.meta\.env\.BASE_URL\}credits\.json`;/);
-    assert.match(src, /const \[credits, setCredits\] = useState\(\[\]\);/);
+    assert.match(src, /const \[credits, setCredits\] = useState\(\(\) => normalizeCredits\(null\)\);/);
     assert.match(src, /if \(kind !== 'about'\) return undefined;[\s\S]*?loadCredits\(CREDITS_URL, \{ signal: ctrl\.signal \}\)[\s\S]*?return \(\) => ctrl\.abort\(\);/);
     assert.match(src, /<Credits credits=\{credits\} \/>/);
     const json = JSON.parse(readFileSync(new URL('../public/credits.json', import.meta.url), 'utf8'));
-    assert.match(json.updated, /^\d{4}-\d{2}-\d{2}$/);
-    assert.ok(Array.isArray(json.producers));
+    for (const k of ['catalyst', 'executiveProducers', 'screeningRoom']) assert.ok(Array.isArray(json[k]), k);
   });
-  it('an empty roll shows the Patreon invitation', () => {
-    const empty = src.slice(src.indexOf('className="hm-credits-empty"'), src.indexOf('</p>', src.indexOf('className="hm-credits-empty"')));
-    assert.equal(empty.replace(/<[^>]+>/g, '').replace(/\{' '\}/g, ' ').replace(/\s+/g, ' ').replace(/^[^>]*>/, '').trim(),
-      'Special thanks to our early community backers. Join on Patreon to have your name credited inside every build.');
-    assert.match(empty, /<a href=\{PATREON_URL\} target="_blank" rel="noopener noreferrer">Join on Patreon<\/a>/);
+  it('CREDITS, then The Catalyst (only when someone is in it) · Executive Producers · The Screening Room', () => {
+    const block = src.slice(src.indexOf('function Credits('), src.indexOf('function fmtBytes('));
+    assert.match(src, /<h3 id="hm-credits-title" className="hm-credits-title">Credits<\/h3>/);
+    const heads = [...block.matchAll(/<h4>([^<]+)<\/h4>\s*<p className="hm-credits-sub">([^<]+)<\/p>/g)].map((m) => `${m[1]} / ${m[2]}`);
+    assert.deepEqual(heads, ['The Catalyst / First Supporter', 'Executive Producers / Executive Support', 'The Screening Room / Community Supporters']);
+    assert.match(block, /\{catalyst\.length > 0 && \(/, 'The Catalyst is left out while empty');
+    assert.match(block, /: <Invite>Become an Executive Producer on Patreon<\/Invite>/);
+    assert.match(block, /: <Invite>Take a seat in the Screening Room on Patreon<\/Invite>/);
+    assert.match(src, /<a href=\{PATREON_URL\} target="_blank" rel="noopener noreferrer">\{children\}<\/a>/);
+    assert.match(block, /<ul className="hm-credits-grid">/);
   });
-  it('names roll centred in Courier Prime; the grid goes to one column on phones', () => {
+  it('styling: CREDITS in spaced Courier Prime, a card for The Catalyst, warm producers, a grid for the room', () => {
     assert.match(css, /\.hm-credits \{[^}]*text-align: center/);
-    assert.match(css, /\.hm-credits-tier ul \{[^}]*'Courier Prime'/);
+    assert.match(css, /\.hm-credits h3\.hm-credits-title \{[^}]*'Courier Prime'[^}]*letter-spacing: 0\.4em/);
+    assert.match(css, /\.hm-credits-sec\.is-catalyst \{[^}]*border-radius/);
+    assert.match(css, /\.hm-credits-sec\.is-producers ul \{[^}]*color: color-mix\(in srgb, var\(--accent\)/);
+    assert.match(css, /\.hm-credits-grid \{[^}]*grid-template-columns: repeat\(auto-fill, minmax\(130px, 1fr\)\)/);
+    assert.match(css, /\.hm-credits-sec ul \{[^}]*'Courier Prime'/);
     assert.match(css, /@media \(max-width: 520px\) \{\s*\.hm-links \{ grid-template-columns: 1fr; \}/);
+    assert.ok(!/hm-credits-tier|hm-credits-empty/.test(css + src), 'the old two-tier styles are gone');
   });
 });
 
 describe('Credits: lib/credits.js', async () => {
-  const { normalizeCredits, loadCredits } = await import('../src/lib/credits.js');
-  it('plain names are Executive Producers; objects can name a tier; junk is dropped', () => {
-    assert.deepEqual(normalizeCredits({ producers: [
-      'Jane Doe', { name: '  John   Roe ', tier: 'Patron' }, { name: 'Ann Lee', tier: 'Wizard' },
-      '', 42, null, { tier: 'Patron' }, 'jane doe', 'x'.repeat(200),
-    ] }), [
-      { name: 'Jane Doe', tier: 'Executive Producer' },
-      { name: 'John Roe', tier: 'Patron' },
-      { name: 'Ann Lee', tier: 'Executive Producer' },
-      { name: 'x'.repeat(80), tier: 'Executive Producer' },
-    ]);
-    for (const bad of [null, undefined, 'nope', {}, { producers: 'x' }]) assert.deepEqual(normalizeCredits(bad), []);
+  const { normalizeCredits, loadCredits, hasNoCredits } = await import('../src/lib/credits.js');
+  const none = { catalyst: [], executiveProducers: [], screeningRoom: [] };
+  it('three lists of names; strings or { name } objects; junk and duplicates dropped, order kept', () => {
+    assert.deepEqual(normalizeCredits({
+      catalyst: ['First Fan'],
+      executiveProducers: ['Jane Doe', { name: '  John   Roe ' }, '', 42, null, { tier: 'x' }, 'jane doe'],
+      screeningRoom: ['B', 'A', 'x'.repeat(200)],
+    }), { catalyst: ['First Fan'], executiveProducers: ['Jane Doe', 'John Roe'], screeningRoom: ['B', 'A', 'x'.repeat(80)] });
+    for (const bad of [null, undefined, 'nope', {}, { catalyst: 'x' }]) assert.deepEqual(normalizeCredits(bad), none);
+    assert.ok(hasNoCredits(normalizeCredits({})) && !hasNoCredits(normalizeCredits({ screeningRoom: ['A'] })));
   });
-  it('loading never rejects: offline, 404 and bad JSON all give []', async () => {
+  it('an older file with one "producers" list still reads, as Executive Producers', () => {
+    assert.deepEqual(normalizeCredits({ updated: '2026-10-23', producers: ['Eric Lemaire', ''] }).executiveProducers, ['Eric Lemaire']);
+  });
+  it('loading never rejects: offline, 404 and bad JSON all give empty sections', async () => {
     const ok = (body) => async () => ({ ok: true, json: async () => body });
-    assert.deepEqual(await loadCredits('c.json', { fetchImpl: ok({ producers: ['A'] }) }), [{ name: 'A', tier: 'Executive Producer' }]);
-    assert.deepEqual(await loadCredits('c.json', { fetchImpl: async () => { throw new TypeError('offline'); } }), []);
-    assert.deepEqual(await loadCredits('c.json', { fetchImpl: async () => ({ ok: false, status: 404 }) }), []);
-    assert.deepEqual(await loadCredits('c.json', { fetchImpl: async () => ({ ok: true, json: async () => { throw new SyntaxError('bad'); } }) }), []);
+    assert.deepEqual(await loadCredits('c.json', { fetchImpl: ok({ catalyst: ['A'] }) }), { ...none, catalyst: ['A'] });
+    assert.deepEqual(await loadCredits('c.json', { fetchImpl: async () => { throw new TypeError('offline'); } }), none);
+    assert.deepEqual(await loadCredits('c.json', { fetchImpl: async () => ({ ok: false, status: 404 }) }), none);
+    assert.deepEqual(await loadCredits('c.json', { fetchImpl: async () => ({ ok: true, json: async () => { throw new SyntaxError('bad'); } }) }), none);
   });
   it('the service worker fetches credits.json network-first, cached copy offline', () => {
     const sw = readFileSync(new URL('../src/pwa/sw.template.js', import.meta.url), 'utf8');

@@ -3,7 +3,7 @@ import { CodeXml, Coffee, ExternalLink, Heart, MessageCircle } from 'lucide-reac
 import { SHORTCUT_SECTIONS as SECTIONS, keycaps } from '../lib/shortcuts.js';
 import pkg from '../../package.json';
 import BrandMark from './BrandMark.jsx';
-import { CREDIT_TIERS, loadCredits } from '../lib/credits.js';
+import { loadCredits, normalizeCredits } from '../lib/credits.js';
 import './HelpModal.css';
 
 const IS_MAC = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent);
@@ -26,29 +26,44 @@ const COMMUNITY_LINKS = [
 ];
 const PATREON_URL = COMMUNITY_LINKS[1].href;
 
-/** About → Executive Producers & Patrons: names live in public/credits.json (see lib/credits.js). */
+/** About → Credits: the names live in public/credits.json (see lib/credits.js); nothing here changes to add one. */
 const CREDITS_URL = `${import.meta.env.BASE_URL}credits.json`;
 
+function Invite({ children }) {
+  return (
+    <p className="hm-credits-invite">
+      <a href={PATREON_URL} target="_blank" rel="noopener noreferrer">{children}</a>
+    </p>
+  );
+}
+
 function Credits({ credits }) {
-  if (!credits.length) {
-    return (
-      <p className="hm-credits-empty">
-        Special thanks to our early community backers.{' '}
-        <a href={PATREON_URL} target="_blank" rel="noopener noreferrer">Join on Patreon</a> to have your name credited
-        inside every build.
-      </p>
-    );
-  }
-  return CREDIT_TIERS.map((tier) => {
-    const names = credits.filter((c) => c.tier === tier).map((c) => c.name);
-    if (!names.length) return null;
-    return (
-      <div key={tier} className="hm-credits-tier">
-        <h4>{tier === 'Patron' ? 'Patrons' : `${tier}s`}</h4>
-        <ul>{names.map((n, i) => <li key={`${i}-${n}`}>{n}</li>)}</ul>
+  const { catalyst, executiveProducers, screeningRoom } = credits;
+  return (
+    <>
+      {catalyst.length > 0 && (
+        <div className="hm-credits-sec is-catalyst">
+          <h4>The Catalyst</h4>
+          <p className="hm-credits-sub">First Supporter</p>
+          <ul>{catalyst.map((n) => <li key={n}>{n}</li>)}</ul>
+        </div>
+      )}
+      <div className="hm-credits-sec is-producers">
+        <h4>Executive Producers</h4>
+        <p className="hm-credits-sub">Executive Support</p>
+        {executiveProducers.length > 0
+          ? <ul>{executiveProducers.map((n) => <li key={n}>{n}</li>)}</ul>
+          : <Invite>Become an Executive Producer on Patreon</Invite>}
       </div>
-    );
-  });
+      <div className="hm-credits-sec is-room">
+        <h4>The Screening Room</h4>
+        <p className="hm-credits-sub">Community Supporters</p>
+        {screeningRoom.length > 0
+          ? <ul className="hm-credits-grid">{screeningRoom.map((n) => <li key={n}>{n}</li>)}</ul>
+          : <Invite>Take a seat in the Screening Room on Patreon</Invite>}
+      </div>
+    </>
+  );
 }
 
 function fmtBytes(n) {
@@ -59,7 +74,7 @@ function fmtBytes(n) {
 export default function HelpModal({ kind, storage, onBackup, onClose }) {
   const dialogRef = useRef(null);
   const [lib, setLib] = useState({ count: null, persisted: null, usage: null });
-  const [credits, setCredits] = useState([]);
+  const [credits, setCredits] = useState(() => normalizeCredits(null));
 
   // About: how many scripts, whether the browser has promised not to evict them, space used.
   useEffect(() => {
@@ -69,13 +84,13 @@ export default function HelpModal({ kind, storage, onBackup, onClose }) {
     navigator.storage?.estimate?.().then(({ usage }) => setLib((l) => ({ ...l, usage })), () => {});
   }, [kind, storage]);
 
-  // About: the backers roll, fetched each time About opens. Any failure (offline, missing file,
-  // bad JSON) just leaves the invitation showing; loadCredits never rejects.
+  // About: the credits, fetched each time About opens. Any failure (offline, missing file, bad JSON)
+  // just leaves the Patreon invitations showing; loadCredits never rejects.
   useEffect(() => {
     if (kind !== 'about') return undefined;
     const ctrl = new AbortController();
-    loadCredits(CREDITS_URL, { signal: ctrl.signal }).then((list) => {
-      if (!ctrl.signal.aborted) setCredits(list);
+    loadCredits(CREDITS_URL, { signal: ctrl.signal }).then((next) => {
+      if (!ctrl.signal.aborted) setCredits(next);
     });
     return () => ctrl.abort();
   }, [kind]);
@@ -175,7 +190,7 @@ export default function HelpModal({ kind, storage, onBackup, onClose }) {
             </ul>
           </section>
           <section className="hm-credits" aria-labelledby="hm-credits-title">
-            <h3 id="hm-credits-title">Executive Producers &amp; Patrons</h3>
+            <h3 id="hm-credits-title" className="hm-credits-title">Credits</h3>
             <Credits credits={credits} />
           </section>
           <dl className="hm-facts">
