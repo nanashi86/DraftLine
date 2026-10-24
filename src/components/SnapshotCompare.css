@@ -1,0 +1,118 @@
+/* ---- Snapshots → Compare (SnapshotCompare.jsx / CompareRows.js) ----
+   Lives entirely in its own modal: nothing here touches the writing canvas. The rows read like
+   the page (paper, Courier), with deletions struck through in red and additions in green. */
+.sn-modal.sn-compare {
+  --df-del: #b3261e;
+  --df-del-bg: #fbe1dc;
+  --df-add: #1d6b36;
+  --df-add-bg: #d8f0dc;
+  --df-change: #8a6d1f;
+  width: min(1180px, calc(100vw - 32px));
+  max-height: none;
+  height: min(860px, calc(100dvh - 32px));
+  display: none;
+  flex-direction: column;
+  overflow: hidden;
+}
+.sn-modal.sn-compare[open] { display: flex; }
+
+.df-head { display: flex; align-items: flex-start; gap: 16px; padding: 18px 22px 12px; border-bottom: 1px solid var(--line-soft); }
+.df-title { flex: 1; min-width: 0; }
+.df-title h2 { margin: 0; font-size: 17px; font-weight: 650; overflow-wrap: anywhere; }
+.df-title p { margin: 5px 0 0; font-size: 12.5px; line-height: 1.5; color: var(--muted); }
+
+.df-bar { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; padding: 10px 22px; border-bottom: 1px solid var(--line-soft); }
+.df-modes { display: inline-flex; border: 1px solid var(--line-soft); border-radius: 8px; overflow: hidden; }
+.df-modes button {
+  padding: 5px 12px;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font: 500 12.5px var(--ui-font);
+  cursor: pointer;
+}
+.df-modes button + button { border-left: 1px solid var(--line-soft); }
+.df-modes button:hover { color: var(--text); }
+.df-modes button.is-on { background: var(--field); color: var(--text); }
+.df-modes button:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.df-stats { display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--muted); flex-wrap: wrap; }
+.df-chip { padding: 1px 8px; border-radius: 999px; font-weight: 600; font-size: 11.5px; line-height: 18px; }
+.df-chip.is-add { background: color-mix(in srgb, #6fae7d 22%, transparent); color: #9fd3aa; }
+.df-chip.is-del { background: color-mix(in srgb, #e8836b 20%, transparent); color: #f0a492; }
+.df-chip.is-change { background: color-mix(in srgb, #d8b45a 20%, transparent); color: #e3c77d; }
+.df-error { color: #f0a492; }
+
+/* The comparison, on paper. */
+.df-scroll { flex: 1; min-height: 0; overflow: auto; background: var(--paper); color: var(--ink); }
+.df-rows { padding: 14px 0 40px; font: 13px/1.45 'Courier Prime', 'Courier New', monospace; }
+.df-row { display: grid; grid-template-columns: 22px minmax(0, 1fr); padding: 0 22px 0 6px; }
+.df-pair { grid-template-columns: minmax(0, 1fr) 22px minmax(0, 1fr); padding: 0 14px; column-gap: 4px; }
+.df-mark { padding-top: 0.55em; text-align: center; font-weight: 700; color: #8b877d; user-select: none; }
+.is-add > .df-mark { color: var(--df-add); }
+.is-del > .df-mark { color: var(--df-del); }
+.is-change > .df-mark { color: var(--df-change); }
+.df-cell,
+.df-side { min-width: 0; padding: 0.55em 8px 0; border-left: 3px solid transparent; }
+.df-row.is-add > .df-cell { border-left-color: var(--df-add); background: color-mix(in srgb, var(--df-add-bg) 45%, transparent); }
+.df-row.is-del > .df-cell { border-left-color: var(--df-del); background: color-mix(in srgb, var(--df-del-bg) 45%, transparent); }
+.df-row.is-change > .df-cell { border-left-color: var(--df-change); }
+.df-pair.is-del > .is-old,
+.df-pair.is-change > .is-old { background: color-mix(in srgb, var(--df-del-bg) 40%, transparent); }
+.df-pair.is-add > .is-new,
+.df-pair.is-change > .is-new { background: color-mix(in srgb, var(--df-add-bg) 40%, transparent); }
+.df-side.is-blank { background: repeating-linear-gradient(-45deg, transparent 0 6px, rgba(0, 0, 0, 0.035) 6px 12px); }
+.df-heads { position: sticky; top: -14px; z-index: 1; margin: -14px 0 6px; background: var(--paper); }
+.df-heads .df-side {
+  padding: 8px 8px 6px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+  font: 600 11.5px var(--ui-font);
+  letter-spacing: 0.02em;
+  color: #6e6a60;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Screenplay elements, at their page indents (as a share of the text column). */
+.df-el { white-space: pre-wrap; overflow-wrap: anywhere; padding-bottom: 0.15em; }
+.df-scene { text-transform: uppercase; font-weight: 700; }
+.df-character { margin-left: 37%; text-transform: uppercase; }
+.df-parenthetical { margin-left: 27%; max-width: 45%; }
+.df-dialogue { margin-left: 17%; max-width: 62%; }
+.df-transition { text-align: right; text-transform: uppercase; }
+.df-format_cue { text-transform: uppercase; color: var(--fmt-ink); }
+.df-centered { text-align: center; }
+.df-empty { color: #a8a395; font-style: italic; }
+
+.df-el del { color: var(--df-del); background: var(--df-del-bg); text-decoration: line-through; text-decoration-thickness: 1.5px; }
+.df-el ins { color: var(--df-add); background: var(--df-add-bg); text-decoration: none; }
+.df-retype {
+  display: inline-block;
+  margin-bottom: 2px;
+  padding: 0 6px;
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--df-change) 14%, transparent);
+  color: var(--df-change);
+  font: 600 10.5px/16px var(--ui-font);
+}
+
+.df-fold {
+  display: block;
+  width: calc(100% - 28px);
+  margin: 6px 14px;
+  padding: 4px 0;
+  border: 1px dashed rgba(0, 0, 0, 0.16);
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.025);
+  color: #6e6a60;
+  font: 500 11.5px var(--ui-font);
+  cursor: pointer;
+}
+.df-fold:hover { background: rgba(0, 0, 0, 0.05); color: #3c3a34; }
+.df-fold:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+@media (max-width: 640px) {
+  .df-head, .df-bar { padding-left: 16px; padding-right: 16px; }
+  .df-pair { grid-template-columns: minmax(0, 1fr) 14px minmax(0, 1fr); padding: 0 6px; }
+}
+.df-rows .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }

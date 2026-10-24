@@ -20,6 +20,7 @@ import { useHistory } from './hooks/useHistory.js';
 // The User Guide (and its text) loads the first time it's opened; the service worker caches it for offline use.
 const UserGuideModal = lazy(() => import('./components/UserGuideModal.jsx'));
 const ExportBibleModal = lazy(() => import('./components/ExportBibleModal.jsx'));
+const SnapshotCompare = lazy(() => import('./components/SnapshotCompare.jsx'));
 // The Scene Board (Board / Split views) loads the first time it's shown.
 const BeatBoard = lazy(() => import('./components/BeatBoard.jsx'));
 // The Plan workspace (Breakdowns · Stripboard) loads the first time you switch to it.
@@ -229,6 +230,7 @@ function Workspace({ boot }) {
   const [revisions, setRevisions] = useState(initialDoc.revisions); // Snapshots (lib/revisions.js)
   const [snapshotPrompt, setSnapshotPrompt] = useState(false);
   const [restoreId, setRestoreId] = useState(null); // the snapshot waiting on "Restore?"
+  const [compareId, setCompareId] = useState(null); // the snapshot open in Compare (read-only)
   const [noteId, setNoteId] = useState(null); // the element whose margin note the Notes drawer shows
   const noteSession = useRef(null); // { id, start } — the note's text when this editing stretch began
   const [dictOverrides, setDictOverrides] = useState(boot.dictionary || {}); // Glossary wording (all projects)
@@ -767,6 +769,7 @@ function Workspace({ boot }) {
     noteSession.current = null;
     setNoteId(null);
     setRestoreId(null);
+    setCompareId(null);
     setLineMap({});
     setSelectedChar(null);
     setActiveId(null);
@@ -2244,6 +2247,7 @@ function Workspace({ boot }) {
           onClose={() => setDock((d) => closeDock(d, 'snapshots'))}
           onSnapshot={() => setSnapshotPrompt(true)}
           onRestore={(id) => setRestoreId(id)}
+          onCompare={(id) => setCompareId(id)}
           onDelete={deleteSnapshot}
         />
 
@@ -2274,6 +2278,16 @@ function Workspace({ boot }) {
             }}
             onClose={() => setSnapshotPrompt(false)}
           />
+        )}
+        {compareId && getRevision(allSnapshots, compareId) && (
+          <Suspense fallback={null}>
+            <SnapshotCompare
+              key={compareId}
+              revision={getRevision(allSnapshots, compareId)}
+              current={blocks}
+              onClose={() => setCompareId(null)}
+            />
+          </Suspense>
         )}
         {restoreId && getRevision(allSnapshots, restoreId) && (
           <RestorePrompt

@@ -25,6 +25,11 @@ export function defaultRevisionLabel(now = new Date(), locale) {
   return `Draft - ${when}`;
 }
 
+/** "Sat, Oct 24, 2026, 9:18 PM" — when a snapshot was taken, as the Snapshots list shows it. */
+export const snapshotTime = (iso) => new Date(iso).toLocaleString(undefined, {
+  weekday: 'short', month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit',
+});
+
 const wordCount = (blocks) => blocks.reduce((n, b) => n + ((b.text || '').match(/\S+/g)?.length || 0), 0);
 
 /**

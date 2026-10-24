@@ -6,6 +6,7 @@ All notable changes to DraftLine are recorded here. The format follows [Keep a C
 
 ### Added
 
+- Snapshot Compare: **Compare** beside each snapshot opens a read-only comparison with the current draft, Inline (red strike-through for deletions, green for additions, retyped elements tagged) or Side by Side. Element- and word-level Myers diff, run in a Web Worker; unchanged stretches fold away. Nothing is added to the writing canvas.
 - Dialogue splitting across pages: a speech breaks when at least 2 dialogue lines fit on the page and at least 2 carry over, with a centred `(MORE)` at the foot of the page and `NAME (CONT'D)` at the top of the next. Never splits inside or directly after a parenthetical. You can type straight through the seam in the editor, and Print/PDF shows the same breaks.
 - Per-element spellcheck: spellcheck and autocorrect on for Action, Dialogue and Centered; off for Scene Headings, Character cues, Parentheticals, Transitions and Format Cues.
 - MIT license, linked from the About box footer.

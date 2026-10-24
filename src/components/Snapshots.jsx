@@ -1,13 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
-import { defaultRevisionLabel, revisionSummary, revisionsNewestFirst } from '../lib/revisions.js';
+import { defaultRevisionLabel, revisionSummary, revisionsNewestFirst, snapshotTime } from '../lib/revisions.js';
 import './Snapshots.css';
 
-const when = (iso) => new Date(iso).toLocaleString(undefined, {
-  weekday: 'short', month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit',
-});
+const when = snapshotTime;
 
 /** A small modal shell (native <dialog>): Esc and a click on the backdrop close it. */
-function Dialog({ className = '', labelledBy, onClose, children }) {
+export function Dialog({ className = '', labelledBy, onClose, children }) {
   const ref = useRef(null);
   useEffect(() => {
     const d = ref.current;
@@ -112,9 +110,9 @@ export function RestorePrompt({ revision, dirty, onRestore, onClose }) {
   );
 }
 
-/** View Snapshots: the slide-out list, newest first, each with Restore and Delete. */
+/** View Snapshots: the slide-out list, newest first, each with Restore, Compare and Delete. */
 export function SnapshotsDrawer({
-  open, revisions, projectTitle, onClose, onSnapshot, onRestore, onDelete,
+  open, revisions, projectTitle, onClose, onSnapshot, onRestore, onDelete, onCompare,
   folderName = null, // synced folder: snapshots are also files in <folder>/Snapshots
 }) {
   const panelRef = useRef(null);
@@ -185,6 +183,9 @@ export function SnapshotsDrawer({
                 ) : (
                   <div className="sn-item-actions">
                     <button type="button" className="btn btn-outline" onClick={() => onRestore(r.id)} aria-label={`Restore ${r.label}`}>Restore</button>
+                    {onCompare && (
+                      <button type="button" className="btn" onClick={() => onCompare(r.id)} aria-label={`Compare ${r.label} with the current draft`} title="See what changed since this snapshot">Compare</button>
+                    )}
                     <button type="button" className="btn" onClick={() => setConfirmId(r.id)} aria-label={`Delete ${r.label}`}>Delete</button>
                   </div>
                 )}
