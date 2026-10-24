@@ -1,4 +1,4 @@
-import{i as e,t}from"./react-DgawKyfb.js";import"./formatting-CXVlQ9TD.js";import{At as n,D as r,Dt as i,E as a,Et as o,O as s,T as c,Tt as l,_t as u,a as d,at as f,bt as p,ct as m,dt as h,ft as g,gt as _,ht as v,i as y,it as b,l as x,lt as S,n as C,nt as ee,o as te,ot as ne,r as re,tt as ie,u as ae,ut as oe,vt as w,w as T,wt as E,xt as D,yt as O}from"./index-D2ZigMOR.js";import{r as k,t as A}from"./printTitle-C1qWomuv.js";/* empty css                  */var j=e(),M=`# DraftLine User Guide
+import{i as e,t}from"./react-DgawKyfb.js";import"./formatting-CpuIZJMS.js";import{At as n,D as r,Dt as i,E as a,Et as o,O as s,T as c,Tt as l,_t as u,a as d,at as f,bt as p,ct as m,dt as h,ft as g,gt as _,ht as v,i as y,it as b,l as x,lt as S,n as C,nt as ee,o as te,ot as ne,r as re,tt as ie,u as ae,ut as oe,vt as w,w as T,wt as E,xt as D,yt as O}from"./index-BH5BpQLo.js";import{r as k,t as A}from"./printTitle-C1qWomuv.js";/* empty css                  */var j=e(),M=`# DraftLine User Guide
 
 DraftLine is a distraction-free screenwriting app that runs in your browser. It writes in Courier Prime at 12 pt with standard screenplay margins, saves as you type, and works offline. This guide covers everything from your first scene heading to the final PDF.
 
@@ -312,7 +312,7 @@ Your lists and notes are saved with the script, inside the project, and kept by 
 
 ### Printing and PDF
 
-**File → Script (PDF)** ({{key:Ctrl+P}}) prints exactly what the editor shows: Courier Prime 12 pt, standard margins and the same page breaks. The title page prints first, unnumbered, and page numbers start on page 2. Choose **Save as PDF** in the print dialog for a PDF. Margin notes, highlights and the Midnight page colour never print.
+**File → Script (PDF)** ({{key:Ctrl+P}}) prints exactly what the editor shows: Courier Prime 12 pt, standard margins and the same page breaks, including \`(MORE)\` and \`(CONT'D)\` where a speech carries over to the next page. The title page prints first, unnumbered, and page numbers start on page 2. Choose **Save as PDF** in the print dialog for a PDF. Margin notes, highlights and the Midnight page colour never print.
 
 ## Editor Curiosities & Secrets
 
