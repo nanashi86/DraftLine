@@ -1,4 +1,4 @@
-import{i as e,t}from"./react-DgawKyfb.js";import"./formatting-CpuIZJMS.js";import{At as n,D as r,Dt as i,E as a,Et as o,O as s,T as c,Tt as l,_t as u,a as d,at as f,bt as p,ct as m,dt as h,ft as g,gt as _,ht as v,i as y,it as b,l as x,lt as S,n as C,nt as ee,o as te,ot as ne,r as re,tt as ie,u as ae,ut as oe,vt as w,w as T,wt as E,xt as D,yt as O}from"./index-BH5BpQLo.js";import{r as k,t as A}from"./printTitle-C1qWomuv.js";/* empty css                  */var j=e(),M=`# DraftLine User Guide
+import{i as e,t}from"./react-DgawKyfb.js";import"./formatting-CpuIZJMS.js";import{At as n,D as r,Dt as i,E as a,Et as o,O as s,T as c,Tt as l,_t as u,a as d,at as f,bt as p,ct as m,dt as h,ft as g,gt as _,ht as v,i as y,it as b,l as x,lt as S,n as C,nt as ee,o as te,ot as ne,r as re,tt as ie,u as ae,ut as oe,vt as w,w as T,wt as E,xt as D,yt as O}from"./index-BYyz8px5.js";import{r as k,t as A}from"./printTitle-C1qWomuv.js";/* empty css                  */var j=e(),M=`# DraftLine User Guide
 
 DraftLine is a distraction-free screenwriting app that runs in your browser. It writes in Courier Prime at 12 pt with standard screenplay margins, saves as you type, and works offline. This guide covers everything from your first scene heading to the final PDF.
 
@@ -252,7 +252,7 @@ The **Scene Board** (formerly the Beat Board; **Board** or **Split** view) lays 
 - **Auto-Distribute (% Targets)** places scenes by page: about {{board.targets.3}} for 3 acts, or {{board.targets.4}} for 4 acts.
 - **Manual Scene Ranges…** lets you say which scenes belong to each act (for example 1–12, 13–40, 41–55).
 
-Moving a linked card also moves its scene in the script (one undo step).
+Moving a linked card also moves its scene in the script (one undo step). Cards keep their link when you replace the script with **Load into Editor**, as long as the card's title is still the generated "12. INT. HOUSE - NIGHT" one and the scene keeps its heading.
 
 ### Pacing distribution
 
