@@ -1,4 +1,4 @@
-import{i as e,t}from"./react-DgawKyfb.js";import{At as n,Ct as r,Ft as i,M as a,Mt as o,N as s,O as c,St as l,Tt as u,a as d,bt as f,ct as p,ft as m,gt as h,ht as g,i as _,j as v,jt as y,k as b,kt as x,l as S,lt as C,mt as ee,n as te,o as ne,ot as re,pt as ie,r as ae,st as oe,u as w,ut as T,wt as E,xt as D,yt as O}from"./index-D9FfxFc4.js";import{r as k,t as A}from"./printTitle-C1qWomuv.js";/* empty css                  */var j=e(),M=`# DraftLine User Guide
+import{i as e,t}from"./react-DgawKyfb.js";import{At as n,Ct as r,Ft as i,M as a,Mt as o,N as s,O as c,St as l,Tt as u,a as d,bt as f,ct as p,ft as m,gt as h,ht as g,i as _,j as v,jt as y,k as b,kt as x,l as S,lt as C,mt as ee,n as te,o as ne,ot as re,pt as ie,r as ae,st as oe,u as w,ut as T,wt as E,xt as D,yt as O}from"./index-CAjMy-bP.js";import{r as k,t as A}from"./printTitle-C1qWomuv.js";/* empty css                  */var j=e(),M=`# DraftLine User Guide
 
 DraftLine is a distraction-free screenwriting app that runs in your browser. It writes in Courier Prime at 12 pt with standard screenplay margins, saves as you type, and works offline. This guide covers everything from your first scene heading to the final PDF.
 
@@ -341,7 +341,7 @@ Each script export (.fountain, .fdx, .draftline, and the print dialog) is confir
 
 ### Printing and PDF
 
-**File → Print Script…** ({{key:Ctrl+P}}) prints exactly what the editor shows: Courier Prime 12 pt, standard margins and the same page breaks, including \`(MORE)\` and \`(CONT'D)\` where a speech carries over to the next page. The title page prints first, unnumbered, and page numbers start on page 2. Choose **Save as PDF** in the print dialog for a PDF. Margin notes, highlights and the Midnight page colour never print.
+**File → Print Script…** ({{key:Ctrl+P}}) prints exactly what the editor shows: Courier Prime 12 pt, standard margins and the same page breaks, including \`(MORE)\` and \`(CONT'D)\` where a speech carries over to the next page. The title page prints first, unnumbered, and page numbers start on page 2. Choose **Save as PDF** in the print dialog for a PDF, or use **File → PDF** (.pdf, below) to download a ready-made one without the dialog. Margin notes, highlights and the Midnight page colour never print.
 
 **File → PDF** makes the PDF inside DraftLine instead of through the print dialog, and downloads it straight away: Courier Prime embedded, US Letter, the same page breaks as the editor (including \`(MORE)\` and \`(CONT'D)\`), page numbers from page 2 and your title page first. It's the same file on every computer, and you can keep writing while it's made. Characters Courier Prime can't show print as "?", and DraftLine tells you how many; the title uses Courier Prime even if you picked another title font (Print Script… keeps that font).
 
