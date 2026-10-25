@@ -1,4 +1,4 @@
-import{i as e,t}from"./react-DgawKyfb.js";import{At as n,Ct as r,Ft as i,M as a,Mt as o,N as s,O as c,St as l,Tt as u,a as d,bt as f,ct as p,ft as m,gt as h,ht as g,i as _,j as v,jt as y,k as b,kt as x,l as S,lt as C,mt as ee,n as te,o as ne,ot as re,pt as ie,r as ae,st as oe,u as w,ut as T,wt as E,xt as D,yt as O}from"./index-CSWTZN9Y.js";import{r as k,t as A}from"./printTitle-C1qWomuv.js";/* empty css                  */var j=e(),M=`# DraftLine User Guide
+import{i as e,t}from"./react-DgawKyfb.js";import{At as n,Ct as r,Ft as i,M as a,Mt as o,N as s,O as c,St as l,Tt as u,a as d,bt as f,ct as p,ft as m,gt as h,ht as g,i as _,j as v,jt as y,k as b,kt as x,l as S,lt as C,mt as ee,n as te,o as ne,ot as re,pt as ie,r as ae,st as oe,u as w,ut as T,wt as E,xt as D,yt as O}from"./index-D9FfxFc4.js";import{r as k,t as A}from"./printTitle-C1qWomuv.js";/* empty css                  */var j=e(),M=`# DraftLine User Guide
 
 DraftLine is a distraction-free screenwriting app that runs in your browser. It writes in Courier Prime at 12 pt with standard screenplay margins, saves as you type, and works offline. This guide covers everything from your first scene heading to the final PDF.
 
@@ -15,7 +15,7 @@ The top bar holds your script's title, the **Write | Plan** switch, the **File �
 - The **Scenes** sidebar ({{key:Alt+S}}) lists every scene with its length in eighths of a page. Click one to jump to it, or type to find a scene.
 - **Write | Plan** switches between writing the script and planning the shoot (see Production & Planning). Write is where you start.
 - The status bar's steppers (**Format · 1 of 7**, **Density · 1 of 9**, a character's **MARIE · 1 of 8**) all work the same way: ‹ › step through, clicking the name lists every one, and ✕ closes it.
-- **File ▾** holds everything to do with files, in three parts. **Script**: New… ({{key:Ctrl+Alt+N}}), Open… ({{key:Ctrl+O}}), Import…, Sample… (adds *The Last Ferry* to your Projects) and Edit Title…. **Export Script**: PDF, Final Draft, Fountain and Print Script…. **Export Outline & Bible**: Story Bible, and the Scene Board as a Spreadsheet, Markdown or Fountain Outline. **Backup**: Backup Project and Snapshot History. Each export shows its file type on the right (.fountain, .fdx, .pdf, .csv, .md, .draftline).
+- **File ▾** holds everything to do with files, in three parts. **Script**: New… ({{key:Ctrl+Alt+N}}), Open… ({{key:Ctrl+O}}), Import…, Sample… (adds *The Last Ferry* to your Projects) and Edit Title…. **Export Script**: PDF, Final Draft, Fountain and Print Script…, plus the **Scene Numbers** setting for the PDF and printout. **Export Outline & Bible**: Story Bible, and the Scene Board as a Spreadsheet, Markdown or Fountain Outline. **Backup**: Backup Project and Snapshot History. Each export shows its file type on the right (.fountain, .fdx, .pdf, .csv, .md, .draftline).
 - Narrow windows move panels you can't see on the bar into the **⋮** menu.
 
 ### Projects and browser storage
@@ -344,6 +344,8 @@ Each script export (.fountain, .fdx, .draftline, and the print dialog) is confir
 **File → Print Script…** ({{key:Ctrl+P}}) prints exactly what the editor shows: Courier Prime 12 pt, standard margins and the same page breaks, including \`(MORE)\` and \`(CONT'D)\` where a speech carries over to the next page. The title page prints first, unnumbered, and page numbers start on page 2. Choose **Save as PDF** in the print dialog for a PDF. Margin notes, highlights and the Midnight page colour never print.
 
 **File → PDF** makes the PDF inside DraftLine instead of through the print dialog, and downloads it straight away: Courier Prime embedded, US Letter, the same page breaks as the editor (including \`(MORE)\` and \`(CONT'D)\`), page numbers from page 2 and your title page first. It's the same file on every computer, and you can keep writing while it's made. Characters Courier Prime can't show print as "?", and DraftLine tells you how many; the title uses Courier Prime even if you picked another title font (Print Script… keeps that font).
+
+**File → Scene Numbers** (under Export Script) decides whether the PDF and the printout number your scenes. It's **Off** for every script to begin with: a spec script for contests, managers or producers goes out unnumbered. Turn it **On** for a production draft, and each scene heading gets its number in both margins. It's saved with each script, and the editor always shows scene numbers while you write.
 
 ## Editor Curiosities & Secrets
 
