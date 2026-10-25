@@ -248,9 +248,9 @@ describe('Compiled PDF: export flow', () => {
     const items = fileMenuItems({ onCompiledPdf() {}, onFdx() {}, onFountain() {}, onPrint() {}, snapshotCount: 0 });
     const at = items.findIndex((i) => i.heading === 'Export Script');
     const section = items.slice(at + 1, items.findIndex((i, n) => n > at && i.divider));
-    assert.deepEqual(section.map((i) => [i.label, i.ext || i.hint]), [['PDF', '.pdf'], ['Final Draft', '.fdx'], ['Fountain', '.fountain'], ['Print Script…', 'Ctrl+P']], 'the Scene Numbers setting appears only when wired');
+    assert.deepEqual(section.map((i) => [i.label, i.ext || i.hint]), [['PDF', '.pdf'], ['Final Draft', '.fdx'], ['Fountain', '.fountain'], ['Print Script…', 'Ctrl+P']], 'exactly four actions, no toggles');
     assert.ok(section.every((i) => !i.divider && !i.heading));
-    assert.match(app, /onCompiledPdf: exportCompiledPdf,/);
+    assert.match(app, /onCompiledPdf: \(\) => setPdfOpen\(true\),/, 'File → PDF opens Export PDF first');
     assert.match(app, /onPrint: printScript,/);
   });
   it('compiles off the main thread and downloads <title>.pdf', () => {
@@ -294,20 +294,31 @@ describe('Compiled PDF: Scene Numbers setting (spec by default)', () => {
     assert.ok(META_FIELDS.includes('showSceneNumbers'));
     assert.match(read('src/lib/folderSync.js').toString(), /'titleBold', 'showSceneNumbers'\]/, 'kept in snapshot files too');
   });
-  it('File → Export Script → Scene Numbers toggles it; the PDF and Print follow it; the editor always shows numbers', async () => {
-    const { fileMenuItems } = await import('../src/lib/toolbar.js');
-    let toggled = 0;
-    const items = (on) => fileMenuItems({ onCompiledPdf() {}, onFdx() {}, onFountain() {}, onPrint() {}, snapshotCount: 0, showSceneNumbers: on, onSceneNumbers: () => toggled++ });
-    const item = (on) => items(on).find((i) => i.label === 'Scene Numbers');
-    assert.deepEqual([item(false).hint, item(false).checked, item(true).hint, item(true).checked], ['Off', false, 'On', true]);
-    const list = items(false);
-    assert.equal(list[list.findIndex((i) => i.label === 'Print Script…') + 1].label, 'Scene Numbers', 'right under the exports it affects');
-    item(false).onSelect();
-    assert.equal(toggled, 1);
-    assert.match(read('src/components/Menu.jsx').toString(), /role=\{typeof it\.checked === 'boolean' \? 'menuitemcheckbox' : 'menuitem'\}\s*aria-checked=/);
-    assert.match(app, /showSceneNumbers: !!s\.meta\.showSceneNumbers,/);
-    assert.match(app, /<PrintView meta=\{meta\} items=\{items\} layout=\{layout\} sceneNumbers=\{meta\.showSceneNumbers \? analysis\.sceneNumbers : \{\}\} \/>/);
-    assert.match(app, /sceneNumbers=\{analysis\.sceneNumbers\}/, 'the editor keeps its numbers');
-    assert.match(app, /setMeta\(\(m\) => \(\{ \.\.\.m, showSceneNumbers: on \}\)\)/);
+  it('File → PDF opens Export PDF: the scene-numbers checkbox, Download PDF, Cancel / Esc / backdrop close', () => {
+    const modal = read('src/components/ExportPdfModal.jsx').toString();
+    assert.match(modal, /<h2 id="xp-title" className="xp-title">Export PDF<\/h2>/);
+    assert.match(modal, /<input type="checkbox" checked=\{showSceneNumbers\} onChange=\{\(e\) => onChange\(e\.target\.checked\)\} \/>/);
+    assert.match(modal, /<b>Include Scene Numbers \(Production Draft\)<\/b>\s*<small>Leave unchecked for spec script and competition submissions\.<\/small>/);
+    assert.match(modal, /<button type="submit" className="btn xp-download" autoFocus>\s*<Download \{\.\.\.ICON\} \/>\s*Download PDF/);
+    assert.match(modal, /onSubmit=\{\(e\) => \{\s*e\.preventDefault\(\);\s*onDownload\(\);/, 'Enter downloads');
+    assert.match(modal, /onCancel=\{\(e\) => \{\s*e\.preventDefault\(\);\s*onClose\(\);/, 'Esc closes');
+    assert.match(modal, /if \(e\.target === dialogRef\.current\) onClose\(\);/, 'clicking the backdrop closes');
+    assert.match(modal, /onClick=\{onClose\}>Cancel<\/button>/);
+  });
+  it('the choice is saved with the script and the PDF compiles with it', () => {
+    assert.match(app, /const setSceneNumbers = \(on\) => setMeta\(\(m\) => \(\{ \.\.\.m, showSceneNumbers: on \}\)\);/);
+    assert.match(app, /<ExportPdfModal\s*showSceneNumbers=\{!!meta\.showSceneNumbers\}\s*onChange=\{setSceneNumbers\}\s*onClose=\{\(\) => setPdfOpen\(false\)\}\s*onDownload=\{\(\) => \{\s*setPdfOpen\(false\);\s*exportCompiledPdf\(\{ showSceneNumbers: !!meta\.showSceneNumbers \}\);/);
+    assert.match(app, /sceneNumbers: analysis\.sceneNumbers, showSceneNumbers, appVersion/);
+    assert.match(read('src/lib/pdf/compilePdfAsync.js').toString(), /sceneNumbers: \{ \.\.\.sceneNumbers \}, showSceneNumbers, now/, 'the option reaches the worker');
+  });
+  it('Print Script… (Ctrl+P) has no dialog and follows the setting through the print stylesheet', () => {
+    assert.match(app, /<PrintView meta=\{meta\} items=\{items\} layout=\{layout\} sceneNumbers=\{analysis\.sceneNumbers\} showSceneNumbers=\{!!meta\.showSceneNumbers\} \/>/);
+    assert.match(app, /onPrint: printScript,/);
+    assert.doesNotMatch(app.slice(app.indexOf('const printScript = () => {'), app.indexOf('const printScript = () => {') + 200), /setPdfOpen/);
+    assert.match(read('src/components/PrintView.jsx').toString(), /className=\{`print-root\$\{showSceneNumbers \? '' : ' hide-print-scene-numbers'\}`\}/);
+    const css = read('src/components/PrintView.css').toString();
+    const print = css.slice(css.indexOf('@media print'));
+    assert.match(print, /\.hide-print-scene-numbers \.scene-no \{ display: none !important; \}/);
+    assert.match(app, /sceneNumbers=\{analysis\.sceneNumbers\}\n/, 'the editor keeps its numbers');
   });
 });

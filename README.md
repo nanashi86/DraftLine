@@ -296,6 +296,11 @@ same on every machine. It compiles in a Web Worker (`src/lib/pdf/`, no dependenc
 Text outside Latin-1 and typographic punctuation prints as `?` (you're told how many characters). The title is set in
 Courier Prime whatever title font you chose; **Print Script…** keeps the chosen font.
 
+Before it compiles, a small **Export PDF** dialog asks one thing: **Include Scene Numbers (Production Draft)**. It's
+unchecked by default, so spec scripts go out with clean sluglines; checked, every scene heading is numbered in both
+margins. The choice is saved per script (`showSceneNumbers`), and **Print Script…** (Ctrl+P) follows it through the
+print stylesheet (`.hide-print-scene-numbers`) with no dialog of its own.
+
 Every script export (`.fountain`, `.fdx`, `.draftline`, print / PDF) is confirmed in a bottom-right toast that closes
 itself after 8 seconds, never takes focus and pauses while hovered. At most every 14 days it also carries one line
 about supporting DraftLine on Ko-fi or Patreon; a clean Format Doctor report (no findings, ignored ones included) can

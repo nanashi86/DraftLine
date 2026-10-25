@@ -49,4 +49,7 @@
     right: 1in;
   }
 
+  /* Spec script (Include Scene Numbers off): clean sluglines, no number in either margin. */
+  .hide-print-scene-numbers .scene-no { display: none !important; }
+
 }

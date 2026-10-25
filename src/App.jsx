@@ -6,6 +6,7 @@ import Editor from './components/Editor.jsx';
 import CharactersDrawer from './components/CharactersDrawer.jsx';
 import Navigator from './components/Navigator.jsx';
 import TitlePageModal from './components/TitlePageModal.jsx';
+import ExportPdfModal from './components/ExportPdfModal.jsx';
 import DeleteProjectModal from './components/DeleteProjectModal.jsx';
 import DialogueStepper from './components/DialogueStepper.jsx';
 import { ChartColumn, Clapperboard, Columns2, FileText, LayoutList, PenLine, Rows3, SquareKanban } from 'lucide-react';
@@ -1329,7 +1330,7 @@ function Workspace({ boot }) {
   // File → PDF: the PDF is built off the main thread (lib/pdf/), with Courier
   // Prime embedded, and downloaded as <title>.pdf; typing carries on while it compiles.
   const compilingPdf = useRef(false);
-  const exportCompiledPdf = async () => {
+  const exportCompiledPdf = async ({ showSceneNumbers = !!latest.current.meta.showSceneNumbers } = {}) => {
     if (compilingPdf.current) return;
     compilingPdf.current = true;
     notify('Compiling PDF…');
@@ -1337,7 +1338,7 @@ function Workspace({ boot }) {
       const { compilePdfAsync } = await import('./lib/pdf/compilePdfAsync.js');
       const s = latest.current;
       const r = await compilePdfAsync({
-        meta: s.meta, blocks: s.blocks, sceneNumbers: analysis.sceneNumbers, showSceneNumbers: !!s.meta.showSceneNumbers, appVersion: pkg.version,
+        meta: s.meta, blocks: s.blocks, sceneNumbers: analysis.sceneNumbers, showSceneNumbers, appVersion: pkg.version,
       });
       const name = `${slugify(s.meta.title)}.pdf`;
       download(name, r.bytes, 'application/pdf');
@@ -1350,13 +1351,10 @@ function Workspace({ boot }) {
     }
   };
 
-  // File → Export Script → Scene Numbers: a per-script setting for the PDF and the printout
-  // (the editor always shows them while writing).
-  const toggleSceneNumbers = () => {
-    const on = !meta.showSceneNumbers;
-    setMeta((m) => ({ ...m, showSceneNumbers: on }));
-    notify(on ? 'Scene numbers on: the PDF and printout number every scene (production)' : 'Scene numbers off: the PDF and printout are unnumbered (spec)');
-  };
+  // File → PDF opens Export PDF first: one choice, scene numbers (saved with the script, so
+  // it's remembered, and Print Script… follows it without a dialog).
+  const [pdfOpen, setPdfOpen] = useState(false);
+  const setSceneNumbers = (on) => setMeta((m) => ({ ...m, showSceneNumbers: on }));
 
   const printScript = () => {
     flushSync(() => setPrinting(true));
@@ -1804,7 +1802,7 @@ function Workspace({ boot }) {
     onSample: loadSample,
     onTitlePage: () => setTitleOpen(true),
     onPrint: printScript,
-    onCompiledPdf: exportCompiledPdf,
+    onCompiledPdf: () => setPdfOpen(true),
     onBible: () => setBibleExportOpen(true),
     onFountain: exportFountain,
     onFdx: exportFDX,
@@ -1814,8 +1812,6 @@ function Workspace({ boot }) {
     onBackup: backupProject,
     onSnapshots: () => setDock((d) => openDock(d, 'snapshots')),
     snapshotCount: revisions.length,
-    showSceneNumbers: !!meta.showSceneNumbers,
-    onSceneNumbers: toggleSceneNumbers,
   });
   // Ctrl+O and Ctrl+Alt+N (the global shortcuts below) run the same New / Open as the menu.
   const fileShortcuts = useRef({});
@@ -2604,6 +2600,17 @@ function Workspace({ boot }) {
           />
         )}
         </Suspense>
+        {pdfOpen && (
+          <ExportPdfModal
+            showSceneNumbers={!!meta.showSceneNumbers}
+            onChange={setSceneNumbers}
+            onClose={() => setPdfOpen(false)}
+            onDownload={() => {
+              setPdfOpen(false);
+              exportCompiledPdf({ showSceneNumbers: !!meta.showSceneNumbers });
+            }}
+          />
+        )}
         {titleOpen && (
           <TitlePageModal
             meta={meta}
@@ -2627,7 +2634,7 @@ function Workspace({ boot }) {
       </div>
 
       {printing && (
-        <PrintView meta={meta} items={items} layout={layout} sceneNumbers={meta.showSceneNumbers ? analysis.sceneNumbers : {}} />
+        <PrintView meta={meta} items={items} layout={layout} sceneNumbers={analysis.sceneNumbers} showSceneNumbers={!!meta.showSceneNumbers} />
       )}
     </>
   );

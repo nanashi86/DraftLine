@@ -40,7 +40,7 @@ function hasTitlePage(meta) {
  * shows. Mounted just before printing (see App) so it costs nothing while writing.
  * The title page prints first as "page 0" (unnumbered); numbering starts on page 2.
  */
-export default function PrintView({ meta, items, layout, sceneNumbers }) {
+export default function PrintView({ meta, items, layout, sceneNumbers, showSceneNumbers = true }) {
   // Each page lists the pieces on it: [item index, piece] (piece null for an element in one piece).
   const pages = Array.from({ length: layout.pageCount }, () => []);
   items.forEach((it, k) => {
@@ -53,7 +53,8 @@ export default function PrintView({ meta, items, layout, sceneNumbers }) {
   const endOf = (k, pc) => (pc ? pc.topLine + (pc.to - pc.from) + (pc.more ? 1 : 0) : layout.place[k].topLine + layout.place[k].lines);
 
   return (
-    <div className="print-root">
+    // Scene numbers follow File → PDF's "Include Scene Numbers" setting; hidden by the print stylesheet when off.
+    <div className={`print-root${showSceneNumbers ? '' : ' hide-print-scene-numbers'}`}>
       {hasTitlePage(meta) && <TitlePageSheet meta={meta} className="print-page print-title" />}
 
       {pages.map((ks, p) => (

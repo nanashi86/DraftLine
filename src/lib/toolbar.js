@@ -53,7 +53,7 @@ export function moreMenuItems({
  */
 export function fileMenuItems({
   onNew, onOpen, onImport, onSample, onTitlePage, onPrint, onCompiledPdf, onBible, onFountain, onFdx, onOutlineCsv, onOutlineMd, onOutlineFountain,
-  onBackup, onSnapshots, snapshotCount = 0, showSceneNumbers = false, onSceneNumbers,
+  onBackup, onSnapshots, snapshotCount = 0,
 }) {
   return [
     { heading: 'Script' },
@@ -64,17 +64,10 @@ export function fileMenuItems({
     { label: 'Edit Title…', onSelect: onTitlePage, title: 'Title page: title, credit, author, draft and contact' },
     { divider: true },
     { heading: 'Export Script' },
-    ...(onCompiledPdf ? [{ label: 'PDF', ext: '.pdf', onSelect: onCompiledPdf, title: 'A ready-made PDF, built in DraftLine with Courier Prime embedded: the same file on every computer' }] : []),
+    ...(onCompiledPdf ? [{ label: 'PDF', ext: '.pdf', onSelect: onCompiledPdf, title: 'A ready-made PDF, built in DraftLine with Courier Prime embedded: the same file on every computer (asks about scene numbers first)' }] : []),
     { label: 'Final Draft', ext: '.fdx', onSelect: onFdx, title: 'For Final Draft users and productions' },
     { label: 'Fountain', ext: '.fountain', onSelect: onFountain, title: 'Plain-text screenplay for Highland, Slugline, Fade In…' },
     { label: 'Print Script…', hint: 'Ctrl+P', onSelect: onPrint, title: 'Print, or save as PDF from the print dialog — exactly the pages on screen' },
-    // A setting for the two exports above it, not an export: off for spec scripts and contests, on for production.
-    ...(onSceneNumbers ? [{
-      label: 'Scene Numbers', hint: showSceneNumbers ? 'On' : 'Off', checked: !!showSceneNumbers, onSelect: onSceneNumbers,
-      title: showSceneNumbers
-        ? 'On: the PDF and printout number every scene in both margins (production drafts). Click to turn off for a spec script.'
-        : 'Off: the PDF and printout have no scene numbers, as contests and readers expect of a spec script. Click to turn on for production.',
-    }] : []),
     { divider: true },
     { heading: 'Export Outline & Bible' },
     { label: 'Story Bible', ext: '.pdf', onSelect: onBible, title: 'Story DNA, Notes and Character Bios as a dossier' },

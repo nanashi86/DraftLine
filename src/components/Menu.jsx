@@ -48,8 +48,7 @@ export default function Menu({
           ) : (
             <button
               key={it.label}
-              role={typeof it.checked === 'boolean' ? 'menuitemcheckbox' : 'menuitem'}
-              aria-checked={typeof it.checked === 'boolean' ? it.checked : undefined}
+              role="menuitem"
               className={`menu-item${it.danger ? ' is-danger' : ''}`}
               disabled={it.disabled}
               title={it.title}
