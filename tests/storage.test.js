@@ -61,8 +61,32 @@ describe('Folder sync: browsers without showDirectoryPicker (Safari, Firefox, ph
     const { readFileSync } = await import('node:fs');
     const ui = readFileSync(new URL('../src/components/StorageDestination.jsx', import.meta.url), 'utf8');
     assert.match(ui, /\{sync\.supported && \(/);
-    assert.match(ui, /Synced Folder \(Google Drive \/ Local Disk\)/);
-    assert.match(ui, /Browser Storage \(IndexedDB\)/);
+    assert.match(ui, /<b>Synced Folder \(Local Disk \/ Cloud\)<\/b>/);
+    assert.match(ui, /<b>Standalone \(This Device Only\)<\/b>/);
+    assert.match(ui, /Scripts stay private in this browser\. No external setup required\./);
+    assert.doesNotMatch(ui, /IndexedDB\)|Browser Storage/, 'no storage jargon in the labels');
+  });
+  it('the folder status and its actions sit inside the Synced Folder card, outside its <label>', async () => {
+    const { readFileSync } = await import('node:fs');
+    const ui = readFileSync(new URL('../src/components/StorageDestination.jsx', import.meta.url), 'utf8');
+    const card = ui.slice(ui.indexOf('{sync.supported && ('), ui.lastIndexOf('</section>'));
+    const label = card.slice(card.indexOf('<label'), card.indexOf('</label>'));
+    for (const action of ['run(onAllow)}>Allow access', 'run(onLink)}>Change Folder…', 'run(onDisconnect)}>Disconnect', 'run(onLink)}>Link Folder…']) {
+      assert.ok(card.indexOf(action) > card.indexOf('</label>'), `${action} is in the card, after the label`);
+      assert.ok(!label.includes(action), `${action} is not inside the label (a click would toggle the radio)`);
+    }
+    assert.match(card, /'The browser needs your OK to write to this folder again\.'/);
+    assert.ok(card.indexOf('sd-folder') < card.lastIndexOf('</div>'), 'no detached folder card after the options');
+    assert.equal((ui.match(/className=\{`sd-folder/g) || []).length, 1);
+    assert.match(readFileSync(new URL('../src/components/ProjectsDrawer.css', import.meta.url), 'utf8'), /\.sd-card > \.sd-folder, \.sd-card > \.sd-link \{/);
+  });
+  it('the Projects footer note follows the chosen destination', async () => {
+    const { readFileSync } = await import('node:fs');
+    const drawer = readFileSync(new URL('../src/components/ProjectsDrawer.jsx', import.meta.url), 'utf8');
+    const foot = drawer.slice(drawer.indexOf('<footer className="pd-foot">'), drawer.indexOf('</footer>'));
+    assert.match(foot, /storage\?\.sync\.destination === 'folder'\s*\? 'Scripts are saved directly to your chosen folder and mirrored locally for instant offline editing\.'/);
+    assert.match(foot, /'Scripts are saved privately in this browser on this device\. Link a folder anytime to keep physical files on your drive\.'/);
+    assert.match(foot, /sync\.supported === false\s*\? 'Scripts are saved privately in this browser on this device\. Use Backup/, 'no "link a folder" where folders can\'t be linked');
   });
 });
 

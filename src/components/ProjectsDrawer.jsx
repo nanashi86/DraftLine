@@ -305,9 +305,11 @@ export default function ProjectsDrawer({
           })}
         </ul>
         <footer className="pd-foot">
-          {storage?.sync.active
-            ? `Scripts are saved in this browser and as .draftline files in “${storage.sync.folderName}” — nothing is uploaded by DraftLine itself; your Drive app syncs the folder.`
-            : 'Scripts are stored in this browser’s local database — nothing is uploaded. Export to keep files or move between computers.'}
+          {storage?.sync.destination === 'folder'
+            ? 'Scripts are saved directly to your chosen folder and mirrored locally for instant offline editing.'
+            : storage?.sync.supported === false
+              ? 'Scripts are saved privately in this browser on this device. Use Backup to keep a copy as a file.'
+              : 'Scripts are saved privately in this browser on this device. Link a folder anytime to keep physical files on your drive.'}
         </footer>
       </aside>
     </>

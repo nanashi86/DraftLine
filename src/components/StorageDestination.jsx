@@ -11,8 +11,9 @@ const ago = (ts) => {
 
 /**
  * Storage Destination (top of the Projects drawer): where scripts are kept.
- *   Browser Storage (IndexedDB) — always; the default.
- *   Synced Folder (Google Drive / Local Disk) — only in browsers with the File System Access API.
+ *   Standalone (This Device Only) — always; the default.
+ *   Synced Folder (Local Disk / Cloud) — only in browsers with the File System Access API. Its folder
+ *   status and actions (Allow access · Change Folder… · Disconnect, or Link Folder…) sit inside its card.
  * Every save goes to the browser first either way; the folder gets a .draftline copy of each
  * script, and Snapshots/ a file per snapshot.
  */
@@ -32,52 +33,56 @@ export default function StorageDestination({ sync, onChoose, onLink, onDisconnec
     <section className="sd" aria-labelledby="sd-title">
       <h3 id="sd-title" className="sd-title micro-label">Storage Destination</h3>
       <div className="sd-options" role="radiogroup" aria-labelledby="sd-title">
-        <label className={`sd-option${!folder ? ' is-on' : ''}`}>
-          <input type="radio" name="sd-dest" checked={!folder} disabled={busy} onChange={run(() => onChoose('browser'))} />
-          <span>
-            <b>Browser Storage (IndexedDB)</b>
-            <small>Saved in this browser on this computer. Use Export or Backup to move scripts.</small>
-          </span>
-        </label>
-        {sync.supported && (
-          <label className={`sd-option${folder ? ' is-on' : ''}`}>
-            <input type="radio" name="sd-dest" checked={folder} disabled={busy} onChange={run(() => onChoose('folder'))} />
+        <div className={`sd-card${!folder ? ' is-on' : ''}`}>
+          <label className="sd-option">
+            <input type="radio" name="sd-dest" checked={!folder} disabled={busy} onChange={run(() => onChoose('browser'))} />
             <span>
-              <b>Synced Folder (Google Drive / Local Disk)</b>
-              <small>Also saves each script as a .draftline file in a folder you choose — pick a Google Drive folder to reach it from any computer.</small>
+              <b>Standalone (This Device Only)</b>
+              <small>Scripts stay private in this browser. No external setup required.</small>
             </span>
           </label>
+        </div>
+        {sync.supported && (
+          <div className={`sd-card${folder ? ' is-on' : ''}`}>
+            <label className="sd-option">
+              <input type="radio" name="sd-dest" checked={folder} disabled={busy} onChange={run(() => onChoose('folder'))} />
+              <span>
+                <b>Synced Folder (Local Disk / Cloud)</b>
+                <small>Saves scripts directly as .draftline files in a folder you choose — link a Google Drive or local folder to keep your files permanent.</small>
+              </span>
+            </label>
+
+            {/* The folder's status and actions live inside its card, outside the <label> so a button click never toggles the radio. */}
+            {sync.linked ? (
+              <div className={`sd-folder${sync.needsPermission ? ' is-warn' : ''}`}>
+                <div className="sd-folder-name">
+                  <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><path d="M1.5 4.5a1 1 0 0 1 1-1h3.6l1.4 1.5h6a1 1 0 0 1 1 1v6.5a1 1 0 0 1-1 1h-11a1 1 0 0 1-1-1Z" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round" /></svg>
+                  <span>Linked: <b>{sync.folderName}</b></span>
+                </div>
+                <div className="sd-folder-state">
+                  {sync.needsPermission
+                    ? 'The browser needs your OK to write to this folder again.'
+                    : !folder
+                      ? 'Not syncing — select this option to turn it back on.'
+                      : sync.error
+                        ? `Paused: ${sync.error}`
+                        : sync.lastSyncedAt ? `Synced ${ago(sync.lastSyncedAt)} · snapshots go in ${sync.folderName}/Snapshots` : `Snapshots go in ${sync.folderName}/Snapshots`}
+                  {!sync.persisted && ' · This browser won’t remember the folder after a reload.'}
+                </div>
+                <div className="sd-buttons">
+                  {sync.needsPermission && <button type="button" className="btn btn-primary" disabled={busy} onClick={run(onAllow)}>Allow access</button>}
+                  <button type="button" className="btn" disabled={busy} onClick={run(onLink)}>Change Folder…</button>
+                  <button type="button" className="btn" disabled={busy} onClick={run(onDisconnect)}>Disconnect</button>
+                </div>
+              </div>
+            ) : (
+              <div className="sd-buttons sd-link">
+                <button type="button" className="btn" disabled={busy} onClick={run(onLink)}>Link Folder…</button>
+              </div>
+            )}
+          </div>
         )}
       </div>
-
-      {sync.supported && sync.linked && (
-        <div className={`sd-folder${sync.needsPermission ? ' is-warn' : ''}`}>
-          <div className="sd-folder-name">
-            <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><path d="M1.5 4.5a1 1 0 0 1 1-1h3.6l1.4 1.5h6a1 1 0 0 1 1 1v6.5a1 1 0 0 1-1 1h-11a1 1 0 0 1-1-1Z" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round" /></svg>
-            <span>Linked: <b>{sync.folderName}</b></span>
-          </div>
-          <div className="sd-folder-state">
-            {sync.needsPermission
-              ? 'The browser needs your OK to write to this folder again.'
-              : !folder
-                ? 'Not syncing — choose Synced Folder to turn it back on.'
-                : sync.error
-                  ? `Paused: ${sync.error}`
-                  : sync.lastSyncedAt ? `Synced ${ago(sync.lastSyncedAt)} · snapshots go in ${sync.folderName}/Snapshots` : `Snapshots go in ${sync.folderName}/Snapshots`}
-            {!sync.persisted && ' · This browser won’t remember the folder after a reload.'}
-          </div>
-          <div className="sd-buttons">
-            {sync.needsPermission && <button type="button" className="btn btn-primary" disabled={busy} onClick={run(onAllow)}>Allow access</button>}
-            <button type="button" className="btn" disabled={busy} onClick={run(onLink)}>Change Folder…</button>
-            <button type="button" className="btn" disabled={busy} onClick={run(onDisconnect)}>Disconnect</button>
-          </div>
-        </div>
-      )}
-      {sync.supported && !sync.linked && (
-        <div className="sd-buttons">
-          <button type="button" className="btn" disabled={busy} onClick={run(onLink)}>Link Folder…</button>
-        </div>
-      )}
     </section>
   );
 }
