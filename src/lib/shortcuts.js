@@ -64,7 +64,7 @@ export const SHORTCUT_SECTIONS = [
       ['Ctrl+F', 'Find in the script (Enter: next · Shift+Enter: previous · Esc: close)'],
       ['Ctrl+H', 'Find & Replace'],
       ['Ctrl+S', 'Save now (it also autosaves)'],
-      ['Ctrl+P', 'Export Script (PDF)'],
+      ['Ctrl+P', 'Print Script… — the browser’s print preview (File → PDF downloads a .pdf)'],
       ['Ctrl+Alt+L', 'Lock / unlock the script — View Only: read, select and copy, no changes'],
     ],
   },

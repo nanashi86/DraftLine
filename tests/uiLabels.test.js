@@ -105,6 +105,16 @@ describe('toolbar: File ▾ holds Print; panels stay visible on laptops', () => 
   it('Ctrl+P still prints: the print view mounts on the browser’s beforeprint', () => {
     assert.match(app, /addEventListener\('beforeprint'/);
   });
+  it('Ctrl+P is named Print Script… everywhere: Shortcuts list, File menu hint, User Guide, README', async () => {
+    const { SHORTCUTS } = await import('../src/lib/shortcuts.js');
+    assert.equal(SHORTCUTS['Ctrl+P'], 'Print Script… — the browser’s print preview (File → PDF downloads a .pdf)');
+    const files = ['lib/shortcuts.js', 'lib/toolbar.js', 'components/HelpModal.jsx', 'content/userGuide.md', '../README.md', '../CHANGELOG.md'];
+    for (const f of files) {
+      const text = readFileSync(join(root, f), 'utf8').replace(/instead of "Export Script \(PDF\)"/, '');
+      assert.doesNotMatch(text, /Export Script \(PDF\)|Ctrl\+P:? Export Script/, f);
+    }
+    assert.match(readFileSync(join(root, 'content/userGuide.md'), 'utf8'), /\*\*File → Print Script…\*\* \(\{\{key:Ctrl\+P\}\}\)[^\n]*\*\*File → PDF\*\* \(\.pdf/);
+  });
   it('Story Bible tucks into ⋮ below 1440px; Characters only on narrow windows (under 1024px)', () => {
     const m = /@media \(max-width: ([\d.]+)px\) \{\s*\.bar-right > \.btn-bible \{ display: none; \}/.exec(css);
     assert.ok(m, 'a breakpoint hides .btn-bible');

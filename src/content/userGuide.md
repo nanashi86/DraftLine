@@ -341,7 +341,7 @@ Each script export (.fountain, .fdx, .draftline, and the print dialog) is confir
 
 ### Printing and PDF
 
-**File → Print Script…** ({{key:Ctrl+P}}) prints exactly what the editor shows: Courier Prime 12 pt, standard margins and the same page breaks, including `(MORE)` and `(CONT'D)` where a speech carries over to the next page. The title page prints first, unnumbered, and page numbers start on page 2. Choose **Save as PDF** in the print dialog for a PDF. Margin notes, highlights and the Midnight page colour never print.
+**File → Print Script…** ({{key:Ctrl+P}}) prints exactly what the editor shows: Courier Prime 12 pt, standard margins and the same page breaks, including `(MORE)` and `(CONT'D)` where a speech carries over to the next page. The title page prints first, unnumbered, and page numbers start on page 2. Choose **Save as PDF** in the print dialog for a PDF, or use **File → PDF** (.pdf, below) to download a ready-made one without the dialog. Margin notes, highlights and the Midnight page colour never print.
 
 **File → PDF** makes the PDF inside DraftLine instead of through the print dialog, and downloads it straight away: Courier Prime embedded, US Letter, the same page breaks as the editor (including `(MORE)` and `(CONT'D)`), page numbers from page 2 and your title page first. It's the same file on every computer, and you can keep writing while it's made. Characters Courier Prime can't show print as "?", and DraftLine tells you how many; the title uses Courier Prime even if you picked another title font (Print Script… keeps that font).
 

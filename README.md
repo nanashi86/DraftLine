@@ -134,7 +134,7 @@ Find works and Replace is off.
 | Alt+B | Cycle Page → Split → Board |
 | Alt+P | Projects drawer |
 | Alt+I | Story Bible (DNA · Notes) |
-| Ctrl+P | Print / save as PDF (title page first) |
+| Ctrl+P | Print Script… — the browser's print preview (title page first); File → PDF downloads a ready-made .pdf |
 | Ctrl+S | Save now (it also autosaves continuously) |
 | Ctrl+F / Ctrl+H | Find / Find & Replace |
 
