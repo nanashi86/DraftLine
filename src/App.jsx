@@ -97,6 +97,17 @@ const SAVE_DEBOUNCE_MS = 500;
 // that gets a .draftline copy of each script after every browser save. Its settings (the folder
 // handle, Browser vs Synced Folder) live in the library's IndexedDB settings store.
 const folderSync = createFolderSync({ settings: { get: (k) => projects.getSetting(k), set: (k, v) => projects.setSetting(k, v) } });
+
+/**
+ * The browser's copy of project `id`, brought in from the synced folder when the script is only there
+ * (an "In folder" card). null when it's in neither: its file was deleted or moved outside DraftLine.
+ */
+async function localCopy(id) {
+  const rec = await projects.getProject(id);
+  if (rec) return rec;
+  const there = await folderSync.readProject(id).catch(() => null);
+  return there ? projects.importRecord(there) : null;
+}
 const ZOOM_STEPS = [0.75, 0.9, 1, 1.1, 1.25, 1.5, 1.75, 2];
 /** The top-level switch: writing the script, or planning its production (derived from the script). */
 const WORKSPACES = [
@@ -556,6 +567,7 @@ function Workspace({ boot }) {
   // script — edited on another computer — and nothing here is unsaved, open that; then write
   // the open script out so the folder is current.
   const pullNewer = useRef(null);
+  const askPurgeRef = useRef(null); // the "File missing on disk" prompt, for callbacks declared before it
   useEffect(() => {
     if (!sync.active) return;
     const id = latest.current.projectId;
@@ -625,8 +637,15 @@ function Workspace({ boot }) {
     setDrawerOpen(true);
     setFocusStorage((n) => n + 1);
   };
-  // Projects: the browser library plus scripts found only in the synced folder (newest copy wins).
-  const loadLibrary = useCallback(async () => mergeProjectLists(await projects.getAllProjects(), await folderSync.listProjects()), []);
+  // Projects: the browser library plus scripts found only in the synced folder (newest copy wins),
+  // with browser scripts whose file has gone from the folder marked "File missing on disk".
+  const libraryRef = useRef([]);
+  const loadLibrary = useCallback(async () => {
+    const folder = await folderSync.listProjects();
+    const list = mergeProjectLists(await projects.getAllProjects(), folder, { owned: folderSync.ownedFiles() });
+    libraryRef.current = list;
+    return list;
+  }, []);
   const storageControls = {
     sync,
     onChoose: async (dest) => {
@@ -831,7 +850,7 @@ function Workspace({ boot }) {
     const fromFolder = !!there && (!rec || (there.updatedAt || 0) > (rec.updatedAt || 0));
     if (fromFolder) rec = await projects.importRecord(there);
     if (!rec) {
-      notify('That script no longer exists');
+      askPurgeRef.current?.(id); // not in this browser, and its file is gone from the folder
       return;
     }
     applyProject(rec);
@@ -1094,14 +1113,18 @@ function Workspace({ boot }) {
         backupProject();
         return;
       }
-      const rec = await projects.getProject(id);
+      const rec = await localCopy(id);
       if (rec) downloadBackup(rec);
+      else askPurgeMissing(id);
       return;
     }
     let doc = { meta, blocks };
     if (id !== projectId) {
-      const rec = await projects.getProject(id);
-      if (!rec) return;
+      const rec = await localCopy(id);
+      if (!rec) {
+        askPurgeMissing(id);
+        return;
+      }
       doc = toDoc(rec);
     }
     const name = slugify(doc.meta.title);
@@ -1113,8 +1136,12 @@ function Workspace({ boot }) {
   /** Projects → padlock: lock or unlock script `id` (stored, and written to the synced folder). */
   const toggleProjectLock = async (id) => {
     try {
-      const cur = await projects.getProject(id);
-      if (!cur) throw new Error('That script no longer exists');
+      // A script only in the folder comes into this browser first, so even a locked one can be unlocked.
+      const cur = await localCopy(id);
+      if (!cur) {
+        askPurgeMissing(id);
+        return;
+      }
       if (id === projectId) await flushSave();
       const rec = await projects.setProjectLock(id, cur.isLocked !== true);
       folderSync.writeProject(rec, latest.current.fileOptions);
@@ -1127,12 +1154,23 @@ function Workspace({ boot }) {
   };
 
   const renameProject = async (id, title) => {
-    if (id === projectId) setMeta((m) => ({ ...m, title }));
-    else folderSync.writeProject(await projects.renameProject(id, title), latest.current.fileOptions);
+    if (id === projectId) {
+      setMeta((m) => ({ ...m, title }));
+      return;
+    }
+    if (!(await localCopy(id))) {
+      askPurgeMissing(id);
+      return;
+    }
+    folderSync.writeProject(await projects.renameProject(id, title), latest.current.fileOptions);
   };
 
   const duplicateProject = async (id) => {
     if (id === projectId) await flushSave();
+    else if (!(await localCopy(id))) {
+      askPurgeMissing(id);
+      return;
+    }
     const copy = await projects.duplicateProject(id);
     folderSync.writeProject(copy, latest.current.fileOptions);
     notify(`Duplicated as “${copy.title}”`);
@@ -1145,7 +1183,12 @@ function Workspace({ boot }) {
   const [bibleExportOpen, setBibleExportOpen] = useState(false);
   const [libraryRev, setLibraryRev] = useState(0); // bumped when a deletion finishes: Projects re-reads its list
   const deleteProject = async (id, title) => {
-    if ((await projects.getProject(id))?.isLocked) {
+    const rec = (await projects.getProject(id)) || (await folderSync.readProject(id).catch(() => null));
+    if (!rec) {
+      askPurgeMissing(id, title); // nothing left to delete but the card itself
+      return;
+    }
+    if (rec.isLocked) {
       notify(`“${title}” is locked — unlock it (the padlock in Projects) to delete it`);
       return;
     }
@@ -1156,6 +1199,26 @@ function Workspace({ boot }) {
     }
     setPendingDelete({ id, title, stage: 'confirm', failed: [], busy: false });
   };
+  // A card whose script is nowhere — not in this browser, and its .draftline file gone from the folder
+  // (deleted or moved outside DraftLine, or on another computer): "File missing on disk", remove it.
+  const askPurgeMissing = (id, title) => {
+    const t = title || libraryRef.current.find((p) => p.id === id)?.title?.trim() || 'Untitled';
+    setPendingDelete({ id, title: t, stage: 'missing', failed: [], busy: false });
+  };
+  const purgeMissing = async () => {
+    const d = pendingDelete;
+    if (!d || d.busy) return;
+    setPendingDelete({ ...d, busy: true });
+    // Only if it really is gone from both: a copy that turned up meanwhile (Drive catching up) is kept.
+    const back = (await projects.getProject(d.id)) || (await folderSync.readProject(d.id).catch(() => null));
+    if (!back) folderSync.forgetProject(d.id);
+    setPendingDelete(null);
+    setLibraryRev((n) => n + 1); // Projects re-reads the library: the card is gone (or back to normal)
+    notify(back ? `“${d.title}” turned up again — kept it` : `Removed “${d.title}” from your library`);
+  };
+  useLayoutEffect(() => {
+    askPurgeRef.current = askPurgeMissing;
+  });
   const confirmDelete = async () => {
     const d = pendingDelete;
     if (!d || d.busy) return;
@@ -2440,6 +2503,7 @@ function Workspace({ boot }) {
             busy={pendingDelete.busy}
             onConfirm={confirmDelete}
             onHardDelete={hardDelete}
+            onPurge={purgeMissing}
             onCancel={cancelDelete}
           />
         )}

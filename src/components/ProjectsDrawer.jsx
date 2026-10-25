@@ -242,6 +242,9 @@ export default function ProjectsDrawer({
                     {p.source === 'folder' && !isActive && (
                       <span className="pd-badge is-folder" title={`Only in ${storage?.sync.folderName || 'the synced folder'} so far — open it to add it to this browser`}>In folder</span>
                     )}
+                    {p.fileMissing && (
+                      <span className="pd-badge is-missing" title={`Its .draftline file isn’t in ${storage?.sync.folderName ? `“${storage.sync.folderName}”` : 'the synced folder'} any more (deleted or moved outside DraftLine). This browser’s copy is safe: the file is written again the next time this script is saved.`}>File missing on disk</span>
+                    )}
                     {p.source === 'folder-newer' && !isActive && (
                       <span className="pd-badge is-folder" title="The copy in the synced folder is newer (edited on another computer?) — opening the script loads it">Newer in folder</span>
                     )}

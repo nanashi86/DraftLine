@@ -213,3 +213,4 @@
 /* Phones: the nested folder panel uses the card's full width instead of indenting under the text. */
 @media (max-width: 480px) { .sd-card > .sd-folder { margin-left: 10px; } }
 .pd-badge.is-folder { background: color-mix(in srgb, #6fae7d 22%, transparent); color: #9fd3aa; }
+.pd-badge.is-missing { background: color-mix(in srgb, #e0a458 20%, transparent); color: #e8c08a; }

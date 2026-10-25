@@ -168,9 +168,15 @@ export function storageStatus({ saveOk = true, dirty = false, sync = {} }) {
   return { label: 'Saved locally', tone: 'ok', action: 'settings', title: 'Saved in this browser · click for storage options' };
 }
 
-/** Projects list = the browser library plus scripts only in the folder; for the same id, the newest copy. */
-export function mergeProjectLists(local = [], folder = []) {
-  const byId = new Map(local.map((r) => [r.id, { ...r, source: 'browser' }]));
+/**
+ * Projects list = the browser library plus scripts only in the folder; for the same id, the newest copy.
+ * `owned` (folderSync.ownedFiles(): project id → the file DraftLine wrote for it) marks a browser script
+ * whose file is no longer in the folder (deleted or moved outside DraftLine, or on another computer)
+ * with `fileMissing: true`. Its copy in this browser is untouched; its next save writes the file again.
+ */
+export function mergeProjectLists(local = [], folder = [], { owned = {} } = {}) {
+  const inFolder = new Set(folder.map((f) => f.record.id));
+  const byId = new Map(local.map((r) => [r.id, { ...r, source: 'browser', ...(owned[r.id] && !inFolder.has(r.id) ? { fileMissing: true } : {}) }]));
   for (const { record, fileName } of folder) {
     const mine = byId.get(record.id);
     if (!mine) byId.set(record.id, { ...record, source: 'folder', fileName });
@@ -515,6 +521,30 @@ export function createFolderSync({ settings, win = globalThis, now = () => Date.
       } catch (e) {
         failed(e);
         return [];
+      }
+    },
+
+    /** Project id → the file DraftLine last wrote for it ({} when no folder is syncing). */
+    ownedFiles() {
+      return isActive() ? { ...owned } : {};
+    },
+
+    /**
+     * Forget project `id`'s files without touching the folder: for a script whose file is already gone
+     * (deleted or moved outside DraftLine), so nothing keeps pointing at it. Files still listed under
+     * that id are left exactly where they are.
+     */
+    forgetProject(id) {
+      for (const [name, pid] of [...index]) {
+        if (pid === id) {
+          index.delete(name);
+          cache.delete(name);
+        }
+      }
+      if (owned[id]) {
+        const { [id]: _gone, ...rest } = owned; // eslint-disable-line no-unused-vars
+        owned = rest;
+        settings.set(FILES_KEY, owned)?.catch?.(() => {});
       }
     },
 

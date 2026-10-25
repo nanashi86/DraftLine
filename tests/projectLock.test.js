@@ -103,7 +103,7 @@ describe('Project Lock: guards in the app', () => {
     assert.match(app, /locked=\{projectLocked\}/);
   });
   it('deleting asks the store first; restoring a snapshot over a locked script is refused', () => {
-    assert.match(app, /const deleteProject = async \(id, title\) => \{\s*if \(\(await projects\.getProject\(id\)\)\?\.isLocked\) \{/);
+    assert.match(app, /const deleteProject = async \(id, title\) => \{\s*const rec = \(await projects\.getProject\(id\)\) \|\| \(await folderSync\.readProject\(id\)\.catch\(\(\) => null\)\);[\s\S]*?if \(rec\.isLocked\) \{/);
     const restore = app.slice(app.indexOf('const restoreSnapshot = useCallback('), app.indexOf('const restoreBackup = '));
     assert.ok(restore.indexOf('if (s.projectLocked) {') < restore.indexOf('set(doc.blocks.length'));
   });

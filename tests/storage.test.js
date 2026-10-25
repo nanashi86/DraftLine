@@ -345,7 +345,7 @@ describe('Folder sync: wired into the app', async () => {
     assert.match(app, /revisions=\{allSnapshots\}/);
   });
   it('Projects lists folder scripts too and opens the newest copy', () => {
-    assert.match(app, /mergeProjectLists\(await projects\.getAllProjects\(\), await folderSync\.listProjects\(\)\)/);
+    assert.match(app, /const folder = await folderSync\.listProjects\(\);\s*const list = mergeProjectLists\(await projects\.getAllProjects\(\), folder, \{ owned: folderSync\.ownedFiles\(\) \}\);/);
     assert.match(app, /if \(fromFolder\) rec = await projects\.importRecord\(there\);/);
     assert.match(drawer, /<StorageDestination/);
     assert.match(drawer, /Newer in folder/);
@@ -432,5 +432,114 @@ describe('Deleting a script: a confirmation dialog, Trash instead of erasing', (
     assert.match(app, /if \(folder\.failed\.length\) \{\s*setPendingDelete\(\{ \.\.\.d, stage: 'hard', failed: folder\.failed, busy: false \}\);/);
     assert.match(app, /folderSync\.removeProject\(d\.id, \{ hard: true \}\)/, 'only from the second confirmation');
     assert.equal((app.match(/hard: true/g) || []).length, 1);
+  });
+});
+
+describe('Folder sync: a script whose file is deleted outside DraftLine', () => {
+  /** Two computers sharing one synced folder: each with its own browser library. */
+  async function twoComputers() {
+    const dir = createFakeDirectory('Shared Drive Folder');
+    const make = async () => {
+      const sync = createFolderSync({ settings: memorySettings(), win: pickerWindow(dir) });
+      await sync.init();
+      await sync.link();
+      return { sync, store: createProjectStore({ indexedDB: createFakeIndexedDB() }) };
+    };
+    return { dir, here: await make(), there: await make() };
+  }
+
+  it('a browser script whose file was deleted keeps working and is flagged "File missing on disk"; its next save writes the file again', async () => {
+    const { dir, sync } = await linked();
+    const store = createProjectStore({ indexedDB: createFakeIndexedDB() });
+    const { record } = await saveProjectEverywhere({ store, sync, data: doc('Run!') });
+    assert.ok(sync.ownedFiles()[record.id], 'DraftLine knows which file it wrote');
+    const list = async () => mergeProjectLists(await store.getAllProjects(), await sync.listProjects(), { owned: sync.ownedFiles() });
+    assert.equal((await list())[0].fileMissing, undefined);
+
+    await dir.removeEntry('Run.draftline'); // deleted in Explorer / Finder / Drive
+    const [card] = await list();
+    assert.deepEqual([card.id, card.source, card.fileMissing], [record.id, 'browser', true], 'still listed, from this browser, flagged');
+    assert.equal((await store.getProject(record.id)).title, 'Run!', 'the browser copy is untouched');
+
+    await saveProjectEverywhere({ store, sync, data: { id: record.id, ...doc('Run!') } });
+    assert.ok(dir.$.files()['Run.draftline'], 'the next save writes it again');
+    assert.equal((await list())[0].fileMissing, undefined);
+  });
+
+  it('"File missing on disk" needs a file DraftLine wrote: never shown with sync off or for scripts it never saved there', () => {
+    const local = [{ id: 'a', updatedAt: 1 }, { id: 'b', updatedAt: 2 }];
+    const merged = mergeProjectLists(local, [], { owned: { a: 'A.draftline' } });
+    assert.deepEqual(merged.map((p) => [p.id, !!p.fileMissing]), [['b', false], ['a', true]]);
+    assert.ok(mergeProjectLists(local, []).every((p) => !p.fileMissing), 'no owned map (sync off): nothing flagged');
+  });
+
+  it('an "In folder" script deleted on another computer: gone from the next listing, nothing left pointing at it, no ghost card', async () => {
+    const { dir, here, there } = await twoComputers();
+    const { record } = await saveProjectEverywhere({ ...there, data: doc('What Happened to Haiti?') });
+    const list = async () => mergeProjectLists(await here.store.getAllProjects(), await here.sync.listProjects(), { owned: here.sync.ownedFiles() });
+    assert.deepEqual((await list()).map((p) => [p.id, p.source]), [[record.id, 'folder']], 'only in the folder for this browser');
+
+    await dir.removeEntry('What-Happened-to-Haiti.draftline');
+    assert.equal(await here.sync.readProject(record.id), null, 'nothing to open');
+    assert.equal(await here.store.getProject(record.id), null, 'and nothing in this browser');
+    here.sync.forgetProject(record.id); // Remove from Library
+    assert.deepEqual(await list(), [], 'the card is gone; the list still loads');
+    assert.deepEqual(Object.keys(dir.$.files()), [], 'nothing on disk was touched');
+  });
+
+  it('forgetProject never touches files: a copy still in the folder keeps being listed', async () => {
+    const { here, there } = await twoComputers();
+    const { record } = await saveProjectEverywhere({ ...there, data: doc('Run!') });
+    here.sync.forgetProject(record.id);
+    assert.equal((await here.sync.readProject(record.id)).id, record.id);
+  });
+
+  it('a locked "In folder" script can be unlocked: it comes into this browser first', async () => {
+    const { here, there } = await twoComputers();
+    const { record } = await saveProjectEverywhere({ ...there, data: doc('Run!') });
+    await there.store.setProjectLock(record.id, true).then((rec) => there.sync.writeProject(rec));
+    const folderCopy = await here.sync.readProject(record.id);
+    assert.equal(folderCopy.isLocked, true);
+    // localCopy(): not in this browser → import the folder copy, then the padlock works on it.
+    const rec = (await here.store.getProject(record.id)) || (await here.store.importRecord(folderCopy));
+    const unlocked = await here.store.setProjectLock(rec.id, false);
+    assert.equal(unlocked.isLocked, false);
+  });
+});
+
+describe('Folder sync: the missing-file prompt in the app', () => {
+  const app = readFileSync(new URL('../src/App.jsx', import.meta.url), 'utf8');
+  const modal = readFileSync(new URL('../src/components/DeleteProjectModal.jsx', import.meta.url), 'utf8');
+  const drawer = readFileSync(new URL('../src/components/ProjectsDrawer.jsx', import.meta.url), 'utf8');
+
+  it('the dialog asks before removing anything, and Remove from Library changes nothing on disk', () => {
+    assert.match(modal, /stage === 'missing' \? \(/);
+    assert.match(modal, /<h2 id="dp-title">File missing on disk<\/h2>\s*<p id="dp-warning" className="dp-warning">Physical file not found on disk\. Remove from library\?<\/p>/);
+    assert.match(modal, /ref=\{cancelRef\} type="button" className="btn dp-cancel" onClick=\{onCancel\} disabled=\{busy\}>Keep<\/button>/, 'Keep is focused: Enter never removes');
+    assert.match(modal, /onClick=\{onPurge\} disabled=\{busy\}>\{busy \? 'Removing…' : 'Remove from Library'\}/);
+    assert.match(app, /onPurge=\{purgeMissing\}/);
+  });
+
+  it('every card action finds the script in this browser or the folder; when it is in neither, the prompt opens instead of an error', () => {
+    assert.match(app, /async function localCopy\(id\) \{\s*const rec = await projects\.getProject\(id\);\s*if \(rec\) return rec;\s*const there = await folderSync\.readProject\(id\)\.catch\(\(\) => null\);\s*return there \? projects\.importRecord\(there\) : null;/);
+    assert.doesNotMatch(app, /That script no longer exists/);
+    const body = (name) => new RegExp(`const ${name} = async \\([^)]*\\) => \\{([\\s\\S]*?)\\n {2}\\};`).exec(app)[1];
+    for (const fn of ['toggleProjectLock', 'renameProject', 'duplicateProject', 'exportProject']) {
+      assert.match(body(fn), /localCopy\(id\)/, `${fn} brings an "In folder" script in`);
+      assert.match(body(fn), /askPurgeMissing\(id\)/, `${fn} offers to remove a missing one`);
+    }
+    assert.match(body('deleteProject'), /if \(!rec\) \{\s*askPurgeMissing\(id, title\);/);
+    assert.match(app, /if \(!rec\) \{\s*askPurgeRef\.current\?\.\(id\);/, 'opening a card too');
+  });
+
+  it('Remove from Library forgets the card; a copy that turned up meanwhile is kept', () => {
+    const purge = /const purgeMissing = async \(\) => \{([\s\S]*?)\n {2}\};/.exec(app)[1];
+    assert.match(purge, /const back = \(await projects\.getProject\(d\.id\)\) \|\| \(await folderSync\.readProject\(d\.id\)\.catch\(\(\) => null\)\);\s*if \(!back\) folderSync\.forgetProject\(d\.id\);/);
+    assert.match(purge, /setLibraryRev\(\(n\) => n \+ 1\);/);
+    assert.doesNotMatch(purge, /removeProject|removeEntry|deleteProject/, 'nothing on disk, nothing else in the library');
+  });
+
+  it('a browser script whose file is gone shows a "File missing on disk" badge', () => {
+    assert.match(drawer, /\{p\.fileMissing && \(\s*<span className="pd-badge is-missing"[^>]*>File missing on disk<\/span>/);
   });
 });

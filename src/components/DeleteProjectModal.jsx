@@ -11,8 +11,11 @@ import './DeleteProjectModal.css';
  *   folder's Trash/ (recoverable), not erased.
  * stage 'hard': the move to Trash failed for `failed` files, which are still in the folder. Only
  *   here can the writer choose to erase them for good; keeping them is the default.
+ * stage 'missing': the script is in neither this browser nor the folder (its file was deleted or moved
+ *   outside DraftLine, or on another computer). Remove from Library clears the card; nothing on disk
+ *   is touched. Keep leaves it (Drive may still be catching up).
  */
-export default function DeleteProjectModal({ title, synced = false, folderName = '', stage = 'confirm', failed = [], busy = false, onConfirm, onHardDelete, onCancel }) {
+export default function DeleteProjectModal({ title, synced = false, folderName = '', stage = 'confirm', failed = [], busy = false, onConfirm, onHardDelete, onPurge, onCancel }) {
   const dialogRef = useRef(null);
   const cancelRef = useRef(null);
 
@@ -48,6 +51,19 @@ export default function DeleteProjectModal({ title, synced = false, folderName =
           <div className="dp-actions">
             <button ref={cancelRef} type="button" className="btn dp-cancel" onClick={onCancel} disabled={busy}>Cancel</button>
             <button type="button" className="btn dp-delete" onClick={onConfirm} disabled={busy}>{busy ? 'Deleting…' : 'Permanently Delete'}</button>
+          </div>
+        </div>
+      ) : stage === 'missing' ? (
+        <div>
+          <h2 id="dp-title">File missing on disk</h2>
+          <p id="dp-warning" className="dp-warning">Physical file not found on disk. Remove from library?</p>
+          <p className="dp-note">
+            “{title}”’s .draftline file isn’t in {folderName ? `“${folderName}”` : 'the synced folder'} any more, and this browser has no copy of it.
+            It may have been deleted or moved outside DraftLine, or not synced to this computer yet. Removing the card changes nothing on disk.
+          </p>
+          <div className="dp-actions">
+            <button ref={cancelRef} type="button" className="btn dp-cancel" onClick={onCancel} disabled={busy}>Keep</button>
+            <button type="button" className="btn dp-delete" onClick={onPurge} disabled={busy}>{busy ? 'Removing…' : 'Remove from Library'}</button>
           </div>
         </div>
       ) : (
