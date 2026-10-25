@@ -69,9 +69,10 @@ export default function StorageDestination({ sync, onChoose, onLink, onDisconnec
                         : sync.lastSyncedAt ? `Synced ${ago(sync.lastSyncedAt)} · snapshots go in ${sync.folderName}/Snapshots` : `Snapshots go in ${sync.folderName}/Snapshots`}
                   {!sync.persisted && ' · This browser won’t remember the folder after a reload.'}
                 </div>
-                <div className="sd-buttons">
-                  {sync.needsPermission && <button type="button" className="btn btn-primary" disabled={busy} onClick={run(onAllow)}>Allow access</button>}
-                  <button type="button" className="btn" disabled={busy} onClick={run(onLink)}>Change Folder…</button>
+                {/* Equal columns on one row; on a narrow card "Change Folder…" shortens to "Change…" (CSS container query). */}
+                <div className="sd-buttons sd-actions">
+                  {sync.needsPermission && <button type="button" className="btn sd-allow" disabled={busy} onClick={run(onAllow)}>Allow access</button>}
+                  <button type="button" className="btn" disabled={busy} onClick={run(onLink)} title="Link a different folder">Change<span className="sd-long"> Folder</span>…</button>
                   <button type="button" className="btn" disabled={busy} onClick={run(onDisconnect)}>Disconnect</button>
                 </div>
               </div>

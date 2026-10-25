@@ -71,14 +71,24 @@ describe('Folder sync: browsers without showDirectoryPicker (Safari, Firefox, ph
     const ui = readFileSync(new URL('../src/components/StorageDestination.jsx', import.meta.url), 'utf8');
     const card = ui.slice(ui.indexOf('{sync.supported && ('), ui.lastIndexOf('</section>'));
     const label = card.slice(card.indexOf('<label'), card.indexOf('</label>'));
-    for (const action of ['run(onAllow)}>Allow access', 'run(onLink)}>Change Folder…', 'run(onDisconnect)}>Disconnect', 'run(onLink)}>Link Folder…']) {
+    for (const action of ['run(onAllow)}>Allow access', 'run(onLink)} title="Link a different folder">Change<span className="sd-long"> Folder</span>…', 'run(onDisconnect)}>Disconnect', 'run(onLink)}>Link Folder…']) {
       assert.ok(card.indexOf(action) > card.indexOf('</label>'), `${action} is in the card, after the label`);
       assert.ok(!label.includes(action), `${action} is not inside the label (a click would toggle the radio)`);
     }
     assert.match(card, /'The browser needs your OK to write to this folder again\.'/);
     assert.ok(card.indexOf('sd-folder') < card.lastIndexOf('</div>'), 'no detached folder card after the options');
     assert.equal((ui.match(/className=\{`sd-folder/g) || []).length, 1);
-    assert.match(readFileSync(new URL('../src/components/ProjectsDrawer.css', import.meta.url), 'utf8'), /\.sd-card > \.sd-folder, \.sd-card > \.sd-link \{/);
+    const css = readFileSync(new URL('../src/components/ProjectsDrawer.css', import.meta.url), 'utf8');
+    assert.match(css, /\.sd-card > \.sd-folder, \.sd-card > \.sd-link \{/);
+  });
+  it('the folder actions share one row as outlined buttons; "Change Folder…" shortens on a narrow card', async () => {
+    const { readFileSync } = await import('node:fs');
+    const css = readFileSync(new URL('../src/components/ProjectsDrawer.css', import.meta.url), 'utf8');
+    assert.match(css, /\.sd-actions \{ display: flex; flex-wrap: nowrap; gap: 6px; \}/);
+    assert.match(css, /\.sd-actions \.btn \{ flex: 1 1 auto; min-width: 0;/);
+    assert.match(css, /\.sd-actions \.btn \{[^}]*border-color: var\(--line-soft\)/);
+    assert.match(css, /\.sd-folder \{ container-type: inline-size; \}/);
+    assert.match(css, /@container \(max-width: 300px\) \{ \.sd-long \{ display: none; \} \}/);
   });
   it('the Projects footer note follows the chosen destination', async () => {
     const { readFileSync } = await import('node:fs');

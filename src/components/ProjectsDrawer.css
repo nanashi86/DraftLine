@@ -203,4 +203,13 @@
 .sd-folder-state { color: var(--muted); font-size: 11.5px; line-height: 1.45; }
 .sd-buttons { display: flex; flex-wrap: wrap; gap: 6px; }
 .sd-buttons .btn { padding: 4px 10px; font-size: 12px; }
+/* The linked folder's actions: one row that shares the width (each grows from its label's size), with a subtle outline. */
+.sd-folder { container-type: inline-size; }
+.sd-actions { display: flex; flex-wrap: nowrap; gap: 6px; }
+.sd-actions .btn { flex: 1 1 auto; min-width: 0; padding: 5px 6px; border-color: var(--line-soft); text-align: center; overflow: hidden; text-overflow: ellipsis; }
+.sd-actions .btn:hover:not(:disabled) { border-color: var(--muted); }
+.sd-actions .sd-allow { border-color: color-mix(in srgb, var(--accent) 60%, var(--line-soft)); background: color-mix(in srgb, var(--accent) 12%, transparent); }
+@container (max-width: 300px) { .sd-long { display: none; } }
+/* Phones: the nested folder panel uses the card's full width instead of indenting under the text. */
+@media (max-width: 480px) { .sd-card > .sd-folder { margin-left: 10px; } }
 .pd-badge.is-folder { background: color-mix(in srgb, #6fae7d 22%, transparent); color: #9fd3aa; }
