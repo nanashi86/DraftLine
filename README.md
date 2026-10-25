@@ -265,14 +265,14 @@ nothing uploaded, works offline). Click the title's **▾** or the **D** logo (o
 
 ## Files
 
-**File → Export PDF (Compiled)** builds the PDF inside DraftLine instead of through the browser's print dialog:
+**File → PDF** (Export Script) builds the PDF inside DraftLine instead of through the browser's print dialog:
 US Letter, Courier Prime 12 pt embedded (only the styles the script uses), margins 1.5 in left and 1 in elsewhere,
 54 lines a page, Character at 3.7 in, Parenthetical 3.1 in, Dialogue 2.5 in (3.5 in wide), Transitions flush right,
 page numbers top right from page 2, the title page first. Page breaks come from the same pagination as the editor
 (orphaned headings moved, speeches split with `(MORE)` / `NAME (CONT'D)`), so the file matches the screen and is the
 same on every machine. It compiles in a Web Worker (`src/lib/pdf/`, no dependencies) and downloads `<title>.pdf`.
 Text outside Latin-1 and typographic punctuation prints as `?` (you're told how many characters). The title is set in
-Courier Prime whatever title font you chose; **Script (PDF)** (print) keeps the chosen font.
+Courier Prime whatever title font you chose; **Print Script…** keeps the chosen font.
 
 Every script export (`.fountain`, `.fdx`, `.draftline`, print / PDF) is confirmed in a bottom-right toast that closes
 itself after 8 seconds, never takes focus and pauses while hovered. At most every 14 days it also carries one line
@@ -332,9 +332,9 @@ end with a similar line at most every 30 days. Both are throttled and muted per 
   ink — or **Midnight**, a dark page (#1f1f22) with soft light text (#e4e4e7) that matches the app around it.
   Remembered in this browser (`draftline_canvas_theme`). Printing and PDFs are always black on white either way.
 - **File ▾** has four sections: **Script** (**New…**, **Open…**, **Import…**, **Sample…**, **Edit Title…**),
-  **Export Script** (**Script (PDF)**, also **Ctrl+P** — a paginated PDF with the title page as page 0; page 1 is
-  unnumbered, pages 2 onward carry a right-aligned "2.", "3." … — plus **Fountain** `.fountain` and **Final Draft**
-  `.fdx`), **Export Outline & Bible** (**Story Bible** `.pdf`, **Spreadsheet**, **Markdown** and **Fountain
+  **Export Script** (**PDF** `.pdf`, compiled in DraftLine; **Final Draft** `.fdx`; **Fountain** `.fountain`; and
+  **Print Script…**, also **Ctrl+P** — through the print dialog, with the title page as page 0; page 1 is unnumbered,
+  pages 2 onward carry a right-aligned "2.", "3." …), **Export Outline & Bible** (**Story Bible** `.pdf`, **Spreadsheet**, **Markdown** and **Fountain
   Outline**) and **Backup** (**Backup Project** `.draftline`, **Snapshot History**).
 - The toolbar keeps **Story Bible** and **Characters** visible down to 1380px wide (about a laptop screen); below that,
   Story Bible moves into **⋮** (and stays on Alt+I). Below 1300px the toolbar scrolls sideways.
@@ -416,7 +416,7 @@ src/
   lib/bible.js             Story Bible model: characters, story notes, notes import, Markdown reader
   lib/editorialNotes.js    margin notes: quoting, editing sessions, history, the drawer's list
   lib/revisions.js         Snapshots: create, list, restore (whole-project checkpoints)
-  lib/pdf/                 Export PDF (Compiled): layout (scriptPdf.js), PDF writer, TrueType reader, worker
+  lib/pdf/                 File → PDF (compiled): layout (scriptPdf.js), PDF writer, TrueType reader, worker
   lib/scriptDiff.js        Snapshot Compare: Myers diff by element and word (+ scriptDiff.worker.js, scriptDiffAsync.js)
   lib/storyDna.js          Story DNA blueprint model
   lib/structureDictionary.js  the 11 structure terms (starter wording) and your overrides

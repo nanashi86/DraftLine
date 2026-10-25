@@ -1321,7 +1321,7 @@ function Workspace({ boot }) {
     notify(`${mode === 'append' ? 'Appended' : 'Imported'} ${stats.scene} scenes · ${stats.dialogue} dialogue blocks · Ctrl+Z to undo`);
   };
 
-  // File → Export PDF (Compiled): the PDF is built off the main thread (lib/pdf/), with Courier
+  // File → PDF: the PDF is built off the main thread (lib/pdf/), with Courier
   // Prime embedded, and downloaded as <title>.pdf; typing carries on while it compiles.
   const compilingPdf = useRef(false);
   const exportCompiledPdf = async () => {
@@ -1382,7 +1382,7 @@ function Workspace({ boot }) {
     setView((v) => VIEWS[(VIEWS.findIndex((x) => x.id === v) + 1) % VIEWS.length].id);
   }, []);
 
-  // Print view is only mounted while printing (File → Script (PDF), or Ctrl+P).
+  // Print view is only mounted while printing (File → Print Script…, or Ctrl+P).
   useEffect(() => {
     const before = () => flushSync(() => setPrinting(true));
     // The browser doesn't say whether you printed, saved a PDF or cancelled, so the toast says

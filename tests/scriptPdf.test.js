@@ -243,12 +243,15 @@ describe('Compiled PDF: the file', () => {
 
 describe('Compiled PDF: export flow', () => {
   const app = read('src/App.jsx').toString();
-  it('File → Export PDF (Compiled) sits with the script exports', () => {
-    const toolbar = read('src/lib/toolbar.js').toString();
-    assert.match(toolbar, /label: 'Export PDF \(Compiled\)', ext: '\.pdf', onSelect: onCompiledPdf/);
-    assert.ok(toolbar.indexOf("label: 'Script (PDF)'") < toolbar.indexOf("label: 'Export PDF (Compiled)'"));
-    assert.ok(toolbar.indexOf("label: 'Export PDF (Compiled)'") < toolbar.indexOf("label: 'Fountain'"));
+  it('File → Export Script: PDF (compiled) · Final Draft · Fountain · Print Script…, no dividers between them', async () => {
+    const { fileMenuItems } = await import('../src/lib/toolbar.js');
+    const items = fileMenuItems({ onCompiledPdf() {}, onFdx() {}, onFountain() {}, onPrint() {}, snapshotCount: 0 });
+    const at = items.findIndex((i) => i.heading === 'Export Script');
+    const section = items.slice(at + 1, items.findIndex((i, n) => n > at && i.divider));
+    assert.deepEqual(section.map((i) => [i.label, i.ext || i.hint]), [['PDF', '.pdf'], ['Final Draft', '.fdx'], ['Fountain', '.fountain'], ['Print Script…', 'Ctrl+P']]);
+    assert.ok(section.every((i) => !i.divider && !i.heading));
     assert.match(app, /onCompiledPdf: exportCompiledPdf,/);
+    assert.match(app, /onPrint: printScript,/);
   });
   it('compiles off the main thread and downloads <title>.pdf', () => {
     const asyncSrc = read('src/lib/pdf/compilePdfAsync.js').toString();
