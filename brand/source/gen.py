@@ -245,7 +245,7 @@ def hero(w, h, tagline, sub=None, lock_h=None, cy=None, pages=True, url=None, su
     return body
 
 TAG = 'Fast, distraction-free screenwriting.'
-SUB = 'Free in your browser  ·  Works offline  ·  Fountain & Final Draft'
+SUB = 'Local-First  ·  Works Offline  ·  Fountain & Final Draft'
 URL = 'nanashi86.github.io/DraftLine'
 
 # =================== PATREON ===================
