@@ -61,6 +61,8 @@ export const SHORTCUT_SECTIONS = [
       ['Ctrl+Shift+Z', 'Redo'],
       ['Ctrl+Alt+N', 'New script'],
       ['Ctrl+O', 'Open a .fountain, .fdx, .txt or .draftline file'],
+      ['Ctrl+F', 'Find in the script (Enter: next · Shift+Enter: previous · Esc: close)'],
+      ['Ctrl+H', 'Find & Replace'],
       ['Ctrl+S', 'Save now (it also autosaves)'],
       ['Ctrl+P', 'Export Script (PDF)'],
       ['Ctrl+Alt+L', 'Lock / unlock the script — View Only: read, select and copy, no changes'],

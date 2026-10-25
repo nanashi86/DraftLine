@@ -156,11 +156,28 @@ function seamClip(piece) {
   };
 }
 
+/**
+ * Find & Replace highlights: a copy of the element's text laid over it, transparent but for the
+ * matches (the current one stronger). Same font and width as the textarea, so they line up —
+ * and inside each page-seam view, so a match in a split speech shows on the right page.
+ */
+function FindMarks({ text, hits }) {
+  const out = [];
+  let at = 0;
+  hits.forEach(([s, e, current], k) => {
+    if (s > at) out.push(text.slice(at, s));
+    out.push(<mark key={k} className={current ? 'is-current' : undefined}>{text.slice(s, e)}</mark>);
+    at = e;
+  });
+  if (at < text.length) out.push(text.slice(at));
+  return <div className="el-text el-find" aria-hidden="true">{out}</div>;
+}
+
 const Block = memo(function Block({
   block, sceneNumber, isActive, isHighlighted, isDim, isDense, marginLines, marginGaps,
   register, observe, onText, onKey, onFocusBlock,
   noteOpen, onOpenNote, locked = false,
-  piece = null, split = false, partIndex = 0,
+  piece = null, split = false, partIndex = 0, hits = null,
 }) {
   const setRef = useCallback((el) => register(block.id, el, partIndex), [register, block.id, partIndex]);
   const meta = ELEMENT_META[block.type];
@@ -192,6 +209,7 @@ const Block = memo(function Block({
             // so both wrap identically.
             <FormattedText className="el-text el-fmt" aria-hidden="true" text={block.text} marks={block.marks} />
           )}
+          {hits && <FindMarks text={block.text} hits={hits} />}
           <AutoTextarea
             ref={setRef}
             className="el-input"
@@ -223,7 +241,7 @@ const Block = memo(function Block({
 
 const DualRow = memo(function DualRow({
   item, activeId, highlightId, spotlight, dense, marginLines, marginGaps, register, observe, onText, onKey, onFocusBlock,
-  openNoteId, onOpenNote, locked,
+  openNoteId, onOpenNote, locked, findHits = null,
 }) {
   const col = (bs) => bs.map((b) => (
     <Block
@@ -233,6 +251,7 @@ const DualRow = memo(function DualRow({
       isHighlighted={b.id === highlightId}
       isDim={!!spotlight && !spotlight.has(b.id)}
       isDense={!!dense && dense.has(b.id)}
+      hits={findHits?.get(b.id) || null}
       register={register}
       onText={onText}
       onKey={onKey}
@@ -301,6 +320,7 @@ export default function Editor({
   activeId,
   highlightId,
   cast = NO_CAST, // Story Bible character names, offered by Character autocomplete
+  findHits = null, // Find & Replace: Map id → [[start, end, isCurrent]] (lib/findReplace.js hitsById)
   dense = null, // Density Mode: Set of dense action block ids to mark in the gutter (lib/pacing.js)
   spotlight = null, // Set of block ids to keep bright (Characters → Dialogue filter); the rest dim
   zoom,
@@ -609,8 +629,33 @@ export default function Editor({
     pulseBlock(id) {
       return revealAndPulse(els.current.get(id)?.closest('.el') || null);
     },
+    /** Scroll the current Find match into view (on the page piece that shows it), without taking focus. */
+    revealFind() {
+      const sheet = sheetRef.current;
+      if (!sheet) return;
+      const marks = [...sheet.querySelectorAll('.el-find mark.is-current')];
+      const shown = marks.find((m) => {
+        const r = m.getBoundingClientRect();
+        const c = m.closest('.el-clip').getBoundingClientRect();
+        return r.top >= c.top - 1 && r.bottom <= c.bottom + 1;
+      }) || marks[0];
+      if (!shown) return;
+      const scroller = sheet.closest('.scroller') || sheet.parentElement;
+      const r = shown.getBoundingClientRect();
+      const s = scroller.getBoundingClientRect();
+      if (r.top < s.top + 72 || r.bottom > s.bottom - 48) {
+        scroller.scrollTo({ top: scroller.scrollTop + (r.top - s.top) - s.height / 3, behavior: 'smooth' });
+      }
+    },
     /** Put the cursor in element `id` (at its end; `{ at: 'start' }` for its start), scrolling it to the
      *  middle unless `{ scroll: false }` — an import puts it on page 1 without moving the page. */
+    /** Put the cursor in element `id` with [start, end) selected (Find: Esc leaves the match selected). */
+    focusRange(id, start, end) {
+      const el = els.current.get(id);
+      if (!el) return;
+      el.focus({ preventScroll: true });
+      el.setSelectionRange(start, end);
+    },
     focusBlock(id, { scroll = true, at = 'end' } = {}) {
       const el = els.current.get(id);
       if (!el) return;
@@ -933,6 +978,7 @@ export default function Editor({
               openNoteId={openNoteId}
               onOpenNote={onOpenNote}
               locked={locked}
+              findHits={findHits}
             />
           );
         }
@@ -963,6 +1009,7 @@ export default function Editor({
             piece={pc}
             split={split}
             partIndex={i}
+            hits={findHits?.get(b.id) || null}
           />
         ));
       })}

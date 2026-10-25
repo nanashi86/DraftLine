@@ -118,6 +118,16 @@ Select text and press {{key:Ctrl+B}} (bold), {{key:Ctrl+I}} (italic), {{key:Ctrl
 
 **File → Edit Title…** edits the title, credit, author, source material, draft version and date, and contact details, plus the title's font, size and weight. The title page shows above page 1 and prints first.
 
+### Find & Replace
+
+{{key:Ctrl+F}} opens a small Find bar at the top right of the page; {{key:Ctrl+H}} (or the arrow at its left) adds Replace. It's not a window over your script: you can keep reading and typing.
+
+- Matches are highlighted in the text. Enter goes to the next one, Shift+Enter to the previous; the bar shows **3 of 12**.
+- **Aa** matches capitals exactly; **W** finds whole words only ("cat" won't find "catch"). The list chooses where to look: every element, or only Scene Headings, Action, Character cues, Dialogue, Parentheticals or Transitions — "night" → "dusk" in headings only, say.
+- **Replace** changes the highlighted match and moves to the next; **All** changes every match at once. Either way {{key:Ctrl+Z}} undoes it, and DraftLine takes a snapshot before **All**. Bold, italic and underline stay where they were.
+- {{key:Esc}} closes the bar and leaves the match selected in your script. If a search is still on, **Find · 3 of 12** stays in the status bar: ‹ › step through the matches, clicking **Find** lists them all, ✕ ends the search.
+- In View Only, Find works but Replace is turned off.
+
 ### Margin notes
 
 {{key:Alt+N}} opens a private margin note for the current line. Selected words are quoted into the note. Notes open in the Notes drawer (**⋮ → Margin Notes**) and are never printed or exported.
@@ -295,6 +305,17 @@ One card per scene: **number · slugline · INT/EXT and DAY/NIGHT badges · leng
 ### Stripboard
 
 Every scene as one strip, in script order, coloured the standard way: **INT. DAY** white, **EXT. DAY** yellow, **INT. NIGHT** blue, **EXT. NIGHT** green (grey when the heading has no day or night). Each strip shows the scene number, INT/EXT, location, time of day, length in eighths and the cast numbers of who speaks. The legend at the top counts scenes, pages and strips of each colour.
+
+### Reports
+
+**Reports**, the third view in Plan (or **⋮ → Reports** from Write), shows your script in numbers, worked out fresh each time:
+
+- **Scenes**: every scene with its INT/EXT, time of day, page, length in eighths and who speaks in it.
+- **Characters**: speeches, dialogue lines as printed, words, how many scenes, which pages, and their share of all the dialogue.
+- **Locations**: each place with its scenes and total screen time. Click one to list its scenes.
+- **Script**: pages, scenes, words, speaking characters, dialogue vs action, interiors and exteriors, day and night, the average and the longest scene.
+
+Click a column heading to sort. Click a scene to open it in Write, or a character to see all their lines there (the Dialogue spotlight). **.csv** downloads the report you're looking at as a spreadsheet.
 
 ### Where planning is saved
 

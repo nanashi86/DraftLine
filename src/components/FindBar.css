@@ -1,0 +1,113 @@
+/* Find & Replace: a slim card floating at the top right of the page area (FindBar.jsx).
+   The dock is zero-height and sticky, so the card stays put while the script scrolls and never
+   pushes the page down. */
+.find-dock {
+  position: sticky;
+  top: 0;
+  height: 0;
+  z-index: 40;
+}
+.find-bar {
+  position: absolute;
+  top: 8px;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 6px 6px 6px 4px;
+  border: 1px solid var(--line-soft);
+  border-radius: 9px;
+  background: var(--card);
+  color: var(--text);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+  font-size: 12.5px;
+  animation: fb-in 140ms ease-out;
+}
+@keyframes fb-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: none; }
+}
+.fb-row { display: flex; align-items: center; gap: 4px; }
+
+.fb-field {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 210px;
+  height: 28px;
+  padding: 0 8px;
+  border: 1px solid var(--line-soft);
+  border-radius: 6px;
+  background: var(--field);
+  color: var(--muted);
+}
+.fb-field:focus-within { border-color: color-mix(in srgb, var(--accent) 70%, var(--line-soft)); color: var(--text); }
+.fb-field input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: var(--text);
+  font: 13px var(--ui-font);
+}
+.fb-field input::placeholder { color: var(--muted); }
+.fb-field input:disabled { opacity: 0.5; }
+
+.fb-count {
+  min-width: 64px;
+  padding: 0 4px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  white-space: nowrap;
+}
+.fb-count.is-none { color: #f0a492; }
+
+.fb-icon {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: 0;
+  border-radius: 5px;
+  background: none;
+  color: var(--muted);
+  cursor: pointer;
+  flex: none;
+}
+.fb-icon:hover:not(:disabled) { background: var(--chip); color: var(--text); }
+.fb-icon:disabled { opacity: 0.35; cursor: default; }
+.fb-opt.is-on { background: color-mix(in srgb, var(--accent) 20%, transparent); color: var(--text); }
+.fb-spacer { cursor: default; }
+.fb-icon:focus-visible,
+.fb-scope:focus-visible,
+.fb-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+.fb-scope {
+  height: 26px;
+  max-width: 122px;
+  padding: 0 4px;
+  border: 1px solid var(--line-soft);
+  border-radius: 5px;
+  background: var(--field);
+  color: var(--text);
+  font: 12px var(--ui-font);
+  cursor: pointer;
+}
+
+.fb-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 26px;
+  padding: 0 10px;
+  font-size: 12.5px;
+}
+
+@media (max-width: 720px) {
+  .find-bar { right: -24px; }
+  .fb-field { width: 150px; }
+  .fb-scope { max-width: 84px; }
+}

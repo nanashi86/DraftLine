@@ -152,6 +152,26 @@
   pointer-events: none;
   user-select: none;
 }
+/* ---- Find & Replace highlights (FindMarks): transparent text, coloured matches ---- */
+.el-find {
+  position: absolute;
+  top: 0;
+  left: 0;
+  color: transparent;
+  pointer-events: none;
+  user-select: none;
+}
+.el-find mark {
+  color: transparent;
+  background: rgba(245, 158, 11, 0.3);
+  border-radius: 2px;
+}
+.el-find mark.is-current {
+  background: rgba(200, 85, 61, 0.38);
+  box-shadow: 0 0 0 1.5px rgba(200, 85, 61, 0.75);
+}
+@media print { .el-find { display: none; } }
+
 .has-fmt .el-input,
 .has-fmt .el-input::selection { color: transparent; }
 .sheet .el-format_cue .el-fmt { color: var(--fmt-ink); }

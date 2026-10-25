@@ -8,7 +8,7 @@ import Navigator from './components/Navigator.jsx';
 import TitlePageModal from './components/TitlePageModal.jsx';
 import DeleteProjectModal from './components/DeleteProjectModal.jsx';
 import DialogueStepper from './components/DialogueStepper.jsx';
-import { Clapperboard, Columns2, FileText, LayoutList, PenLine, Rows3, SquareKanban } from 'lucide-react';
+import { ChartColumn, Clapperboard, Columns2, FileText, LayoutList, PenLine, Rows3, SquareKanban } from 'lucide-react';
 import { addAsset, removeAsset, setSceneNotes } from './lib/productionData.js';
 import { csvOutlineFileName, outlineCsv } from './lib/exportCsvOutline.js';
 import FormatStepper from './components/FormatStepper.jsx';
@@ -75,6 +75,9 @@ import { effectiveZoomFor } from './lib/zoom.js';
 import { actionDensity, riskLocations, stepRisk } from './lib/pacing.js';
 import DensityStepper from './components/DensityStepper.jsx';
 import { DoctorSupportFooter, ExportToast } from './components/SupportCallouts.js';
+import FindBar from './components/FindBar.jsx';
+import FindStepper from './components/FindStepper.jsx';
+import { findMatches, hitsById, nearestMatch, replaceMatches } from './lib/findReplace.js';
 import { EXPORT_TIP, FORMAT_DOCTOR_TIP, claimTip, muteTip } from './lib/supportTips.js';
 import BrandMark from './components/BrandMark.jsx';
 import { MILESTONES, MILESTONE_TOAST_MS, finishedSentence, milestonesReached } from './lib/milestones.js';
@@ -102,6 +105,7 @@ const WORKSPACES = [
 const PLAN_VIEWS = [
   { id: 'breakdowns', label: 'Breakdowns', title: 'Every scene’s cast, setting, length and the props, wardrobe, vehicles and extras you add', Icon: LayoutList },
   { id: 'stripboard', label: 'Stripboard', title: 'One colour-coded strip per scene, in script order', Icon: Rows3 },
+  { id: 'reports', label: 'Reports', title: 'Scenes, characters, locations and the script in numbers — each as a .csv too', Icon: ChartColumn },
 ];
 const VIEWS = [
   { id: 'page', label: 'Page', title: 'Script only', Icon: FileText },
@@ -801,6 +805,7 @@ function Workspace({ boot }) {
     setNoteId(null);
     setRestoreId(null);
     setCompareId(null);
+    setFind((f) => ({ ...f, open: false, query: '' }));
     setLineMap({});
     setSelectedChar(null);
     setActiveId(null);
@@ -1500,6 +1505,11 @@ function Workspace({ boot }) {
       } else if (e.altKey && !mod && e.code === 'KeyS') {
         e.preventDefault();
         setNavOpen((o) => !o);
+      } else if (e.key === 'Escape' && closeFindRef.current && !e.defaultPrevented && !titleOpen && !importSeed && !doctorOpen && !renameFrom) {
+        closeFindRef.current();
+      } else if (mod && !e.altKey && !e.shiftKey && (e.code === 'KeyF' || e.code === 'KeyH') && findAllowedRef.current) {
+        e.preventDefault(); // the browser's own Find / History
+        openFindRef.current(e.code === 'KeyH');
       } else if (mod && !e.altKey && e.code === 'Slash') {
         e.preventDefault();
         setHelpKind((k) => (k === 'shortcuts' ? null : 'shortcuts'));
@@ -1639,6 +1649,25 @@ function Workspace({ boot }) {
       editorRef.current?.pulseBlock(id);
     }));
   };
+  // Plan → Reports: a character row goes back to Write with their Dialogue spotlight on.
+  const openCharacterInWrite = (name) => {
+    writeScroll.current = 0;
+    setWorkspace('write');
+    if (view === 'board') setView('page');
+    setDock((d) => openDock(d, 'characters'));
+    setCharacterTab('dialogue');
+    requestAnimationFrame(() => requestAnimationFrame(() => selectCharacter(name)));
+  };
+  const exportReport = async (kind, reports) => {
+    const { reportCsv } = await import('./lib/reports.js');
+    const name = `${base}-${kind}-report.csv`;
+    download(name, reportCsv(kind, reports), 'text/csv;charset=utf-8');
+    notify(`Exported ${name}`);
+  };
+  const openReports = () => {
+    setWorkspace('plan');
+    setPlanView('reports');
+  };
   const exportBreakdown = async () => {
     // The breakdown arithmetic loads with the Plan workspace (lib/productionEngine.js).
     const { breakdownCsv, buildBreakdown } = await import('./lib/productionEngine.js');
@@ -1671,6 +1700,91 @@ function Workspace({ boot }) {
     // After this render (highlights on, editor shown), so the element exists and is marked.
     requestAnimationFrame(() => requestAnimationFrame(() => editorRef.current?.pulseBlock(target.id)));
   };
+
+  // ---- Find & Replace (Ctrl+F / Ctrl+H; components/FindBar.jsx, lib/findReplace.js) ----
+  // The bar floats over the page; closing it with a search on leaves a "Find · 3 of 12" stepper in
+  // the status bar until ✕. Matches follow the script as you edit. Replace is one undo step each;
+  // Replace All snapshots the script first, like Fix All.
+  const [find, setFind] = useState({ open: false, replace: false, query: '', replacement: '', matchCase: false, wholeWord: false, scope: 'all' });
+  const [findIndex, setFindIndex] = useState(0);
+  const [findFocus, setFindFocus] = useState(0);
+  const findOrigin = useRef({ id: null, pos: 0 }); // where the cursor was when Find opened
+  const findOn = !!find.query && showEditor && !inPlan;
+  const findList = useMemo(
+    () => (findOn ? findMatches(blocks, find.query, find) : []),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [findOn, blocks, find.query, find.matchCase, find.wholeWord, find.scope],
+  );
+  const findCur = findList.length ? Math.min(findIndex, findList.length - 1) : -1;
+  const findHits = useMemo(() => (findList.length ? hitsById(findList, findCur) : null), [findList, findCur]);
+  const revealFindSoon = () => requestAnimationFrame(() => requestAnimationFrame(() => editorRef.current?.revealFind()));
+  const openFind = (withReplace) => {
+    const el = document.activeElement;
+    const inScript = el?.classList?.contains('el-input');
+    if (inScript) findOrigin.current = { id: el.dataset.id, pos: el.selectionStart };
+    const picked = inScript && el.selectionEnd > el.selectionStart ? el.value.slice(el.selectionStart, el.selectionEnd) : '';
+    const seed = picked && !picked.includes('\n') && picked.length <= 80 ? picked : null;
+    if (view === 'board') setView('page');
+    setFind((f) => ({ ...f, open: true, replace: withReplace || f.replace, ...(seed ? { query: seed } : {}) }));
+    if (seed) setFindIndex(nearestMatch(findMatches(blocks, seed, find), blocks, findOrigin.current.id, findOrigin.current.pos));
+    setFindFocus((n) => n + 1);
+  };
+  const changeFind = (patch) => {
+    const next = { ...find, ...patch };
+    setFind(next);
+    if ('query' in patch || 'matchCase' in patch || 'wholeWord' in patch || 'scope' in patch) {
+      const list = next.query ? findMatches(blocks, next.query, next) : [];
+      setFindIndex(nearestMatch(list, blocks, findOrigin.current.id, findOrigin.current.pos));
+      if (list.length) revealFindSoon();
+    }
+  };
+  const stepFind = (dir) => {
+    const n = findList.length;
+    if (!n) return;
+    setFindIndex(typeof dir === 'object' ? dir.index : (findCur + dir + n) % n);
+    revealFindSoon();
+  };
+  const closeFind = () => {
+    setFind((f) => ({ ...f, open: false }));
+    const m = findList[findCur];
+    if (m) requestAnimationFrame(() => editorRef.current?.focusRange(m.id, m.start, m.end));
+  };
+  const endFind = () => setFind((f) => ({ ...f, open: false, query: '' }));
+  const replaceOne = () => {
+    if (isLocked) { notifyLocked(); return; }
+    const m = findList[findCur];
+    if (!m) return;
+    const { blocks: next, count } = replaceMatches(blocks, [m], find.replacement);
+    if (!count) return;
+    set(next);
+    // On to the next match after the new text (a replacement that contains the search isn't found again).
+    const after = findMatches(next, find.query, find);
+    const order = new Map(next.map((b, i) => [b.id, i]));
+    const at = order.get(m.id);
+    const end = m.start + find.replacement.length;
+    const i = after.findIndex((x) => order.get(x.id) > at || (x.id === m.id && x.start >= end));
+    setFindIndex(i < 0 ? 0 : i);
+    revealFindSoon();
+  };
+  const replaceAll = () => {
+    if (isLocked) { notifyLocked(); return; }
+    if (!findList.length) return;
+    autoSnapshotRef.current('Replace All', { force: true }); // the script as it was, first
+    const { blocks: next, count } = replaceMatches(blocks, findList, find.replacement);
+    if (!count) return;
+    set(next);
+    setFindIndex(0);
+    notify(`Replaced ${count} ${count === 1 ? 'match' : 'matches'} · Ctrl+Z to undo`);
+  };
+  const blocksById = useMemo(() => new Map(blocks.map((b) => [b.id, b])), [blocks]);
+  const openFindRef = useRef(openFind);
+  const findAllowedRef = useRef(true); // Find is for the script: Write, not Plan
+  const closeFindRef = useRef(null); // Esc while the bar is open (wherever focus is) closes it
+  useEffect(() => {
+    openFindRef.current = openFind;
+    findAllowedRef.current = !inPlan;
+    closeFindRef.current = find.open ? closeFind : null;
+  });
 
   // The header's File ▾ menu (lib/toolbar.js fileMenuItems): Script · Export · Backup.
   const fileItems = () => fileMenuItems({
@@ -1978,6 +2092,7 @@ function Workspace({ boot }) {
                 noteCount,
                 onShortcuts: () => setHelpKind('shortcuts'),
                 onFormatDoctor: openDoctor,
+                onReports: inPlan ? null : openReports,
                 issueCount: issues.length,
                 onAbout: () => setHelpKind('about'),
                 onGuide: () => setGuideOpen(true),
@@ -2012,6 +2127,22 @@ function Workspace({ boot }) {
 
         <div className="workspace">
           <main className="scroller" ref={scrollerRef} hidden={!showEditor}>
+            {find.open && showEditor && (
+              <div className="find-dock">
+                <FindBar
+                  state={find}
+                  total={findList.length}
+                  index={Math.max(0, findCur)}
+                  locked={isLocked}
+                  focusSignal={findFocus}
+                  onChange={changeFind}
+                  onStep={stepFind}
+                  onReplace={replaceOne}
+                  onReplaceAll={replaceAll}
+                  onClose={closeFind}
+                />
+              </div>
+            )}
             {coverVisible && (
               <div
                 className="cover-wrap"
@@ -2041,6 +2172,7 @@ function Workspace({ boot }) {
               layout={layout}
               sceneNumbers={analysis.sceneNumbers}
               cast={castNames}
+              findHits={findHits}
               activeId={activeId}
               highlightId={hoverId}
               spotlight={filter?.ids ?? null}
@@ -2094,6 +2226,9 @@ function Workspace({ boot }) {
                 onRemove={(id, bucket, text) => setProduction((p) => removeAsset(p, id, bucket, text))}
                 onNotes={(id, text) => setProduction((p) => setSceneNotes(p, id, text))}
                 onOpenScene={openSceneInWrite}
+                layout={layout}
+                onOpenCharacter={openCharacterInWrite}
+                onReportCsv={exportReport}
               />
             </Suspense>
           )}
@@ -2178,6 +2313,19 @@ function Workspace({ boot }) {
                   onStep={stepSpeech}
                   onGo={jumpToSpeech}
                   onClear={() => setSelectedChar(null)}
+                />
+              )}
+              {findOn && !find.open && (
+                <FindStepper
+                  matches={findList}
+                  index={findCur}
+                  query={find.query}
+                  blocksById={blocksById}
+                  pageOfBlock={layout.pageOfBlock}
+                  onStep={(dir) => stepFind(dir === 'prev' ? -1 : 1)}
+                  onGo={(i) => stepFind({ index: i })}
+                  onOpen={() => openFind(false)}
+                  onDismiss={endFind}
                 />
               )}
               {showFormatStepper && (

@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { ChevronDown, CornerUpLeft, Plus, X } from 'lucide-react';
 import { PRODUCTION_BUCKETS, STRIP_COLORS, breakdownTotals, buildBreakdown } from '../../lib/productionEngine.js';
+import Reports from './Reports.jsx';
 import './PlanningWorkspace.css';
 
 /**
@@ -9,16 +10,20 @@ import './PlanningWorkspace.css';
  * workspace itself starts with one summary line, then the cards or strips.
  * Everything shown is derived from the script each time (lib/productionEngine.js buildBreakdown);
  * only the asset lists and notes are typed here, and they're saved with the project.
- *   view: 'breakdowns' | 'stripboard'
+ *   view: 'breakdowns' | 'stripboard' | 'reports'
  *   fold: { closed, except: Set } from the header's Collapse All (a card is open when closed !== except.has(id))
  *   onToggleCard(sceneId): fold or open one card
  *   blocks, analysis, scenes, production: the script, analyzeScript(), the measured scenes and the
  *     stored asset lists — turned into rows here (buildBreakdown), so all of it loads with Plan
  *   onAdd(sceneId, bucket, text) · onRemove(sceneId, bucket, text) · onNotes(sceneId, text)
  *   onOpenScene(sceneId): back to Write, at that scene
+ *   layout: the script's pagination (Reports: characters' pages, the page count)
+ *   onOpenCharacter(name): back to Write with that character's Dialogue spotlight (Reports)
+ *   onReportCsv(kind, reports): download one report as .csv
  */
 export default function PlanningWorkspace({
   view, fold, onToggleCard, blocks, analysis, scenes, production, onAdd, onRemove, onNotes, onOpenScene,
+  layout = null, onOpenCharacter, onReportCsv,
 }) {
   const rows = useMemo(() => buildBreakdown({ blocks, analysis, scenes, production }), [blocks, analysis, scenes, production]);
   const totals = useMemo(() => breakdownTotals(rows), [rows]);
@@ -32,7 +37,9 @@ export default function PlanningWorkspace({
             <p className="plan-summary" role="status">
               {plural(totals.scenes, 'scene')} · {totals.length} {totals.eighths > 8 ? 'pages' : 'page'} · cast, sluglines and lengths come from the script
             </p>
-            {view === 'stripboard'
+            {view === 'reports' ? (
+              <Reports rows={rows} blocks={blocks} analysis={analysis} layout={layout} onOpenScene={onOpenScene} onOpenCharacter={onOpenCharacter} onCsv={onReportCsv} />
+            ) : view === 'stripboard'
               ? <Stripboard rows={rows} totals={totals} onOpenScene={onOpenScene} />
               : <Breakdowns rows={rows} fold={fold} onToggle={onToggleCard} onAdd={onAdd} onRemove={onRemove} onNotes={onNotes} onOpenScene={onOpenScene} />}
           </>

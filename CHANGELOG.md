@@ -6,6 +6,9 @@ All notable changes to DraftLine are recorded here. The format follows [Keep a C
 
 ### Added
 
+- Find & Replace (Ctrl+F / Ctrl+H): a slim floating bar, highlights in the text (across page seams), match case, whole words, search one element type, Replace one or All (one undo step, snapshot first, formatting kept), a Find stepper in the status bar after closing; View Only allows Find only.
+- Plan → Reports: Scenes, Characters, Locations and Script tables worked out from the script, sortable, each row a doorway (open the scene, spotlight the character, list a location's scenes), each exportable as .csv. Also ⋮ → Reports from Write.
+- Design notes for future work in `docs/plans/`: Table Read (local-first read-aloud) and Revision Mode.
 - File → PDF: a PDF built inside DraftLine, off the main thread, with Courier Prime embedded — US Letter, 1.5 / 1 / 1 / 1 in margins, 54 lines a page, standard indents, page numbers from page 2, title page first, and the editor's page breaks including (MORE) / (CONT'D). Same bytes on every machine; no new dependencies.
 - No-mouse writing: Tab in a Scene Heading moves on to the time of day (then down to Action); Tab on a Character name cycles (O.S.) → (V.O.) → (CONT'D) → none; Backspace on an empty non-Action line steps it back to Action before deleting.
 - Smarter autocomplete: locations ranked by use, then recency; character names ranked by who speaks in the current scene, then the script, then Story Bible characters who haven't spoken yet.

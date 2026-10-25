@@ -105,6 +105,17 @@ The canvas is paginated live at 54 lines per page (1in margins, Courier 12pt) wi
 Put the cursor in either of two back-to-back speeches and press **Alt+D** (or choose **Dual Dialogue** in the Element dropdown, right below Dialogue — it shows ✓ when the speech is paired). Press again to undo.
 Exports as `NAME ^` in Fountain and Final Draft's `<DualDialogue>` block in .fdx.
 
+### Find & Replace
+
+**Ctrl+F** opens a slim bar floating at the top right of the page (not a dialog: the script stays visible and
+editable); **Ctrl+H**, or its chevron, adds the Replace row. Matches are highlighted in the text, on both sides of a
+page seam; **Enter** / **Shift+Enter** step through them, **Aa** matches case, **W** whole words, and the list picks
+where to look (all elements, or only Scene Headings, Action, Character cues, Dialogue, Parentheticals or
+Transitions). **Replace** changes one and moves on; **All** (Ctrl+Enter) changes every match as one undo step,
+snapshotting the script first; inline formatting follows the text. **Esc** closes the bar with the match selected;
+a search still on stays in the status bar as **Find · 3 of 12** (‹ › and a list of matches) until ✕. In View Only,
+Find works and Replace is off.
+
 ### Shortcuts
 
 | Keys | Action |
@@ -125,6 +136,7 @@ Exports as `NAME ^` in Fountain and Final Draft's `<DualDialogue>` block in .fdx
 | Alt+I | Story Bible (DNA · Notes) |
 | Ctrl+P | Print / save as PDF (title page first) |
 | Ctrl+S | Save now (it also autosaves continuously) |
+| Ctrl+F / Ctrl+H | Find / Find & Replace |
 
 ## Scene Board
 
@@ -263,6 +275,16 @@ nothing uploaded, works offline). Click the title's **▾** or the **D** logo (o
 - On first run the script DraftLine kept in localStorage moves into the library as your first project; the old copy
   is left in place untouched.
 
+## Plan → Reports
+
+The Plan workspace's third view, beside Breakdowns and Stripboard (also **⋮ → Reports** from Write): quiet tables
+worked out from the script each time, nothing stored. **Scenes** (number, slugline, INT/EXT, time, page, length in
+eighths, speaking cast) · **Characters** (speeches, printed dialogue lines, words, scenes, pages, share of dialogue) ·
+**Locations** (grouped by place: INT/EXT, times, scenes, screen time) · **Script** (pages, scenes, words, speakers,
+dialogue vs action, interiors/exteriors, day/night, average and longest scene). Click a column to sort. Every row
+leads somewhere: a scene opens in Write, a character turns on their Dialogue spotlight, a location lists its scenes.
+Each report downloads as a `.csv`.
+
 ## Files
 
 **File → PDF** (Export Script) builds the PDF inside DraftLine instead of through the browser's print dialog:
@@ -359,6 +381,11 @@ end with a similar line at most every 30 days. Both are throttled and muted per 
   the next start. **⋮ → About DraftLine** shows the library's size and lets you ask the browser to protect it from
   automatic clean-up. Browser storage belongs to this browser on this computer — Export to keep real files.
 
+## Roadmap
+
+Design notes for planned features live in `docs/plans/`: **Table Read** (local-first read-aloud) and **Revision
+Mode** (colored revisions, locked pages and scene numbers).
+
 ## Testing
 
 ```bash
@@ -417,6 +444,8 @@ src/
   lib/editorialNotes.js    margin notes: quoting, editing sessions, history, the drawer's list
   lib/revisions.js         Snapshots: create, list, restore (whole-project checkpoints)
   lib/pdf/                 File → PDF (compiled): layout (scriptPdf.js), PDF writer, TrueType reader, worker
+  lib/findReplace.js       Find & Replace: matches, replace one / all (formatting kept)
+  lib/reports.js           Plan → Reports: scenes, characters, locations, script; CSV
   lib/scriptDiff.js        Snapshot Compare: Myers diff by element and word (+ scriptDiff.worker.js, scriptDiffAsync.js)
   lib/storyDna.js          Story DNA blueprint model
   lib/structureDictionary.js  the 11 structure terms (starter wording) and your overrides

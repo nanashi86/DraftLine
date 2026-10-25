@@ -19,7 +19,7 @@ export function isOnBar(el, bar) {
  */
 export function moreMenuItems({
   bibleOnBar, charactersOnBar, onBible, onCharacters, onSnapshots, snapshotCount = 0, onNotes, noteCount = 0,
-  onShortcuts, onAbout, focusOnBar = true, onFocus, onGuide, onFormatDoctor, issueCount = 0, planTools = null,
+  onShortcuts, onAbout, focusOnBar = true, onFocus, onGuide, onFormatDoctor, issueCount = 0, planTools = null, onReports = null,
 }) {
   const panels = [
     !focusOnBar && onFocus && { label: 'Focus', hint: 'Esc exits', onSelect: onFocus },
@@ -36,6 +36,8 @@ export function moreMenuItems({
     { label: 'Margin Notes', hint: String(noteCount), onSelect: onNotes },
     // Format Doctor's status-bar stepper only shows while it has findings; this opens it any time.
     ...(onFormatDoctor ? [{ label: 'Format Doctor', hint: issueCount ? String(issueCount) : 'Clean', onSelect: onFormatDoctor }] : []),
+    // Plan → Reports, from Write (Plan has it on its own bar).
+    ...(onReports ? [{ label: 'Reports', hint: 'Plan', onSelect: onReports }] : []),
     { divider: true },
     { label: 'Keyboard Shortcuts', hint: 'Ctrl+/', onSelect: onShortcuts },
     { divider: true },
