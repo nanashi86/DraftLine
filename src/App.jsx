@@ -1336,7 +1336,9 @@ function Workspace({ boot }) {
     try {
       const { compilePdfAsync } = await import('./lib/pdf/compilePdfAsync.js');
       const s = latest.current;
-      const r = await compilePdfAsync({ meta: s.meta, blocks: s.blocks, sceneNumbers: analysis.sceneNumbers, appVersion: pkg.version });
+      const r = await compilePdfAsync({
+        meta: s.meta, blocks: s.blocks, sceneNumbers: analysis.sceneNumbers, showSceneNumbers: !!s.meta.showSceneNumbers, appVersion: pkg.version,
+      });
       const name = `${slugify(s.meta.title)}.pdf`;
       download(name, r.bytes, 'application/pdf');
       if (r.missing) notify(`${r.missing} character${r.missing === 1 ? '' : 's'} Courier Prime can’t show printed as “?”`);
@@ -1346,6 +1348,14 @@ function Workspace({ boot }) {
     } finally {
       compilingPdf.current = false;
     }
+  };
+
+  // File → Export Script → Scene Numbers: a per-script setting for the PDF and the printout
+  // (the editor always shows them while writing).
+  const toggleSceneNumbers = () => {
+    const on = !meta.showSceneNumbers;
+    setMeta((m) => ({ ...m, showSceneNumbers: on }));
+    notify(on ? 'Scene numbers on: the PDF and printout number every scene (production)' : 'Scene numbers off: the PDF and printout are unnumbered (spec)');
   };
 
   const printScript = () => {
@@ -1804,6 +1814,8 @@ function Workspace({ boot }) {
     onBackup: backupProject,
     onSnapshots: () => setDock((d) => openDock(d, 'snapshots')),
     snapshotCount: revisions.length,
+    showSceneNumbers: !!meta.showSceneNumbers,
+    onSceneNumbers: toggleSceneNumbers,
   });
   // Ctrl+O and Ctrl+Alt+N (the global shortcuts below) run the same New / Open as the menu.
   const fileShortcuts = useRef({});
@@ -2615,7 +2627,7 @@ function Workspace({ boot }) {
       </div>
 
       {printing && (
-        <PrintView meta={meta} items={items} layout={layout} sceneNumbers={analysis.sceneNumbers} />
+        <PrintView meta={meta} items={items} layout={layout} sceneNumbers={meta.showSceneNumbers ? analysis.sceneNumbers : {}} />
       )}
     </>
   );

@@ -1,5 +1,5 @@
 // Compiles the script to PDF off the main thread (scriptPdf.js), so a 110-page script never
-// stalls typing. In: { meta, blocks, sceneNumbers, now, appVersion }. Out: { bytes, … } (the
+// stalls typing. In: { meta, blocks, sceneNumbers, showSceneNumbers, now, appVersion }. Out: { bytes, … } (the
 // buffer is transferred, not copied) or { error }.
 import { compileScriptPdf } from './scriptPdf.js';
 import { browserDeflate, loadCourierPrime } from './fonts.js';

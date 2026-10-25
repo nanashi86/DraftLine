@@ -248,7 +248,7 @@ describe('Compiled PDF: export flow', () => {
     const items = fileMenuItems({ onCompiledPdf() {}, onFdx() {}, onFountain() {}, onPrint() {}, snapshotCount: 0 });
     const at = items.findIndex((i) => i.heading === 'Export Script');
     const section = items.slice(at + 1, items.findIndex((i, n) => n > at && i.divider));
-    assert.deepEqual(section.map((i) => [i.label, i.ext || i.hint]), [['PDF', '.pdf'], ['Final Draft', '.fdx'], ['Fountain', '.fountain'], ['Print Script…', 'Ctrl+P']]);
+    assert.deepEqual(section.map((i) => [i.label, i.ext || i.hint]), [['PDF', '.pdf'], ['Final Draft', '.fdx'], ['Fountain', '.fountain'], ['Print Script…', 'Ctrl+P']], 'the Scene Numbers setting appears only when wired');
     assert.ok(section.every((i) => !i.divider && !i.heading));
     assert.match(app, /onCompiledPdf: exportCompiledPdf,/);
     assert.match(app, /onPrint: printScript,/);
@@ -263,5 +263,51 @@ describe('Compiled PDF: export flow', () => {
   it('the fonts ship with the app (and its offline cache), under their licence', () => {
     for (const f of ['Regular', 'Bold', 'Italic', 'BoldItalic']) assert.ok(read(`src/assets/fonts/CourierPrime-${f}.ttf`).length > 50000);
     assert.match(read('src/assets/fonts/CourierPrime-OFL.txt').toString(), /SIL OPEN FONT LICENSE Version 1\.1/i);
+  });
+});
+
+describe('Compiled PDF: Scene Numbers setting (spec by default)', () => {
+  const app = read('src/App.jsx').toString();
+  const blocks = [B('s1', 'scene', 'EXT. HARBOR - DAWN'), action('a1', 2), B('s2', 'scene', 'INT. FERRY - NIGHT'), action('a2', 2)];
+  const sceneNumbers = { s1: 1, s2: 2 };
+  const numberRuns = (m) => runsOn(m, 0).filter((r) => /^\d+$/.test(r.text));
+
+  it('on: both margins of every scene heading, as before', () => {
+    const m = layoutScriptPdf({ blocks, sceneNumbers, showSceneNumbers: true });
+    assert.deepEqual(numberRuns(m).map((r) => r.text), ['1', '1', '2', '2']);
+    assert.deepEqual(numberRuns(layoutScriptPdf({ blocks, sceneNumbers })).length, 4, 'the engine on its own still numbers what it is given');
+  });
+  it('off: no scene numbers anywhere, and nothing else on the page moves', () => {
+    const on = layoutScriptPdf({ blocks, sceneNumbers, showSceneNumbers: true });
+    const off = layoutScriptPdf({ blocks, sceneNumbers, showSceneNumbers: false });
+    assert.deepEqual(numberRuns(off), []);
+    assert.deepEqual(runsOn(off, 0), runsOn(on, 0).filter((r) => !/^\d+$/.test(r.text)));
+  });
+  it('off compiles to a valid PDF without the numbers', async () => {
+    const r = await compileScriptPdf({ blocks, sceneNumbers, showSceneNumbers: false, fonts: FONTS, now: 0 });
+    assert.equal(r.pageCount, 1);
+    assert.ok(latin1(r.bytes).startsWith('%PDF-'));
+  });
+  it('a per-script setting, off for new and older scripts, saved with the project and in backups', async () => {
+    const { EMPTY_META, META_FIELDS } = await import('../src/lib/projectStorage.js');
+    assert.equal(EMPTY_META.showSceneNumbers, false);
+    assert.ok(META_FIELDS.includes('showSceneNumbers'));
+    assert.match(read('src/lib/folderSync.js').toString(), /'titleBold', 'showSceneNumbers'\]/, 'kept in snapshot files too');
+  });
+  it('File → Export Script → Scene Numbers toggles it; the PDF and Print follow it; the editor always shows numbers', async () => {
+    const { fileMenuItems } = await import('../src/lib/toolbar.js');
+    let toggled = 0;
+    const items = (on) => fileMenuItems({ onCompiledPdf() {}, onFdx() {}, onFountain() {}, onPrint() {}, snapshotCount: 0, showSceneNumbers: on, onSceneNumbers: () => toggled++ });
+    const item = (on) => items(on).find((i) => i.label === 'Scene Numbers');
+    assert.deepEqual([item(false).hint, item(false).checked, item(true).hint, item(true).checked], ['Off', false, 'On', true]);
+    const list = items(false);
+    assert.equal(list[list.findIndex((i) => i.label === 'Print Script…') + 1].label, 'Scene Numbers', 'right under the exports it affects');
+    item(false).onSelect();
+    assert.equal(toggled, 1);
+    assert.match(read('src/components/Menu.jsx').toString(), /role=\{typeof it\.checked === 'boolean' \? 'menuitemcheckbox' : 'menuitem'\}\s*aria-checked=/);
+    assert.match(app, /showSceneNumbers: !!s\.meta\.showSceneNumbers,/);
+    assert.match(app, /<PrintView meta=\{meta\} items=\{items\} layout=\{layout\} sceneNumbers=\{meta\.showSceneNumbers \? analysis\.sceneNumbers : \{\}\} \/>/);
+    assert.match(app, /sceneNumbers=\{analysis\.sceneNumbers\}/, 'the editor keeps its numbers');
+    assert.match(app, /setMeta\(\(m\) => \(\{ \.\.\.m, showSceneNumbers: on \}\)\)/);
   });
 });

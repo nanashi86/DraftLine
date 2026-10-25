@@ -171,7 +171,7 @@ function titlePageRuns(meta) {
  * The page model: [{ label, title, runs }], the title page first when there is one, then every
  * script page with its runs. Exposed for tests; compileScriptPdf draws it.
  */
-export function layoutScriptPdf({ meta = {}, blocks = [], sceneNumbers = {} } = {}) {
+export function layoutScriptPdf({ meta = {}, blocks = [], sceneNumbers = {}, showSceneNumbers = true } = {}) {
   const items = buildItems(blocks);
   const layout = paginate(items);
   const pages = Array.from({ length: layout.pageCount }, (_, p) => ({ label: pageLabel(p), title: false, runs: [] }));
@@ -203,7 +203,8 @@ export function layoutScriptPdf({ meta = {}, blocks = [], sceneNumbers = {} } = 
       if (pc.cont) runs.push(plainRun(SEAM_X, lineTop(pc.topLine - 1), upper(pc.cont)));
       runs.push(...textRuns(b.text, b.marks, place, { from: pc.from, to: pc.to, top: lineTop(pc.topLine), cpl }));
       if (pc.more) runs.push(plainRun(SEAM_X, lineTop(pc.topLine + (pc.to - pc.from)), '(MORE)'));
-      const no = n === 0 ? sceneNumbers[it.key] : undefined;
+      // Scene numbers in both margins of the heading's first piece; none at all for a spec script.
+      const no = showSceneNumbers && n === 0 ? sceneNumbers[it.key] : undefined;
       if (no != null && b.type === 'scene') {
         const label = String(no);
         runs.push(plainRun(SCENE_NO_LEFT_EDGE - label.length * charWidth(12), lineTop(pc.topLine), label, { b: true }));
@@ -241,9 +242,9 @@ const fmt = (n) => (Math.round(n * 1000) / 1000).toString();
  * Returns { bytes, pageCount, scriptPages, missing } — `missing`: characters the font's
  * encoding couldn't show (written as "?").
  */
-export async function compileScriptPdf({ meta = {}, blocks = [], sceneNumbers = {}, fonts, deflate = null, now = null, appVersion = '' }) {
+export async function compileScriptPdf({ meta = {}, blocks = [], sceneNumbers = {}, showSceneNumbers = true, fonts, deflate = null, now = null, appVersion = '' }) {
   if (!fonts?.regular) throw new Error('The PDF needs Courier Prime (Regular)');
-  const model = layoutScriptPdf({ meta, blocks, sceneNumbers });
+  const model = layoutScriptPdf({ meta, blocks, sceneNumbers, showSceneNumbers });
   const used = new Set(['regular']);
   for (const pg of model.pages) for (const r of pg.runs) used.add(fontKey(r));
   const parsed = {};

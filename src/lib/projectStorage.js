@@ -3,7 +3,7 @@
 //   database "draftline_db"
 //     store "projects"  (keyPath "id")
 //       { id, title, author, credit, basedOn, draftVersion, draftDate, contact,
-//         titleFont, titleSize, titleBold, script, beats, characters, storyNotes, storyDna, production,
+//         titleFont, titleSize, titleBold, showSceneNumbers, script, beats, characters, storyNotes, storyDna, production,
 //         pages, scenes, createdAt, updatedAt }
 //       characters — the Project Bible's bios [{ id, name, primaryRole, secondaryRole, relationship, age,
 //                    description, traits, backstory }] (older ones: a free-text `role`)
@@ -46,6 +46,7 @@ export const JOURNAL_KEY = 'draftline:journal:v1';
 /** Title page fields stored on the record (flat, beside the script). */
 export const META_FIELDS = [
   'title', 'credit', 'author', 'basedOn', 'draftVersion', 'draftDate', 'contact', 'titleFont', 'titleSize', 'titleBold',
+  'showSceneNumbers', // export setting: scene numbers in the PDF and printout (off = spec, on = production)
 ];
 
 export const EMPTY_META = {
@@ -59,6 +60,7 @@ export const EMPTY_META = {
   titleFont: DEFAULT_TITLE_FONT,
   titleSize: DEFAULT_TITLE_SIZE,
   titleBold: DEFAULT_TITLE_BOLD,
+  showSceneNumbers: false, // spec scripts go out unnumbered; production drafts turn this on
 };
 
 export function newProjectId() {

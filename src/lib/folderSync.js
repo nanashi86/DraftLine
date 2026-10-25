@@ -138,7 +138,7 @@ export function snapshotFromFileText(text) {
   }
   const { script, beats, characters, storyNotes, storyDna, production, ...rest } = record;
   const meta = {};
-  for (const k of ['title', 'credit', 'author', 'basedOn', 'draftVersion', 'draftDate', 'contact', 'titleFont', 'titleSize', 'titleBold']) {
+  for (const k of ['title', 'credit', 'author', 'basedOn', 'draftVersion', 'draftDate', 'contact', 'titleFont', 'titleSize', 'titleBold', 'showSceneNumbers']) {
     if (rest[k] !== undefined) meta[k] = rest[k];
   }
   return {

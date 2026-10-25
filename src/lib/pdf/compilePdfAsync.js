@@ -17,8 +17,8 @@ async function onThisThread(job) {
 }
 
 /** Resolves to { bytes, pageCount, scriptPages, missing }. */
-export function compilePdfAsync({ meta, blocks, sceneNumbers = {}, now = Date.now(), appVersion = '' }, { worker = typeof Worker !== 'undefined' } = {}) {
-  const job = { meta: { ...meta }, blocks: slim(blocks), sceneNumbers: { ...sceneNumbers }, now, appVersion };
+export function compilePdfAsync({ meta, blocks, sceneNumbers = {}, showSceneNumbers = true, now = Date.now(), appVersion = '' }, { worker = typeof Worker !== 'undefined' } = {}) {
+  const job = { meta: { ...meta }, blocks: slim(blocks), sceneNumbers: { ...sceneNumbers }, showSceneNumbers, now, appVersion };
   if (!worker) return onThisThread(job);
   return new Promise((resolve, reject) => {
     let w;

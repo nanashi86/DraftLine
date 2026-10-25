@@ -15,7 +15,8 @@
 //   • script     — every element with its id, type, text, inline formatting (marks), margin
 //                  note and dual-dialogue flag
 //   • title page — title, credit, author, based on, draft version / date, contact, and the
-//                  title typography (titleFont, titleSize, titleBold)
+//                  title typography (titleFont, titleSize, titleBold), and whether the PDF and
+//                  printout show scene numbers (showSceneNumbers)
 //   • beats      — Scene Board cards in board order: act column / Act 2 lane, title, synopsis,
 //                  colour tags (`tags: string[]`; older backups' single `tag` is read as one) and
 //                  linked scene
