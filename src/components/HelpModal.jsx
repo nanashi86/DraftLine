@@ -145,7 +145,7 @@ export default function HelpModal({ kind, storage, onClose }) {
           <div className="hm-brand">
             <BrandMark />
             <div>
-              <div className="hm-name">DraftLine</div>
+              <div className="hm-name">DraftLine™</div>
               <div className="hm-version">Version {pkg.version}</div>
             </div>
           </div>
@@ -239,6 +239,9 @@ export default function HelpModal({ kind, storage, onClose }) {
           <p className="hm-license">
             DraftLine is free &amp; open source under the{' '}
             <a href={LICENSE_URL} target="_blank" rel="noopener noreferrer">MIT License</a>
+          </p>
+          <p className="hm-trademark">
+            DraftLine™ is an open-source, local-first screenwriting application developed by Eric{'\u00a0'}Lemaire{'\u00a0'}Jr.
           </p>
         </div>
       )}

@@ -259,3 +259,12 @@
 .hm-license a,
 .hm-license a:visited { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
 .hm-license a:hover { color: var(--text); }
+/* The trademark small print, right under the licence line and styled like it. */
+.hm-trademark {
+  margin: -8px 0 0;
+  padding: 0 0 14px;
+  font-size: 11px;
+  line-height: 1.5;
+  color: #71717a; /* zinc-500 */
+  text-align: center;
+}

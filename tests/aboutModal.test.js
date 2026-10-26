@@ -180,3 +180,26 @@ describe('Credits: lib/credits.js', async () => {
     assert.match(sw.slice(rule), /const res = await fetch\(req\);\s*if \(res\.ok\) cache\.put\('\.\/credits\.json', res\.clone\(\)\);[\s\S]*?catch \{\s*return \(await cache\.match\('\.\/credits\.json'/);
   });
 });
+
+describe('Trademark notices: brand anchors only, never on controls', () => {
+  const read = (p) => readFileSync(new URL(`../${p}`, import.meta.url), 'utf8');
+  it('About: the brand name reads DraftLine™, with the trademark small print under the licence line', () => {
+    assert.match(jsx, /<div className="hm-name">DraftLine™<\/div>/);
+    const at = (s) => jsx.indexOf(s);
+    assert.ok(at('className="hm-trademark"') > at('className="hm-license"'), 'below the MIT line');
+    assert.match(jsx, /<p className="hm-trademark">\s*DraftLine™ is an open-source, local-first screenwriting application developed by Eric\{'\\u00a0'\}Lemaire\{'\\u00a0'\}Jr\.\s*<\/p>/, 'the name never breaks across lines');
+    assert.match(css, /\.hm-trademark \{[^}]*font-size: 11px;[^}]*color: #71717a;[^}]*text-align: center;/);
+  });
+  it('README and ROADMAP titles carry ™; the README ends with the trademark line', () => {
+    const readme = read('README.md');
+    assert.match(readme, /^# DraftLine™$/m);
+    assert.match(readme.trimEnd(), /DraftLine™ and the DraftLine logo are trademarks of Eric Lemaire Jr\.$/);
+    assert.match(read('ROADMAP.md'), /^# DraftLine™ Roadmap$/m);
+  });
+  it('controls stay clean: no ™ in menus, buttons, shortcuts or the dialog heading', () => {
+    for (const f of ['src/lib/toolbar.js', 'src/lib/shortcuts.js', 'src/components/Menu.jsx', 'src/App.jsx', 'src/components/FeedbackModal.jsx', 'index.html', 'public/manifest.json']) {
+      assert.doesNotMatch(read(f), /™/, f);
+    }
+    assert.match(jsx, /\{kind === 'about' \? 'About DraftLine' : 'Keyboard Shortcuts'\}/);
+  });
+});

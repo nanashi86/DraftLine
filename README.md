@@ -3,7 +3,7 @@
 [![Patreon](https://img.shields.io/badge/Patreon-Support-F96854?style=for-the-badge&logo=patreon)](https://patreon.com/DraftLine)
 [![Discord](https://img.shields.io/badge/Discord-Community-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/8ytSsSWsPX)
 
-# DraftLine
+# DraftLine™
 
 A fast, distraction-free, local-first screenwriting app built on open formats (Fountain, Final Draft XML). Zero corporate clouds, zero tracking, and complete writer IP ownership.
 
@@ -468,3 +468,7 @@ src/
   lib/sampleScript.js      "The Last Ferry" sample
 tests/                     node --test suite
 ```
+
+---
+
+DraftLine™ and the DraftLine logo are trademarks of Eric Lemaire Jr.

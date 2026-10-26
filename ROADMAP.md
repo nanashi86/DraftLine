@@ -1,4 +1,4 @@
-# DraftLine Roadmap
+# DraftLine™ Roadmap
 
 > **DraftLine is and will always remain 100% free, private, and local-first in the browser.
 > No user surveillance, no third-party ad tracking, no locked formats, and no paywalled core writing or story planning tools.**
