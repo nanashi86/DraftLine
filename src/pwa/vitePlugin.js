@@ -1,5 +1,5 @@
 // Vite plugin: writes sw.js into the build from src/pwa/sw.template.js, with
-//   • PRECACHE — every file of this build (index.html, hashed JS / CSS, public icons,
+//   • PRECACHE — every file the build wrote to disk (index.html, hashed JS / CSS, public icons,
 //     manifest), as "./path" relative to the service worker
 //   • VERSION — a hash of CACHE_REVISION, that list and each file's contents, so any changed
 //     file (including a redrawn icon that keeps its name) installs a fresh worker and drops
@@ -7,7 +7,7 @@
 //     Bump CACHE_REVISION to force every installed copy to refresh.
 // The worker is only registered in production builds (src/pwa/register.js).
 
-import { readFileSync, readdirSync, statSync } from 'node:fs';
+import { readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { join } from 'node:path';
 
@@ -19,7 +19,7 @@ export const CACHE_REVISION = 3;
 
 const TEMPLATE = new URL('./sw.template.js', import.meta.url);
 
-/** Files in public/ (relative paths), which Vite copies into the build as they are. */
+/** Every file under `dir`, as paths relative to it ("assets/index-abc.js"). */
 function publicFiles(dir) {
   try {
     return readdirSync(dir).flatMap((name) => {
@@ -46,23 +46,24 @@ export function buildServiceWorker(files, template = readFileSync(TEMPLATE, 'utf
   return { source, version, list };
 }
 
+/**
+ * Writes sw.js once the build is on disk, listing the files that were actually written.
+ * (Not from generateBundle: the bundle's file names there aren't final. Vite can still rewrite a
+ * chunk after that hook, which changes its hash and name, e.g. HelpModal-BKHMJujr.js became
+ * HelpModal-rFO86vws.js, and one missing file makes cache.addAll() reject the whole install.)
+ */
 export default function draftlinePwa() {
-  let publicDir = 'public';
   return {
     name: 'draftline-pwa',
     apply: 'build',
-    configResolved(config) {
-      publicDir = config.publicDir;
-    },
-    generateBundle(_options, bundle) {
-      const pub = publicFiles(publicDir);
-      const files = [...Object.keys(bundle), ...pub];
-      // Contents feed the version: bundle files by their code / source, public files by their bytes.
+    writeBundle(options) {
+      const dir = options.dir;
+      if (!dir) return;
+      const files = publicFiles(dir).filter((f) => f !== 'sw.js' && !f.endsWith('.map'));
       const contents = {};
-      for (const [name, out] of Object.entries(bundle)) contents[name] = out.type === 'chunk' ? out.code : out.source;
-      for (const f of pub) contents[f] = readFileSync(join(publicDir, f));
+      for (const f of files) contents[f] = readFileSync(join(dir, f));
       const { source } = buildServiceWorker(files, undefined, contents);
-      this.emitFile({ type: 'asset', fileName: 'sw.js', source });
+      writeFileSync(join(dir, 'sw.js'), source);
     },
   };
 }

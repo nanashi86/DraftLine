@@ -158,12 +158,13 @@ describe('Character bio labels', () => {
 });
 
 describe('User Guide: menu and modal', () => {
-  it('"User Guide" (F1) sits directly above "About DraftLine" in ⋮', async () => {
+  it('"User Guide" (F1) sits above "Give Anonymous Feedback…", which sits directly above "About DraftLine" in ⋮', async () => {
     const { moreMenuItems } = await import('../src/lib/toolbar.js');
-    const items = moreMenuItems({ bibleOnBar: true, charactersOnBar: true, onGuide() {}, onAbout() {} }).filter((i) => i.label);
+    const items = moreMenuItems({ bibleOnBar: true, charactersOnBar: true, onGuide() {}, onFeedback() {}, onAbout() {} }).filter((i) => i.label);
     const at = items.findIndex((i) => i.label === 'User Guide');
     assert.equal(items[at].hint, 'F1');
-    assert.equal(items[at + 1].label, 'About DraftLine');
+    assert.equal(items[at + 1].label, 'Give Anonymous Feedback…');
+    assert.equal(items[at + 2].label, 'About DraftLine');
     assert.match(SHORTCUTS.F1, /^User Guide/);
   });
   it('the menu, F1 and Shift+? (when not typing) open it; it loads on first use', () => {

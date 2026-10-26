@@ -19,7 +19,8 @@ Built from the app icon (`public/favicon.svg`): the white Courier Prime Bold **D
 | **GitHub** | Social preview (Settings → General) | `github/github-social-preview-1280x640.png` | 1280×640, under 1 MB |
 | | README header | `github/readme-banner-2560x640.png` | Use `<img src="brand/github/readme-banner-2560x640.png" width="1280">` |
 | **X (Twitter)** | Profile photo | `X/x-avatar.png` | 400×400 shown as a circle (made at 800×800), under 2 MB; the tile clears the circle crop |
-| | Header | `X/x-banner.png` | 1500×500 (3:1). All text and badges sit right of the avatar's bottom-left corner and inside the phone crop (60 px top and bottom) |
+| | Header, noir version | `X/x-banner.png` | 1500×500 (3:1). All text and badges sit right of the avatar's bottom-left corner and inside the phone crop (60 px top and bottom) |
+| | Header, tagline version | `X/x-banner-tagline.png` | 1500×500 (3:1): the same tagline banner as the Patreon, Ko-fi and GitHub covers ("Local-First · Works Offline · Fountain & Final Draft"). Logo and text sit in x 501–999, y 130–315: clear of the avatar and inside the phone crop |
 | | Logo with name | `X/draftline-x-full-logo-dark.png` / `-light.png` | Transparent, for dark or light backgrounds (2112×520) |
 | | Logo, vector | `X/draftline-x-full-logo.svg` | One file: the name switches to light or dark with the viewer's setting where SVG styles apply |
 

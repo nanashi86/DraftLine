@@ -28,6 +28,7 @@ const BeatBoard = lazy(() => import('./components/BeatBoard.jsx'));
 const PlanningWorkspace = lazy(() => import('./components/planning/PlanningWorkspace.jsx'));
 // So do the occasional dialogs — About / Shortcuts, Import, Format Doctor, Rename — keeping the app's first load small.
 const HelpModal = lazy(() => import('./components/HelpModal.jsx'));
+const FeedbackModal = lazy(() => import('./components/FeedbackModal.jsx'));
 const ImportModal = lazy(() => import('./components/ImportModal.jsx'));
 const FormatDoctorModal = lazy(() => import('./components/FormatDoctorModal.jsx'));
 const RenameCharacterModal = lazy(() => import('./components/RenameCharacterModal.jsx'));
@@ -445,11 +446,13 @@ function Workspace({ boot }) {
   const getBlocks = useCallback(() => latest.current.blocks, []); // Scene Board → Analyze Value Shifts
 
   // ---- Toasts ----
-  const notify = useCallback((msg) => {
+  const notify = useCallback((msg, ms = 2400) => {
     setToast(msg);
     clearTimeout(toastTimer.current);
-    toastTimer.current = setTimeout(() => setToast(null), 2400);
+    toastTimer.current = setTimeout(() => setToast(null), ms);
   }, []);
+  // ⋮ → Give Anonymous Feedback… (components/FeedbackModal.jsx, lib/feedback.js)
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
 
   // ---- Export toast (components/SupportCallouts.js, lib/supportTips.js) ----
   // Every script export (.fountain, .fdx, .draftline, print / PDF) confirms in a corner toast that
@@ -2166,6 +2169,7 @@ function Workspace({ boot }) {
                 onReports: inPlan ? null : openReports,
                 issueCount: issues.length,
                 onAbout: () => setHelpKind('about'),
+                onFeedback: () => setFeedbackOpen(true),
                 onGuide: () => setGuideOpen(true),
                 focusOnBar: inPlan || isOnBar(focusBtnRef.current, barRef.current),
                 onFocus: () => setFocusMode(true),
@@ -2474,6 +2478,18 @@ function Workspace({ boot }) {
             </button>
             <button type="button" className="focus-exit" onClick={() => setFocusMode(false)}>Exit focus · Esc</button>
           </div>
+        )}
+        {feedbackOpen && (
+          <Suspense fallback={null}>
+            <FeedbackModal
+              onClose={() => setFeedbackOpen(false)}
+              onSent={() => {
+                setFeedbackOpen(false);
+                notify('Thank you for your feedback!', 4000);
+              }}
+              onFailed={() => notify('Could not send feedback. Check your internet connection.', 4000)}
+            />
+          </Suspense>
         )}
         {toast && <div className="toast" role="status">{toast}</div>}
         {exportToast && (

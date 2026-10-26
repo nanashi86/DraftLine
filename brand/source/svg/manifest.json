@@ -347,6 +347,18 @@
   ],
   "publish_svg": null
  },
+ "X/x-banner-tagline": {
+  "w": 1500,
+  "h": 500,
+  "transparent": false,
+  "files": [
+   [
+    1,
+    "X/x-banner-tagline.png"
+   ]
+  ],
+  "publish_svg": null
+ },
  "X/draftline-x-full-logo-dark": {
   "w": 1056,
   "h": 260,

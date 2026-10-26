@@ -398,6 +398,9 @@ def x_avatar(size=800):
 
 add('X/x-avatar', 800, 800, x_avatar(800), files=[(1, 'X/x-avatar')])
 add('X/x-banner', 1500, 500, x_banner(), files=[(1, 'X/x-banner')])
+# The same tagline header as Patreon, Ko-fi and GitHub, sized for X: everything sits in x 501..999 and y 130..315,
+# clear of the avatar (bottom-left, x < 440) and inside the phone crop (60 px top and bottom).
+add('X/x-banner-tagline', 1500, 500, hero(1500, 500, TAG, SUB, lock_h=100, cy=180), files=[(1, 'X/x-banner-tagline')])
 
 lk, lw = lockup(0, 0, 200)
 W = int(lw + 60); H = 260
