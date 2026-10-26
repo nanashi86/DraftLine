@@ -3,6 +3,15 @@
 Status: **planned, not started.** Written October 2026. The web app stays the product; the desktop app is the same
 DraftLine in a native window, built from the same code.
 
+Licensing: the browser version (the installable PWA) is **100% free and open source (MIT), forever**. The native
+desktop build, **DraftLine Pro** (Tauri 2), carries a **perpetual one-time licence ($49)**, or is included while you're
+an active Patreon supporter. That pays for the code-signing certificates (Apple $99 a year, Windows $120–$400 a year)
+and the ongoing maintenance a signed desktop app needs.
+
+Revision tracking (colour-coded revision rounds) and locked pages belong to **Phase 4: Production & Script
+Supervision Tools**, for shooting scripts (design: `docs/plans/revision-mode.md`). They are production tools, not
+part of the core writing and story planning tools, which stay free in the browser.
+
 ---
 
 ## A. Technical Architecture & Implementation Spec
@@ -175,7 +184,8 @@ Shortcuts the browser takes for itself stop being a problem once there's no brow
   build's code paths for it are simply unused there.
 - **Unsigned builds** work but show OS warnings. Signing costs money every year (see the table above), which is what
   the backer milestone is for.
-- **The web app is not going away.** The desktop app is an option, not a requirement, and both stay free.
+- **The web app is not going away.** It stays 100% free and open source, forever. DraftLine Pro is an option, never a
+  requirement: a one-time $49 licence (or included with an active Patreon supporter tier) for the native build.
 
 ---
 
@@ -185,13 +195,13 @@ Copy ready to paste. No dates are promised; update the status line as phases lan
 
 ### One-line pitch
 
-> **DraftLine Desktop:** zero browser sandboxing, native desktop stability, true file ownership, and distraction-free
+> **DraftLine Pro (desktop):** zero browser sandboxing, native desktop stability, true file ownership, and distraction-free
 > writing. Windows, macOS and Linux.
 
 ### Discord (#roadmap)
 
 ```md
-**Roadmap: DraftLine Desktop**
+**Roadmap: DraftLine Pro (desktop)**
 
 The same DraftLine you write in today, as a real app for your computer.
 
@@ -204,7 +214,7 @@ The same DraftLine you write in today, as a real app for your computer.
 
 **Platforms:** Windows 11 / 10 · macOS (Apple Silicon and Intel) · Linux (AppImage, .deb, .rpm)
 
-**Still free.** The web app stays free and keeps working. Desktop is one more way to write.
+**The browser version stays 100% free and open source, forever.** DraftLine Pro is the native build: a one-time $49 licence (no subscription, updates included), or included while you're an active Patreon supporter. That covers the code-signing certificates and upkeep a trusted desktop app needs.
 
 Status: *planned. Design done, build not started.* Follow along here.
 ```
@@ -216,9 +226,9 @@ Status: *planned. Design done, build not started.* Follow along here.
 **Goal description:**
 
 > $99 is what Apple charges each year to sign and notarize a Mac app, so it opens without a "can't be verified"
-> warning. Reaching this goal lets DraftLine Desktop ship properly signed on macOS, alongside Windows and Linux. It's
-> the same free DraftLine, as a native app: offline, no browser, your files in your own folders. Every coffee counts.
-> Thank you.
+> warning. Reaching this goal lets DraftLine Pro, the desktop app, ship properly signed on macOS, alongside Windows
+> and Linux: the DraftLine you know, as a native app, offline, no browser, your files in your own folders. The browser
+> version stays free forever. Every coffee counts. Thank you.
 
 ### Patreon post
 
@@ -243,4 +253,6 @@ Status: *planned. Design done, build not started.* Follow along here.
 > macOS, so your computer knows the app is really from DraftLine. Patrons will be the first to hear when beta builds
 > are ready to test.
 >
-> The web app stays free, forever.
+> **How it's priced:** the browser version stays 100% free and open source, forever. DraftLine Pro, the desktop app,
+> will be a one-time $49 licence (no subscription, updates included), or included for as long as you're an active
+> Patreon supporter.

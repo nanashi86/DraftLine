@@ -451,7 +451,7 @@ function Workspace({ boot }) {
     clearTimeout(toastTimer.current);
     toastTimer.current = setTimeout(() => setToast(null), ms);
   }, []);
-  // ⋮ → Give Anonymous Feedback… (components/FeedbackModal.jsx, lib/feedback.js)
+  // ⋮ → Send Feedback… (components/FeedbackModal.jsx, lib/feedback.js)
   const [feedbackOpen, setFeedbackOpen] = useState(false);
 
   // ---- Export toast (components/SupportCallouts.js, lib/supportTips.js) ----

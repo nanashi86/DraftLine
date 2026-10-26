@@ -80,9 +80,9 @@ describe('Anonymous feedback: sending', () => {
 describe('Anonymous feedback: menu and modal', () => {
   const modal = read('src/components/FeedbackModal.jsx');
   const app = read('src/App.jsx');
-  it('⋮ has "Give Anonymous Feedback…" directly above "About DraftLine"', () => {
+  it('⋮ has "Send Feedback…" directly above "About DraftLine"', () => {
     const items = moreMenuItems({ bibleOnBar: true, charactersOnBar: true, onFeedback() {}, onAbout() {}, onGuide() {} });
-    const at = items.findIndex((i) => i.label === 'Give Anonymous Feedback…');
+    const at = items.findIndex((i) => i.label === 'Send Feedback…');
     assert.ok(at > 0);
     assert.equal(items[at + 1].label, 'About DraftLine');
     assert.match(app, /onFeedback: \(\) => setFeedbackOpen\(true\),/);

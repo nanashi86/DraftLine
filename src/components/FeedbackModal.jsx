@@ -4,7 +4,7 @@ import { DETAILS_MAX, FEATURE_MAX, PREVIOUS_APPS, sendFeedback } from '../lib/fe
 import './FeedbackModal.css';
 
 /**
- * ⋮ → Give Anonymous Feedback…: three questions and Send. Esc, ✕, Cancel or a click outside closes it.
+ * ⋮ → Send Feedback…: three questions and Send. Esc, ✕, Cancel or a click outside closes it.
  * On success the app closes it and thanks the writer; on failure it stays open (nothing typed is lost)
  * and the app says so. What's sent is in lib/feedback.js.
  */

@@ -2,6 +2,10 @@
 
 Status: **planned, not started.** Written October 2026.
 
+Pricing: tiered. Reading and basic editing are **free**, in the browser and in the app. The advanced companion
+workflow tools (keeping a Drive folder in sync with your computer, for example) are **included free with DraftLine
+Pro**, or unlocked on their own with a small **one-time $9.99 supporter unlock**.
+
 DraftLine already installs as a PWA on Android and ChromeOS: `public/manifest.json` and the service worker are in
 place. This plan makes it a first-class touch, keyboard and stylus app, and puts it on Google Play.
 
@@ -225,9 +229,9 @@ Scriptwriting anywhere: seamlessly transition from your desktop standing desk to
 - **Stylus:** precise caret placement now, handwritten margin notes later.
 - **Any screen:** phones, foldables, 10"–14" tablets, split screen. The page always stays a real screenplay page.
 
-**Your files go where you go:** open scripts from Google Drive, your SD card or your device, share PDFs straight to Drive or email, and (in the Play Store version) keep a Drive folder in sync with your computer.
+**Your files go where you go:** open scripts from Google Drive, your SD card or your device, share PDFs straight to Drive or email, and keep a Drive folder in sync with your computer (a companion tool: free with DraftLine Pro, or a one-time $9.99 unlock).
 
-**Still free, still private.** No accounts, no DraftLine servers. Your scripts stay on your devices.
+**Free to read and write, always private.** Reading and basic editing are free. The advanced companion tools, like keeping a Drive folder in sync with your computer, come free with DraftLine Pro or as a one-time $9.99 supporter unlock. No accounts, no DraftLine servers: your scripts stay on your devices.
 
 Status: *planned. Design done, build not started.* You can already install DraftLine from Chrome on Android and ChromeOS today: open the site, then Install app.
 ```
@@ -239,7 +243,8 @@ Status: *planned. Design done, build not started.* You can already install Draft
 **Goal description:**
 
 > $25 is Google's one-time fee to publish on Google Play. Reaching this goal puts DraftLine in the Play Store for
-> Android phones, tablets and Chromebooks: touch-friendly, keyboard-ready, and still completely free and private.
+> Android phones, tablets and Chromebooks: touch-friendly, keyboard-ready, and private, with reading and basic
+> editing free (the advanced companion tools come with DraftLine Pro, or as a one-time $9.99 unlock).
 > Google also asks new apps for 12 testers over 14 days before launch, so if you've got an Android device or a
 > Chromebook, come say hi in the Discord.
 
@@ -250,6 +255,6 @@ Status: *planned. Design done, build not started.* You can already install Draft
 1. **Touch & tablet layout.** Bottom-sheet menus, thumb-friendly element buttons, keyboard shortcut row, touch-drag Scene Board. *(in the web app, for everyone)*
 2. **Share & open anywhere.** Share scripts in and out of DraftLine (Drive, Gmail, Files); open .fdx from the Chromebook Files app.
 3. **Google Play launch.** Closed test with 12 community testers for 14 days, then public.
-4. **Drive folder sync on Android.** The same folder your computer syncs to, kept up to date on your tablet.
+4. **Drive folder sync on Android.** The same folder your computer syncs to, kept up to date on your tablet. *(companion tool: free with DraftLine Pro, or a one-time $9.99 unlock)*
 5. **Stylus margin notes.** Write notes by hand in the margin.
 ```

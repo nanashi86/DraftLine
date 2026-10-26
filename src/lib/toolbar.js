@@ -44,7 +44,7 @@ export function moreMenuItems({
     { divider: true },
     ...(onGuide ? [{ label: 'User Guide', hint: 'F1', onSelect: onGuide }] : []),
     // Directly above About: three questions, sent anonymously (components/FeedbackModal.jsx).
-    ...(onFeedback ? [{ label: 'Give Anonymous Feedback…', onSelect: onFeedback }] : []),
+    ...(onFeedback ? [{ label: 'Send Feedback…', onSelect: onFeedback }] : []),
     { label: 'About DraftLine', onSelect: onAbout },
   ];
 }

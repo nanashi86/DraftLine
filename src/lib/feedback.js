@@ -1,4 +1,4 @@
-// ⋮ → Give Anonymous Feedback…: what the form sends, and how.
+// ⋮ → Send Feedback…: what the form sends, and how.
 //
 // Only what the writer types, which app they used before (if they pick one) and a coarse OS name
 // are sent. No cookies or credentials (credentials: 'omit'), no referrer, no script text, no
