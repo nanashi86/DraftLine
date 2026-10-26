@@ -20,7 +20,8 @@
 .afb-label { font-size: 13px; font-weight: 600; color: #e4e4e7; }
 .afb-optional { font-weight: 400; color: #a1a1aa; }
 
-.afb-pills { display: flex; flex-wrap: wrap; gap: 6px; }
+/* The software choices in an even grid of three columns; "None (New Writer)" on its own row beneath them. */
+.afb-pills { display: grid; grid-template-columns: repeat(3, max-content); gap: 6px; }
 .afb-pill {
   padding: 5px 12px;
   border: 1px solid #3f3f46;
@@ -31,6 +32,7 @@
   cursor: pointer;
 }
 .afb-pill:hover { border-color: #71717a; }
+.afb-pill.is-none { grid-column: 1 / -1; justify-self: start; margin-top: 2px; }
 .afb-pill.is-on { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 22%, #27272a); color: #fff; }
 .afb-pill:focus-visible, .afb-input:focus-visible { outline: 2px solid color-mix(in srgb, var(--accent) 70%, transparent); outline-offset: 1px; }
 

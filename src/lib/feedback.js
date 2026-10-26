@@ -11,8 +11,9 @@
 export const DEFAULT_FEEDBACK_ENDPOINT = 'https://draftline-feedback.elemaire86.workers.dev';
 export const FEEDBACK_ENDPOINT = import.meta.env?.VITE_FEEDBACK_ENDPOINT || DEFAULT_FEEDBACK_ENDPOINT;
 
-/** The apps a writer can say they used before (single choice, optional). */
-export const PREVIOUS_APPS = ['Final Draft', 'Fade In', 'Highland 2', 'WriterDuet', 'Celtx', 'New Writer', 'Other'];
+/** "I previously used:" — the software choices, then "None" for a writer new to screenwriting software. */
+export const NO_PREVIOUS_APP = 'None (New Writer)';
+export const PREVIOUS_APPS = ['Final Draft', 'Fade In', 'Highland 2', 'WriterDuet', 'Celtx', 'Other', NO_PREVIOUS_APP];
 
 export const FEATURE_MAX = 200;
 export const DETAILS_MAX = 2000;

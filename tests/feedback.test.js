@@ -2,7 +2,7 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import {
-  DEFAULT_FEEDBACK_ENDPOINT, DETAILS_MAX, FEATURE_MAX, FEEDBACK_ENDPOINT, PREVIOUS_APPS, feedbackPayload, osFamily, sendFeedback,
+  DEFAULT_FEEDBACK_ENDPOINT, DETAILS_MAX, FEATURE_MAX, FEEDBACK_ENDPOINT, NO_PREVIOUS_APP, PREVIOUS_APPS, feedbackPayload, osFamily, sendFeedback,
 } from '../src/lib/feedback.js';
 import { moreMenuItems } from '../src/lib/toolbar.js';
 
@@ -24,8 +24,19 @@ const fakeFetch = (status, { fail = false } = {}) => {
 const nav = (userAgent, onLine = true) => ({ userAgent, onLine });
 
 describe('Anonymous feedback: what is sent', () => {
-  it('the seven previous-app choices, in order', () => {
-    assert.deepEqual(PREVIOUS_APPS, ['Final Draft', 'Fade In', 'Highland 2', 'WriterDuet', 'Celtx', 'New Writer', 'Other']);
+  it('the previous-app choices, in order: the software, then "None (New Writer)"', () => {
+    assert.deepEqual(PREVIOUS_APPS, ['Final Draft', 'Fade In', 'Highland 2', 'WriterDuet', 'Celtx', 'Other', 'None (New Writer)']);
+    assert.equal(NO_PREVIOUS_APP, 'None (New Writer)');
+    assert.equal(PREVIOUS_APPS.at(-1), NO_PREVIOUS_APP, 'last, so it sits beneath the software choices');
+  });
+  it('"None (New Writer)" and "Other" go into the payload as previousApp', async () => {
+    for (const choice of [NO_PREVIOUS_APP, 'Other']) {
+      assert.equal(feedbackPayload({ previousApp: choice, missingFeature: 'x' }).previousApp, choice);
+      const f = fakeFetch(200);
+      await sendFeedback({ previousApp: choice, missingFeature: 'Outline view' }, { fetchImpl: f, nav: nav(WIN) });
+      assert.equal(JSON.parse(f.calls[0].init.body).previousApp, choice);
+    }
+    assert.equal(feedbackPayload({ previousApp: 'New Writer', missingFeature: 'x' }).previousApp, null, 'the old label is no longer a choice');
   });
   it('only a coarse OS name: Windows, macOS or Other', () => {
     assert.deepEqual([osFamily(WIN), osFamily(MAC), osFamily(LINUX), osFamily('')], ['Windows', 'macOS', 'Other', 'Other']);
@@ -93,6 +104,10 @@ describe('Anonymous feedback: menu and modal', () => {
     assert.match(modal, /aria-label="Close"/);
     assert.match(modal, />I previously used:</);
     assert.match(modal, /role="radiogroup"[\s\S]*?PREVIOUS_APPS\.map[\s\S]*?role="radio"\s*aria-checked=\{previousApp === app\}/, 'single-select pills');
+    assert.match(modal, /className=\{`afb-pill\$\{app === NO_PREVIOUS_APP \? ' is-none' : ''\}/, '"None (New Writer)" is marked');
+    const css = read('src/components/FeedbackModal.css');
+    assert.match(css, /\.afb-pills \{ display: grid; grid-template-columns: repeat\(3, max-content\); gap: 6px; \}/, 'software choices in an even grid');
+    assert.match(css, /\.afb-pill\.is-none \{ grid-column: 1 \/ -1; justify-self: start;/, 'None on its own row beneath them');
     assert.match(modal, />What missing feature is keeping you from using DraftLine daily\?</);
     assert.match(modal, /<input[\s\S]*?required\s*aria-required="true"/);
     assert.match(modal, /Additional details or bug notes <span className="afb-optional">\(optional\)<\/span>[\s\S]*?<textarea/);

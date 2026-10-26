@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { X } from 'lucide-react';
-import { DETAILS_MAX, FEATURE_MAX, PREVIOUS_APPS, sendFeedback } from '../lib/feedback.js';
+import { DETAILS_MAX, FEATURE_MAX, NO_PREVIOUS_APP, PREVIOUS_APPS, sendFeedback } from '../lib/feedback.js';
 import './FeedbackModal.css';
 
 /**
@@ -61,6 +61,7 @@ export default function FeedbackModal({ onClose, onSent, onFailed, send = sendFe
         <div className="afb-body">
           <div className="afb-field">
             <span className="afb-label" id="afb-prev">I previously used:</span>
+            {/* One radio group: the software choices as an even grid, then "None (New Writer)" on its own row. */}
             <div className="afb-pills" role="radiogroup" aria-labelledby="afb-prev">
               {PREVIOUS_APPS.map((app) => (
                 <button
@@ -68,7 +69,7 @@ export default function FeedbackModal({ onClose, onSent, onFailed, send = sendFe
                   type="button"
                   role="radio"
                   aria-checked={previousApp === app}
-                  className={`afb-pill${previousApp === app ? ' is-on' : ''}`}
+                  className={`afb-pill${app === NO_PREVIOUS_APP ? ' is-none' : ''}${previousApp === app ? ' is-on' : ''}`}
                   onClick={() => setPreviousApp((cur) => (cur === app ? null : app))}
                 >
                   {app}
