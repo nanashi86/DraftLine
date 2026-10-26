@@ -394,7 +394,7 @@ end with a similar line at most every 30 days. Both are throttled and muted per 
 Want to see where DraftLine is heading? Check out our [Public Roadmap](ROADMAP.md) for upcoming desktop and
 offline-first milestones.
 
-Design notes for planned features live in `docs/plans/`: **Table Read** (local-first read-aloud) and **Revision
+Design notes for planned features live in `docs/specs/`: **Table Read** (local-first read-aloud) and **Revision
 Mode** (colored revisions, locked pages and scene numbers).
 
 ## Testing

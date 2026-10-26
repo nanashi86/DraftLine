@@ -32,3 +32,4 @@ recordings/
 
 # Admin & Monetization Plans
 admin_plans/
+.internal/

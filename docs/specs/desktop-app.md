@@ -9,7 +9,7 @@ an active Patreon supporter. That pays for the code-signing certificates (Apple 
 and the ongoing maintenance a signed desktop app needs.
 
 Revision tracking (colour-coded revision rounds) and locked pages belong to **Phase 4: Production & Script
-Supervision Tools**, for shooting scripts (design: `docs/plans/revision-mode.md`). They are production tools, not
+Supervision Tools**, for shooting scripts (design: `docs/specs/revision-mode.md`). They are production tools, not
 part of the core writing and story planning tools, which stay free in the browser.
 
 ---

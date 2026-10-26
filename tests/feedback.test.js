@@ -24,8 +24,8 @@ const fakeFetch = (status, { fail = false } = {}) => {
 const nav = (userAgent, onLine = true) => ({ userAgent, onLine });
 
 describe('Anonymous feedback: what is sent', () => {
-  it('the six previous apps, in order', () => {
-    assert.deepEqual(PREVIOUS_APPS, ['Final Draft', 'Fade In', 'Highland 2', 'WriterDuet', 'Celtx', 'New Writer']);
+  it('the seven previous-app choices, in order', () => {
+    assert.deepEqual(PREVIOUS_APPS, ['Final Draft', 'Fade In', 'Highland 2', 'WriterDuet', 'Celtx', 'New Writer', 'Other']);
   });
   it('only a coarse OS name: Windows, macOS or Other', () => {
     assert.deepEqual([osFamily(WIN), osFamily(MAC), osFamily(LINUX), osFamily('')], ['Windows', 'macOS', 'Other', 'Other']);
