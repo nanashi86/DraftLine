@@ -19,7 +19,7 @@ function Keys({ combo }) {
 
 /** About → Support & Community: where DraftLine lives outside the app. */
 const COMMUNITY_LINKS = [
-  { href: 'https://ko-fi.com/draftline', label: 'Ko-fi', sub: '$99 Desktop Milestone', Icon: Coffee },
+  { href: 'https://ko-fi.com/draftline', label: 'Ko-fi', sub: 'Tip Jar & Goals', Icon: Coffee },
   { href: 'https://patreon.com/DraftLine', label: 'Patreon', sub: 'Monthly Tiers & Roadmap', Icon: Heart },
   { href: 'https://discord.gg/8ytSsSWsPX', label: 'Discord', sub: "Writers' Room", Icon: MessageCircle },
   { href: 'https://github.com/nanashi86/DraftLine', label: 'GitHub', sub: 'Source & Issues', Icon: CodeXml },

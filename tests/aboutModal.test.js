@@ -111,7 +111,7 @@ describe('About: Support & Community and the credits roll', () => {
     const links = [...src.matchAll(/\{ href: '([^']+)', label: '([^']+)', sub: (?:'([^']+)'|"([^"]+)"), Icon: (\w+) \}/g)]
       .map((m) => [m[1], m[2], m[3] || m[4], m[5]]);
     assert.deepEqual(links, [
-      ['https://ko-fi.com/draftline', 'Ko-fi', '$99 Desktop Milestone', 'Coffee'],
+      ['https://ko-fi.com/draftline', 'Ko-fi', 'Tip Jar & Goals', 'Coffee'],
       ['https://patreon.com/DraftLine', 'Patreon', 'Monthly Tiers & Roadmap', 'Heart'],
       ['https://discord.gg/8ytSsSWsPX', 'Discord', "Writers' Room", 'MessageCircle'],
       ['https://github.com/nanashi86/DraftLine', 'GitHub', 'Source & Issues', 'CodeXml'],
