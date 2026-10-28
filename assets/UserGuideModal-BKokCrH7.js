@@ -1,4 +1,4 @@
-import{i as e,t}from"./react-DgawKyfb.js";import{At as n,C as r,Ct as i,D as a,E as o,Et as s,It as c,Mt as l,Nt as u,S as d,St as f,T as ee,Tt as p,_t as m,a as h,bt as g,ct as _,dt as v,gt as te,ht as y,i as b,jt as x,l as S,lt as C,mt as ne,n as re,o as ie,pt as ae,r as oe,st as se,u as w,ut as T,wt as E,xt as D}from"./index-B4aS_0iH.js";import{r as O,t as k}from"./printTitle-C1qWomuv.js";/* empty css                  */var A=e(),j=`# DraftLine User Guide
+import{i as e,t}from"./react-DgawKyfb.js";import{At as n,C as r,Ct as i,D as a,E as o,Et as s,It as c,Mt as l,Nt as u,S as d,St as f,T as ee,Tt as p,_t as m,a as h,bt as g,ct as _,dt as v,gt as te,ht as y,i as b,jt as x,l as S,lt as C,mt as ne,n as re,o as ie,pt as ae,r as oe,st as se,u as w,ut as T,wt as E,xt as D}from"./index-Cd-tr-TR.js";import{r as O,t as k}from"./printTitle-C1qWomuv.js";/* empty css                  */var A=e(),j=`# DraftLine User Guide
 
 DraftLine is a distraction-free screenwriting app that runs in your browser. It writes in Courier Prime at 12 pt with standard screenplay margins, saves as you type, and works offline. This guide covers everything from your first scene heading to the final PDF.
 
@@ -140,7 +140,7 @@ Select text and press {{key:Ctrl+B}} (bold), {{key:Ctrl+I}} (italic), {{key:Ctrl
 
 - **Format Doctor** checks the script against spec-script conventions (see below) and fixes what it can in one click, or all at once. Open it from **⋮ → Format Doctor** at any time; the menu shows how many findings there are, or **Clean**.
 - While it has findings, a **Format · 1 of 7** stepper sits on the right of the status bar, and it's the Format Doctor's only control there: ‹ › go from one to the next, clicking **Format** lists them all with **Fix** and **Ignore** on each (Ignore hides one for this session), and ✕ hides the stepper until something new turns up.
-- **Density** (status bar) flags Action paragraphs that run past {{density.lines}} lines, or that are walls of text. It's the same compact stepper as Format: **Density · – of 9**. ‹ › highlight them and step from one to the next (the pill then reads **Density · 1 of 9**), click **Density** for a list of every one by scene and page, and ✕ turns the highlights off.
+- **Density** (status bar) flags Action paragraphs that run past {{density.lines}} lines, or that are walls of text. It's the same compact stepper as Format: **Density · 9** (how many there are). ‹ › highlight them and step from one to the next (the pill then reads **Density · 1 of 9**), click **Density** for a list of every one by scene and page, and ✕ turns the highlights off.
 - **Hover a character cue** to see that character's bio card. Click **Edit in Bios →** to open their bio.
 
 When the Format Doctor finds nothing at all (findings you've ignored count as unresolved), its report may end with one quiet line about supporting DraftLine, at most once a month. **Dismiss** turns it off for good in this browser.
