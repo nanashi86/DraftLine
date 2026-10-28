@@ -21,6 +21,8 @@ Every script exports to open formats (Final Draft `.fdx`, Fountain and PDF), so 
 - [ ] **Phase 4: Production & Script Supervision Tools**
   For shooting scripts: multi-colour revision tracking, locked pages and scene numbers, and split comparison of
   drafts. These are production tools, separate from the core writing and story planning tools, which stay free.
+  - **Interactive Stripboard & Shooting Days**: Draggable strip reordering, Day Break dividers, and automatic
+    shoot day calculation for production exports.
 - [ ] **Phase 5: Mobile & Companion**
   A touch-optimised tablet layout and Android builds.
 
