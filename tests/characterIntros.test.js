@@ -1,0 +1,145 @@
+import { describe, it } from 'node:test';
+import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import {
+  INTRO_DESCRIPTION_MAX, findIntroductions, introDescription, introMatches, populateBiosFromIntros, populateSummary,
+} from '../src/lib/characterIntros.js';
+import { SAMPLE_SCRIPT } from '../src/lib/sampleScript.js';
+
+const read = (p) => readFileSync(new URL(`../${p}`, import.meta.url), 'utf8');
+const A = (text, id = 'a') => ({ id, type: 'action', text });
+const one = (text) => findIntroductions([A(text)])[0];
+const bio = (name, extra = {}) => ({
+  id: `c-${name}`, name, primaryRole: '', secondaryRole: 'none', relationship: '', age: '', description: '', traits: '', backstory: '', ...extra,
+});
+const MARJORIE = 'The tray tips, landing squarely in front of MARJORIE (30s)--warm-dark skin, in a blue and white server’s outfit, carrying a tray of glasses, who freezes.';
+
+describe('Character introductions: age', () => {
+  it('a) takes the age exactly as written', () => {
+    assert.equal(one(MARJORIE).age, '30s');
+    assert.equal(one('TONY (early 40s), broad-shouldered.').age, 'early 40s');
+    for (const [text, age] of [
+      ['NURSE (late 20s), scrubs.', 'late 20s'], ['JEAN-CLAUDE (mid-40s), wiry.', 'mid-40s'], ['ELDER (50-something), stooped.', '50-something'],
+      ['FITO (10)--copper skin.', '10'], ['MANMAN (70), still.', '70'], ['GIRL (teens), sullen.', 'teens'], ['DOC (mid 50s), calm.', 'mid 50s'],
+    ]) assert.equal(one(text)?.age, age, text);
+  });
+  it('the name is the capitals right before the parentheses', () => {
+    assert.equal(one(MARJORIE).name, 'MARJORIE');
+    assert.equal(one('A HORN BLASTS from the ferry. CAPTAIN AUGUSTIN (60s), weathered as the hull, leans over the rail.').name, 'CAPTAIN AUGUSTIN');
+    assert.equal(one('ÉLODIE (20s), barefoot.').name, 'ÉLODIE');
+  });
+  it('never reads extensions, years or words in parentheses as an age', () => {
+    for (const text of ['MARIE (V.O.) hums.', 'THEO (O.S.) calls out.', 'In 1986 (the coup year) everything changed.', 'MARIE (CONT’D) waits.', 'PORT-AU-PRINCE (1986).', 'Marie (30s) waits.']) {
+      assert.deepEqual(findIntroductions([A(text)]), [], text);
+    }
+  });
+  it('only Action is read, and only the first introduction of each name', () => {
+    const blocks = [{ id: 'd', type: 'dialogue', text: 'MARIE (30s), a liar.' }, A('MARIE (30s), coat buttoned.', 'a1'), A('MARIE (40s), older now.', 'a2')];
+    assert.deepEqual(findIntroductions(blocks).map((i) => [i.age, i.blockId]), [['30s', 'a1']]);
+  });
+});
+
+describe('Character introductions: physical description', () => {
+  it('b) the clause after the age, up to the clause or sentence boundary', () => {
+    assert.equal(one(MARJORIE).description, 'warm-dark skin, in a blue and white server’s outfit, carrying a tray of glasses');
+    assert.equal(one('TONY (early 40s), broad-shouldered, in a pressed black suit; he scans the room.').description, 'broad-shouldered, in a pressed black suit');
+    assert.equal(one('FITO (10)--copper skin, bare feet--grins at the camera.').description, 'copper skin, bare feet');
+    assert.equal(one('NURSE (late 20s) — tired eyes. She sighs.').description, 'tired eyes');
+  });
+  it('stops before a verb or clause takes over', () => {
+    assert.equal(one('MARIE (30s), coat buttoned to the throat, drags a suitcase down the planks.').description, 'coat buttoned to the throat');
+    assert.equal(one('CAPTAIN AUGUSTIN (60s), weathered as the hull, leans over the rail.').description, 'weathered as the hull');
+  });
+  it('stops at the next introduction in the same paragraph', () => {
+    const [jc, nurse] = findIntroductions([A('JEAN-CLAUDE (mid-40s), wiry, and NURSE (late 20s), scrubs.')]);
+    assert.equal(jc.description, 'wiry');
+    assert.equal(nurse.description, 'scrubs');
+  });
+  it('no separator after the age means no description ("ELDER (50-something) waits.")', () => {
+    assert.equal(one('ELDER (50-something) waits.').description, '');
+    assert.equal(introDescription(' waits by the door.'), '');
+  });
+  it('is trimmed and kept short (cut back at a comma)', () => {
+    const long = `--${'tall, '.repeat(30)}end.`;
+    const d = introDescription(long);
+    assert.ok(d.length <= INTRO_DESCRIPTION_MAX, `${d.length} characters`);
+    assert.ok(!/[,\s]$/.test(d) && !/^[-,\s]/.test(d), JSON.stringify(d));
+    assert.equal(introDescription(', "barefoot," .'), 'barefoot');
+  });
+});
+
+describe('Populate Bio: fills blanks only', () => {
+  const blocks = [A(MARJORIE, 'a1'), A('TONY (early 40s), broad-shouldered, in a pressed black suit.', 'a2')];
+
+  it('fills empty Age / Timeline and Physical Description on existing bios', () => {
+    const { list, filled, created } = populateBiosFromIntros([bio('MARJORIE')], blocks, ['MARJORIE']);
+    assert.equal(list[0].age, '30s');
+    assert.equal(list[0].description, 'warm-dark skin, in a blue and white server’s outfit, carrying a tray of glasses');
+    assert.deepEqual(filled, [{ name: 'MARJORIE', fields: ['age', 'description'] }]);
+    assert.deepEqual(created, []);
+  });
+  it('c) never overwrites a field that already has text', () => {
+    const mine = [bio('MARJORIE', { age: '34 in 2021', description: 'My own words.' }), bio('TONY', { age: '  ', description: 'Keeps his.' })];
+    const { list, filled } = populateBiosFromIntros(mine, blocks, ['MARJORIE', 'TONY']);
+    assert.equal(list[0].age, '34 in 2021');
+    assert.equal(list[0].description, 'My own words.');
+    assert.equal(list[1].age, 'early 40s', 'a field of spaces counts as blank');
+    assert.equal(list[1].description, 'Keeps his.');
+    assert.deepEqual(filled, [{ name: 'TONY', fields: ['age'] }]);
+    for (const k of ['id', 'name', 'primaryRole', 'traits', 'backstory']) assert.equal(list[0][k], mine[0][k], k);
+  });
+  it('d) running it again changes nothing (same list back, nothing reported)', () => {
+    const first = populateBiosFromIntros([bio('MARJORIE')], blocks, ['MARJORIE', 'TONY']);
+    const again = populateBiosFromIntros(first.list, blocks, ['MARJORIE', 'TONY']);
+    assert.equal(again.list, first.list, 'the very same array: no re-render, no new undo step');
+    assert.deepEqual(again.filled, []);
+    assert.equal(again.list.length, 2, 'no duplicate bios');
+    assert.equal(populateSummary(again), 'No new ages or descriptions found in the script');
+  });
+  it('adds a bio for a speaking character the script introduces, in introduction order', () => {
+    const { list, created } = populateBiosFromIntros([], blocks, ['TONY', 'MARJORIE', 'WAITER']);
+    assert.deepEqual(created, ['MARJORIE', 'TONY'], 'script order, not speaking order');
+    assert.deepEqual(list.map((c) => [c.name, c.age]), [['MARJORIE', '30s'], ['TONY', 'early 40s']]);
+    assert.ok(list.every((c) => c.id && c.secondaryRole === 'none' && c.traits === ''), 'complete bios');
+  });
+  it('never invents bios for names that don’t speak', () => {
+    assert.deepEqual(populateBiosFromIntros([], blocks, []).list, []);
+  });
+  it('matches a fuller introduction to the cue name', () => {
+    assert.ok(introMatches('CAPTAIN AUGUSTIN', 'AUGUSTIN'));
+    assert.ok(introMatches('TONY CINEUS', 'TONY'));
+    assert.ok(introMatches('MARIE', 'marie (V.O.)'));
+    assert.ok(!introMatches('MARIELLE', 'MARIE'));
+  });
+  it('the sample script fills all three of its bios', () => {
+    const blocks2 = SAMPLE_SCRIPT.blocks.map(([type, text], i) => ({ id: `b${i}`, type, text }));
+    const { list } = populateBiosFromIntros([], blocks2, ['MARIE', 'THEO', 'AUGUSTIN']);
+    assert.deepEqual(list.map((c) => [c.name, c.age, c.description]), [
+      ['MARIE', '30s', 'coat buttoned to the throat'],
+      ['THEO', '20s', 'her brother'],
+      ['AUGUSTIN', '60s', 'weathered as the hull'],
+    ]);
+  });
+  it('reports what it did', () => {
+    assert.equal(populateSummary({ filled: [{}, {}], created: [] }), 'Filled 2 bios from character introductions');
+    assert.equal(populateSummary({ filled: [{}, {}, {}], created: ['A', 'B', 'C'] }), 'Added 3 bios from character introductions');
+    assert.equal(populateSummary({ filled: [{}, {}, {}], created: ['A'] }), 'Filled 2 bios and added 1 from character introductions');
+  });
+});
+
+describe('Populate Bio: the button', () => {
+  const drawer = read('src/components/CharactersDrawer.jsx');
+  const app = read('src/App.jsx');
+  it('sits in the Characters header, left of expand / close, on the Bios tab only', () => {
+    assert.match(drawer, /<div className="pb-head-actions">\s*\{\/\*[^*]*\*\/\}\s*\{onPopulateBios && tab !== 'dialogue' && \(/);
+    assert.ok(drawer.indexOf('Populate Bio') < drawer.indexOf('<ExpandToggle'), 'before the expand button');
+    assert.match(drawer, /<UserRoundPen size=\{13\} strokeWidth=\{1\.75\} aria-hidden \/>Populate Bio/);
+  });
+  it('reports the result, with Undo only when something changed', () => {
+    assert.match(drawer, /setUndo\(\{ message: populateSummary\(r\), restore: r\.filled\.length \? \(\) => onCharactersChange\(prev\) : null \}\)/);
+    assert.match(drawer, /\{undo\.restore && \(/);
+  });
+  it('the app runs it on the current script and only saves when something was filled', () => {
+    assert.match(app, /const r = populateBiosFromIntros\(characters, blocks, speakers\);\s*if \(r\.filled\.length\) setCharacters\(r\.list\);\s*return r;/);
+  });
+});

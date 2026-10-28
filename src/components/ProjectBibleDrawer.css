@@ -499,6 +499,10 @@
    bar), content held to a readable centred column (lib/panelExpand.js · EXPANDED_READING_WIDTH). */
 .pb-head-actions { display: flex; align-items: center; gap: 2px; flex: none; }
 .pb-expand { display: grid; place-items: center; width: 30px; height: 30px; padding: 0; color: var(--muted); }
+/* Characters → Populate Bio: a small outline button left of expand / close, the same 30px tall. */
+.pb-populate { display: inline-flex; align-items: center; gap: 6px; height: 28px; margin-right: 6px; padding: 0 10px; color: var(--muted); font-size: 12px; }
+.pb-populate:hover { color: var(--text); }
+.pb-populate svg { flex: none; }
 .pb-expand:hover { color: var(--text); }
 .pb {
   --pb-gutter: 0px;

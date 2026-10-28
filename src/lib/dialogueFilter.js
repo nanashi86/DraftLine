@@ -56,8 +56,8 @@ export function dialogueStops(analysis, name, { sceneOf = {}, scenes = [], pageO
   });
 }
 
-/** "3 of 12" — "– of 12" before the first step. */
-export const stepperPosition = (index, total) => `${index >= 0 && index < total ? index + 1 : '–'} of ${total}`;
+/** "3 of 12" while stepping; just "12" before the first step (Format, Dialogue, Find — like Density). */
+export const stepperPosition = (index, total) => (index >= 0 && index < total ? `${index + 1} of ${total}` : String(total));
 
 const isEditable = (t) => !!t && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName || ''));
 

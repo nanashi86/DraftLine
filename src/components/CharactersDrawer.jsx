@@ -1,4 +1,5 @@
 import { Fragment, useEffect, useRef, useState } from 'react';
+import { UserRoundPen } from 'lucide-react';
 import ExpandToggle from './ExpandToggle.jsx';
 import { useExpandedPanel } from '../hooks/useExpandedPanel.js';
 import { escapeAction } from '../lib/panelExpand.js';
@@ -12,6 +13,7 @@ import {
   updateCharacter,
 } from '../lib/bible.js';
 import { dictionaryEntry } from '../lib/structureDictionary.js';
+import { populateSummary } from '../lib/characterIntros.js';
 import './ProjectBibleDrawer.css';
 
 // ---- Character Bios -----------------------------------------------------------------------
@@ -233,7 +235,7 @@ function CharacterBios({ characters, onChange, speakers, onUndoable, onRename, r
  */
 export default function CharactersDrawer({
   open, onClose, tab = DEFAULT_CHARACTER_TAB, onTabChange, characters, onCharactersChange, speakers,
-  onRenameCharacter, revealBio = null, dialogue, dictionary = [], onOpenGlossary,
+  onRenameCharacter, revealBio = null, dialogue, dictionary = [], onOpenGlossary, onPopulateBios,
 }) {
   const [undo, setUndo] = useState(null); // { message, restore }
   const panelRef = useRef(null);
@@ -276,6 +278,21 @@ export default function CharactersDrawer({
           </div>
         </div>
         <div className="pb-head-actions">
+          {/* Bios only: fill blank Age and Physical Description from the script's introductions. */}
+          {onPopulateBios && tab !== 'dialogue' && (
+            <button
+              type="button"
+              className="btn btn-outline pb-populate"
+              onClick={() => {
+                const prev = characters;
+                const r = onPopulateBios();
+                setUndo({ message: populateSummary(r), restore: r.filled.length ? () => onCharactersChange(prev) : null });
+              }}
+              title="Fill empty Age / Timeline and Physical Description fields from how the script introduces each character, e.g. MARJORIE (30s)--warm-dark skin. Nothing you've typed is changed."
+            >
+              <UserRoundPen size={13} strokeWidth={1.75} aria-hidden />Populate Bio
+            </button>
+          )}
           <ExpandToggle expanded={expanded} onToggle={() => setExpanded((x) => !x)} />
           <button type="button" className="btn btn-icon pb-close" onClick={onClose} aria-label="Close Characters" title="Close (Esc)">×</button>
         </div>
@@ -322,16 +339,18 @@ export default function CharactersDrawer({
       {undo && (
         <div className="pb-undo" role="status">
           {undo.message}
-          <button
-            type="button"
-            className="btn"
-            onClick={() => {
-              undo.restore();
-              setUndo(null);
-            }}
-          >
-            Undo
-          </button>
+          {undo.restore && (
+            <button
+              type="button"
+              className="btn"
+              onClick={() => {
+                undo.restore();
+                setUndo(null);
+              }}
+            >
+              Undo
+            </button>
+          )}
         </div>
       )}
     </aside>

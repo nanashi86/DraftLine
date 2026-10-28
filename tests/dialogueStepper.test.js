@@ -43,8 +43,9 @@ describe('Dialogue stepper: the filtered character’s speeches', () => {
     assert.equal(speechSnippet([{ type: 'parenthetical', text: '(beat)' }]), '(beat)', 'no dialogue: the parenthetical');
     assert.ok(speechSnippet([{ type: 'dialogue', text: 'word '.repeat(30) }]).length <= 49);
   });
-  it('position "3 of 12" ("– of 12" before the first step); ‹ › loop', () => {
-    assert.equal(stepperPosition(-1, 12), '– of 12');
+  it('position "3 of 12" (just "12" before the first step); ‹ › loop', () => {
+    assert.equal(stepperPosition(-1, 12), '12');
+    assert.equal(stepperPosition(12, 12), '12', 'out of range: the count, never "– of"');
     assert.equal(stepperPosition(2, 12), '3 of 12');
     assert.equal(stepRisk(-1, 3, 'next'), 0);
     assert.equal(stepRisk(2, 3, 'next'), 0, 'loops');

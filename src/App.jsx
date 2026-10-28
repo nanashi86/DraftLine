@@ -72,6 +72,7 @@ import { newProjectMeta, rememberAuthorDefaults } from './lib/authorDefaults.js'
 import { parseFountain, toFountain } from './lib/fountain.js';
 import { parseFDX, toFDX } from './lib/fdx.js';
 import { beatsToFountain, beatsToMarkdown, sampleBeats } from './lib/beats.js';
+import { populateBiosFromIntros } from './lib/characterIntros.js';
 import { SAMPLE_SCRIPT } from './lib/sampleScript.js';
 import { effectiveZoomFor } from './lib/zoom.js';
 import { actionDensity, riskLocations, stepRisk } from './lib/pacing.js';
@@ -2324,6 +2325,12 @@ function Workspace({ boot }) {
           revealBio={revealBio}
           dictionary={dictionary}
           onOpenGlossary={openGlossary}
+          onPopulateBios={() => {
+            // Characters → Populate Bio (lib/characterIntros.js): blank fields only, never what you typed.
+            const r = populateBiosFromIntros(characters, blocks, speakers);
+            if (r.filled.length) setCharacters(r.list);
+            return r;
+          }}
           dialogue={{
             analysis,
             pageOfBlock: layout.pageOfBlock,

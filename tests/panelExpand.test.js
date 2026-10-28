@@ -41,7 +41,9 @@ describe('Drawer expand toggle: in both drawers', () => {
     it(`${name}: the toggle sits directly left of ×`, () => {
       const drawer = src.slice(src.indexOf('export default function'));
       const head = drawer.slice(drawer.indexOf('<header className="pb-head">'), drawer.indexOf('</header>'));
-      assert.match(head, new RegExp(`<div className="pb-head-actions">\\s*<ExpandToggle expanded=\\{expanded\\} onToggle=\\{\\(\\) => setExpanded\\(\\(x\\) => !x\\)\\} />\\s*<button type="button" className="btn btn-icon pb-close" onClick=\\{onClose\\} aria-label="${closeLabel}"`));
+      // Last two in the header's actions: expand, then × (Characters puts Populate Bio before them).
+      assert.match(head, new RegExp(`<ExpandToggle expanded=\\{expanded\\} onToggle=\\{\\(\\) => setExpanded\\(\\(x\\) => !x\\)\\} />\\s*<button type="button" className="btn btn-icon pb-close" onClick=\\{onClose\\} aria-label="${closeLabel}"[^>]*>×</button>\\s*</div>`));
+      assert.ok(head.indexOf('<div className="pb-head-actions">') < head.indexOf('<ExpandToggle'), 'inside the header actions');
     });
     it(`${name}: expanded state marks the panel, and Esc collapses before it closes`, () => {
       assert.match(src, /const \[expanded, setExpanded\] = useExpandedPanel\(open\);/);

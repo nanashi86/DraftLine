@@ -14,7 +14,7 @@ The top bar holds your script's title, the **Write | Plan** switch, the **File �
 - **Focus** hides everything but the page. Press {{key:Esc}} to come back.
 - The **Scenes** sidebar ({{key:Alt+S}}) lists every scene with its length in eighths of a page. Click one to jump to it, or type to find a scene.
 - **Write | Plan** switches between writing the script and planning the shoot (see Production & Planning). Write is where you start.
-- The status bar's steppers (**Format · 1 of 7**, **Density · 1 of 9**, a character's **MARIE · 1 of 8**) all work the same way: ‹ › step through, clicking the name lists every one, and ✕ closes it.
+- The status bar's steppers (**Format · 1 of 7**, **Density · 1 of 9**, a character's **MARIE · 1 of 8**) all work the same way: before your first step they show just how many there are (**Format · 7**), then ‹ › step through, clicking the name lists every one, and ✕ closes it.
 - **File ▾** holds everything to do with files, in three parts. **Script**: New… ({{key:Ctrl+Alt+N}}), Open… ({{key:Ctrl+O}}), Import…, Sample… (adds *The Last Ferry* to your Projects) and Edit Title…. **Export Script**: PDF, Final Draft, Fountain and Print Script…. **Export Outline & Bible**: Story Bible, and the Scene Board as a Spreadsheet, Markdown or Fountain Outline. **Backup**: Backup Project and Snapshot History. Each export shows its file type on the right (.fountain, .fdx, .pdf, .csv, .md, .draftline).
 - Narrow windows move panels you can't see on the bar into the **⋮** menu.
 
@@ -241,6 +241,8 @@ The ⓘ beside each role picker explains the role, and clicking it opens that te
 ### Script characters and your own additions
 
 DraftLine reads the character cues in your script. Anyone who speaks but has no bio appears under **Missing bios**; click a name to start their bio. You can also add bios yourself with **+ Add Character**, for characters who haven't spoken yet or never do. Filter, sort A–Z, or move bios up and down.
+
+**Populate Bio** (top of the Bios tab, beside expand and close) reads how your script introduces each character, the standard way: `MARJORIE (30s)--warm-dark skin, in a blue and white server's outfit`. It puts the age (`30s`, `early 40s`, `mid-40s`, `50-something`…) in **Age / Timeline** and the short description after it in **Physical Description**, stopping where the description turns into action (`…, drags a suitcase`) or the sentence ends. Only empty fields are filled: anything you've typed is never changed, so clicking it again is safe. Speaking characters the script introduces who don't have a bio yet get one. A note says what it did, with **Undo**.
 
 **Rename** changes a character's name everywhere at once: cues, dialogue and action mentions, the Scene Board, the Story Bible and other bios. It shows a review first and is one undo step.
 
