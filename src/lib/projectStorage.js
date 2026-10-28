@@ -6,7 +6,7 @@
 //         titleFont, titleSize, titleBold, showSceneNumbers, script, beats, characters, storyNotes, storyDna, production,
 //         pages, scenes, createdAt, updatedAt }
 //       characters — the Project Bible's bios [{ id, name, primaryRole, secondaryRole, relationship, age,
-//                    description, traits, backstory }] (older ones: a free-text `role`)
+//                    gender, description, traits, backstory }] (older ones: a free-text `role`)
 //       storyNotes — the Bible's notes { sections: [{ id, title, body }] } (see bible.js)
 //       storyDna   — the Bible's story blueprint (see storyDna.js)
 //       production — the Plan workspace's per-scene asset lists (see productionData.js); older

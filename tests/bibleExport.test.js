@@ -114,7 +114,7 @@ describe('Story Bible export: what each section holds', () => {
     assert.equal(hasBio({ name: 'THEO', secondaryRole: 'foil' }), true);
     assert.equal(hasBio({ name: '', backstory: 'x' }), false);
     assert.deepEqual(chars.characters.map((c) => c.name), ['MARIE', 'THEO']);
-    assert.deepEqual(chars.characters[0], { name: 'MARIE', role: 'Protagonist', age: '30s', relationship: '', fields: [{ label: 'Backstory / Motivation & Arc', text: 'Left Haiti at ten.' }] });
+    assert.deepEqual(chars.characters[0], { name: 'MARIE', role: 'Protagonist', age: '30s', gender: '', relationship: '', fields: [{ label: 'Backstory / Motivation & Arc', text: 'Left Haiti at ten.' }] });
     assert.equal(chars.characters[1].role, '(Foil)');
   });
   it('the dialog’s summary of each section', () => {

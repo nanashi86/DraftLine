@@ -232,6 +232,7 @@ Each bio has:
 - **Secondary Function**: an archetype such as {{roles.secondary}}.
 - **Relationship**: free text, for example "Brother-in-law to Fito, manages textile warehouse".
 - **Age / Timeline**: for example "10 in 1986, 45 in 2021".
+- **Gender**: Male, Female, Non-Binary or Other, or left blank. It sits beside Age / Timeline.
 - **Physical Description**: how they look, for example "Tall, lean, weathered hands, always wearing a faded denim jacket".
 - **Traits**
 - **Backstory / Motivation**
@@ -242,7 +243,7 @@ The ⓘ beside each role picker explains the role, and clicking it opens that te
 
 DraftLine reads the character cues in your script. Anyone who speaks but has no bio appears under **Missing bios**; click a name to start their bio. You can also add bios yourself with **+ Add Character**, for characters who haven't spoken yet or never do. Filter, sort A–Z, or move bios up and down.
 
-**Populate Bio** (top of the Bios tab, beside expand and close) reads how your script introduces each character, the standard way: `MARJORIE (30s)--warm-dark skin, in a blue and white server's outfit`. It puts the age (`30s`, `early 40s`, `mid-40s`, `50-something`…) in **Age / Timeline** and the short description after it in **Physical Description**, stopping where the description turns into action (`…, drags a suitcase`) or the sentence ends. Only empty fields are filled: anything you've typed is never changed, so clicking it again is safe. Speaking characters the script introduces who don't have a bio yet get one. A note says what it did, with **Undo**.
+**Populate Bio** (top of the Bios tab, beside expand and close) reads how your script introduces each character, the standard way: `MARJORIE (30s)--warm-dark skin, in a blue and white server's outfit`. It puts the age (`30s`, `early 40s`, `mid-40s`, `50-something`…) in **Age / Timeline** and the short description after it in **Physical Description**, stopping where the description turns into action (`…, drags a suitcase`) or the sentence ends. It sets **Gender** when the introduction and the sentence after it point one way only (she, her, woman, mother… or he, his, man, brother…): `NEWS REPORTER (40s)--fills the frame. She's a striking woman` is Female. Mixed signals ("her brother") or none leave it blank, and "they" alone never sets it. Only empty fields are filled: anything you've typed or picked is never changed, so clicking it again is safe. Speaking characters the script introduces who don't have a bio yet get one. A note says what it did, with **Undo**.
 
 **Rename** changes a character's name everywhere at once: cues, dialogue and action mentions, the Scene Board, the Story Bible and other bios. It shows a review first and is one undo step.
 

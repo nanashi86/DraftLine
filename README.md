@@ -193,9 +193,10 @@ and switches with it in Projects. Tab labels are one short word each, so they ne
 - **👤 Bios** (with a count) — a card per character: name, role / relationship, age (or timeline ages, e.g. "10 in 1986,
   45 in 2021"), traits, and backstory / motivation. **+ Add Character**, filter by name, **A–Z** sort or ↑ ↓ to
   reorder, one-click chips for script speakers who don't have a bio yet, and **Rename across script…**. Deleting can
-  be undone. **Populate Bio** fills empty Age and Physical Description fields from each character's introduction
-  in the Action (`MARJORIE (30s)--warm-dark skin, …`), adding bios for introduced speakers; it never changes text
-  you've typed, and Undo reverses it.
+  be undone. Each bio also has a **Gender** picker beside Age / Timeline. **Populate Bio** fills empty Age, Gender and
+  Physical Description fields from each character's introduction in the Action (`MARJORIE (30s)--warm-dark skin, …`;
+  gender only when the introduction's pronouns and nouns agree), adding bios for introduced speakers; it never
+  changes what you've typed or picked, and Undo reverses it.
 - **💬 Dialogue** (with the number of speaking characters) — pick a character to read every line they speak, top to
   bottom, tagged with scene number and heading; filter lines, show the cue before each speech, see lines / words /
   scenes, and **Rename…** the character. Edit right in the tab: changes write straight to the script. "Go ↗" jumps to

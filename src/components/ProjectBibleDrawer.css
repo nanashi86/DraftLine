@@ -493,6 +493,8 @@
   cursor: pointer;
 }
 .pb-roles select:focus { border-color: var(--accent); outline: none; }
+/* Age / Timeline | Gender: the text field matches the select beside it. */
+.pb-age-gender input { min-width: 0; }
 .pb-char-meta { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 /* ---- Expanded: the drawer widens over the whole workspace (between the toolbar and the status

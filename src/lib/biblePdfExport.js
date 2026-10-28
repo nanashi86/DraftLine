@@ -6,7 +6,7 @@
 // The app prints that document from its own window (lib/printTitle.js), so Chrome's "Save as PDF"
 // suggests "<Title> - Story Bible.pdf". No PDF library, nothing to download.
 
-import { CHARACTER_FIELDS, NOTES_ORDER, actsFor, normalizeStoryNotes, roleSummary, treatmentActHeading } from './bible.js';
+import { CHARACTER_FIELDS, NOTES_ORDER, actsFor, normalizeStoryNotes, roleSummary, treatmentActHeading, validGender } from './bible.js';
 import { DNA_QUESTIONS, normalizeStoryDna, plotDeviceLayout } from './storyDna.js';
 import { printDocument } from './printTitle.js';
 
@@ -31,7 +31,7 @@ export const bibleFileTitle = (title) => `${clean(title) || 'Untitled'} - Story 
 /** A character worth a page: a name plus anything else filled in (a role, age, bio…). */
 export function hasBio(c) {
   if (!clean(c?.name)) return false;
-  return !!roleSummary(c) || CHARACTER_FIELDS.some((f) => f.key !== 'name' && clean(c[f.key]));
+  return !!roleSummary(c) || !!validGender(c.gender) || CHARACTER_FIELDS.some((f) => f.key !== 'name' && clean(c[f.key]));
 }
 
 function dnaSection(rawDna) {
@@ -80,6 +80,7 @@ function charactersSection(characters) {
     name: clean(c.name),
     role: roleSummary(c),
     age: clean(c.age),
+    gender: validGender(c.gender),
     relationship: clean(c.relationship),
     fields: [
       { label: 'Physical Description', text: clean(c.description) },
@@ -157,7 +158,7 @@ function notesHtml(s) {
 function charactersHtml(s) {
   if (!s.characters.length) return empty('No character bios yet.');
   return s.characters.map((c) => {
-    const sub = [c.role, c.age && `Age: ${c.age}`].filter(Boolean).map(esc).join(' · ');
+    const sub = [c.role, c.age && `Age: ${c.age}`, c.gender].filter(Boolean).map(esc).join(' · ');
     return `
     <div class="character">
       <h3 class="char-name">${esc(c.name)}</h3>

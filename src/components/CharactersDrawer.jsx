@@ -8,7 +8,7 @@ import TabIcon from './TabIcon.jsx';
 import DialogueTuner from './DialogueTuner.jsx';
 import { InfoTip } from './StoryDna.jsx';
 import {
-  CHARACTER_FIELDS, CHARACTER_TABS, DEFAULT_CHARACTER_TAB, PRIMARY_ROLES, SECONDARY_ROLES, addCharacter, bibleTabBadge,
+  CHARACTER_FIELDS, CHARACTER_TABS, DEFAULT_CHARACTER_TAB, GENDERS, PRIMARY_ROLES, SECONDARY_ROLES, addCharacter, bibleTabBadge,
   filterCharacters, missingFromScript, moveCharacter, primaryRole, removeCharacter, roleSummary, secondaryRole, sortCharacters,
   updateCharacter,
 } from '../lib/bible.js';
@@ -59,6 +59,25 @@ function RolePickers({ c, onChange, dictionary, onOpenTerm }) {
   );
 }
 
+/** Age / Timeline | Gender, side by side — the same two-column row as the role pickers. */
+function AgeGender({ c, field, onChange }) {
+  return (
+    <div className="pb-roles pb-age-gender">
+      <label className="pb-field">
+        <span>{field.label}</span>
+        <input value={c.age} placeholder={field.placeholder} onChange={(e) => onChange({ age: e.target.value })} />
+      </label>
+      <label className="pb-field">
+        <span>Gender</span>
+        <select value={c.gender || ''} onChange={(e) => onChange({ gender: e.target.value })} aria-label="Gender">
+          <option value="">Not set</option>
+          {GENDERS.map((g) => <option key={g} value={g}>{g}</option>)}
+        </select>
+      </label>
+    </div>
+  );
+}
+
 function CharacterCard({ c, open, canMove, onToggle, onChange, onMove, onDelete, onRename, autoFocus, dictionary, onOpenTerm }) {
   const nameRef = useRef(null);
   useEffect(() => {
@@ -98,6 +117,7 @@ function CharacterCard({ c, open, canMove, onToggle, onChange, onMove, onDelete,
           {CHARACTER_FIELDS.map((f) => (
             <Fragment key={f.key}>
             {f.key === 'relationship' && <RolePickers c={c} onChange={onChange} dictionary={dictionary} onOpenTerm={onOpenTerm} />}
+            {f.key === 'age' ? <AgeGender c={c} field={f} onChange={onChange} /> : (
             <label className="pb-field">
               <span>{f.label}</span>
               {f.multiline ? (
@@ -115,6 +135,7 @@ function CharacterCard({ c, open, canMove, onToggle, onChange, onMove, onDelete,
                 />
               )}
             </label>
+            )}
             </Fragment>
           ))}
           <div className="pb-char-foot">

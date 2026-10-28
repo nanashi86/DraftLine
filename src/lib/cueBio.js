@@ -23,12 +23,12 @@ const clip = (text, n) => {
 
 /**
  * What the card shows, or null when the bio has nothing beyond a name (no card — no noise):
- * { id, name, meta ("Deuteragonist (Foil) · 45"), relationship, summary (traits), excerpt (backstory) }.
+ * { id, name, meta ("Deuteragonist (Foil) · 45 · Male"), relationship, summary (traits), excerpt (backstory) }.
  */
 export function bioCard(raw) {
   if (!raw) return null;
   const c = normalizeCharacter(raw); // older bios had one free-text `role`
-  const meta = [roleSummary(c), c.age].map((s) => String(s || '').trim()).filter(Boolean).join(' · ');
+  const meta = [roleSummary(c), c.age, c.gender].map((s) => String(s || '').trim()).filter(Boolean).join(' · ');
   const relationship = clip(c.relationship, 120);
   const summary = clip(c.traits, 140);
   const excerpt = clip(c.backstory, 180);

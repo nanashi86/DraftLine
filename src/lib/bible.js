@@ -1,15 +1,21 @@
 // Project Bible: character bios and story notes, stored on the project record beside the
 // script (see projectStorage.js). Pure functions, so every operation is unit-tested.
 //
-//   characters: [{ id, name, role, age, traits, backstory }]
+//   characters: [{ id, name, primaryRole, secondaryRole, relationship, age, gender, description, traits, backstory }]
 //   storyNotes: { sections: [{ id, title, body }] }   — body is Markdown
 
 import { normalizeStoryDna } from './storyDna.js';
+
+/** Characters → Bios → Gender: blank (not set) or one of these. */
+export const GENDERS = ['Male', 'Female', 'Non-Binary', 'Other'];
+/** A stored gender, or '' when it's missing or not one of GENDERS. */
+export const validGender = (g) => (GENDERS.includes(g) ? g : '');
 
 export const CHARACTER_FIELDS = [
   { key: 'name', label: 'Name', placeholder: 'MARIE CINEUS' },
   // (Primary Role and Secondary Function — two picklists — come right after Name.)
   { key: 'relationship', label: 'Relationship', placeholder: 'e.g., Brother-in-law to Fito, manages textile warehouse' },
+  // Age / Timeline shares its row with the Gender picker (GENDERS), like the two role pickers above.
   { key: 'age', label: 'Age / Timeline', placeholder: '10 in 1986, 45 in 2021' },
   {
     key: 'description',
@@ -197,6 +203,7 @@ export function normalizeCharacter(c) {
     secondaryRole: secondaryRole(rest.secondaryRole) ? rest.secondaryRole : 'none',
     relationship: typeof rest.relationship === 'string' ? rest.relationship : '',
     age: typeof rest.age === 'string' ? rest.age : '',
+    gender: validGender(rest.gender),
     description: typeof rest.description === 'string' ? rest.description : '', // Physical Description
     traits: typeof rest.traits === 'string' ? rest.traits : '',
     backstory: typeof rest.backstory === 'string' ? rest.backstory : '',
@@ -214,7 +221,7 @@ export const normalizeCharacters = (list) => (Array.isArray(list) ? list.map(nor
 
 export function newCharacter(fields = {}) {
   return normalizeCharacter({
-    id: uid('ch'), name: '', primaryRole: '', secondaryRole: 'none', relationship: '', age: '', description: '', traits: '', backstory: '',
+    id: uid('ch'), name: '', primaryRole: '', secondaryRole: 'none', relationship: '', age: '', gender: '', description: '', traits: '', backstory: '',
     ...fields,
   });
 }

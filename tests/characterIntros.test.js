@@ -2,9 +2,13 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import {
-  INTRO_DESCRIPTION_MAX, findIntroductions, introDescription, introMatches, populateBiosFromIntros, populateSummary,
+  INTRO_DESCRIPTION_MAX, findIntroductions, introDescription, introGender, introMatches, introWindow, populateBiosFromIntros, populateSummary,
 } from '../src/lib/characterIntros.js';
 import { SAMPLE_SCRIPT } from '../src/lib/sampleScript.js';
+import { GENDERS, newCharacter, normalizeCharacter } from '../src/lib/bible.js';
+import { parseBackup, serializeBackup } from '../src/lib/backup.js';
+import { bioCard } from '../src/lib/cueBio.js';
+import { hasBio } from '../src/lib/biblePdfExport.js';
 
 const read = (p) => readFileSync(new URL(`../${p}`, import.meta.url), 'utf8');
 const A = (text, id = 'a') => ({ id, type: 'action', text });
@@ -94,7 +98,7 @@ describe('Populate Bio: fills blanks only', () => {
     assert.equal(again.list, first.list, 'the very same array: no re-render, no new undo step');
     assert.deepEqual(again.filled, []);
     assert.equal(again.list.length, 2, 'no duplicate bios');
-    assert.equal(populateSummary(again), 'No new ages or descriptions found in the script');
+    assert.equal(populateSummary(again), 'No new ages, genders or descriptions found in the script');
   });
   it('adds a bio for a speaking character the script introduces, in introduction order', () => {
     const { list, created } = populateBiosFromIntros([], blocks, ['TONY', 'MARJORIE', 'WAITER']);
@@ -120,10 +124,91 @@ describe('Populate Bio: fills blanks only', () => {
       ['AUGUSTIN', '60s', 'weathered as the hull'],
     ]);
   });
-  it('reports what it did', () => {
-    assert.equal(populateSummary({ filled: [{}, {}], created: [] }), 'Filled 2 bios from character introductions');
-    assert.equal(populateSummary({ filled: [{}, {}, {}], created: ['A', 'B', 'C'] }), 'Added 3 bios from character introductions');
-    assert.equal(populateSummary({ filled: [{}, {}, {}], created: ['A'] }), 'Filled 2 bios and added 1 from character introductions');
+  it('reports what it did, and which fields', () => {
+    const f = (...fields) => ({ fields });
+    assert.equal(populateSummary({ filled: [f('gender'), f('age')], created: [] }), 'Filled 2 bios (age and gender)');
+    assert.equal(populateSummary({ filled: [f('age', 'description'), f('age', 'gender', 'description'), f('age')], created: ['A', 'B', 'C'] }), 'Added 3 bios (age, gender and description)');
+    assert.equal(populateSummary({ filled: [f('description'), f('description'), f('age')], created: ['A'] }), 'Filled 2 bios and added 1 (age and description)');
+    assert.equal(populateSummary({ filled: [f('gender')], created: [] }), 'Filled 1 bio (gender)');
+  });
+});
+
+const REPORTER = 'NEWS REPORTER (40s)--fills the frame. She\'s a striking woman in a red blazer.';
+const TONY = 'TONY (early 40s), broad-shouldered, in a pressed black suit; he scans the room.';
+
+describe('Character introductions: gender', () => {
+  it('b) female signals in the introduction → Female', () => {
+    const it0 = one(REPORTER);
+    assert.deepEqual([it0.name, it0.age, it0.gender], ['NEWS REPORTER', '40s', 'Female']);
+    assert.equal(one('WAITRESS (20s), tired.').gender, 'Female', 'the name itself counts');
+    assert.equal(one('NADINE (50s)--her mother’s eyes.').gender, 'Female');
+  });
+  it('c) male signals → Male', () => {
+    const it0 = one(TONY);
+    assert.deepEqual([it0.name, it0.age, it0.gender], ['TONY', 'early 40s', 'Male']);
+    assert.equal(one('OLD MAN (80s), still as a post.').gender, 'Male');
+  });
+  it('conflicting or missing signals leave it blank', () => {
+    assert.equal(one('Behind her, THEO (20s), her brother, jogs to catch up.').gender, '', '"her" and "brother": both');
+    assert.equal(one('MARIE (30s), coat buttoned to the throat.').gender, '', 'nothing to go on');
+    assert.equal(one('DEE (30s), in a hoodie. They tap their phone.').gender, '', 'they / their alone never decide it');
+  });
+  it('only reads the introduction: the name to the end of the next sentence, before anyone else is introduced', () => {
+    assert.equal(one('MARIE (30s), coat buttoned. The ferry waits. Later he arrives.').gender, '', 'a third sentence is too far');
+    const [a, b] = findIntroductions([A('ANA (30s), calm, and LUIS (40s), restless; he paces.')]);
+    assert.equal(a.gender, '', 'Luis’s "he" isn’t Ana’s');
+    assert.equal(b.gender, 'Male');
+    assert.equal(introGender('His jacket. Her bag.'), '');
+    assert.equal(introWindow('X (30s) one. two. three.', 0, 7), 'X (30s) one. two.');
+  });
+  it('a verb right after the age is action, not a description', () => {
+    assert.equal(one(REPORTER).description, '');
+    assert.equal(one('BO (30s)--stares at the door.').description, '');
+    assert.equal(one('JO (20s)--freckles across her nose.').description, 'freckles across her nose', 'a plural noun stays');
+  });
+});
+
+describe('Populate Bio: gender', () => {
+  const blocks = [A(REPORTER, 'a1'), A(TONY, 'a2')];
+  it('fills an empty Gender, and new bios get one', () => {
+    const { list, filled } = populateBiosFromIntros([bio('TONY')], blocks, ['TONY', 'NEWS REPORTER']);
+    assert.equal(list.find((c) => c.name === 'TONY').gender, 'Male');
+    assert.equal(list.find((c) => c.name === 'NEWS REPORTER').gender, 'Female');
+    assert.deepEqual(filled.map((f) => [f.name, f.fields]), [['TONY', ['age', 'gender', 'description']], ['NEWS REPORTER', ['age', 'gender']]]);
+  });
+  it('d) never changes a Gender you picked, and re-running changes nothing', () => {
+    for (const mine of ['Non-Binary', 'Female', 'Other']) {
+      const { list } = populateBiosFromIntros([bio('TONY', { gender: mine })], blocks, ['TONY']);
+      assert.equal(list[0].gender, mine);
+    }
+    const first = populateBiosFromIntros([bio('TONY')], blocks, ['TONY']);
+    const again = populateBiosFromIntros(first.list, blocks, ['TONY']);
+    assert.equal(again.list, first.list);
+    assert.deepEqual(again.filled, []);
+  });
+});
+
+describe('Bios: the Gender field', () => {
+  const drawer = read('src/components/CharactersDrawer.jsx');
+  const css = read('src/components/ProjectBibleDrawer.css');
+  it('a) stored on every bio: blank by default, one of the four values, kept through a backup', () => {
+    assert.deepEqual(GENDERS, ['Male', 'Female', 'Non-Binary', 'Other']);
+    assert.equal(newCharacter({ name: 'X' }).gender, '');
+    assert.equal(normalizeCharacter({ id: 'a', name: 'X', gender: 'Female' }).gender, 'Female');
+    assert.equal(normalizeCharacter({ id: 'a', name: 'X', gender: 'female' }).gender, '', 'only the listed values');
+    assert.equal(normalizeCharacter({ id: 'a', name: 'X' }).gender, '', 'older bios load without one');
+    const rec = { id: 'p', title: 'T', script: [{ id: 'b1', type: 'scene', text: 'INT. FERRY - NIGHT' }], characters: [newCharacter({ name: 'TONY', gender: 'Male' })] };
+    assert.equal(parseBackup(serializeBackup(rec)).record.characters[0].gender, 'Male');
+  });
+  it('a) Age / Timeline and Gender share a row, like the role pickers', () => {
+    assert.match(drawer, /<div className="pb-roles pb-age-gender">/);
+    assert.match(drawer, /\{f\.key === 'age' \? <AgeGender c=\{c\} field=\{f\} onChange=\{onChange\} \/> : \(/);
+    assert.match(drawer, /<select value=\{c\.gender \|\| ''\} onChange=\{\(e\) => onChange\(\{ gender: e\.target\.value \}\)\} aria-label="Gender">\s*<option value="">Not set<\/option>\s*\{GENDERS\.map/);
+    assert.match(css, /\.pb-roles \{ display: grid; grid-template-columns: 1fr 1fr;/);
+  });
+  it('shows on the cue hover card and in the Story Bible PDF', () => {
+    assert.match(bioCard({ id: 'a', name: 'TONY', age: '40s', gender: 'Male' }).meta, /40s · Male/);
+    assert.ok(hasBio({ name: 'TONY', gender: 'Male' }), 'a gender alone is worth a page');
   });
 });
 
