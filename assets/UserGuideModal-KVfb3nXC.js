@@ -1,4 +1,4 @@
-import{i as e,t}from"./react-DgawKyfb.js";import{At as n,C as r,Ct as i,D as a,E as o,Et as s,It as c,Mt as l,Nt as u,S as d,St as f,T as ee,Tt as p,_t as m,a as h,bt as g,ct as _,dt as v,gt as te,ht as y,i as b,jt as x,l as S,lt as C,mt as ne,n as re,o as ie,pt as ae,r as oe,st as se,u as w,ut as T,wt as E,xt as D}from"./index-Dg_jhzJ7.js";import{r as O,t as k}from"./printTitle-C1qWomuv.js";/* empty css                  */var A=e(),j=`# DraftLine User Guide
+import{i as e,t}from"./react-DgawKyfb.js";import{At as n,C as r,Ct as i,D as a,E as o,Et as s,It as c,Mt as l,Nt as u,S as d,St as f,T as ee,Tt as p,_t as m,a as h,bt as g,ct as _,dt as v,gt as te,ht as y,i as b,jt as x,l as S,lt as C,mt as ne,n as re,o as ie,pt as ae,r as oe,st as se,u as w,ut as T,wt as E,xt as D}from"./index-BK9i0OR2.js";import{r as O,t as k}from"./printTitle-C1qWomuv.js";/* empty css                  */var A=e(),j=`# DraftLine User Guide
 
 DraftLine is a distraction-free screenwriting app that runs in your browser. It writes in Courier Prime at 12 pt with standard screenplay margins, saves as you type, and works offline. This guide covers everything from your first scene heading to the final PDF.
 
@@ -152,6 +152,7 @@ When the Format Doctor finds nothing at all (findings you've ignored count as un
 - Scene headings: case, periods and dashes are fixed for you (\`int kitchen–night\` becomes \`INT. KITCHEN - NIGHT\`). A heading with no INT. / EXT. or no time of day is flagged for you to complete. \`INT./EXT.\`, \`INT/EXT.\` and \`I/E.\` are all accepted, and a time of day still counts with more after it (\`- NIGHT - BACK TO SCENE\`, \`- NEXT DAY\`, \`- NIGHT (FLASHBACK)\`).
 - A speaking character whose first mention in the Action isn't in capitals ("Marie" for MARIE). The fix capitalizes it.
 - Double blank lines inside an element, which are stripped.
+- Anything left alone at the bottom of a page, away from what it introduces: a scene heading, a character cue, or a lead-in line of Action (one that ends in a colon, like "She reads it aloud:", or starts with SUPER, INSERT, TITLE, CHYRON, PRE-LAP or "IN … WITH SUBTITLES"). Page breaks already keep these with what follows, so this only shows up where they can't, such as before an element taller than a page. There's nothing to fix automatically: move or trim something nearby, or Ignore it.
 
 ### Scene headings: formatting tips
 
