@@ -68,9 +68,44 @@ export function introDescription(after) {
 
 // ---- Gender from the introduction ----------------------------------------------------------
 
-const FEMALE = /\b(?:she|her|hers|woman|girl|female|actress|waitress|sister|mother|daughter)\b/i;
-const MALE = /\b(?:he|him|his|man|boy|male|actor|waiter|brother|father|son)\b/i;
+// Words that say what someone is. Definitive: they name the character directly ("a petite woman",
+// "her female FRIEND", "WAITRESS"). Relational: a family word, definitive only as the introduction's
+// opening appositive ("THEO (20s), her brother"); elsewhere it's a weak hint ("…with his daughter").
+const NOUN_FEMALE = /\b(?:woman|women|girl|female|lady|actress|waitress)\b/i;
+const NOUN_MALE = /\b(?:man|men|boy|male|gentleman|guy|actor|waiter)\b/i;
+const RELATION_FEMALE = /\b(?:sister|mother|daughter|wife|aunt|grandmother|niece)\b/i;
+const RELATION_MALE = /\b(?:brother|father|son|husband|uncle|grandfather|nephew)\b/i;
 const SENTENCE_END = /[.!?](?=\s|$)/g;
+// "at him", "with her." — an object pronoun after a preposition is usually someone else in the scene.
+const PREPOSITION = /(?:at|to|with|for|from|toward|towards|behind|beside|past|on|over|by|about|into|onto|near|against|under|around|after|before|than|like)$/i;
+
+/** Gender a set of words names directly: 'Female', 'Male', or '' (none, or both). */
+function nounGender(text, relations = false) {
+  const t = String(text || '').replace(/['’]s\b/g, ''); // "mother's eyes" describes the mother, not them
+  const f = NOUN_FEMALE.test(t) || (relations && RELATION_FEMALE.test(t));
+  const m = NOUN_MALE.test(t) || (relations && RELATION_MALE.test(t));
+  return f === m ? '' : f ? 'Female' : 'Male';
+}
+
+/**
+ * The few words right before the name that can describe them ("…and her female FRIEND", "young man
+ * TONY"): at most 4, from the same sentence, after the last word that brings in someone else
+ * ("Cassandre and …", "beside …", "with …").
+ */
+export function preNameWords(text, nameStart) {
+  const before = text.slice(0, nameStart);
+  const sentence = before.split(/[.!?](?=\s)|--|[—–;:]/).pop();
+  const words = sentence.trim().split(/\s+/).filter(Boolean).slice(-4);
+  let from = 0;
+  words.forEach((w, i) => {
+    const bare = w.replace(/[,]$/, '');
+    // Someone else comes in ("Cassandre and …", "beside …"), or a verb does ("A woman watches TONY").
+    if (/^(?:and|or|with|while|beside|behind|to|from|at|than)$/i.test(bare) || (/^[a-z]{3,}(?:s|ed)$/.test(bare) && !/ss$/.test(bare))) from = i + 1;
+  });
+  const kept = words.slice(from);
+  // Only pronouns left ("Behind her, THEO"): nothing describes the name.
+  return kept.every((w) => /^(?:her|him|his|them|their|it|its)[,]?$/i.test(w)) ? '' : kept.join(' ');
+}
 
 /**
  * The words that can tell an introduction's gender: from the name to the end of the sentence after
@@ -94,16 +129,45 @@ export function introWindow(text, start, end) {
 }
 
 /**
- * "Female" or "Male" when the introduction's words point one way only (she / her / woman / mother…,
- * he / his / man / brother…); '' when there's nothing, or both (conflicting signals are left to you).
- * They / them / their alone never set a gender: in Action they're far more often plural.
+ * Pronouns (and family words) in the introduction, weighed: "she" / "he" count 2, "her" / "his" /
+ * "him" / "hers" and family words 1, and an object pronoun after a preposition ("looks up at him")
+ * nothing, since it's usually someone else in the scene. One side wins when it has all the weight,
+ * or at least three times the other's. They / them / their never count: in Action they're far more
+ * often plural.
  */
-export function introGender(windowText) {
+export function pronounGender(windowText) {
   const t = String(windowText || '');
-  const f = FEMALE.test(t);
-  const m = MALE.test(t);
-  if (f === m) return '';
-  return f ? 'Female' : 'Male';
+  let female = 0;
+  let male = 0;
+  for (const m of t.matchAll(/\b(she|he|her|hers|him|his)\b/gi)) {
+    const w = m[1].toLowerCase();
+    const prev = t.slice(0, m.index).trimEnd().split(/\s+/).pop() || '';
+    const next = t.slice(m.index + m[0].length);
+    // "her" before a noun is possessive ("her hair"): hers. Before punctuation or the end, it's an object.
+    const object = w === 'him' || (w === 'her' && /^\s*(?:[.,;:!?—–-]|$)/.test(next));
+    const weight = (w === 'she' || w === 'he') ? 2 : (object && PREPOSITION.test(prev) ? 0 : 1);
+    if (w === 'she' || w === 'her' || w === 'hers') female += weight;
+    else male += weight;
+  }
+  for (const m of t.replace(/['’]s\b/g, '').matchAll(new RegExp(`${RELATION_FEMALE.source}|${RELATION_MALE.source}`, 'gi'))) {
+    if (RELATION_FEMALE.test(m[0])) female += 1;
+    else male += 1;
+  }
+  const [win, lose, gender] = female > male ? [female, male, 'Female'] : [male, female, 'Male'];
+  if (!win || win === lose) return '';
+  return lose === 0 || win >= 3 * lose ? gender : '';
+}
+
+/**
+ * An introduction's gender, most direct evidence first:
+ *   1. what the name, the words just before it and the description call them ("her female FRIEND",
+ *      "WAITRESS", "--petite, amber-skinned woman…", "THEO (20s), her brother");
+ *   2. otherwise the pronouns from the name to the end of the next sentence (pronounGender).
+ * '' when neither settles it. `description` is introDescription()'s clause.
+ */
+export function introGender({ before = '', name = '', description = '', window = '' } = {}) {
+  const appositive = /^(?:his|her|their|a|an|the)\s+\S+/i.test(description) ? description.split(/\s+/).slice(0, 2).join(' ') : '';
+  return nounGender(`${before} ${name} ${description}`) || nounGender(appositive, true) || pronounGender(window);
 }
 
 /**
@@ -121,9 +185,9 @@ export function findIntroductions(blocks) {
       if (!name || (name.match(/\p{L}/gu) || []).length < 2 || seen.has(key(name))) continue;
       seen.add(key(name));
       const end = m.index + m[0].length;
-      out.push({
-        name, age: clean(m[2]), gender: introGender(introWindow(text, m.index, end)), description: introDescription(text.slice(end)), blockId: b.id,
-      });
+      const description = introDescription(text.slice(end));
+      const gender = introGender({ before: preNameWords(text, m.index), name, description, window: introWindow(text, m.index, end) });
+      out.push({ name, age: clean(m[2]), gender, description, blockId: b.id });
     }
   }
   return out;

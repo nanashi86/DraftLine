@@ -195,7 +195,7 @@ and switches with it in Projects. Tab labels are one short word each, so they ne
   reorder, one-click chips for script speakers who don't have a bio yet, and **Rename across script…**. Deleting can
   be undone. Each bio also has a **Gender** picker beside Age / Timeline. **Populate Bio** fills empty Age, Gender and
   Physical Description fields from each character's introduction in the Action (`MARJORIE (30s)--warm-dark skin, …`;
-  gender only when the introduction's pronouns and nouns agree), adding bios for introduced speakers; it never
+  gender from a word that names them, e.g. `her female FRIEND`, `petite woman`, else from the pronouns that clearly dominate), adding bios for introduced speakers; it never
   changes what you've typed or picked, and Undo reverses it.
 - **💬 Dialogue** (with the number of speaking characters) — pick a character to read every line they speak, top to
   bottom, tagged with scene number and heading; filter lines, show the cue before each speech, see lines / words /

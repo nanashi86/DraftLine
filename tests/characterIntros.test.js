@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import {
   INTRO_DESCRIPTION_MAX, findIntroductions, introDescription, introGender, introMatches, introWindow, populateBiosFromIntros, populateSummary,
+  preNameWords, pronounGender,
 } from '../src/lib/characterIntros.js';
 import { SAMPLE_SCRIPT } from '../src/lib/sampleScript.js';
 import { GENDERS, newCharacter, normalizeCharacter } from '../src/lib/bible.js';
@@ -149,7 +150,7 @@ describe('Character introductions: gender', () => {
     assert.equal(one('OLD MAN (80s), still as a post.').gender, 'Male');
   });
   it('conflicting or missing signals leave it blank', () => {
-    assert.equal(one('Behind her, THEO (20s), her brother, jogs to catch up.').gender, '', '"her" and "brother": both');
+    assert.equal(one('KIM (30s), wiry. His jacket, her bag.').gender, '', 'one "his", one "her": a tie');
     assert.equal(one('MARIE (30s), coat buttoned to the throat.').gender, '', 'nothing to go on');
     assert.equal(one('DEE (30s), in a hoodie. They tap their phone.').gender, '', 'they / their alone never decide it');
   });
@@ -158,13 +159,50 @@ describe('Character introductions: gender', () => {
     const [a, b] = findIntroductions([A('ANA (30s), calm, and LUIS (40s), restless; he paces.')]);
     assert.equal(a.gender, '', 'Luis’s "he" isn’t Ana’s');
     assert.equal(b.gender, 'Male');
-    assert.equal(introGender('His jacket. Her bag.'), '');
+    assert.equal(pronounGender('His jacket. Her bag.'), '');
     assert.equal(introWindow('X (30s) one. two. three.', 0, 7), 'X (30s) one. two.');
   });
   it('a verb right after the age is action, not a description', () => {
     assert.equal(one(REPORTER).description, '');
     assert.equal(one('BO (30s)--stares at the door.').description, '');
     assert.equal(one('JO (20s)--freckles across her nose.').description, 'freckles across her nose', 'a plural noun stays');
+  });
+});
+
+describe('Character introductions: gender, most direct evidence first', () => {
+  const SANDRA = 'SANDRA (late-40s)--petite, amber-skinned woman with grey streaks in her hair, meets Fito, clutching a clipboard. Her glasses slide down her nose as she looks up at him.';
+  it('a) a word before the name: "her female FRIEND (45)" is Female', () => {
+    const it0 = one('Cassandre and her female FRIEND (45) lounge under the pergola');
+    assert.deepEqual([it0.name, it0.age, it0.gender], ['FRIEND', '45', 'Female']);
+    assert.equal(one('A young man, TONY (40s), waits.').gender, 'Male');
+    assert.equal(one('A woman watches TONY (40s) cross the street.').gender, '', 'not "a woman … TONY": the woman is someone else');
+  });
+  it('b) the description names them: "petite, amber-skinned woman" beats a trailing "at him"', () => {
+    const it0 = one(SANDRA);
+    assert.deepEqual([it0.age, it0.gender], ['late-40s', 'Female']);
+    assert.equal(one('JEAN (60s)--a stooped man in a cardigan; she hands him tea.').gender, 'Male', 'the noun wins over a later "she"');
+  });
+  it('a family word as the opening appositive names them: "THEO (20s), her brother" is Male', () => {
+    assert.equal(one('Behind her, THEO (20s), her brother, jogs to catch up.').gender, 'Male');
+    assert.equal(one('NADINE (50s), his mother, waits.').gender, 'Female');
+    assert.equal(one('MARIE (30s), her mother’s eyes. She waits.').gender, 'Female', '"mother’s eyes" is about the mother; "She" settles it');
+  });
+  it('a verb after the age means no description, so pronouns decide: "--meets a woman" is not hers', () => {
+    assert.equal(one('TONY (40s)--meets a woman at the bar. He orders.').gender, 'Male');
+  });
+  it('pronouns: the subject dominates; an object after a preposition is someone else', () => {
+    assert.equal(pronounGender('Her glasses slide down her nose as she looks up at him.'), 'Female', '4 to 0: "at him" is the other character');
+    assert.equal(pronounGender('She laughs. She turns to him. His face falls.'), 'Female', '4 to 1');
+    assert.equal(pronounGender('She laughs. He laughs.'), '', 'even: left to you');
+    assert.equal(pronounGender('They wait. Their phones buzz.'), '', 'they / their never decide');
+    assert.equal(pronounGender('He hands it to her.'), 'Male', '"to her" at the end is an object');
+    assert.equal(pronounGender('He reaches for her hand.'), '', '"her hand" is possessive: 2 to 1, not dominant');
+  });
+  it('the words before a name stop where someone else comes in', () => {
+    assert.equal(preNameWords('Cassandre and her female FRIEND', 'Cassandre and her female '.length), 'her female');
+    assert.equal(preNameWords('Behind her, THEO', 'Behind her, '.length), '');
+    assert.equal(preNameWords('The room is quiet. A young man, TONY', 'The room is quiet. A young man, '.length), 'A young man,');
+    assert.equal(introGender({ before: 'her female', name: 'FRIEND' }), 'Female');
   });
 });
 
