@@ -117,7 +117,7 @@ describe('Status bar steppers: one capsule for Dialogue and Density', () => {
     const pkg = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8'));
     assert.match(pkg.dependencies['lucide-react'], /^\d+\.\d+\.\d+$/, 'pinned');
   });
-  it('Density: the same compact capsule as Format — "Density · – of 9 ‹ ›", then "3 of 9" with ✕; never a wide "Skim Risks" button', () => {
+  it('Density: the same compact capsule as Format — "Density · 9 ‹ ›", then "3 of 9" with ✕; never a wide "Skim Risks" button', () => {
     assert.match(dens, /label="Density"/);
     assert.match(dens, /<TriangleAlert size=\{14\} strokeWidth=\{1\.75\} aria-hidden \/>/);
     assert.match(dens, /position=\{riskPosition\(density, on \? index : -1\)\}/);

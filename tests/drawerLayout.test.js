@@ -55,7 +55,9 @@ describe('Blueprint layout', () => {
   });
   it('one header style for Genre, Theme and Plot Devices, with inline hints', () => {
     assert.match(pbCss, /\.dna-label \{ font-size: 11px; font-weight: 600; letter-spacing: 0\.05em; text-transform: uppercase; color: var\(--text-muted, #9a9890\); \}/);
-    assert.match(pbCss, /\.dna-hint \{ font-size: 11px; font-weight: normal; text-transform: none; opacity: 0\.7; margin-left: 6px;/);
+    assert.match(pbCss, /\.dna-hint \{ font-size: 11px; font-weight: normal; text-transform: none; margin-left: 6px;/);
+    assert.doesNotMatch(pbCss, /\.dna-hint \{[^}]*opacity/, 'hints in the label grey at full strength, not dimmed further');
+    assert.doesNotMatch(pbCss, /\.dict-section-count \{[^}]*opacity/, 'Glossary section counts too');
     assert.match(dna, /className="dna-label">Genre<span className="dna-hint">pick all that apply<\/span>/);
     assert.match(dna, /className="dna-label">Theme<span className="dna-hint">revealed by the climax<\/span>/);
     assert.ok(!/Central Dramatic Question/.test(dna));

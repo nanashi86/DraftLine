@@ -270,7 +270,7 @@
 
 /* Blueprint field headers (Genre · Theme · Central Dramatic Question · Plot Devices) */
 .dna-label { font-size: 11px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; color: var(--text-muted, #9a9890); }
-.dna-hint { font-size: 11px; font-weight: normal; text-transform: none; opacity: 0.7; margin-left: 6px; letter-spacing: 0; }
+.dna-hint { font-size: 11px; font-weight: normal; text-transform: none; margin-left: 6px; letter-spacing: 0; } /* the label's own muted grey, full strength: legible on the dark panel */
 .dna-notes,
 .dna-answer {
   width: 100%;
@@ -370,7 +370,7 @@
 .dict-list { margin: 8px 0 0; display: grid; gap: 18px; }
 .dict-section { display: grid; gap: 8px; }
 .dict-section-head { display: flex; align-items: baseline; gap: 8px; margin: 0 2px; }
-.dict-section-count { font-weight: 500; letter-spacing: 0; opacity: 0.7; }
+.dict-section-count { font-weight: 500; letter-spacing: 0; }
 .dict-entries { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; }
 .dict-entry { border: 1px solid var(--line-soft); border-radius: 8px; background: var(--card); scroll-margin: 12px; }
 .dict-entry.is-open { border-color: color-mix(in srgb, var(--accent) 45%, var(--line-soft)); }

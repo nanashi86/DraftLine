@@ -140,7 +140,7 @@ Select text and press {{key:Ctrl+B}} (bold), {{key:Ctrl+I}} (italic), {{key:Ctrl
 
 - **Format Doctor** checks the script against spec-script conventions (see below) and fixes what it can in one click, or all at once. Open it from **⋮ → Format Doctor** at any time; the menu shows how many findings there are, or **Clean**.
 - While it has findings, a **Format · 1 of 7** stepper sits on the right of the status bar, and it's the Format Doctor's only control there: ‹ › go from one to the next, clicking **Format** lists them all with **Fix** and **Ignore** on each (Ignore hides one for this session), and ✕ hides the stepper until something new turns up.
-- **Density** (status bar) flags Action paragraphs that run past {{density.lines}} lines, or that are walls of text. It's the same compact stepper as Format: **Density · – of 9**. ‹ › highlight them and step from one to the next (the pill then reads **Density · 1 of 9**), click **Density** for a list of every one by scene and page, and ✕ turns the highlights off.
+- **Density** (status bar) flags Action paragraphs that run past {{density.lines}} lines, or that are walls of text. It's the same compact stepper as Format: **Density · 9** (how many there are). ‹ › highlight them and step from one to the next (the pill then reads **Density · 1 of 9**), click **Density** for a list of every one by scene and page, and ✕ turns the highlights off.
 - **Hover a character cue** to see that character's bio card. Click **Edit in Bios →** to open their bio.
 
 When the Format Doctor finds nothing at all (findings you've ignored count as unresolved), its report may end with one quiet line about supporting DraftLine, at most once a month. **Dismiss** turns it off for good in this browser.

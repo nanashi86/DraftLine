@@ -8,7 +8,7 @@ const DENSITY_ICON = <TriangleAlert size={14} strokeWidth={1.75} aria-hidden />;
  * Status bar density control — the same compact capsule as the Format and Dialogue steppers
  * (StatusStepper, amber):
  *   Optimal   → muted text "Density · Optimal".
- *   Risks     → [ ⚠ Density · – of 9   ‹  › ]: ‹ › turn the highlights on and step (looping); the
+ *   Risks     → [ ⚠ Density · 9   ‹  › ]: ‹ › turn the highlights on and step (looping); the
  *               label opens the list of every risk by scene and page (picking one jumps there).
  *   Stepping  → [ ⚠ Density · 3 of 9   ‹  › ] (✕): ✕ turns the highlights off again.
  */

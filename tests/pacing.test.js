@@ -127,10 +127,11 @@ describe('Jumping between skim risks', () => {
     const d = { dense: 9, total: 30, percent: 30 };
     assert.equal(riskPositionLabel(d, 0), 'Density · 1 of 9');
     assert.equal(riskPositionLabel(d, 8), 'Density · 9 of 9');
-    assert.equal(riskPositionLabel(d, -1), 'Density · 9 Skim Risks', 'before the first jump');
+    assert.equal(riskPositionLabel(d, -1), 'Density · 9', 'before the first jump: just how many');
     assert.equal(riskPositionLabel({ ...d, dense: 0 }, 3), 'Density · Optimal');
     assert.equal(riskPosition(d, 0), '1 of 9');
-    assert.equal(riskPosition(d, -1), '– of 9');
+    assert.equal(riskPosition(d, -1), '9', 'no "– of 9" placeholder');
+    assert.equal(riskPosition({ ...d, dense: 0 }, -1), '0');
   });
   it('the quick list names each risk by scene heading and page', () => {
     const d = actionDensity([

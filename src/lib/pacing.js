@@ -90,14 +90,15 @@ export function stepRisk(index, count, action) {
   }
 }
 
-/** The stepper's position: "1 of 9" ("– of 9" before the first jump). */
+/** The stepper's position: "1 of 9", or just "9" before the first jump. */
 export function riskPosition(d, index) {
-  return `${index >= 0 && d.dense ? Math.min(index, d.dense - 1) + 1 : '–'} of ${d.dense}`;
+  if (index < 0 || !d.dense) return String(d.dense); // before the first step: just how many ("9")
+  return `${Math.min(index, d.dense - 1) + 1} of ${d.dense}`;
 }
 
-/** "Density · 1 of 9" while stepping (index ≥ 0), else the plain label. */
+/** "Density · 1 of 9" while stepping (index ≥ 0), "Density · 9" before, "Density · Optimal" with none. */
 export function riskPositionLabel(d, index) {
-  if (!d.dense || index < 0) return densityLabel(d);
+  if (!d.dense) return densityLabel(d);
   return `Density · ${riskPosition(d, index)}`;
 }
 
