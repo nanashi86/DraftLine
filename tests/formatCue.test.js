@@ -1,7 +1,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { installDOMParser } from './helpers/miniDom.js';
-import { isFormatCue, isSecondarySlugline, isSceneHeadingLine } from '../src/lib/sluglines.js';
+import { isFormatCue, isLanguageDirective, isSecondarySlugline, isSceneHeadingLine } from '../src/lib/sluglines.js';
 import { parseTextScript } from '../src/lib/textScriptParser.js';
 import { parseFountain, toFountain } from '../src/lib/fountain.js';
 import { parseFDX, toFDX } from '../src/lib/fdx.js';
@@ -70,6 +70,29 @@ describe('Format Cue element', () => {
     assert.ok(!issues.some((i) => i.id === 'f' || i.id === 'g'));
     assert.deepEqual(issues.filter((i) => i.id === 'h').map((i) => i.to), ['format_cue']);
     assert.ok(!issues.some((i) => i.id === 'i'), 'on-screen text may stay Action');
+  });
+  it('the Format Doctor leaves language directions as Action: never "Format cue tagged as Action"', () => {
+    const lines = [
+      'IN FRENCH WITH ENGLISH SUBTITLES:', 'IN CREOLE WITH ENGLISH SUBTITLES:', 'In Creole with English subtitles:',
+      'IN SPANISH WITH SUBTITLES', 'IN CREOLE, SUBTITLED', 'SUBTITLE: We go now.', 'IN CREOLE:', 'IN FRENCH',
+    ];
+    const blocks = lines.map((text, i) => ({ id: `l${i}`, type: 'action', text }));
+    const issues = auditScript(blocks);
+    assert.deepEqual(issues.filter((i) => i.kind === 'formatcue').map((i) => i.text), [], 'none flagged');
+    for (const t of lines) assert.ok(isLanguageDirective(t), t);
+  });
+  it('…while sequence cues typed as Action are still flagged', () => {
+    const blocks = ['BEGIN FLASHBACK', 'END MONTAGE'].map((text, i) => ({ id: `s${i}`, type: 'action', text }));
+    assert.deepEqual(auditScript(blocks).map((i) => [i.text, i.kind]), [['BEGIN FLASHBACK', 'formatcue'], ['END MONTAGE', 'formatcue']]);
+  });
+  it('a language direction is only a short line: ordinary Action that starts with "In" is not one', () => {
+    for (const t of ['In the kitchen, Marie waits.', 'IN THE KITCHEN, MARIE WAITS.', 'In French', 'IN FRENCH WITH ENGLISH SUBTITLES:\nShe waits.', '']) {
+      assert.equal(isLanguageDirective(t), false, JSON.stringify(t));
+    }
+  });
+  it('a language direction already tagged as a Format Cue stays one (no finding either way)', () => {
+    const blocks = [{ id: 'f', type: 'format_cue', text: 'IN FRENCH WITH ENGLISH SUBTITLES:' }, { id: 'c', type: 'character', text: 'MARIE' }, { id: 'd', type: 'dialogue', text: 'Allons-y.' }];
+    assert.deepEqual(auditScript(blocks), []);
   });
   it('exports to Fountain as caps Action and reads back as a Format Cue', () => {
     const blocks = [

@@ -330,7 +330,7 @@ end with a similar line at most every 30 days. Both are throttled and muted per 
   Turn off **Auto-Detect Elements** to bring everything in as Action.
 - **Format Doctor** (status bar, with a count of open issues) audits the script for unclassified sluglines (Action
   that starts with INT/EXT/I/E, or is all caps and ends in a time of day), secondary scene headings typed as Action
-  (`BACK TO …`, `LATER`, …), format cues typed as Action (`BEGIN FLASHBACK`, `IN … WITH ENGLISH SUBTITLES:`), stray
+  (`BACK TO …`, `LATER`, …), sequence cues typed as Action (`BEGIN FLASHBACK`, `END MONTAGE`; language directions such as `IN FRENCH WITH ENGLISH SUBTITLES:` and on-screen `SUPER:` lines may stay Action and are never flagged), stray
   character cues (a short all-caps Action line directly above dialogue), orphaned dialogue (dialogue with no cue
   above it), **false dialogue** — structural only: a speech line that is really a character introduction
   (`FITO (10)--copper skin…`), or one under a "cue" that holds an age or a dash (`FITO (10)` / `--copper skin…`;

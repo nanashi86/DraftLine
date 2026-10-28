@@ -101,6 +101,18 @@ export function isOnScreenText(text) {
 }
 
 /**
+ * Language directions: "IN FRENCH WITH ENGLISH SUBTITLES:", "IN CREOLE, SUBTITLED", "SUBTITLE: …",
+ * or a bare language line in capitals ("IN CREOLE:"). Writers keep these as Action as often as
+ * Format Cues, so the Format Doctor leaves them alone either way. One line only.
+ */
+export function isLanguageDirective(text) {
+  const t = stripInline(text || '').trim();
+  if (!t || t.includes('\n')) return false;
+  if (/\bSUBTITLE[SD]?\b/i.test(t)) return true;
+  return /^IN [A-Z][A-Z'’-]*(?:(?: AND |\/)[A-Z][A-Z'’-]*)?\s*[.:]?$/.test(t);
+}
+
+/**
  * Format cues — language, sequence and technical directions that sit flush left:
  *   IN CREOLE WITH ENGLISH SUBTITLES:   BEGIN FLASHBACK   END MONTAGE   SUPER: PARIS, 1942
  * BEGIN / END lines must be all caps (so "End of the line, she says." stays Action).

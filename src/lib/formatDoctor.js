@@ -2,7 +2,7 @@
 // Pure functions over the block array, so every rule is unit-tested.
 
 import {
-  END_RE, hasTimeOfDaySuffix, headingParts, isActBreak, timeOfDayPeriod, isFormatCue, isOnScreenText, isSecondarySlugline, isSlugline, isUnprefixedSlugline,
+  END_RE, hasTimeOfDaySuffix, headingParts, isActBreak, timeOfDayPeriod, isFormatCue, isLanguageDirective, isOnScreenText, isSecondarySlugline, isSlugline, isUnprefixedSlugline,
 } from './sluglines.js';
 import { looksLikeCue } from './textScriptParser.js';
 import { concatMarks, remapMarks, sliceMarks, stripInline } from './formatting.js';
@@ -236,8 +236,9 @@ export function auditScript(blocks, { skipId = null, ignore = new Set(), layout 
     if (b.type === 'action' && isSecondarySlugline(t)) {
       if (issue('secondary', 'scene')) return;
     }
-    // Language / sequence cues typed as Action (on-screen SUPER:/TITLE: lines may stay Action).
-    if (b.type === 'action' && isFormatCue(t) && !isOnScreenText(t)) {
+    // Sequence cues typed as Action ("BEGIN FLASHBACK"). On-screen SUPER: / TITLE: lines and language
+    // directions ("IN FRENCH WITH ENGLISH SUBTITLES:") may stay Action: they're never flagged.
+    if (b.type === 'action' && isFormatCue(t) && !isOnScreenText(t) && !isLanguageDirective(t)) {
       if (issue('formatcue', 'format_cue')) return;
     }
 
