@@ -93,7 +93,7 @@ Title page fields accept the same Markdown emphasis on the cover, in print and i
 
 The canvas is paginated live at 54 lines per page (1in margins, Courier 12pt) with numbers from page 2, following industry page-break rules:
 
-- **Orphan prevention:** a scene heading is never the last line on a page. It needs at least 2 lines of what follows on the same page, or it moves to the next one. Transitions never stand alone at the top of a page; they stay with the action before them.
+- **Orphan prevention:** a scene heading is never the last line on a page. It needs at least 2 lines of what follows on the same page, or it moves to the next one. Lead-in Action never ends a page either: a short line ending in a colon (`She reads it aloud:`), a `SUPER` / `INSERT` / `TITLE` / `CHYRON` / `PRE-LAP` / `IN … WITH SUBTITLES` line, or a one-line all-caps line right before a cue or heading moves on with what it introduces. Transitions never stand alone at the top of a page; they stay with the action before them.
 - **Dialogue splitting:** a long speech can break across pages when at least 2 dialogue lines fit on this page and at least 2 go on to the next. DraftLine then draws a centred `(MORE)` at the bottom of the page and `NAME (CONT'D)` at the top of the next. It never splits inside or straight after a parenthetical, and a Character cue never leaves its dialogue. When those rules can't be met, the whole speech moves.
 - `(MORE)` and `(CONT'D)` are layout only: you can keep typing through the seam, and they never enter the script, Fountain, Final Draft or `.draftline` files. Print and PDF show the same breaks.
 - **Taller than a page:** an element longer than a whole page (a pasted wall of text) breaks at the page edge, with
@@ -338,7 +338,8 @@ end with a similar line at most every 30 days. Both are throttled and muted per 
   `--` under a valid cue are never flagged), **unspaced Super/Cue** (a
   `SUPER:` / `SUBTITLE:` / `TITLE:` line run into an Action paragraph; the fix splits it out as a Format Cue), a
   **misaligned script ending** (`THE END` as left-aligned Action or a Transition; **Center ‘THE END’**), act markers
-  and empty elements. Format Cues themselves are never flagged. Review each in a list,
+  and empty elements, and anything **stranded at the bottom of a page** (a heading, a cue or a lead-in line on an
+  earlier page than what it introduces; flagged only, with no automatic fix). Format Cues themselves are never flagged. Review each in a list,
   **Show** it in the page, fix one with its button (e.g. **Convert to Scene Heading**) or **Fix All**; Ctrl+Z undoes.
 - **Rename a character** — **Rename…** in Dialogue (for the selected voice) or **Rename across script…**
   on a Character Bio. A review lists what would change, with counts and before → after examples, in four groups you

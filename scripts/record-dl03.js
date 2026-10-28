@@ -2,7 +2,7 @@
 // Starts on a script with everyday slips (loaded off camera): a scene heading typed as Action, a line of
 // dialogue with no character, a cue with no dialogue, THE END left-aligned, and one wall-of-text Action
 // paragraph. Format Doctor lists them, Fix All repairs them; then the Density panel finds the skim risk.
-//   node scripts/record-dl03.js  →  recordings/DL_03_Write_FormatDoctorAndDensity/video.webm
+//   node scripts/record-dl03.js  →  recordings/DL_03_Write_FormatDoctorAndDensity/DL_03_Write_FormatDoctorAndDensity.webm (+ .mp4)
 import { fixtureProject, main, record } from './lib/demoKit.js';
 
 const fixture = fixtureProject({

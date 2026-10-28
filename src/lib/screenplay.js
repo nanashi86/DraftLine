@@ -81,6 +81,33 @@ export const isClosingCue = (b) => b?.type === 'format_cue' && /^\s*END\b/i.test
 /** Elements that stay on the page of whatever precedes them. */
 const keepsWithPrevious = (item) => item.type === 'transition' || item.type === 'centered' || isClosingCue(item.block);
 
+// Lead-in keywords: language cues ("IN CREOLE WITH ENGLISH SUBTITLES"), PRE-LAP, SUPER, INSERT,
+// TITLE, CHYRON. A keyword counts in capitals ("INSERT - THE LETTER") or, in any case, when a colon
+// follows it ("Super: Port-au-Prince"), so ordinary Action that happens to start with "Insert the key…"
+// or "Superstition…" isn't one.
+const LEAD_IN_WORD = String.raw`(?:IN [A-Z/ ]+ (?:WITH|SUBTITLED?)|PRE-LAP|SUPER|INSERT|TITLE|CHYRON)`;
+const LEAD_IN_CAPS = new RegExp(`^${LEAD_IN_WORD}(?![A-Za-z])`);
+const LEAD_IN_COLON = new RegExp(`^${LEAD_IN_WORD}\\s*:`, 'i');
+/** Shorter than this, an Action line ending in ":" introduces what follows ("She reads it aloud:"). */
+export const LEAD_IN_COLON_MAX = 50;
+
+/**
+ * Action that introduces the element after it, so it must never end a page on its own:
+ *   a) one short line ending in a colon ("On the screen:", under LEAD_IN_COLON_MAX characters);
+ *   b) a one-paragraph lead-in: IN <LANGUAGE> WITH … / SUBTITLED, PRE-LAP, SUPER, INSERT, TITLE, CHYRON;
+ *   c) a single line in capitals right before a Character cue or a Scene Heading ("SILENCE.").
+ * `next` is the block that follows; (c) needs it, (a) and (b) don't.
+ */
+export function isLeadInAction(block, next = null) {
+  if (block?.type !== 'action') return false;
+  const t = String(block.text || '').trim();
+  if (!t || t.includes('\n')) return false;
+  if (t.endsWith(':') && t.length < LEAD_IN_COLON_MAX) return true;
+  if (LEAD_IN_CAPS.test(t) || LEAD_IN_COLON.test(t)) return true;
+  return (next?.type === 'character' || next?.type === 'scene')
+    && t.length <= ELEMENT_META.action.cpl && /\p{L}/u.test(t) && t === t.toUpperCase();
+}
+
 /** Empty lines of these types become Action on Enter (step out of a speech, a transition …). */
 export const ENTER_EMPTY_TO_ACTION = new Set(['character', 'dialogue', 'parenthetical', 'transition', 'format_cue', 'centered']);
 
@@ -334,6 +361,8 @@ const HEADING_MIN_FOLLOW = 2;
  *     never splits. (MORE) and (CONT'D) are layout only: nothing is added to the script.
  *   - A scene heading is never the last thing on a page: it moves with at least 2 lines of
  *     what follows it.
+ *   - Lead-in Action (isLeadInAction: "She reads it aloud:", "SUPER: 1991") is never the last thing
+ *     on a page either: it moves on with the element it introduces.
  *   - Transitions (and THE END) never start a page; they stay with what precedes them.
  *   - Blank spacing lines are dropped at the top of a page.
  *
@@ -382,8 +411,10 @@ export function paginate(items, measured = {}) {
     const cur = carry ? [carry[0], u[1]] : [...u];
     carry = null;
     const tail = items[cur[1] - 1];
-    // Format cues that open something ("BEGIN FLASHBACK", "IN CREOLE…:") travel with what follows.
-    if (tail.type === 'scene' || (tail.type === 'format_cue' && !isClosingCue(tail.block)) || followsHeading(cur) < HEADING_MIN_FOLLOW) {
+    // Format cues that open something ("BEGIN FLASHBACK", "IN CREOLE…:") travel with what follows,
+    // and so does lead-in Action ("She reads it aloud:", "SUPER: 1991"): never the last line of a page.
+    const leadIn = tail.kind === 'block' && cur[1] < items.length && isLeadInAction(tail.block, items[cur[1]].blocks[0]);
+    if (tail.type === 'scene' || (tail.type === 'format_cue' && !isClosingCue(tail.block)) || leadIn || followsHeading(cur) < HEADING_MIN_FOLLOW) {
       carry = cur;
       continue;
     }

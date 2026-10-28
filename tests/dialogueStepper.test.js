@@ -174,7 +174,7 @@ describe('Status bar: the Format stepper', () => {
     assert.match(app, /\{showFormatStepper && \(\s*<FormatStepper/);
     assert.match(app, /const showFormatStepper = issues\.some\(\(it\) => !formatHidden\.has\(issueKey\(it\)\)\);/);
     assert.match(app, /onDismiss=\{\(\) => setFormatHidden\(new Set\(issues\.map\(issueKey\)\)\)\}/);
-    assert.match(app, /auditScript\(blocks, \{ skipId: activeId, ignore: ignoredIssues \}\)/);
+    assert.match(app, /auditScript\(blocks, \{ skipId: activeId, ignore: ignoredIssues, layout \}\)/);
     assert.match(app, /requestAnimationFrame\(\(\) => requestAnimationFrame\(\(\) => editorRef\.current\?\.pulseBlock\(it\.id\)\)\);/);
     const tools = app.slice(app.indexOf('<div className="status-tools" hidden={inPlan}>'), app.indexOf('</div>', app.indexOf('<div className="status-tools" hidden={inPlan}>')));
     assert.ok(tools.indexOf('<DialogueStepper') < tools.indexOf('<FormatStepper') && tools.indexOf('<FormatStepper') < tools.indexOf('<DensityStepper'));

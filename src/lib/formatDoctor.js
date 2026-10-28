@@ -6,7 +6,7 @@ import {
 } from './sluglines.js';
 import { looksLikeCue } from './textScriptParser.js';
 import { concatMarks, remapMarks, sliceMarks, stripInline } from './formatting.js';
-import { newId } from './screenplay.js';
+import { isLeadInAction, newId } from './screenplay.js';
 
 const SPEECH = new Set(['character', 'dialogue', 'parenthetical']);
 
@@ -29,6 +29,7 @@ export const ISSUE_KINDS = {
   slugincomplete: { label: 'Scene heading missing INT./EXT. or time of day', fix: null, verb: null },
   intro: { label: 'Character introduced in lowercase', fix: 'Capitalize name', verb: 'Fix' },
   spacing: { label: 'Double blank lines', fix: 'Strip blank lines', verb: 'Strip' },
+  pagebottom: { label: 'Stranded at the bottom of a page', fix: null, verb: null },
 };
 /**
  * A finding's first line, as it shows on the page (the Format Doctor rows and the status-bar list):
@@ -164,12 +165,29 @@ function embeddedCueLines(text) {
 }
 
 /**
+ * Page-seam check (needs the layout): an element that introduces what follows — lead-in Action
+ * ("She reads it aloud:", "SUPER: 1991"), a Character cue, a Scene Heading — on an earlier page than
+ * the element after it, so it sits alone at the foot of a page. The page breaker keeps these together,
+ * so this only fires where it can't (what follows is taller than a page) or when the layout handed in
+ * is out of date. `pageOfBlock` is paginate()'s map of block id → page number.
+ */
+export function strandedAtPageBottom(b, next, pageOfBlock) {
+  if (!next || !pageOfBlock) return false;
+  const here = pageOfBlock[b.id];
+  const there = pageOfBlock[next.id];
+  if (!here || !there || there <= here) return false;
+  return b.type === 'character' || b.type === 'scene' || isLeadInAction(b, next);
+}
+
+/**
  * Audit the script. `skipId` (the element being typed in) is never reported as empty,
  * so a fresh blank line doesn't nag while you write. `ignore` holds "id|kind" findings the writer
  * ignored: they're skipped, and the element's other checks still run (one finding per element).
+ * `layout` (paginate()'s result for these blocks, optional) adds the page-seam check (pagebottom);
+ * without it, only the element checks run.
  * Returns [{ id, index, kind, from, to, text }]; `to: null` means "remove".
  */
-export function auditScript(blocks, { skipId = null, ignore = new Set() } = {}) {
+export function auditScript(blocks, { skipId = null, ignore = new Set(), layout = null } = {}) {
   const issues = [];
   const flaggedCue = new Set();
   const names = new Set(blocks.filter((b) => b.type === 'character')
@@ -275,6 +293,11 @@ export function auditScript(blocks, { skipId = null, ignore = new Set() } = {}) 
       if (!isCompleteSlugline(plain)) {
         if (issue('slugincomplete', 'scene')) return;
       }
+    }
+
+    // Alone at the foot of a page, away from what it introduces (not while it's being written).
+    if (!typing && strandedAtPageBottom(b, next, layout?.pageOfBlock)) {
+      if (issue('pagebottom', b.type, { page: layout.pageOfBlock[b.id] })) return;
     }
 
     if (intros.has(b.id) && b.id !== skipId && issue('intro', b.type, { intros: intros.get(b.id) })) return;

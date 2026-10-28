@@ -1,6 +1,6 @@
 // DL 02 · Write — Fast drafting and shortcuts (~24 s)
 // A short scene typed with only Tab and Enter: Scene Heading → Action → Character → Parenthetical → Dialogue.
-//   node scripts/record-dl02.js  →  recordings/DL_02_Write_FastDraftingAndShortcuts/video.webm
+//   node scripts/record-dl02.js  →  recordings/DL_02_Write_FastDraftingAndShortcuts/DL_02_Write_FastDraftingAndShortcuts.webm (+ .mp4)
 import { main, record, jitter } from './lib/demoKit.js';
 
 // [keys before the line, text]. Enter follows DraftLine's flow (Scene → Action, Character → Dialogue,

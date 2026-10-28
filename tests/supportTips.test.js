@@ -174,7 +174,7 @@ describe('Format Doctor: a quiet line under a clean report', () => {
 
   it('only for a clean report — ignored findings count as unresolved — at most every 30 days', () => {
     const app = read('src/App.jsx');
-    assert.match(app, /const scriptIsClean = useCallback\(\(b\) => auditScript\(b, \{ skipId: activeId \}\)\.length === 0/, 'audited without the ignore list');
+    assert.match(app, /const scriptIsClean = useCallback\(\(b\) => auditScript\(b, \{ skipId: activeId, layout: b === blocks \? layout : null \}\)\.length === 0/, 'audited without the ignore list');
     assert.match(app, /const openDoctor = useCallback\(\(\) => \{\s*setDoctorTip\(scriptIsClean\(blocks\) && claimTip\(FORMAT_DOCTOR_TIP\)\);\s*setDoctorOpen\(true\);/);
     assert.match(app, /if \(doctorOpen && !doctorTip && scriptIsClean\(next\)\) setDoctorTip\(claimTip\(FORMAT_DOCTOR_TIP\)\);/, 'or the fix that clears the last finding');
     assert.match(app, /supportFooter=\{doctorTip && issues\.length === 0 \? \(/);

@@ -1,6 +1,6 @@
 // DL 04 · Write — Characters and Dialogue Spotlight (~20 s)
 // Characters → Dialogue → MARIE: her lines stay bright, everything else dims; scroll her pass.
-//   node scripts/record-dl04.js  →  recordings/DL_04_Write_CharactersAndDialogueSpotlight/video.webm
+//   node scripts/record-dl04.js  →  recordings/DL_04_Write_CharactersAndDialogueSpotlight/DL_04_Write_CharactersAndDialogueSpotlight.webm (+ .mp4)
 import { main, record } from './lib/demoKit.js';
 
 main(() => record({

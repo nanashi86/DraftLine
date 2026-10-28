@@ -1,6 +1,6 @@
 // DL 01 · General — Projects and workspaces (~22 s)
 // Projects drawer, linking a synced folder and its "Synced" badge, then Write ⇄ Plan.
-//   node scripts/record-dl01.js  →  recordings/DL_01_General_ProjectsAndWorkspaces/video.webm
+//   node scripts/record-dl01.js  →  recordings/DL_01_General_ProjectsAndWorkspaces/DL_01_General_ProjectsAndWorkspaces.webm (+ .mp4)
 import { main, record } from './lib/demoKit.js';
 
 main(() => record({

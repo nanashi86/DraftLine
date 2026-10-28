@@ -1,7 +1,7 @@
 // Shared kit for the DraftLine walkthrough recordings (scripts/record-dl01.js … record-dl09.js).
 //
 // Each walkthrough is 1920×1080 at 60 fps, in a clean browser profile, with a visible pointer and
-// click ripples, saved to recordings/<folder>/video.webm. Anything a video needs to start from (a
+// click ripples, saved to recordings/<folder>/<folder>.webm (and <folder>.mp4). Anything a video needs to start from (a
 // messy script for Format Doctor, character bios for the Story Bible…) is loaded off camera first,
 // through DraftLine's own .draftline restore, and carried into the recorded browser, so every video
 // opens straight on its subject.
@@ -13,20 +13,28 @@
 // CHROMIUM_PATH (a Chromium to use instead of Playwright's own).
 
 import { chromium } from 'playwright';
-import { mkdirSync, readFileSync, rmSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, rmSync } from 'node:fs';
+import { spawnSync } from 'node:child_process';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { Buffer } from 'node:buffer';
 import process from 'node:process';
 import { serializeBackup } from '../../src/lib/backup.js';
 import { makeBlock } from '../../src/lib/screenplay.js';
+import { createRevision } from '../../src/lib/revisions.js';
 
 export const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 export const URL_ = process.env.DEMO_URL || 'http://localhost:5173/DraftLine/';
 const FPS = Number(process.env.DEMO_FPS) || 60;
 const SIZE = { width: 1920, height: 1080 };
 
-export const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+// DEMO_CHECK=1: a quick rehearsal — every step runs against the app, but nothing is recorded and the
+// pauses are cut to a twentieth, so a broken selector shows up in seconds rather than after a take.
+const CHECK = process.env.DEMO_CHECK === '1';
+/** Exit code for a walkthrough that isn't ready to record (record-dl-all.js reports it as skipped). */
+export const SKIPPED_EXIT = 3;
+
+export const sleep = (ms) => new Promise((r) => setTimeout(r, CHECK ? ms / 20 : ms));
 export const jitter = (min, max) => min + Math.random() * (max - min);
 
 /** The visible pointer (the recorder doesn't capture the OS cursor) and a ripple on every click. */
@@ -64,9 +72,11 @@ function fakeFolderScript(name) {
 
 /**
  * A project to start a video from, as .draftline text.
- *   blocks: [[type, text, extra?], …]   characters: Story Bible bios   storyNotes: { sections: [{ title, body }] }
+ *   blocks: [[type, text, extra?], …]   characters: Story Bible bios
+ *   storyNotes: { sections: [{ title, body }], synopsis?: { act1, act2, act2b, act3 } }
+ *   snapshots: [{ label, minutesAgo }] — Snapshots of the project exactly as given, oldest first
  */
-export function fixtureProject({ title, author = 'Eric Lemaire Jr.', blocks, beats = [], characters = [], storyNotes }) {
+export function fixtureProject({ title, author = 'Eric Lemaire Jr.', blocks, beats = [], characters = [], storyNotes, snapshots = [] }) {
   const t = Date.now();
   let n = 0;
   const id = (p) => `${p}${(n += 1)}${t.toString(36)}`;
@@ -77,22 +87,27 @@ export function fixtureProject({ title, author = 'Eric Lemaire Jr.', blocks, bea
     script: blocks.map(([type, text, extra]) => makeBlock(type, text, extra)),
     beats,
     characters: characters.map((c) => ({ id: id('ch'), secondaryRole: 'none', relationship: '', age: '', description: '', traits: '', backstory: '', ...c })),
-    ...(storyNotes ? { storyNotes: { version: 4, sections: storyNotes.sections.map((s) => ({ id: id('sn'), ...s })) } } : {}),
+    ...(storyNotes ? { storyNotes: { version: 4, ...storyNotes, sections: (storyNotes.sections || []).map((s) => ({ id: id('sn'), ...s })) } } : {}),
     createdAt: t,
     updatedAt: t,
   };
+  if (snapshots.length) {
+    const doc = { meta: { title, author }, blocks: record.script, beats, characters: record.characters, storyNotes: record.storyNotes };
+    record.revisions = snapshots.map(({ label, minutesAgo = 60 }) => createRevision(doc, { label, now: t - minutesAgo * 60_000 }));
+  }
   return { title, text: serializeBackup(record, { appVersion: 'demo' }) };
 }
 
 /**
  * Record one walkthrough.
- *   folder   — subfolder of recordings/ (the file is video.webm inside it)
+ *   folder   — subfolder of recordings/; the files inside are named after it: <folder>.webm, <folder>.mp4
  *   fixture  — fixtureProject(…) to open before recording starts (optional)
  *   syncFolder — name for the stand-in synced folder (optional; enables the folder picker)
+ *   mp4      — also save <folder>.mp4 (H.264) next to it, via ffmpeg on PATH or FFMPEG_PATH (default on)
  *   run(demo) — the walkthrough; demo has page, click, glide, drag, typeHuman, press, hold, wheel, say
  */
-export async function record({ folder, fixture = null, syncFolder = null, maxSeconds = 35, run }) {
-  const out = join(ROOT, 'recordings', folder, 'video.webm');
+export async function record({ folder, fixture = null, syncFolder = null, maxSeconds = 35, mp4 = true, run }) {
+  const out = join(ROOT, 'recordings', folder, `${folder}.webm`);
   try {
     const res = await fetch(URL_);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -124,12 +139,12 @@ export async function record({ folder, fixture = null, syncFolder = null, maxSec
 
   const rawDir = join(ROOT, 'recordings', folder, '.raw');
   rmSync(rawDir, { recursive: true, force: true });
-  mkdirSync(rawDir, { recursive: true });
+  if (!CHECK) mkdirSync(rawDir, { recursive: true });
   const context = await browser.newContext({
     viewport: SIZE,
     deviceScaleFactor: 1,
     ...(storageState ? { storageState } : {}),
-    recordVideo: { dir: rawDir, size: SIZE, fps: FPS },
+    ...(CHECK ? {} : { recordVideo: { dir: rawDir, size: SIZE, fps: FPS } }),
   });
   await context.addInitScript(CURSOR);
   if (syncFolder) await context.addInitScript(fakeFolderScript(syncFolder));
@@ -192,6 +207,14 @@ export async function record({ folder, fixture = null, syncFolder = null, maxSec
   await run(demo);
 
   const seconds = (Date.now() - started) / 1000;
+  if (CHECK) {
+    if (process.env.DEMO_CHECK_SHOT) await page.screenshot({ path: process.env.DEMO_CHECK_SHOT });
+    await context.close();
+    await browser.close();
+    rmSync(rawDir, { recursive: true, force: true });
+    console.log(`Check passed: ${folder} (nothing recorded)`);
+    return;
+  }
   const video = page.video();
   await context.close();
   await video.saveAs(out);
@@ -199,6 +222,19 @@ export async function record({ folder, fixture = null, syncFolder = null, maxSec
   rmSync(rawDir, { recursive: true, force: true });
   console.log(`Saved ${out} (${SIZE.width}×${SIZE.height}, ${FPS} fps, ~${seconds.toFixed(1)} s)`);
   if (seconds > maxSeconds) console.warn(`  Note: longer than ${maxSeconds} s — shorten a hold in the script if you need it under.`);
+  if (mp4) toMp4(out, join(ROOT, 'recordings', folder, `${folder}.mp4`));
+}
+
+/** webm → H.264 mp4 (yuv420p plays everywhere). Keeps the webm; if ffmpeg isn't found, says so and stops there. */
+function toMp4(webm, mp4) {
+  const ffmpeg = process.env.FFMPEG_PATH || 'ffmpeg';
+  const r = spawnSync(ffmpeg, ['-y', '-loglevel', 'error', '-i', webm, '-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-crf', '18', '-preset', 'slow', '-movflags', '+faststart', mp4], { stdio: 'inherit' });
+  if (r.error || r.status !== 0 || !existsSync(mp4)) {
+    console.warn(`  Couldn't make the mp4 (${r.error ? 'ffmpeg not found' : `ffmpeg exited ${r.status}`}). Install ffmpeg or set FFMPEG_PATH, then:`);
+    console.warn(`    ffmpeg -i "${webm}" -c:v libx264 -pix_fmt yuv420p -crf 18 "${mp4}"`);
+    return;
+  }
+  console.log(`Saved ${mp4}`);
 }
 
 /** Run `fn` and exit non-zero on failure (each record-dlNN.js ends with this). */

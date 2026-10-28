@@ -744,7 +744,8 @@ function Workspace({ boot }) {
   // Ignore (Format stepper): hidden for this session, per element and kind of finding.
   const [ignoredIssues, setIgnoredIssues] = useState(() => new Set());
   const issueKey = (it) => `${it.id}|${it.kind}`;
-  const issues = useMemo(() => auditScript(blocks, { skipId: activeId, ignore: ignoredIssues }), [blocks, activeId, ignoredIssues]);
+  // With the layout, the Doctor also flags an element left alone at the foot of a page (pagebottom).
+  const issues = useMemo(() => auditScript(blocks, { skipId: activeId, ignore: ignoredIssues, layout }), [blocks, activeId, ignoredIssues, layout]);
   // Action density (skim risk): long action paragraphs, from the measured lines when known.
   const density = useMemo(() => actionDensity(blocks, lineMap), [blocks, lineMap]);
   const [densityMode, setDensityMode] = useState(false);
@@ -754,7 +755,8 @@ function Workspace({ boot }) {
   // fix in it resolves the last finding, and at most every 30 days. "Clean" means no findings at
   // all, ignored ones included: Ignore hides a finding, it doesn't resolve it.
   const [doctorTip, setDoctorTip] = useState(false);
-  const scriptIsClean = useCallback((b) => auditScript(b, { skipId: activeId }).length === 0, [activeId]);
+  // The page check only applies to the blocks the current layout was made from.
+  const scriptIsClean = useCallback((b) => auditScript(b, { skipId: activeId, layout: b === blocks ? layout : null }).length === 0, [activeId, blocks, layout]);
   const openDoctor = useCallback(() => {
     setDoctorTip(scriptIsClean(blocks) && claimTip(FORMAT_DOCTOR_TIP));
     setDoctorOpen(true);
