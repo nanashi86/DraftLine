@@ -67,5 +67,8 @@ describe('Characters → Dialogue: the monologue count is a filter', () => {
     assert.match(ui, /className="tune-jump" onClick=\{\(\) => onJump\(en\.cue\.id\)\}/);
     assert.match(css, /\.tuner-mono\.is-on \{ border-color: var\(--accent\);/);
     assert.match(css, /\.tune-mono-tag \{[^}]*color: #f0b35a;/);
+    // It sits inside its row: no negative margin to overlap Rename… when the stats wrap.
+    assert.doesNotMatch(css.match(/\.tuner-mono \{[^}]*\}/)[0], /margin:\s*-/);
+    assert.match(css, /\.tuner-stats \{[^}]*gap: 8px 14px;/);
   });
 });
