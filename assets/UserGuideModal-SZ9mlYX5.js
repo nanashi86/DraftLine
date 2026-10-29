@@ -1,4 +1,4 @@
-import{i as e,t}from"./react-DgawKyfb.js";import{C as n,D as r,E as i,Ft as a,Nt as o,O as s,Pt as c,Rt as l,Tt as u,_t as d,a as f,at as ee,bt as p,ct as m,dt as h,gt as g,i as _,it as v,l as te,lt as y,mt as b,n as x,nt as S,o as ne,r as re,rt as C,st as ie,tt as ae,u as oe,ut as se,vt as w,w as T,xt as E,yt as D}from"./index-ek2iF_C1.js";import{r as O,t as k}from"./printTitle-C1qWomuv.js";/* empty css                  */var A=e(),j=`# DraftLine User Guide
+import{i as e,t}from"./react-DgawKyfb.js";import{C as n,D as r,E as i,Ft as a,Nt as o,O as s,Pt as c,Rt as l,Tt as u,_t as d,a as f,at as ee,bt as p,ct as m,dt as h,gt as g,i as _,it as v,l as te,lt as y,mt as b,n as x,nt as S,o as ne,r as re,rt as C,st as ie,tt as ae,u as oe,ut as se,vt as w,w as T,xt as E,yt as D}from"./index-C67QxMlX.js";import{r as O,t as k}from"./printTitle-C1qWomuv.js";/* empty css                  */var A=e(),j=`# DraftLine User Guide
 
 DraftLine is a distraction-free screenwriting app that runs in your browser. It writes in Courier Prime at 12 pt with standard screenplay margins, saves as you type, and works offline. This guide covers everything from your first scene heading to the final PDF.
 
@@ -264,6 +264,8 @@ DraftLine reads the character cues in your script. Anyone who speaks but has no 
 The **Dialogue** tab ({{key:Alt+T}}) gathers every line one character speaks, in script order, with its scene and page. Pick a character at the top. You can edit lines right there (changes go straight into the script), filter the lines, show the line before each speech for context (**Cue context**), and jump to any line in the script with **Go ↗**. Nothing is picked when you open it. Picking a character also highlights their speeches in the script, scrolls to their first line, and shows a stepper in the status bar, **MARIE · 1 of 8**: step through their speeches with ‹ › (or {{key:Alt+Down}} / {{key:Alt+Up}}), click the name for a list of every speech, and clear the filter with ✕ or \`Esc\`. The stepper is the filter's only control: nothing covers the page.
 
 Above the lines are the character's totals: lines, words, scenes and average words per line, plus **Monologues** (speeches over five printed lines or 60 words) and **Cadence**: **Fast / Banter** under 8 words a line, **Expository** over 20, **Balanced** in between.
+
+Click the **monologues** count to show only that character's monologues, each tagged with its length (**Monologue · 7 lines**); **Go ↗** jumps to one in the script. Click the count again (or its ✕), or pick another character, to see every speech. Long speeches are often the point of a scene, so nothing is flagged in the script or the status bar.
 
 ## Scene Board & Pacing
 
