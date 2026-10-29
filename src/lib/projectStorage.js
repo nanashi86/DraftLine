@@ -85,7 +85,7 @@ export function projectStats(blocks) {
 
 /** Editor document ({ meta, blocks, beats }) → stored record. */
 export function toRecord({
-  id, meta = {}, blocks = [], beats = [], characters = [], storyNotes, storyDna, production, revisions, pages, scenes, isLocked,
+  id, meta = {}, blocks = [], beats = [], characters = [], storyNotes, storyDna, production, revisions, pages, scenes, isLocked, viewOnly,
 }, now = Date.now()) {
   const rec = { id: id || newProjectId() };
   for (const k of META_FIELDS) rec[k] = meta[k] ?? EMPTY_META[k];
@@ -101,6 +101,9 @@ export function toRecord({
   // Project Lock (Projects → padlock): no deleting, no import or snapshot restore over it. Left out
   // when the caller doesn't say — the editor's saves never do — so saving keeps it (saveActiveProject).
   if (isLocked !== undefined) rec.isLocked = isLocked === true;
+  // View Only (status bar badge, Ctrl+Alt+L): no edits while it's on. Unlike the Project Lock it's part
+  // of the editor's document, so every editor save sends it; left out (an older crash journal) it's kept.
+  if (viewOnly !== undefined) rec.viewOnly = viewOnly === true;
   const est = pages == null || scenes == null ? projectStats(blocks) : null;
   rec.pages = pages ?? est.pages;
   rec.scenes = scenes ?? est.scenes;
@@ -126,6 +129,7 @@ export function toDoc(rec) {
     production: normalizeProduction(rec.production),
     revisions: normalizeRevisions(rec.revisions),
     isLocked: rec.isLocked === true,
+    viewOnly: rec.viewOnly === true, // scripts from before View Only was saved open editable
     createdAt: rec.createdAt,
     updatedAt: rec.updatedAt,
   };
@@ -261,8 +265,10 @@ export function createProjectStore({ indexedDB = globalThis.indexedDB, now = Dat
           if (projectData.revisions === undefined && prev?.revisions) rec.revisions = prev.revisions;
           // …and the Project Lock, which only setProjectLock changes.
           if (projectData.isLocked === undefined) rec.isLocked = prev?.isLocked === true;
-        } else if (rec.isLocked === undefined) {
-          rec.isLocked = false;
+          if (projectData.viewOnly === undefined) rec.viewOnly = prev?.viewOnly === true;
+        } else {
+          if (rec.isLocked === undefined) rec.isLocked = false;
+          if (rec.viewOnly === undefined) rec.viewOnly = false;
         }
         await b.put(rec);
         return rec;
@@ -350,8 +356,10 @@ export function createProjectStore({ indexedDB = globalThis.indexedDB, now = Dat
         const src = await b.get(id);
         if (!src) throw new Error('That project no longer exists');
         const t = stamp();
-        // A copy is a fresh working draft: it starts unlocked.
-        const copy = { ...clone(src), id: newProjectId(), title: `${src.title?.trim() || 'Untitled'} (Copy)`, createdAt: t, updatedAt: t, isLocked: false };
+        // A copy is a fresh working draft: it starts unlocked and editable.
+        const copy = {
+          ...clone(src), id: newProjectId(), title: `${src.title?.trim() || 'Untitled'} (Copy)`, createdAt: t, updatedAt: t, isLocked: false, viewOnly: false,
+        };
         await b.put(copy);
         return copy;
       });

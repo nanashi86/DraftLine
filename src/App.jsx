@@ -364,6 +364,7 @@ function Workspace({ boot }) {
     storyDna: initialDoc.storyDna,
     production: initialDoc.production,
     revisions: initialDoc.revisions,
+    viewOnly: initialDoc.viewOnly === true,
     at: initialDoc.updatedAt,
     ok: boot.persistent,
   }));
@@ -497,7 +498,9 @@ function Workspace({ boot }) {
   }, []);
 
   // ---- View Only lock (Ctrl+Alt+L or the status bar badge; lib/lock.js) ----
-  const [isLocked, setIsLocked] = useState(false);
+  // Saved with the script (its record's `viewOnly`), so it survives reloads and travels to the synced
+  // folder and backups; switching scripts takes each one's own setting (applyProject).
+  const [isLocked, setIsLocked] = useState(initialDoc.viewOnly === true);
   const toggleLock = useCallback(() => {
     setIsLocked(!isLocked);
     notify(isLocked ? 'Editing on' : `View Only — the script can’t be changed · ${LOCK_COMBO} to edit`);
@@ -523,11 +526,13 @@ function Workspace({ boot }) {
   const dirty = saved.blocks !== blocks || saved.meta !== meta || saved.beats !== beats
     || saved.characters !== characters || saved.storyNotes !== storyNotes || saved.storyDna !== storyDna
     || saved.production !== production
-    || saved.revisions !== revisions;
+    || saved.revisions !== revisions
+    || saved.viewOnly !== isLocked;
   const latest = useRef(null);
   useLayoutEffect(() => {
     latest.current = {
       projectId, meta, blocks, beats, characters, storyNotes, storyDna, production, revisions, pages: layout.pageCount, scenes: analysis.sceneCount, dirty,
+      viewOnly: isLocked,
       createdAt: saved.createdAt,
       savedAt: saved.at,
       // What a synced .draftline file carries beside the project (same as Backup Project).
@@ -542,7 +547,7 @@ function Workspace({ boot }) {
     const s = latest.current;
     const snap = {
       meta: s.meta, blocks: s.blocks, beats: s.beats, characters: s.characters, storyNotes: s.storyNotes, storyDna: s.storyDna,
-      production: s.production, revisions: s.revisions,
+      production: s.production, revisions: s.revisions, viewOnly: s.viewOnly,
     };
     // The browser first (the ground truth), then — if a folder is synced — its .draftline file.
     // "Saving…" clears as soon as the browser copy is safe; the folder write follows on its own.
@@ -611,7 +616,7 @@ function Workspace({ boot }) {
     if (!dirty) return undefined;
     const t = setTimeout(saveNow, SAVE_DEBOUNCE_MS);
     return () => clearTimeout(t);
-  }, [dirty, meta, blocks, beats, characters, storyNotes, storyDna, production, revisions, saveNow]);
+  }, [dirty, meta, blocks, beats, characters, storyNotes, storyDna, production, revisions, isLocked, saveNow]);
 
   // Tab hidden or closing inside the debounce window: start the save, and journal the state
   // synchronously in case the browser kills the page before IndexedDB commits.
@@ -621,7 +626,7 @@ function Workspace({ boot }) {
       if (!s.dirty) return;
       writeJournal(LOCAL, {
         id: s.projectId, meta: s.meta, blocks: s.blocks, beats: s.beats, characters: s.characters, storyNotes: s.storyNotes, storyDna: s.storyDna,
-        production: s.production,
+        production: s.production, viewOnly: s.viewOnly,
       });
       saveNow();
     };
@@ -864,6 +869,7 @@ function Workspace({ boot }) {
     setProduction(doc.production);
     setRevisions(doc.revisions);
     setProjectLocked(doc.isLocked === true);
+    setIsLocked(doc.viewOnly === true); // each script opens in its own saved View Only state
     noteSession.current = null;
     setNoteId(null);
     setRestoreId(null);
@@ -875,7 +881,7 @@ function Workspace({ boot }) {
     setProjectId(rec.id);
     setSaved({
       meta: m, blocks: bl, beats: doc.beats, characters: doc.characters, storyNotes: doc.storyNotes, storyDna: doc.storyDna,
-      production: doc.production, revisions: doc.revisions, at: rec.updatedAt, ok: true,
+      production: doc.production, revisions: doc.revisions, viewOnly: doc.viewOnly, at: rec.updatedAt, ok: true,
     });
     projects.setActiveProjectId(rec.id);
   }, [reset]);

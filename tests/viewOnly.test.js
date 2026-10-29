@@ -3,6 +3,12 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { LOCK_COMBO, isLockShortcut, lockBadge, lockedKeyAction } from '../src/lib/lock.js';
 import { SHORTCUTS } from '../src/lib/shortcuts.js';
+import { createProjectStore, toDoc, toRecord } from '../src/lib/projectStorage.js';
+import { parseBackup, serializeBackup } from '../src/lib/backup.js';
+import { createFolderSync, saveProjectEverywhere } from '../src/lib/folderSync.js';
+import { makeBlock } from '../src/lib/screenplay.js';
+import { createFakeIndexedDB } from './helpers/fakeIndexedDB.js';
+import { createFakeDirectory } from './helpers/fakeDirectory.js';
 
 const read = (p) => readFileSync(new URL(`../src/${p}`, import.meta.url), 'utf8');
 const key = (k, o = {}) => ({ key: k, code: o.code ?? (k.length === 1 ? `Key${k.toUpperCase()}` : k), ctrlKey: false, metaKey: false, altKey: false, shiftKey: false, ...o });
@@ -45,8 +51,8 @@ describe('View Only lock: what still works on a locked script', () => {
 describe('View Only lock: wiring', () => {
   const app = read('App.jsx');
   const editor = read('components/Editor.jsx');
-  it('isLocked lives in the app, off by default; the shortcut and the badge both toggle it', () => {
-    assert.match(app, /const \[isLocked, setIsLocked\] = useState\(false\);/);
+  it('isLocked lives in the app, starting from the script’s saved viewOnly; the shortcut and the badge both toggle it', () => {
+    assert.match(app, /const \[isLocked, setIsLocked\] = useState\(initialDoc\.viewOnly === true\);/);
     assert.match(app, /if \(isLockShortcut\(e\)\) \{\s*e\.preventDefault\(\);\s*toggleLock\(\);/);
     assert.match(app, /<LockBadge locked=\{isLocked\} onToggle=\{toggleLock\} \/>/);
     // right after the save indicator
@@ -87,5 +93,81 @@ describe('Header: the red D opens About DraftLine', () => {
   it('Projects stays on the title’s ▾ and Alt+P', () => {
     assert.match(app, /className="doc-switch-btn"\s*onClick=\{\(\) => setDrawerOpen\(\(o\) => !o\)\}/);
     assert.match(app, /e\.code === 'KeyP'\) \{\s*e\.preventDefault\(\);\s*setDrawerOpen\(\(o\) => !o\);/);
+  });
+});
+
+describe('View Only lock: saved with the script', () => {
+  const app = read('App.jsx');
+  const newStore = () => createProjectStore({ indexedDB: createFakeIndexedDB() });
+  const doc = (title, extra = {}) => ({ meta: { title }, blocks: [makeBlock('scene', 'INT. CAR - NIGHT')], beats: [], ...extra });
+
+  it('new scripts start editable; scripts saved before View Only was stored open editable', async () => {
+    const rec = await newStore().saveActiveProject(doc('Run!'));
+    assert.equal(rec.viewOnly, false);
+    assert.equal(toDoc(rec).viewOnly, false);
+    assert.equal(toDoc({ id: 'old', script: [] }).viewOnly, false, 'no viewOnly property → editable');
+    assert.equal('viewOnly' in toRecord(doc('A')), false, 'toRecord sets it only when told');
+    assert.equal(toRecord(doc('A', { viewOnly: true })).viewOnly, true);
+  });
+
+  it('toggling it is an ordinary save: stored on the record, stamped as an edit, and kept by saves that don’t say', async () => {
+    const store = newStore();
+    const rec = await store.saveActiveProject(doc('Run!'));
+    const on = await store.saveActiveProject(doc('Run!', { id: rec.id, viewOnly: true }));
+    assert.equal(on.viewOnly, true);
+    assert.ok(on.updatedAt > rec.updatedAt, 'newest copy wins in the synced folder and on other computers');
+    assert.equal((await store.getProject(rec.id)).viewOnly, true);
+    const journal = await store.saveActiveProject(doc('Run! (journal)', { id: rec.id })); // an older crash journal: no viewOnly
+    assert.equal(journal.viewOnly, true);
+    assert.equal((await store.saveActiveProject(doc('Run!', { id: rec.id, viewOnly: false }))).viewOnly, false);
+  });
+
+  it('is separate from the Project Lock (padlock): each keeps its own value', async () => {
+    const store = newStore();
+    const rec = await store.saveActiveProject(doc('A', { viewOnly: true }));
+    const padlocked = await store.setProjectLock(rec.id, true);
+    assert.equal(padlocked.viewOnly, true);
+    const edited = await store.saveActiveProject(doc('A', { id: rec.id, viewOnly: false }));
+    assert.equal(edited.isLocked, true);
+    assert.equal(edited.viewOnly, false);
+  });
+
+  it('a duplicate starts editable', async () => {
+    const store = newStore();
+    const a = await store.saveActiveProject(doc('A', { viewOnly: true }));
+    assert.equal((await store.duplicateProject(a.id)).viewOnly, false);
+  });
+
+  it('opening a script with viewOnly: true starts in View Only (on load and on switching)', () => {
+    assert.equal(toDoc({ id: 'x', script: [], viewOnly: true }).viewOnly, true);
+    assert.match(app, /const \[isLocked, setIsLocked\] = useState\(initialDoc\.viewOnly === true\);/);
+    assert.match(app, /setIsLocked\(doc\.viewOnly === true\); \/\/ each script opens in its own saved View Only state/);
+  });
+
+  it('the app saves it like any edit: it makes the script unsaved and goes out with the next save', () => {
+    assert.match(app, /\|\| saved\.viewOnly !== isLocked;/);
+    assert.match(app, /viewOnly: isLocked,\s*createdAt/);
+    assert.match(app, /production: s\.production, revisions: s\.revisions, viewOnly: s\.viewOnly,/);
+    assert.match(app, /revisions, isLocked, saveNow\]\);/, 'the debounced auto-save runs on a toggle');
+    assert.match(app, /production: s\.production, viewOnly: s\.viewOnly,\s*\}\);/, 'the crash journal carries it');
+  });
+
+  it('.draftline backups and the synced folder’s file keep it', async () => {
+    const store = newStore();
+    const rec = await store.saveActiveProject(doc('A', { viewOnly: true }));
+    const parsed = parseBackup(serializeBackup(rec)).record;
+    assert.equal(parsed.viewOnly, true);
+    assert.equal(toDoc(parsed).viewOnly, true);
+    const dir = createFakeDirectory();
+    const sync = createFolderSync({ settings: { get: async () => null, set: async () => {} }, win: { showDirectoryPicker: async () => dir } });
+    await sync.init();
+    await sync.link();
+    await sync.writeProject(rec);
+    const [inFolder] = await sync.listProjects();
+    assert.equal(inFolder.record.viewOnly, true);
+    const { record } = await saveProjectEverywhere({ store, sync, data: { ...toDoc(rec), id: rec.id, viewOnly: false } });
+    assert.equal(record.viewOnly, false, 'a toggle reaches the folder too');
+    const [after] = await sync.listProjects();
+    assert.equal(after.record.viewOnly, false);
   });
 });

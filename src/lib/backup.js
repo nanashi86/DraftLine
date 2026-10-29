@@ -22,6 +22,8 @@
 //                  linked scene
 //   • characters, storyNotes, storyDna — the Project Bible
 //   • revisions  — Snapshots: labelled checkpoints of the whole project (revisions.js)
+//   • isLocked   — the Project Lock (padlock); viewOnly — View Only (no editing). Both
+//                  missing in older backups, which open unlocked and editable
 // Block ids are kept, so cards stay linked to their scenes after a restore.
 //
 // `board.actMode` is the 3- or 4-act view the board was in. `dictionary` holds the writer's
