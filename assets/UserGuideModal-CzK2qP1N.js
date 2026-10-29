@@ -1,4 +1,4 @@
-import{i as e,t}from"./react-DgawKyfb.js";import{C as n,D as r,E as i,Ft as a,Nt as o,O as s,Pt as c,Rt as l,Tt as u,_t as d,a as f,at as ee,bt as p,ct as m,dt as h,gt as g,i as _,it as v,l as te,lt as y,mt as b,n as x,nt as S,o as ne,r as re,rt as C,st as ie,tt as ae,u as oe,ut as se,vt as w,w as T,xt as E,yt as D}from"./index-Gkqd1VNm.js";import{r as O,t as k}from"./printTitle-C1qWomuv.js";/* empty css                  */var A=e(),j=`# DraftLine User Guide
+import{i as e,t}from"./react-DgawKyfb.js";import{C as n,D as r,E as i,Ft as a,Nt as o,O as s,Pt as c,Rt as l,Tt as u,_t as d,a as f,at as ee,bt as p,ct as m,dt as h,gt as g,i as _,it as v,l as te,lt as y,mt as b,n as x,nt as S,o as ne,r as re,rt as C,st as ie,tt as ae,u as oe,ut as se,vt as w,w as T,xt as E,yt as D}from"./index-CFuOtahL.js";import{r as O,t as k}from"./printTitle-C1qWomuv.js";/* empty css                  */var A=e(),j=`# DraftLine User Guide
 
 DraftLine is a distraction-free screenwriting app that runs in your browser. It writes in Courier Prime at 12 pt with standard screenplay margins, saves as you type, and works offline. This guide covers everything from your first scene heading to the final PDF.
 
@@ -22,7 +22,7 @@ The top bar holds your script's title, the **Write | Plan** switch, the **File �
 
 Every script lives in your **Projects** library ({{key:Alt+P}}, the ▾ beside the title, or **File ▾ → Projects…**). From there you can create, switch, rename, duplicate, export or delete scripts. Deleting asks first: the **Delete Screenplay?** dialog only deletes when you press **Permanently Delete**; **Cancel** leaves everything as it was.
 
-**Project Lock.** The padlock to the left of a script's ⋮ menu locks it (it turns amber). A locked script can't be deleted, and nothing is loaded over it: Import and pasted scripts open as a new script beside it (Append is hidden), and snapshots can't be restored over it. You can still type in it; for a read-only session use View Only ({{key:Ctrl+Alt+L}}). The lock is saved with the script, in backups and in a linked folder. Click the padlock again to unlock. Duplicates start unlocked.
+**Project Lock.** The padlock to the left of a script's ⋮ menu locks it (it turns amber). A locked script can't be deleted, and nothing is loaded over it: Import and pasted scripts open as a new script beside it (Append is hidden), and snapshots can't be restored over it. You can still type in it; to stop all editing use View Only ({{key:Ctrl+Alt+L}}). The lock is saved with the script, in backups and in a linked folder. Click the padlock again to unlock. Duplicates start unlocked.
 
 By default, scripts are saved in this browser's own database (IndexedDB) on this computer. Saving is automatic, about half a second after you stop typing. {{key:Ctrl+S}} saves immediately. Nothing is uploaded and no account is needed.
 
@@ -141,6 +141,8 @@ Select text and press {{key:Ctrl+B}} (bold), {{key:Ctrl+I}} (italic), {{key:Ctrl
 ### View Only lock
 
 {{lock.combo}}, or the **Edit** badge in the status bar, locks the script. While it shows **View Only** you can read, scroll, select and copy, and character bio cards still appear, but nothing can be typed, deleted, formatted or undone. The Element picker and B / I / U / S are dimmed. Press {{lock.combo}} again (or click the badge) to edit.
+
+View Only is remembered for each script: it's still on after a reload, each script opens in its own setting when you switch, and it's saved in backups and in a linked folder, so the script opens the same way on another computer. Duplicates start editable.
 
 ### Checking your pages
 
