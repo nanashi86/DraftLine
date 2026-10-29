@@ -79,6 +79,17 @@ describe('Plan scene filter: where it shows', () => {
     assert.match(ui, /<b>\{count\.shown\} of \{count\.total\}<\/b>/);
     assert.match(ui, /\{place === 'bar' && <span className="bar-sep pf-sep" aria-hidden="true" \/>\}/);
   });
+  it('on smaller screens it shares the list’s column: filter, summary and cards / strips line up', () => {
+    const pw = read('components/planning/PlanningWorkspace.css');
+    assert.match(ws, /<section className="plan" data-view=\{view\} aria-label="Plan">/);
+    assert.match(pw, /\.plan \{ --plan-w: 1100px; \}\s*\.plan\[data-view='breakdowns'\] \{ --plan-w: 980px; \}/);
+    for (const sel of ['.plan-summary', '.strips', '.strip-legend', '.plan-reports']) {
+      assert.match(pw, new RegExp(`\\${sel} \\{[^}]*max-width: var\\(--plan-w\\);`), sel);
+    }
+    assert.match(pw, /\.plan-card \{\s*max-width: var\(--plan-w\);/);
+    assert.match(css, /\.plan-filter\.is-workspace \{[^}]*max-width: var\(--plan-w, 1100px\); margin: 0 auto 10px;/);
+    assert.doesNotMatch(pw, /max-width: (980|1100)px/, 'no column width set anywhere but --plan-w');
+  });
   it('the header on wide windows (1500px+), the top of the workspace below that, never both', () => {
     assert.match(css, /\.plan-filter\.is-workspace \{ display: none;/);
     assert.match(css, /@media \(max-width: 1499\.98px\) \{\s*\.plan-filter\.is-bar \{ display: none; \}\s*\.plan-filter\.is-workspace \{ display: flex; \}/);

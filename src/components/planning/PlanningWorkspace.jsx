@@ -39,7 +39,7 @@ export default function PlanningWorkspace({
     onCount?.({ shown: shown.shown, total: shown.total });
   }, [onCount, shown.shown, shown.total]);
   return (
-    <section className="plan" aria-label="Plan">
+    <section className="plan" data-view={view} aria-label="Plan">
       <div className="plan-scroll">
         {!rows.length ? (
           <p className="plan-empty">No scenes yet. Scene headings you write (INT. / EXT. …) appear here as breakdowns and strips.</p>

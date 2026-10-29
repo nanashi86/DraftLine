@@ -16,8 +16,13 @@
   color: var(--text);
 }
 
+/* One column for each view, shared by everything in it — the scene filter (on smaller screens), the
+   summary line, and the cards, strips or reports — so their left and right edges line up. */
+.plan { --plan-w: 1100px; }
+.plan[data-view='breakdowns'] { --plan-w: 980px; }
+
 /* One summary line above the cards or strips (the controls are in the main header). */
-.plan-summary { max-width: 1100px; margin: 0 auto 12px; overflow-x: auto; white-space: nowrap; color: var(--muted); font-size: 12.5px; }
+.plan-summary { max-width: var(--plan-w); margin: 0 auto 12px; overflow-x: auto; white-space: nowrap; color: var(--muted); font-size: 12.5px; }
 .plan-scroll { flex: 1; min-height: 0; overflow-y: auto; padding: 16px 28px 40px; }
 .plan-empty { margin: 48px auto; max-width: 520px; color: var(--muted); font-size: 14px; text-align: center; white-space: normal; }
 .plan-label { display: block; margin-bottom: 5px; color: var(--muted); font: 600 10.5px/1.2 var(--ui-font); letter-spacing: 0.08em; text-transform: uppercase; }
@@ -25,7 +30,7 @@
 
 /* ---- Breakdown cards ---- */
 .plan-card {
-  max-width: 980px;
+  max-width: var(--plan-w);
   margin: 0 auto 10px;
   border: 1px solid var(--line-soft);
   border-left: 6px solid var(--strip-color, var(--strip-unknown));
@@ -149,10 +154,10 @@
 .strip-int-night { --strip-color: var(--strip-int-night); }
 .strip-ext-night { --strip-color: var(--strip-ext-night); }
 .strip-unknown { --strip-color: var(--strip-unknown); }
-.strip-legend { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; max-width: 1100px; margin: 0 auto 12px; color: var(--muted); font-size: 12px; }
+.strip-legend { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; max-width: var(--plan-w); margin: 0 auto 12px; color: var(--muted); font-size: 12px; }
 .strip-key { display: inline-flex; align-items: center; gap: 6px; }
 .strip-swatch { width: 14px; height: 14px; border-radius: 4px; background: var(--strip-color); }
-.strips { display: flex; flex-direction: column; gap: 3px; max-width: 1100px; margin: 0 auto; }
+.strips { display: flex; flex-direction: column; gap: 3px; max-width: var(--plan-w); margin: 0 auto; }
 .strip {
   display: grid;
   grid-template-columns: 52px 76px minmax(0, 1fr) 110px 70px minmax(90px, 160px);
@@ -209,7 +214,7 @@
 @media print { .plan { display: none; } }
 
 /* ---- Reports (planning/Reports.jsx): quiet tables, in the same voice as the Format Doctor list ---- */
-.plan-reports { max-width: 1100px; margin: 0 auto; }
+.plan-reports { max-width: var(--plan-w); margin: 0 auto; }
 .rp-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
 .rp-csv { display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 10px; font-size: 12.5px; }
 .rp-table {

@@ -59,7 +59,7 @@
 .plan-filter > .pf-sep { margin-left: calc(var(--sep-space, 16px) - 10px); } /* 16px after the last control, past the group's 10px gap */
 
 /* Where it shows: the header on wide windows, the top of the Plan workspace on narrower ones. */
-.plan-filter.is-workspace { display: none; flex-wrap: wrap; width: 100%; max-width: 1100px; margin: 0 auto 10px; } /* lines up with the summary below */
+.plan-filter.is-workspace { display: none; flex-wrap: wrap; width: 100%; max-width: var(--plan-w, 1100px); margin: 0 auto 10px; } /* the column the list below uses */
 @media (max-width: 1499.98px) {
   .plan-filter.is-bar { display: none; }
   .plan-filter.is-workspace { display: flex; }
