@@ -32,15 +32,16 @@ Browser storage belongs to this browser profile. Clearing the browser's site dat
 
 In Chrome, Edge and other Chromium browsers on a computer, DraftLine can also keep every script as a file in a folder you choose. Pick a folder inside Google Drive, Dropbox or OneDrive, and your scripts follow you to any computer that has that folder.
 
-1. Click the save status in the status bar (it says **Saved locally**), or open Projects.
+1. Click the save status in the status bar (it says **App Storage Only**, beside a hollow circle). Projects opens on the **Linked Folder (File Backup)** card.
 2. Under **Storage Destination**, in the **Linked Folder (File Backup)** card, choose **Link Folder…** and pick a folder.
 3. Allow the browser to edit files in that folder.
 
-From then on, every save goes to the browser first (instant and offline-safe) and then to the folder, as `Your-Title.draftline`. The status bar shows **Synced: [Folder name]** in green.
+From then on, every save goes to the browser first (instant and offline-safe) and then to the folder, as `Your-Title.draftline`. The status bar shows **Linked Folder Synced** beside a green dot (the dot pulses while a save is on its way).
 
 - **Scripts from the folder** appear in Projects. One marked **In folder** isn't in this browser yet; open it to bring it in. One marked **Newer in folder** was changed on another computer; opening it loads that newer copy.
-- **After a browser restart**, the browser may ask again before DraftLine can write to the folder. The status bar then says **Click to allow folder sync**. One click resumes syncing.
+- **After a browser restart**, the browser may ask again before DraftLine can write to the folder. The status bar then says **Click to resume folder sync**, beside an amber circle. One click brings up the browser's own prompt: choose **Allow** (or **Allow on every visit**) and syncing resumes.
 - **If the folder can't be written** (an unplugged drive, for example), your work is still safe in the browser and the status bar says **Folder sync paused**.
+- **A reminder at 10 pages:** once a script reaches 10 pages (or 5,000 words) and it's saved only in this browser, a small card in the bottom-right corner suggests linking a folder. **Link Folder** opens Projects on the Linked Folder card, **Dismiss** or ✕ hides it for this session, and **Don't show again** hides it for good. It never blocks typing, and it doesn't appear in Focus mode or in browsers that can't link a folder.
 - **Change Folder…** links a different folder. **Disconnect** stops syncing and leaves the files where they are. Choosing **App Storage (Zero Setup)** pauses syncing but remembers the folder.
 - **Deleting a script** in DraftLine also takes its file out of the linked folder, so it doesn't come back. The file isn't erased: it's moved into a **Trash** folder inside the linked folder, renamed with the date it was deleted, so you can recover it there. If it can't be moved, DraftLine leaves it where it is and asks whether to delete it permanently.
 - **Two computers, one script:** the most recent save wins. DraftLine doesn't merge edits made on two computers at the same time.

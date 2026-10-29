@@ -84,6 +84,10 @@ import { findMatches, hitsById, nearestMatch, replaceMatches } from './lib/findR
 import { EXPORT_TIP, FORMAT_DOCTOR_TIP, claimTip, muteTip } from './lib/supportTips.js';
 import BrandMark from './components/BrandMark.jsx';
 import { MILESTONES, MILESTONE_TOAST_MS, finishedSentence, milestonesReached } from './lib/milestones.js';
+import BackupToast from './components/BackupToast.jsx';
+import {
+  BACKUP_TOAST_DISMISSED_KEY, BACKUP_TOAST_SESSION_KEY, readFlag, shouldShowBackupToast, writeFlag,
+} from './lib/backupToast.js';
 import { createNoirAudio } from './lib/noirAudio.js';
 import { NOIR_CLASS, NOIR_COMBO, noirGenrePicked, noirKeyAction } from './lib/noir.js';
 import {
@@ -260,6 +264,7 @@ function Workspace({ boot }) {
   const [folderSnaps, setFolderSnaps] = useState({ projectId: null, list: [] }); // <folder>/Snapshots files
   const [autoSnapCount, setAutoSnapCount] = useState(0); // bumped per automatic snapshot: the drawer re-reads the folder
   const [focusStorage, setFocusStorage] = useState(0); // bumped by the status bar → Projects' storage block
+  const [storageTarget, setStorageTarget] = useState('storage'); // …or straight to its Linked Folder card ('folder')
 
   const [lineMap, setLineMap] = useState({});
   const [activeId, setActiveId] = useState(null);
@@ -631,15 +636,30 @@ function Workspace({ boot }) {
     writeJSON(PREFS_KEY, { zoom, dock, characterTab, navOpen, view, actMode, coverVisible, specStamp });
   }, [zoom, dock, characterTab, navOpen, view, actMode, coverVisible, specStamp]);
 
-  // Status bar: where the script is saved — browser, synced folder, or "click to allow folder sync".
+  // Status bar: App Storage Only · Click to resume folder sync · Linked Folder Synced (lib/folderSync.js storageStatus).
   const saveStatus = storageStatus({ saveOk: saved.ok, dirty, sync });
+  // Open Projects on its storage block; 'folder' goes straight to the Linked Folder card.
+  const openStorage = (target = 'storage') => {
+    setDrawerOpen(true);
+    setStorageTarget(target);
+    setFocusStorage((n) => n + 1);
+  };
   const onSaveStatusClick = () => {
     if (saveStatus.action === 'permission') {
       folderSync.requestPermission().then((ok) => notify(ok ? `Syncing to ${folderSync.getState().folderName}` : 'Folder sync is still off — the browser didn’t get permission'));
       return;
     }
-    setDrawerOpen(true);
-    setFocusStorage((n) => n + 1);
+    openStorage(saveStatus.action === 'link' ? 'folder' : 'storage');
+  };
+  // The backup tip (lib/backupToast.js): 10+ pages or 5,000+ words saved only in this browser.
+  const [backupTipClosed, setBackupTipClosed] = useState(() => ({
+    session: readFlag(globalThis.sessionStorage, BACKUP_TOAST_SESSION_KEY),
+    forever: readFlag(globalThis.localStorage, BACKUP_TOAST_DISMISSED_KEY),
+  }));
+  const closeBackupTip = (forever = false) => {
+    writeFlag(globalThis.sessionStorage, BACKUP_TOAST_SESSION_KEY);
+    if (forever) writeFlag(globalThis.localStorage, BACKUP_TOAST_DISMISSED_KEY);
+    setBackupTipClosed((c) => ({ session: true, forever: c.forever || forever }));
   };
   // Projects: the browser library plus scripts found only in the synced folder (newest copy wins),
   // with browser scripts whose file has gone from the folder marked "File missing on disk".
@@ -2360,9 +2380,9 @@ function Workspace({ boot }) {
             )}
             <button
               type="button"
-              className={`status-save is-${saveStatus.tone}`}
+              className={`status-save is-${saveStatus.tone}${saveStatus.busy ? ' is-busy' : ''}`}
               onClick={onSaveStatusClick}
-              title={[saveStatus.title, saved.at ? `Last saved ${timeLabel(saved.at)}` : ''].filter(Boolean).join(' · ')}
+              title={[saveStatus.title, saveStatus.busy ? 'Saving…' : saved.at ? `Last saved ${timeLabel(saved.at)}` : ''].filter(Boolean).join(' · ')}
             >
               <span className="save-dot" aria-hidden="true" />
               {saveStatus.label}
@@ -2513,6 +2533,24 @@ function Workspace({ boot }) {
           />
         )}
         {milestone && <div className="milestone-toast" role="status" key={milestone}>{milestone}</div>}
+        {shouldShowBackupToast({
+          pages: layout.pageCount,
+          words: analysis.words,
+          state: saveStatus.state,
+          supported: sync.supported,
+          dismissedForever: backupTipClosed.forever,
+          dismissedSession: backupTipClosed.session,
+          busy: !!(milestone || exportToast || focusMode), // the corner is taken, or you're in Focus: later
+        }) && (
+          <BackupToast
+            onLink={() => {
+              closeBackupTip();
+              openStorage('folder');
+            }}
+            onDismiss={() => closeBackupTip()}
+            onNever={() => closeBackupTip(true)}
+          />
+        )}
         {bibleExportOpen && (
           // Export → Story Bible (PDF)…: loads (with lib/biblePdfExport.js) the first time it's opened.
           <Suspense fallback={null}>
@@ -2622,6 +2660,7 @@ function Workspace({ boot }) {
           libraryRev={libraryRev}
           storage={storageControls}
           focusStorage={focusStorage}
+          focusTarget={storageTarget}
           onClose={() => setDrawerOpen(false)}
           onSwitch={switchProject}
           onCreate={newScript}

@@ -183,7 +183,7 @@ describe('Folder sync: dual save — IndexedDB first, then the folder', () => {
     assert.equal(await sync.writeProject(record), 'written');
     assert.equal(sync.getState().error, null);
   });
-  it('permission withdrawn mid-session → "Click to allow folder sync"', async () => {
+  it('permission withdrawn mid-session → "Click to resume folder sync"', async () => {
     const { dir, sync } = await linked();
     dir.$.root.permission = 'prompt';
     assert.equal(await sync.writeProject({ id: 'a', title: 'A', script: [makeBlock('scene')] }), 'error');
@@ -284,19 +284,52 @@ describe('Folder sync: snapshots subfolder', () => {
 });
 
 describe('Folder sync: the status bar indicator', () => {
-  it('browser · synced · syncing · reconnect · paused · not saved', () => {
-    assert.equal(storageStatus({}).label, 'Saved locally');
+  it('State 1 · App Storage Only: muted, opens Projects on the Linked Folder card', () => {
+    assert.deepEqual(storageStatus({ sync: { supported: true } }), {
+      label: 'App Storage Only', tone: 'local', action: 'link', state: 'local', busy: false,
+      title: 'Saved in browser storage only. Click to link a computer folder for automatic disk backups.',
+    });
+    assert.equal(storageStatus({ sync: { supported: true, linked: true, destination: 'browser' } }).label, 'App Storage Only', 'a folder kept but not syncing');
+    const noFsa = storageStatus({ sync: { supported: false } });
+    assert.deepEqual([noFsa.label, noFsa.action], ['App Storage Only', 'settings'], 'no folder linking in this browser: Projects, not the missing card');
+    assert.match(noFsa.title, /export a backup/);
+  });
+  it('State 2 · Click to resume folder sync: amber, asks the browser for permission', () => {
+    assert.deepEqual(storageStatus({ sync: { needsPermission: true, folderName: 'X' } }), {
+      label: 'Click to resume folder sync', tone: 'warn', action: 'permission', state: 'permission',
+      title: 'Folder linked, but browser needs permission to write files this session. Click to grant.',
+    });
+  });
+  it('State 3 · Linked Folder Synced: green, opens Projects', () => {
     const on = { active: true, folderName: 'DraftLine Projects' };
     assert.deepEqual(storageStatus({ sync: on }), {
-      label: 'Synced: DraftLine Projects', tone: 'synced', action: 'settings', title: 'Saved in this browser and to the folder “DraftLine Projects”',
+      label: 'Linked Folder Synced', tone: 'synced', action: 'settings', state: 'synced', busy: false,
+      title: 'Actively syncing changes directly to your linked folder.',
     });
-    assert.equal(storageStatus({ sync: { ...on, syncing: true } }).label, 'Syncing…');
-    assert.equal(storageStatus({ dirty: true, sync: on }).label, 'Saving…');
-    assert.deepEqual(
-      [storageStatus({ sync: { needsPermission: true, folderName: 'X' } }).label, storageStatus({ sync: { needsPermission: true } }).action],
-      ['Click to allow folder sync', 'permission'],
-    );
+  });
+  it('saving never changes the words: the dot pulses (busy) instead', () => {
+    const on = { active: true, folderName: 'P' };
+    assert.deepEqual([storageStatus({ sync: { ...on, syncing: true } }).label, storageStatus({ sync: { ...on, syncing: true } }).busy], ['Linked Folder Synced', true]);
+    assert.deepEqual([storageStatus({ dirty: true, sync: on }).label, storageStatus({ dirty: true, sync: on }).busy], ['Linked Folder Synced', true]);
+    assert.deepEqual([storageStatus({ dirty: true }).label, storageStatus({ dirty: true }).busy], ['App Storage Only', true]);
+  });
+  it('real failures still say so: not saved (red), folder write failed (amber)', () => {
+    const on = { active: true, folderName: 'P' };
     assert.equal(storageStatus({ saveOk: false, sync: on }).tone, 'error');
+    assert.deepEqual([storageStatus({ sync: { ...on, error: 'Disk full' } }).label, storageStatus({ sync: { ...on, error: 'Disk full' } }).tone], ['Folder sync paused', 'warn']);
+  });
+  it('the app: permission → the browser prompt; link → Projects on the Linked Folder card; dots per state', async () => {
+    const { readFileSync } = await import('node:fs');
+    const app = readFileSync(new URL('../src/App.jsx', import.meta.url), 'utf8');
+    const css = readFileSync(new URL('../src/App.css', import.meta.url), 'utf8');
+    const drawer = readFileSync(new URL('../src/components/ProjectsDrawer.jsx', import.meta.url), 'utf8');
+    assert.match(app, /if \(saveStatus\.action === 'permission'\) \{\s*folderSync\.requestPermission\(\)/);
+    assert.match(app, /openStorage\(saveStatus\.action === 'link' \? 'folder' : 'storage'\);/);
+    assert.match(app, /className=\{`status-save is-\$\{saveStatus\.tone\}\$\{saveStatus\.busy \? ' is-busy' : ''\}`\}/);
+    assert.match(drawer, /focusTarget === 'folder' \? sd\?\.querySelector\('\.sd-card-folder'\)/);
+    assert.match(css, /\.status-save\.is-local \.save-dot \{ background: transparent; box-shadow: inset 0 0 0 1\.5px var\(--muted\); \}/);
+    assert.match(css, /\.status-save\.is-warn \.save-dot \{ background: transparent; box-shadow: inset 0 0 0 1\.5px #e0a458; \}/);
+    assert.match(css, /\.save-dot \{[^}]*background: #6fae7d;/);
   });
 });
 
@@ -355,7 +388,7 @@ describe('Folder sync: wired into the app', async () => {
   it('the status bar indicator: click allows folder sync, or opens the storage settings', () => {
     assert.match(app, /const saveStatus = storageStatus\(\{ saveOk: saved\.ok, dirty, sync \}\);/);
     assert.match(app, /if \(saveStatus\.action === 'permission'\) \{\s*folderSync\.requestPermission\(\)/);
-    assert.match(app, /setDrawerOpen\(true\);\s*setFocusStorage\(\(n\) => n \+ 1\);/);
+    assert.match(app, /setDrawerOpen\(true\);\s*setStorageTarget\(target\);\s*setFocusStorage\(\(n\) => n \+ 1\);/);
   });
   it('deleting a script takes its folder file out too (or the folder would bring it back) — after the dialog is confirmed', () => {
     assert.match(app, /await projects\.deleteProject\(d\.id\);\s*setLibraryRev\(\(n\) => n \+ 1\);\s*const folder = await folderSync\.removeProject\(d\.id\);/);

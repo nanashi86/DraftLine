@@ -6,6 +6,7 @@ All notable changes to DraftLine are recorded here. The format follows [Keep a C
 
 ### Added
 
+- A backup tip: when a script saved only in this browser reaches 10 pages (or 5,000 words), a small card in the bottom-right corner suggests linking a folder, with **Link Folder** (opens Projects on the Linked Folder card), **Dismiss**, **Don't show again** and ✕. It never takes focus, waits while another corner toast or Focus mode is showing, and doesn't appear where a folder can't be linked.
 - Characters → Bios: a **Gender** picker (Male, Female, Non-Binary, Other, or not set) beside Age / Timeline, shown on the cue hover card and in the Story Bible PDF.
 - Characters → Bios → **Populate Bio** (header, beside expand / close): reads each character's introduction in the Action (`MARJORIE (30s)--warm-dark skin, …`) and fills empty **Age / Timeline** (`30s`, `early 40s`, `mid-40s`, `50-something`), **Gender** (a word that names them first — `her female FRIEND (45)`, `--petite, amber-skinned woman`, `THEO (20s), her brother` — then the pronouns that clearly dominate; a stray "at him" for someone else doesn't count) and **Physical Description** fields, adding bios for speaking characters who don't have one yet. Fields with text or a choice are never changed, so it's safe to run again; Undo reverses it.
 - Page breaks keep lead-in Action with what it introduces: a short line ending in a colon, a SUPER / INSERT / TITLE / CHYRON / PRE-LAP / "IN … WITH SUBTITLES" line, or a one-line all-caps line right before a cue or heading never ends a page (editor, Print and PDF). The Format Doctor flags anything still stranded at the bottom of a page, away from what it introduces: **Stranded at the bottom of a page** (no automatic fix).
@@ -26,6 +27,7 @@ All notable changes to DraftLine are recorded here. The format follows [Keep a C
 
 ### Changed
 
+- The status bar's save indicator has three states, named like Storage Destination: **App Storage Only** (hollow muted circle; click to link a folder), **Click to resume folder sync** (amber circle; click for the browser's permission prompt) and **Linked Folder Synced** (green dot). Saving no longer swaps the words for "Saving…": the dot pulses instead. "Not saved" and "Folder sync paused" still show when a save fails.
 - File ▾: **Export Outline & Bible** is now **Export Planning & Production**, with **Scene Breakdown** (.csv) above Spreadsheet Outline: the same file as Plan's Export Breakdown, available from Write too. Plan's button now reads **Export Breakdown** (**Export** when narrow).
 - Spreadsheet Outline (.csv): a card not linked to a scene takes its Scene Number from its title ("13. INT. …") or its place in the outline, and Heading drops the "13. " prefix (a title like "1986 coup" is left alone).
 - Scene Board: **Populate from Script** is now **Import Scenes**, with a muted film-strip line icon; the same menu (Auto-Distribute, Manual Scene Ranges…).

@@ -10,7 +10,7 @@
 //   3. Dialogue spotlight on the sample script: pick MARIE, everything else dims, scroll her pass.
 //   4. The Scene Board (Write → Board) in 4 Acts and 3 Acts, then Plan → Breakdowns and Stripboard,
 //      where every scene's length is worked out in eighths of a page.
-//   5. Back to the page, link a folder, and the status bar's "Synced: <folder>" badge.
+//   5. Back to the page, link a folder, and the status bar's "Linked Folder Synced" badge.
 //
 // Folder sync uses a stand-in folder held in memory (tests/helpers/fakeDirectory.js): Playwright can't
 // drive the operating system's folder picker. DraftLine does exactly what it does with a real folder;

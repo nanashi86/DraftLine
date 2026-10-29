@@ -43,7 +43,7 @@ export default function StorageDestination({ sync, onChoose, onLink, onDisconnec
           </label>
         </div>
         {sync.supported && (
-          <div className={`sd-card${folder ? ' is-on' : ''}`}>
+          <div className={`sd-card sd-card-folder${folder ? ' is-on' : ''}`}>
             <label className="sd-option">
               <input type="radio" name="sd-dest" checked={folder} disabled={busy} onChange={run(() => onChoose('folder'))} />
               <span>

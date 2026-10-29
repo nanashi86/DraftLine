@@ -473,8 +473,14 @@
 }
 .status-save:hover { color: var(--text); background: var(--field); }
 .status-save.is-synced { color: #9fd3aa; }
+/* App Storage Only: a muted hollow circle (nothing wrong, just no folder). Click to resume folder sync:
+   an amber hollow circle. Linked Folder Synced: the soft green dot. While saving, the dot pulses. */
+.status-save.is-local .save-dot { background: transparent; box-shadow: inset 0 0 0 1.5px var(--muted); }
+.status-save.is-busy .save-dot { animation: save-pulse 900ms ease-in-out infinite alternate; }
+@keyframes save-pulse { to { opacity: 0.35; } }
+@media (prefers-reduced-motion: reduce) { .status-save.is-busy .save-dot { animation: none; } }
 .status-save.is-warn { color: #f2c27e; }
-.status-save.is-warn .save-dot { background: #e0a458; }
+.status-save.is-warn .save-dot { background: transparent; box-shadow: inset 0 0 0 1.5px #e0a458; }
 .save-dot {
   width: 6px;
   height: 6px;
@@ -482,7 +488,6 @@
   background: #6fae7d;
   transition: background 200ms ease;
 }
-.status-save.is-pending .save-dot { background: var(--muted); }
 .status-save.is-error { color: #e28b78; }
 .status-save.is-error .save-dot { background: #e28b78; }
 /* Edit ⇄ View Only lock: a quiet outline while editable, warm amber when locked. */

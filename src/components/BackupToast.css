@@ -1,0 +1,31 @@
+/* The backup tip: zinc surface, bottom-right above the status bar, like the other corner toasts. */
+.bk-toast {
+  position: fixed;
+  right: 18px;
+  bottom: calc(var(--status-h) + 14px);
+  width: min(380px, calc(100vw - 36px));
+  box-sizing: border-box;
+  padding: 12px 12px 12px 14px;
+  border: 1px solid #3f3f46;
+  border-radius: 10px;
+  background: #18181b;
+  color: #e4e4e7;
+  font: 13px/1.5 var(--ui-font);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+  z-index: 54; /* under the export and milestone toasts (55–56) and every modal */
+  animation: bk-in 220ms ease-out;
+}
+@keyframes bk-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .bk-toast { animation: none; } }
+@media print { .bk-toast { display: none; } }
+
+.bk-head { display: flex; align-items: center; gap: 8px; }
+.bk-icon { flex: none; color: #a1a1aa; }
+.bk-head h2 { flex: 1; margin: 0; font-size: 13.5px; font-weight: 650; }
+.bk-close { margin: -4px -4px -4px 0; color: #a1a1aa; }
+.bk-msg { margin: 6px 0 10px; color: #a1a1aa; font-size: 12.5px; }
+.bk-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.bk-actions .btn { padding: 5px 10px; font-size: 12.5px; }
+.bk-actions .bk-link { background: var(--accent); color: var(--on-accent); }
+.bk-actions .bk-link:hover { background: color-mix(in srgb, var(--accent) 88%, #fff); }
+.bk-actions .bk-never { margin-left: auto; color: #a1a1aa; }

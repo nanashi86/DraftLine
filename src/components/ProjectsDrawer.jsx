@@ -73,6 +73,7 @@ export default function ProjectsDrawer({
   open, activeId, live, loadProjects, onClose, onSwitch, onCreate, onRename, onDuplicate, onExport, onDelete, onToggleLock, libraryRev = 0,
   storage, // { sync, onChoose, onLink, onDisconnect, onAllow } — the Storage Destination block
   focusStorage = 0, // bumped by the status bar: open on the storage settings
+  focusTarget = 'storage', // …'folder': on the Linked Folder card, its Link Folder… / Allow access button focused
 }) {
   const [list, setList] = useState(null);
   const [error, setError] = useState(null);
@@ -122,11 +123,12 @@ export default function ProjectsDrawer({
     if (!open || !focusStorage) return undefined;
     const f = requestAnimationFrame(() => {
       const sd = panelRef.current?.querySelector('.sd');
-      sd?.scrollIntoView({ block: 'start' });
-      sd?.querySelector('input:checked')?.focus();
+      const card = focusTarget === 'folder' ? sd?.querySelector('.sd-card-folder') : null;
+      (card || sd)?.scrollIntoView({ block: card ? 'center' : 'start' });
+      (card?.querySelector('.sd-buttons .btn') || sd?.querySelector('input:checked'))?.focus();
     });
     return () => cancelAnimationFrame(f);
-  }, [open, focusStorage]);
+  }, [open, focusStorage, focusTarget]);
 
   useEffect(() => {
     if (!open) return undefined;

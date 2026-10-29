@@ -1,5 +1,5 @@
 // DL 01 · General — Projects and workspaces (~22 s)
-// Projects drawer, linking a synced folder and its "Synced" badge, then Write ⇄ Plan.
+// Projects drawer, linking a folder and the status bar's "Linked Folder Synced", then Write ⇄ Plan.
 //   node scripts/record-dl01.js  →  recordings/DL_01_General_ProjectsAndWorkspaces/DL_01_General_ProjectsAndWorkspaces.webm (+ .mp4)
 import { main, record } from './lib/demoKit.js';
 
@@ -20,7 +20,7 @@ main(() => record({
     await click(page.getByRole('button', { name: 'Link Folder…' }), 1600);
     await click(page.getByRole('button', { name: 'Close projects' }), 600);
 
-    say('The status bar: Synced');
+    say('The status bar: Linked Folder Synced');
     await glide(page.locator('.status-save'));
     await hold(2200);
 

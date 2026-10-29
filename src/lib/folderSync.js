@@ -151,21 +151,42 @@ export function snapshotFromFileText(text) {
   };
 }
 
-/** Status bar wording for where the open script is saved. `action`: what a click on it does. */
+// The status bar's save indicator: three states, worded the same as Projects → Storage Destination.
+//   App Storage Only            — no folder syncing (muted hollow circle); click: Projects → Linked Folder
+//   Click to resume folder sync — linked, but the browser needs permission this session (amber circle);
+//                                 click: the browser's own Allow prompt
+//   Linked Folder Synced        — writing to the folder (soft green dot); click: Projects
+// Two failures still say so, because they mean a save didn't land: browser storage blocked or full
+// (red), and a folder write that failed ("Folder sync paused", amber). Saving / syncing never changes
+// the words: `busy` pulses the dot instead, so the label doesn't flicker as you type.
+export const STATUS_TITLES = {
+  local: 'Saved in browser storage only. Click to link a computer folder for automatic disk backups.',
+  localUnsupported: 'Saved in browser storage only. This browser can’t link a folder: export a backup (File ▾ → Backup Project) to keep a copy.',
+  permission: 'Folder linked, but browser needs permission to write files this session. Click to grant.',
+  synced: 'Actively syncing changes directly to your linked folder.',
+};
+
+/** Status bar wording for where the open script is saved. `action`: what a click on it does ('link' | 'permission' | 'settings'). */
 export function storageStatus({ saveOk = true, dirty = false, sync = {} }) {
-  if (!saveOk) return { label: 'Not saved — browser storage blocked or full', tone: 'error', action: 'settings' };
+  if (!saveOk) return { label: 'Not saved — browser storage blocked or full', tone: 'error', action: 'settings', state: 'error' };
   if (sync.needsPermission) {
-    return { label: 'Click to allow folder sync', tone: 'warn', action: 'permission', title: `Let DraftLine write to “${sync.folderName}” again` };
+    return { label: 'Click to resume folder sync', tone: 'warn', action: 'permission', state: 'permission', title: STATUS_TITLES.permission };
   }
-  if (dirty) return { label: 'Saving…', tone: 'pending', action: 'settings' };
   if (sync.active && sync.error) {
-    return { label: 'Folder sync paused', tone: 'warn', action: 'settings', title: `Saved in this browser, but not to “${sync.folderName}”: ${sync.error}` };
+    return {
+      label: 'Folder sync paused', tone: 'warn', action: 'settings', state: 'paused',
+      title: `Saved in this browser, but not to “${sync.folderName}”: ${sync.error}`,
+    };
   }
-  if (sync.active && sync.syncing) return { label: 'Syncing…', tone: 'pending', action: 'settings' };
   if (sync.active) {
-    return { label: `Synced: ${sync.folderName}`, tone: 'synced', action: 'settings', title: `Saved in this browser and to the folder “${sync.folderName}”` };
+    return {
+      label: 'Linked Folder Synced', tone: 'synced', action: 'settings', state: 'synced', busy: !!(dirty || sync.syncing), title: STATUS_TITLES.synced,
+    };
   }
-  return { label: 'Saved locally', tone: 'ok', action: 'settings', title: 'Saved in this browser · click for storage options' };
+  return {
+    label: 'App Storage Only', tone: 'local', action: sync.supported === false ? 'settings' : 'link', state: 'local', busy: !!dirty,
+    title: sync.supported === false ? STATUS_TITLES.localUnsupported : STATUS_TITLES.local,
+  };
 }
 
 /**

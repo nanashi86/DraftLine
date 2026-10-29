@@ -387,7 +387,7 @@ end with a similar line at most every 30 days. Both are throttled and muted per 
 - **View Full Cover** (in the Title Page dialog, or **Title Page** at the top of the Scenes list) shows the title page
   at true 8.5×11 size as *Page 0* above Page 1; **Back to Script** jumps to Page 1. The same layout prints as the cover
   and exports to .fountain (`Credit:`) and .fdx.
-- Every change autosaves to the project library within half a second (status bar shows "Saved locally"), and the
+- Every change autosaves to the project library within half a second (status bar shows "App Storage Only", or "Linked Folder Synced" with a folder linked), and the
   last open script reopens on reload. If the tab closes mid-save, the unsaved state is journaled and recovered on
   the next start. **⋮ → About DraftLine** shows the library's size and lets you ask the browser to protect it from
   automatic clean-up. DraftLine is built local-first: link a folder (Linked Folder) to keep physical `.draftline` files on your
