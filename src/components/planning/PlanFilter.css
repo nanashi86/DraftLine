@@ -56,7 +56,7 @@
 .pf-count { display: inline-flex; align-items: center; gap: 4px; color: var(--muted); font: 12.5px var(--ui-font); white-space: nowrap; }
 .pf-count b { color: var(--text); font-weight: 600; }
 .pf-clear { padding: 2px; color: var(--muted); }
-.pf-sep { margin-left: 4px; }
+.plan-filter > .pf-sep { margin-left: calc(var(--sep-space, 16px) - 10px); } /* 16px after the last control, past the group's 10px gap */
 
 /* Where it shows: the header on wide windows, the top of the Plan workspace on narrower ones. */
 .plan-filter.is-workspace { display: none; flex-wrap: wrap; width: 100%; max-width: 1100px; margin: 0 auto 10px; } /* lines up with the summary below */

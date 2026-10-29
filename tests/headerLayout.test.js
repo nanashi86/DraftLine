@@ -76,14 +76,31 @@ describe('Top bar: three zones that can’t collide', () => {
 });
 
 describe('Top bar: Element ▾ · B I U S spacing', () => {
-  it('10px between Element ▾ and B; a divider 14px after S closes the group', () => {
-    assert.match(css, /\.bar-group\.g-format \{ gap: 10px; \}/);
-    assert.match(css, /\.fmt-sep \{ margin-left: 4px; \}/);
+  it('12px between Element ▾ and B (an explicit margin, no group gap); a divider 16px after S closes the group', () => {
+    assert.match(css, /\.bar-group\.g-format \{ gap: 0; \}/);
+    assert.match(css, /\.g-format \.type-select \{ margin-right: 12px; \}/);
+    assert.match(css, /\.fmt-sep \{ margin-left: var\(--sep-space\); \}/);
     assert.match(header, /<span className="bar-sep fmt-sep" aria-hidden="true" \/>\s*<\/div>/);
   });
   it('while the group shows, its divider stands in for the one before Page | Split | Board (never two)', () => {
     assert.match(css, /\.bar:has\(\.g-format:not\(\[hidden\]\)\) \.zone-right > \.bar-sep,\n\.bar:has\(\.plan-filter\.is-bar\) \.zone-right > \.bar-sep \{ display: none; \}/);
     assert.match(media('1440'), /\.bar-sep \{ display: none; \}/, 'narrower bars drop every divider, this one included');
+  });
+});
+
+describe('Top bar: dividers sit 16px from their neighbours at every width', () => {
+  it('one gap value for the bar and its zones, set per width', () => {
+    assert.match(rule('.bar'), /--bar-gap: 22px;\s*--sep-space: 16px;\s*gap: var\(--bar-gap\);/);
+    assert.match(rule('.bar-zone'), /gap: var\(--bar-gap\);/);
+    assert.match(rule('.zone-middle-tools'), /gap: var\(--bar-gap\);/);
+    for (const [px, gap] of [['1800', 18], ['1650', 14], ['1023.98', 10], ['559.98', 6]]) {
+      assert.match(media(px), new RegExp(`\\.bar \\{ --bar-gap: ${gap}px;`), px);
+    }
+    assert.ok(!/\.bar-zone, \.zone-middle-tools \{ gap: \d+px; \}/.test(css), 'no separate per-zone gaps to drift apart');
+  });
+  it('a divider’s margin adds only what the gap doesn’t: 16px each side', () => {
+    assert.match(rule('.bar-sep'), /margin-inline: calc\(var\(--sep-space\) - var\(--bar-gap\)\);/);
+    assert.match(readFileSync(new URL('../src/components/planning/PlanFilter.css', import.meta.url), 'utf8'), /\.plan-filter > \.pf-sep \{ margin-left: calc\(var\(--sep-space, 16px\) - 10px\); \}/);
   });
 });
 
@@ -148,7 +165,7 @@ describe('Top bar: narrow windows collapse in steps', () => {
     const seg = rule('.fmt-seg');
     for (const d of ['height: 32px', 'box-sizing: border-box', 'display: inline-flex']) assert.ok(seg.includes(d), d);
     const btn = rule('.fmt-btn');
-    for (const d of ['min-width: 30px', 'padding: 0 6px', 'height: 100%', 'display: flex', 'align-items: center', 'justify-content: center', 'font: 600 13px/1 var(--ui-font)']) assert.ok(btn.includes(d), d);
+    for (const d of ['min-width: 30px', 'padding: 4px 6px', 'height: 100%', 'display: flex', 'align-items: center', 'justify-content: center', 'font: 600 13px/1 var(--ui-font)']) assert.ok(btn.includes(d), d);
     assert.match(rule('.type-select'), /height: 32px;/);
     assert.match(css, /\.file-menu > \.menu > \.btn \{[^}]*height: 32px;/);
     assert.match(css, /\.fmt-seg\.is-disabled \{ opacity: 0\.45; \}/);
