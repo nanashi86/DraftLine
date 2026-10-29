@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { CAST_FOLD_KEY, foldCast, readCastExpanded, writeCastExpanded } from '../lib/castFold.js';
 import AutoTextarea from './AutoTextarea.jsx';
 import { X } from 'lucide-react';
 import { CADENCE, MONOLOGUE_LINES, MONOLOGUE_WORDS, isMonologue, speechLength, voiceMetrics } from '../lib/voice.js';
@@ -33,6 +34,13 @@ export default function DialogueTuner({
 
   const { characterList } = analysis;
   const current = (selected && analysis.characters.get(selected)) || null; // never a default pick
+  // A long cast folds after the 12 biggest speakers (lib/castFold.js); the pick always stays shown.
+  const [castOpen, setCastOpen] = useState(() => readCastExpanded(globalThis.localStorage, CAST_FOLD_KEY));
+  const cast = foldCast(characterList, { expanded: castOpen, selected: current?.name });
+  const toggleCast = () => {
+    setCastOpen(!castOpen);
+    writeCastExpanded(globalThis.localStorage, CAST_FOLD_KEY, !castOpen);
+  };
   const voice = useMemo(() => voiceMetrics(current), [current]);
   const [monoFor, setMonoFor] = useState(null); // the character whose monologues are filtered, if any
   // Picking anyone else turns it off for good (adjusted while rendering, React's pattern for this).
@@ -50,8 +58,9 @@ export default function DialogueTuner({
         <p className="tuner-empty">No characters yet. Add a Character cue followed by Dialogue and it'll show up here.</p>
       ) : (
         <>
-          <div className="tuner-cast" role="listbox" aria-label="Characters">
-            {characterList.map((c) => (
+          <div className="tuner-cast">
+            <div className="tuner-cast-list" role="listbox" aria-label="Characters">
+            {cast.shown.map((c) => (
               <button
                 key={c.name}
                 role="option"
@@ -64,6 +73,18 @@ export default function DialogueTuner({
                 <span className="pill-count cast-count">{c.lines}</span>
               </button>
             ))}
+            </div>
+            {cast.foldable && (
+              <button
+                type="button"
+                className="pill cast-more"
+                aria-expanded={castOpen}
+                onClick={toggleCast}
+                title={castOpen ? `Show only the ${cast.top} characters with the most lines` : `Show all ${characterList.length} speaking characters`}
+              >
+                {castOpen ? 'Show fewer' : `+${cast.hidden} more`}
+              </button>
+            )}
           </div>
 
           {current && (

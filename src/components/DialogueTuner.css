@@ -13,8 +13,14 @@
   gap: 6px;
   padding: 8px 18px 12px;
 }
+/* The pills and "+N more" share one wrapping row; the listbox itself adds no box. */
+.tuner-cast-list { display: contents; }
 /* Character chips use the shared neutral .pill look (index.css); the line count is a .pill-count. */
 .pill.cast-chip { gap: 0; }
+/* "+37 more" / "Show fewer": a .pill with a dashed edge, so it reads as an action, not a character. */
+.pill.cast-more { border-style: dashed; cursor: pointer; }
+.pill.cast-more:hover { color: var(--text); }
+.pill.cast-more:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 
 .tuner-stats {
   display: flex;
