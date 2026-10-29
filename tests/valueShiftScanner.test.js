@@ -127,8 +127,8 @@ describe('Value Shift scanner: scenes and cards', () => {
 describe('Scene Board: Analyze Value Shifts', () => {
   const board = read('src/components/BeatBoard.jsx');
   const modal = read('src/components/ValueShiftModal.jsx');
-  it('sits beside Populate from Script, with a line icon (no emoji)', () => {
-    const at = board.indexOf('label="Populate from Script"');
+  it('sits beside Import Scenes, with a line icon (no emoji)', () => {
+    const at = board.indexOf('Import Scenes</>}');
     const btn = board.indexOf('aria-hidden /> Analyze Value Shifts');
     assert.ok(at > 0 && btn > at && btn < board.indexOf('label="Export Outline"'));
     assert.match(board, /<Zap size=\{13\}/);

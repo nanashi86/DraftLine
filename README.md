@@ -152,7 +152,7 @@ the page auto-fits its half) and **Board** (full-width).
   With the grip focused, **arrow keys** move the card too. Deleting a card offers **Undo** for a few seconds.
 - **Export Outline** downloads a Fountain outline (`# Act`, `## Beat`, `= synopsis`) or Markdown, using whichever
   act structure is showing.
-- **Populate from Script** makes a card for every scene — titled "12. INT. HOTEL BALLROOM - NIGHT", with the first
+- **Import Scenes** makes a card for every scene — titled "12. INT. HOTEL BALLROOM - NIGHT", with the first
   sentence of the scene's action as its synopsis — and places it in an act column:
   - **Auto-Distribute (% Targets)** uses the page each scene starts on, against targets worked out from the
     script's actual page count: 3 Acts = 25 · 50 · 25 % (Act 1 ≤ 25% · Act 2 ≤ 75% · Act 3 the rest); 4 Acts = 25 %
@@ -172,7 +172,7 @@ the page auto-fits its half) and **Board** (full-width).
   to and their share of the whole script — e.g. `24 pgs · 25%` (scene lengths are counted from heading to heading,
   in eighths of a page). A dot appears when an act is more than 7 points off the usual share: 25 / 50 / 25 % in 3-Act
   view, 25 % each in 4-Act — so an Act 1 above 32 % gets flagged. Hover for the details.
-- **Restructure the script from the board.** Dragging a scene card (one made by **Populate from Script**, linked to
+- **Restructure the script from the board.** Dragging a scene card (one made by **Import Scenes**, linked to
   its scene) — or moving it with the arrow keys — moves that whole scene in the screenplay: the heading and everything
   up to the next heading (action, dialogue, parentheticals, transitions, notes, formatting) travels together. The
   scene lands right after the scene of the nearest scene card above it on the board. Scene numbers, the Scenes list
@@ -431,7 +431,7 @@ src/
   components/TitlePageModal.jsx
   components/PrintView.jsx print-only paginated pages
   components/TitlePageSheet.jsx  the title page in page units (canvas cover, print, modal preview)
-  components/BeatBoard.jsx 4-act index-card board with drag-and-drop, Populate from Script
+  components/BeatBoard.jsx 4-act index-card board with drag-and-drop, Import Scenes
   components/SceneRangeModal.jsx  Manual Scene Ranges dialog
   components/Menu.jsx      small dropdown menu (Export, ⋮)
   components/HelpModal.jsx Keyboard Shortcuts and About DraftLine

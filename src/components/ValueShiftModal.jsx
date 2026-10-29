@@ -8,7 +8,7 @@ import './ValueShiftModal.css';
  * Scene Board → Analyze Value Shifts: every scene with the shift the scanner reads in it
  * (lib/valueShiftScanner.js) beside the one its card has now. ✓ sets one card; Apply to All Cards
  * sets every linked card at once (the board offers Undo). Scenes without a card are listed but
- * can't be set — Populate from Script makes their cards.
+ * can't be set — Import Scenes makes their cards.
  *   suggestions: scanValueShifts(blocks) · beats: the board's cards
  *   onApply(Map cardId → shift, { all }) · onClose()
  */
@@ -115,7 +115,7 @@ export default function ValueShiftModal({ suggestions, beats, onApply, onClose }
       <footer className="vsm-foot">
         <span className="vsm-note">
           {linked < suggestions.length
-            ? `${suggestions.length - linked} ${suggestions.length - linked === 1 ? 'scene has' : 'scenes have'} no card — Populate from Script makes them.`
+            ? `${suggestions.length - linked} ${suggestions.length - linked === 1 ? 'scene has' : 'scenes have'} no card — Import Scenes makes them.`
             : 'Hover a suggestion to see the words it’s based on.'}
         </span>
         <button type="button" className="btn" onClick={onClose}>Close</button>

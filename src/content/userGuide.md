@@ -262,12 +262,12 @@ The **Scene Board** (formerly the Beat Board; **Board** or **Split** view) lays 
 - Switch between **3 Acts** ({{board.columns.3}}, with a Midpoint divider in Act 2) and **4 Acts** ({{board.columns.4}}). Switching never moves or loses a card. It's the same setting as the act switch in Notes, so it also splits or joins Act II of the Synopsis and Treatment (see Synopsis & Treatment).
 - Each card has a headline, a synopsis and colour tags: {{board.tags}}. Click a tag in the legend to show only those cards.
 - **Value Shift** (the **+/−** button on a card) records how the scene's emotional charge turns: **+ / −** (a setback), **− / +** (a small win or insight), or **+ / +** and **− / −**, which are marked as warnings because the scene doesn't turn. It's saved with the project.
-- **Analyze Value Shifts** (beside Populate from Script) reads every scene and suggests its Value Shift. It compares the opening quarter of the scene's Action and Dialogue with the closing quarter: calm, help and agreement count as **+**; threats, obstacles and tension as **−**, and at the end, interruptions, weapons, violence, sudden exits and discoveries count double. The list shows each scene's number, slugline, the suggested shift and the card's current one. Hover a suggestion to see the words it's based on; **weak** means the scene gave little to go on. ✓ sets one card, **Apply to All Cards** sets every linked card (with Undo). Scenes without a card need **Populate from Script** first. It's a word-level reading, so treat it as a second opinion.
+- **Analyze Value Shifts** (beside Import Scenes) reads every scene and suggests its Value Shift. It compares the opening quarter of the scene's Action and Dialogue with the closing quarter: calm, help and agreement count as **+**; threats, obstacles and tension as **−**, and at the end, interruptions, weapons, violence, sudden exits and discoveries count double. The list shows each scene's number, slugline, the suggested shift and the card's current one. Hover a suggestion to see the words it's based on; **weak** means the scene gave little to go on. ✓ sets one card, **Apply to All Cards** sets every linked card (with Undo). Scenes without a card need **Import Scenes** first. It's a word-level reading, so treat it as a second opinion.
 - **+ Add Card** adds a card to a column. Drag cards by their grip to reorder them or move them between acts.
 
 ### Linking cards to scenes
 
-**Populate from Script** fills the board from your script, one card per scene, linked to that scene:
+**Import Scenes** fills the board from your script, one card per scene, linked to that scene:
 
 - **Auto-Distribute (% Targets)** places scenes by page: about {{board.targets.3}} for 3 acts, or {{board.targets.4}} for 4 acts.
 - **Manual Scene Ranges…** lets you say which scenes belong to each act (for example 1–12, 13–40, 41–55).

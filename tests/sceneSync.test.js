@@ -154,7 +154,7 @@ describe('what does not move the script', () => {
   });
 });
 
-describe('integration: Populate from Script, then restructure', () => {
+describe('integration: Import Scenes, then restructure', () => {
   it('cards made from the script drive the script back', () => {
     const blocks = script();
     const scenes = splitScenes(blocks).chunks.map((c, i) => ({ id: c.id, number: i + 1, heading: c.blocks[0].text, page: i + 1, snippet: '' }));

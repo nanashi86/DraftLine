@@ -31,6 +31,9 @@
 .board-tools { display: flex; align-items: center; gap: 14px; margin-left: auto; }
 .board-analyze { display: inline-flex; align-items: center; gap: 6px; }
 .board-analyze svg { color: #f59e0b; }
+/* Import Scenes: a muted line icon, like Characters → Populate Bio (no accent colour). */
+.board-import { display: inline-flex; align-items: center; gap: 6px; }
+.board-import svg { flex: none; color: var(--muted); }
 .board-legend { display: flex; align-items: center; gap: 4px; font-size: 12px; color: var(--muted); }
 .seg-sm .seg-btn { padding: 3px 10px; font-size: 12px; }
 .legend-item { display: inline-flex; align-items: center; gap: 5px; }
@@ -328,7 +331,7 @@ button.legend-item.is-on { border-color: currentColor; font-weight: 600; }
 .board-undo .btn { color: var(--accent); font-weight: 600; }
 .board-undo .btn:hover { background: rgba(0, 0, 0, 0.06); }
 
-/* ---- Scene cards (Populate from Script) ---- */
+/* ---- Scene cards (Import Scenes) ---- */
 .card.is-linked { cursor: pointer; }
 .card.is-linked:hover { box-shadow: 0 0 0 2px color-mix(in srgb, var(--tag-subplot) 45%, transparent), 0 2px 6px rgba(0, 0, 0, 0.25); }
 .card-scene {

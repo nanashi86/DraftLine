@@ -215,7 +215,7 @@ export function sampleBeats() {
   ];
 }
 
-// ---- Populate from Script --------------------------------------------------------------
+// ---- Import Scenes (populate the board from the script) --------------------------------
 //
 // Scene cards: one beat per scene heading, titled "12. INT. HOTEL BALLROOM - NIGHT", with
 // the first sentence of the scene's first action as its synopsis and a `sceneId` link

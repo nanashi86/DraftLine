@@ -1,5 +1,5 @@
 // DL 07 · Write — Scene Board outlining (~36 s)
-// The Last Ferry with an empty Scene Board (loaded off camera). Write → Board, Populate from Script
+// The Last Ferry with an empty Scene Board (loaded off camera). Write → Board, Import Scenes
 // makes one card per scene in its act, a card's synopsis is rewritten, and a scene card dragged from
 // Act 1 into Act 2 moves its scene in the screenplay too. Back on the page, the scenes are renumbered
 // in their new order.
@@ -15,7 +15,7 @@ const fixture = fixtureProject({
   title: 'The Last Ferry',
   author: SAMPLE_SCRIPT.meta.author,
   blocks: SAMPLE_SCRIPT.blocks,
-  beats: [], // an empty board, so Populate from Script builds it on camera
+  beats: [], // an empty board, so Import Scenes builds it on camera
 });
 
 main(() => record({
@@ -30,8 +30,8 @@ main(() => record({
     await click(page.getByRole('radio', { name: 'Board', exact: true }), 1500);
     await click(page.getByRole('radio', { name: '3 Acts' }), 1200);
 
-    say('Populate from Script: one card per scene, placed by act');
-    await click(page.getByRole('button', { name: /^Populate from Script/ }), 900);
+    say('Import Scenes: one card per scene, placed by act');
+    await click(page.getByRole('button', { name: /^Import Scenes/ }), 900);
     await click(page.getByRole('menuitem', { name: /^Auto-Distribute/ }), 2200);
 
     const column = (label) => page.locator('.col').filter({ has: page.locator('.col-act', { hasText: new RegExp(`^${label}$`) }) });

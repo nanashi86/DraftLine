@@ -3,7 +3,7 @@ import AutoTextarea from './AutoTextarea.jsx';
 import Menu from './Menu.jsx';
 import SceneRangeModal from './SceneRangeModal.jsx';
 import ValueShiftModal from './ValueShiftModal.jsx';
-import { Zap } from 'lucide-react';
+import { Film, Zap } from 'lucide-react';
 import { scanValueShifts } from '../lib/valueShiftScanner.js';
 import {
   TAGS, VALUE_SHIFTS, actPacing, beatTags, beatsWithTag, byAct, formatPageTargets, formatPercentTargets, moveBeat, newBeat, populateByPages, populateByRanges, setValueShift, structureFor, tagAccent, toggleTag, valueShiftInfo,
@@ -275,7 +275,7 @@ export default function BeatBoard({
     setUndo(null);
   };
 
-  // ---- Populate from Script ----
+  // ---- Import Scenes (makes a card per scene) ----
   const applyPopulate = (result, how) => {
     if (result.error) {
       setUndo({ message: result.error });
@@ -459,11 +459,11 @@ export default function BeatBoard({
             })}
           </div>
           <Menu
-            label="Populate from Script"
+            label={<><Film size={13} strokeWidth={1.75} aria-hidden />Import Scenes</>}
             items={populateItems}
             align="right"
-            className="btn btn-outline"
-            title="Make a card for every scene and place them in act columns"
+            className="btn btn-outline board-import"
+            title="Make a card for every scene in the script and place them in act columns"
           />
           {getBlocks && (
             <button

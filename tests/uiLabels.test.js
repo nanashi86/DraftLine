@@ -124,7 +124,16 @@ describe('toolbar: File ▾ holds Print; panels stay visible on laptops', () => 
   });
 });
 
-describe('Beat Board: Populate from Script menu', () => {
+describe('Beat Board: Import Scenes menu', () => {
+  it('is labelled "Import Scenes" with a muted Film line icon, in the outline style (not the amber accent)', () => {
+    const b = readFileSync(join(root, 'components/BeatBoard.jsx'), 'utf8');
+    const css = readFileSync(join(root, 'components/BeatBoard.css'), 'utf8');
+    assert.match(b, /label=\{<><Film size=\{13\} strokeWidth=\{1\.75\} aria-hidden \/>Import Scenes<\/>\}/);
+    assert.match(b, /className="btn btn-outline board-import"/);
+    assert.match(css, /\.board-import svg \{ flex: none; color: var\(--muted\); \}/);
+    assert.doesNotMatch(css, /\.board-import[^{]*\{[^}]*#f59e0b/, 'no amber');
+    assert.ok(!b.includes('Populate from Script'), 'the old label is gone');
+  });
   const board = readFileSync(join(root, 'components/BeatBoard.jsx'), 'utf8');
   const modal = readFileSync(join(root, 'components/SceneRangeModal.jsx'), 'utf8');
   const menu = board.slice(board.indexOf('const populateItems = ['), board.indexOf('];', board.indexOf('const populateItems = [')));
