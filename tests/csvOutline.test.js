@@ -1,7 +1,9 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { CSV_COLUMNS, csvField, csvOutlineFileName, outlineCsv, outlineRows } from '../src/lib/exportCsvOutline.js';
+import {
+  CSV_COLUMNS, csvField, csvOutlineFileName, outlineCsv, outlineRows, stripSceneNumber, titleSceneNumber,
+} from '../src/lib/exportCsvOutline.js';
 import { VALUE_SHIFTS, normalizeBeat, normalizeBeats, setValueShift, valueShiftInfo } from '../src/lib/beats.js';
 import { serializeBackup, parseBackup } from '../src/lib/backup.js';
 
@@ -22,8 +24,27 @@ describe('Scene outline → Spreadsheet (.csv)', () => {
     assert.deepEqual(rows[0], CSV_COLUMNS);
     assert.deepEqual(rows.slice(1).map((r) => r[2]), ['EXT. HARBOR - DAWN', 'The letter', 'Father, at the bow'], 'board order');
     assert.deepEqual(rows[1], [1, 'Act 1: Setup', 'EXT. HARBOR - DAWN', 'Flight at dawn — Marie slips out, "quietly".', 'Plot', '+ / − (Conflict / Setback)', 1]);
-    assert.deepEqual(rows[3], ['', 'Act 2B: Fall & Crisis', 'Father, at the bow', '', 'Character; Theme', '− / − (Warning: Static)', '']);
+    assert.deepEqual(rows[3], [3, 'Act 2B: Fall & Crisis', 'Father, at the bow', '', 'Character; Theme', '− / − (Warning: Static)', ''], 'unlinked, no number in its title: its place in the outline');
     assert.equal(outlineRows(beats, { scenes, mode: 3 })[3][1], 'Act 2: Confrontation', 'acts named for the 3-act board');
+  });
+  it('Scene Number falls back to the title’s leading number, then the row’s place; Heading drops a "13. " prefix', () => {
+    const cards = [
+      { id: 'a', act: 0, title: '13. INT. KITCHEN - NIGHT', synopsis: 'Rosa waits.', tags: [] },
+      { id: 'b', act: 0, title: '26 EXT. ROOF - DAY', synopsis: '', tags: [] },
+      { id: 'c', act: 1, title: 'The letter', synopsis: '', tags: [] },
+      { id: 'd', act: 1, title: '31. INT. FERRY - NIGHT', synopsis: 'Storm.', tags: [], sceneId: 's9' },
+      { id: 'e', act: 2, title: '1986 coup', synopsis: '', tags: [] },
+    ];
+    const rows = outlineRows(cards, { scenes: [{ id: 's9', number: 42, heading: 'INT. FERRY - NIGHT', page: 7 }], mode: 4 }).slice(1);
+    assert.deepEqual(rows.map((r) => [r[0], r[2]]), [
+      ['13', 'INT. KITCHEN - NIGHT'], ['26', 'EXT. ROOF - DAY'], [3, 'The letter'], [42, 'INT. FERRY - NIGHT'], [5, '1986 coup'],
+    ]);
+    assert.equal(rows[3][3], 'Storm.', 'a generated "31. …" title matching its scene isn’t repeated in Summary');
+    assert.equal(titleSceneNumber('42. INT. X'), '42');
+    assert.equal(titleSceneNumber('INT. X'), '');
+    assert.equal(stripSceneNumber('  13.  INT. X '), 'INT. X');
+    assert.equal(stripSceneNumber('Flight at dawn'), 'Flight at dawn');
+    assert.equal(stripSceneNumber('1986 coup'), '1986 coup', 'a year, not a scene number');
   });
   it('proper CSV: quoting, doubled quotes, line breaks kept, CRLF rows, a BOM for Excel', () => {
     assert.equal(csvField('a,b'), '"a,b"');

@@ -367,8 +367,8 @@ end with a similar line at most every 30 days. Both are throttled and muted per 
 - **File ▾** has four sections: **Script** (**New…**, **Open…**, **Import…**, **Sample…**, **Edit Title…**),
   **Export Script** (**PDF** `.pdf`, compiled in DraftLine; **Final Draft** `.fdx`; **Fountain** `.fountain`; and
   **Print Script…**, also **Ctrl+P** — through the print dialog, with the title page as page 0; page 1 is unnumbered,
-  pages 2 onward carry a right-aligned "2.", "3." …), **Export Outline & Bible** (**Story Bible** `.pdf`, **Spreadsheet**, **Markdown** and **Fountain
-  Outline**) and **Backup** (**Backup Project** `.draftline`, **Snapshot History**).
+  pages 2 onward carry a right-aligned "2.", "3." …), **Export Planning & Production** (**Story Bible** `.pdf`, **Scene Breakdown** `.csv` — the same file as Plan's
+  **Export Breakdown** — and the **Spreadsheet**, **Markdown** and **Fountain Outline**) and **Backup** (**Backup Project** `.draftline`, **Snapshot History**).
 - The toolbar keeps **Story Bible** and **Characters** visible down to 1380px wide (about a laptop screen); below that,
   Story Bible moves into **⋮** (and stays on Alt+I). Below 1300px the toolbar scrolls sideways.
 - **⋮** (far right of the toolbar): **Keyboard Shortcuts** (also Ctrl+/), **Load Sample** (*The Last Ferry*) and

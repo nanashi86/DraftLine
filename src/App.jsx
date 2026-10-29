@@ -1875,6 +1875,8 @@ function Workspace({ boot }) {
     onBible: () => setBibleExportOpen(true),
     onFountain: exportFountain,
     onFdx: exportFDX,
+    onBreakdownCsv: exportBreakdown, // the same .csv as Plan's Export Breakdown
+    hasScenes: scenes.length > 0,
     onOutlineCsv: () => exportOutline('csv'),
     onOutlineMd: () => exportOutline('md'),
     onOutlineFountain: () => exportOutline('fountain'),
@@ -2108,8 +2110,8 @@ function Workspace({ boot }) {
                 disabled={!scenes.length}
                 title="Every scene’s breakdown as a spreadsheet (.csv)"
               >
-                <span className="plan-lbl-long">Export Breakdown (.csv)</span>
-                <span className="plan-lbl-short">Export (.csv)</span>
+                <span className="plan-lbl-long">Export Breakdown</span>
+                <span className="plan-lbl-short">Export</span>
               </button>
             )}
             <button ref={focusBtnRef} className="btn btn-focus" hidden={inPlan} onClick={() => setFocusMode(true)} title="Hide everything but the page (Esc to exit)">Focus</button>

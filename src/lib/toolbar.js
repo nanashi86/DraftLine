@@ -50,13 +50,13 @@ export function moreMenuItems({
 }
 
 /**
- * The header's one "File ▾" menu: Script · Export Script · Export Outline & Bible · Backup. Labels
+ * The header's one "File ▾" menu: Script · Export Script · Export Planning & Production · Backup. Labels
  * name what each export writes and `ext` its file type (.fountain, .pdf…); hints are shortcuts. (The Scene Board's Export Outline offers the
- * same three outlines; Plan's breakdown CSV is on Plan's own bar.)
+ * same three outlines; Scene Breakdown is the same .csv as Plan's Export Breakdown.)
  */
 export function fileMenuItems({
-  onNew, onOpen, onImport, onSample, onTitlePage, onPrint, onCompiledPdf, onBible, onFountain, onFdx, onOutlineCsv, onOutlineMd, onOutlineFountain,
-  onBackup, onSnapshots, snapshotCount = 0,
+  onNew, onOpen, onImport, onSample, onTitlePage, onPrint, onCompiledPdf, onBible, onFountain, onFdx, onBreakdownCsv, onOutlineCsv, onOutlineMd,
+  onOutlineFountain, onBackup, onSnapshots, snapshotCount = 0, hasScenes = true,
 }) {
   return [
     { heading: 'Script' },
@@ -72,8 +72,12 @@ export function fileMenuItems({
     { label: 'Fountain', ext: '.fountain', onSelect: onFountain, title: 'Plain-text screenplay for Highland, Slugline, Fade In…' },
     { label: 'Print Script…', hint: 'Ctrl+P', onSelect: onPrint, title: 'Print, or save as PDF from the print dialog — exactly the pages on screen' },
     { divider: true },
-    { heading: 'Export Outline & Bible' },
+    { heading: 'Export Planning & Production' },
     { label: 'Story Bible', ext: '.pdf', onSelect: onBible, title: 'Story DNA, Notes and Character Bios as a dossier' },
+    ...(onBreakdownCsv ? [{
+      label: 'Scene Breakdown', ext: '.csv', onSelect: onBreakdownCsv, disabled: !hasScenes,
+      title: hasScenes ? 'Every scene’s breakdown as a spreadsheet: the same file as Plan’s Export Breakdown' : 'No scenes yet: scene headings (INT. / EXT. …) make the breakdown',
+    }] : []),
     { label: 'Spreadsheet Outline', ext: '.csv', onSelect: onOutlineCsv, title: 'One row per Scene Board card' },
     { label: 'Markdown Outline', ext: '.md', onSelect: onOutlineMd, title: 'The Scene Board as a Markdown outline' },
     { label: 'Fountain Outline', ext: '.fountain', onSelect: onOutlineFountain, title: 'The Scene Board as Fountain sections and synopses' },

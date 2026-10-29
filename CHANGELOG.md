@@ -26,6 +26,8 @@ All notable changes to DraftLine are recorded here. The format follows [Keep a C
 
 ### Changed
 
+- File ▾: **Export Outline & Bible** is now **Export Planning & Production**, with **Scene Breakdown** (.csv) above Spreadsheet Outline: the same file as Plan's Export Breakdown, available from Write too. Plan's button now reads **Export Breakdown** (**Export** when narrow).
+- Spreadsheet Outline (.csv): a card not linked to a scene takes its Scene Number from its title ("13. INT. …") or its place in the outline, and Heading drops the "13. " prefix (a title like "1986 coup" is left alone).
 - Scene Board: **Populate from Script** is now **Import Scenes**, with a muted film-strip line icon; the same menu (Auto-Distribute, Manual Scene Ranges…).
 - Projects → Storage Destination: the options are now **App Storage (Zero Setup)** ("Saves automatically inside DraftLine on this device. Start writing instantly. Export a backup before you clear your browser history.") and **Linked Folder (File Backup)** ("Saves .draftline files directly into your chosen computer folder, including locally synced cloud storage like Google Drive, Dropbox, or OneDrive.").
 - Keyboard Shortcuts (Ctrl+/): Ctrl+P now reads **Print Script…** (the browser's print preview) instead of "Export Script (PDF)"; the compiled PDF download is File → PDF.

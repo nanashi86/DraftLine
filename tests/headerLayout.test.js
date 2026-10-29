@@ -85,7 +85,7 @@ describe('Top bar: narrow windows collapse in steps', () => {
     assert.match(media('559.98'), /\.zone-left > \.btn-icon \{ display: none; \}/);
     assert.ok(!/\.ws-switch\s*\{[^}]*display: none/.test(css), 'Write | Plan never hides');
   });
-  it('Plan: Collapse All → ⋮ (1200), Export shortens to "Export (.csv)" (1000), view switch icons (900), Export → ⋮ (640), views → ⋮ (440)', () => {
+  it('Plan: Collapse All → ⋮ (1200), Export Breakdown shortens to "Export" (1000), view switch icons (900), Export → ⋮ (640), views → ⋮ (440)', () => {
     assert.match(media('1199.98'), /\.bar-right > \.btn-plan-fold \{ display: none; \}/);
     assert.match(media('999.98'), /\.btn-plan-export \.plan-lbl-long \{ display: none; \}/);
     assert.match(media('999.98'), /\.btn-plan-export \.plan-lbl-short \{ display: inline; \}/);
@@ -93,7 +93,7 @@ describe('Top bar: narrow windows collapse in steps', () => {
     assert.ok(!/(^|[^-])\.lbl-(long|short)/m.test(css), 'no generic label classes for other rules to catch');
     assert.match(media('639.98'), /\.bar-right > \.btn-plan-export \{ display: none; \}/);
     assert.match(media('439.98'), /\.zone-right \.plan-seg \{ display: none; \}/);
-    assert.match(header, /<span className="plan-lbl-long">Export Breakdown \(\.csv\)<\/span>\s*<span className="plan-lbl-short">Export \(\.csv\)<\/span>/);
+    assert.match(header, /<span className="plan-lbl-long">Export Breakdown<\/span>\s*<span className="plan-lbl-short">Export<\/span>/);
     const tucked = moreMenuItems({
       bibleOnBar: true, charactersOnBar: true,
       planTools: {
