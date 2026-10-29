@@ -199,16 +199,21 @@ and switches with it in Projects. Tab labels are one short word each, so they ne
   changes what you've typed or picked, and Undo reverses it.
 - **💬 Dialogue** (with the number of speaking characters) — pick a character to read every line they speak, top to
   bottom, tagged with scene number and heading; filter lines, show the cue before each speech, see lines / words /
-  scenes, and **Rename…** the character. Edit right in the tab: changes write straight to the script. "Go ↗" jumps to
-  the line in the page. **Alt+T** opens Characters straight on this tab.
+  scenes, monologues and cadence, and **Rename…** the character. Edit right in the tab: changes write straight to the
+  script. "Go ↗" jumps to the line in the page. **Alt+T** opens Characters straight on this tab.
+  - **Monologues:** click the count to keep only that character's monologues (speeches over 5 printed lines or 60
+    words), each tagged **Monologue · 7 lines**; click again, ✕, or pick someone else to see every speech. Nothing is
+    flagged in the script or the status bar.
+  - **Long casts fold:** with more than 15 speakers, the 12 with the most lines show, then **+N more** (and **Show
+    fewer**); the choice is remembered, and the character you've picked always stays visible.
 
 If you had the old Dialogue drawer open, DraftLine opens Characters on its Dialogue tab instead; the tab you last used
 is remembered.
 
-**Spotlight a character.** Click a name in the Dialogue tab and the script fades everything except that character's
-speeches, with a slim banner above the page — "Filtering dialogue: MARIE · 9 lines" — and **Clear Filter ✕**. Press
-**Esc** (or the button, or the name again) to see the whole script. The banner and the fading are on screen only:
-never printed or in a PDF.
+**Spotlight a character.** Click a name in the Dialogue tab and the script highlights that character's speeches and
+scrolls to the first. A stepper in the status bar, **MARIE · 1 of 8**, steps through them with ‹ › (or Alt+Down /
+Alt+Up), lists every speech when you click the name, and clears with ✕ or **Esc** (or click the name again). Nothing
+covers the page, and the highlighting is on screen only: never printed or in a PDF.
 
 ### Story Bible (Alt+I)
 
@@ -279,6 +284,19 @@ into a folder on your computer, including locally synced Google Drive, Dropbox o
   **Import** still works on the open script (Ctrl+Z undoes it).
 - On first run the script DraftLine kept in localStorage moves into the library as your first project; the old copy
   is left in place untouched.
+
+## Plan: Breakdowns and Stripboard
+
+**Write | Plan** in the top bar switches to a production view of the same script, worked out from it each time:
+**Breakdowns** (a card per scene: slugline, INT/EXT and DAY/NIGHT, length in eighths, speaking cast with call-sheet
+numbers, and lists you fill in for extras, props, wardrobe / SFX and vehicles / stunts, plus production notes) and
+**Stripboard** (one colour-coded strip per scene, in script order). **Export Breakdown** downloads it all as `.csv`.
+
+**Finding scenes.** On Breakdowns and Stripboard the top bar holds **Find scenes…** (a heading or location, a speaking
+character, or an exact scene number; capitals and accents don't matter), **INT | EXT** and **DAY | NIGHT** (an
+INT./EXT. scene counts as both; CONTINUOUS takes the light of the scene before). While set, it shows **5 of 53
+scenes ✕** and the summary line counts what's showing. It only hides scenes: exports and Reports cover the whole script.
+On screens under 1500px it sits at the top of the Plan page, lined up with the list.
 
 ## Plan → Reports
 
@@ -430,7 +448,9 @@ src/
   App.jsx                  shell, toolbar, status bar, autosave, shortcuts
   components/Editor.jsx    paginated block editor, keyboard flow, autocomplete, dual rows
   components/Navigator.jsx scene sidebar
-  components/DialogueTuner.jsx       Characters → Dialogue tab
+  components/DialogueTuner.jsx       Characters → Dialogue tab (monologue filter, folding cast)
+  components/BackupToast.jsx         the backup tip: Link Folder, or Backup Project where folders can't be linked
+  components/planning/PlanFilter.jsx Plan's scene filter: Find scenes… · INT | EXT · DAY | NIGHT
   components/TitlePageModal.jsx
   components/PrintView.jsx print-only paginated pages
   components/TitlePageSheet.jsx  the title page in page units (canvas cover, print, modal preview)
@@ -452,7 +472,11 @@ src/
   lib/textScriptParser.js  plain-text → screenplay element heuristics (Import)
   lib/beats.js             beat model, moves, outline exporters, populate / ranges / act folding
   lib/titleFonts.js        title page font catalog
-  lib/measure.js           line-snapped textarea sizing
+  lib/measure.js           line-snapped textarea sizing, and re-measuring every line once fonts load
+  lib/castFold.js          Characters → Dialogue: which cast pills show before "+N more"
+  lib/planFilter.js        Plan's scene filter: what matches heading / location / character / number, INT/EXT, DAY/NIGHT
+  lib/backupToast.js       when the backup tip shows, its wording per browser, last-backup times
+  lib/storagePersist.js    asking the browser for protected (persistent) storage
   lib/editing.js           Backspace / Delete block operations
   lib/sluglines.js         slugline, act-break and on-screen-text detection (shared)
   lib/notes.js             [[note]] extraction and Fountain note output
