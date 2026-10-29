@@ -85,6 +85,8 @@ import { EXPORT_TIP, FORMAT_DOCTOR_TIP, claimTip, muteTip } from './lib/supportT
 import BrandMark from './components/BrandMark.jsx';
 import { MILESTONES, MILESTONE_TOAST_MS, finishedSentence, milestonesReached } from './lib/milestones.js';
 import BackupToast from './components/BackupToast.jsx';
+import PlanFilter from './components/planning/PlanFilter.jsx';
+import { EMPTY_PLAN_FILTER } from './lib/planFilter.js';
 import {
   BACKUP_TOAST_DISMISSED_KEY, BACKUP_TOAST_SESSION_KEY, backupToastCopy, browserFamily, readFlag, readLastBackups, recordBackup,
   shouldShowBackupToast, writeFlag,
@@ -385,6 +387,10 @@ function Workspace({ boot }) {
   // or scrolled is lost; switching back puts the page where it was.
   const [workspace, setWorkspace] = useState('write');
   const [planView, setPlanView] = useState('breakdowns');
+  // Plan's scene filter (lib/planFilter.js): one setting for Breakdowns and Stripboard, cleared when
+  // another script opens; the count ("4 of 53") comes back from the workspace, which builds the rows.
+  const [planFilter, setPlanFilter] = useState(EMPTY_PLAN_FILTER);
+  const [planCount, setPlanCount] = useState(null);
   // Breakdown cards' open / folded state (Plan): all open or all folded, except the ones toggled by hand.
   // Kept here because Collapse All is on the header; a card is open when closed !== except.has(id).
   const [planFold, setPlanFold] = useState(() => ({ closed: false, except: new Set() }));
@@ -869,6 +875,7 @@ function Workspace({ boot }) {
     setProduction(doc.production);
     setRevisions(doc.revisions);
     setProjectLocked(doc.isLocked === true);
+    setPlanFilter(EMPTY_PLAN_FILTER); // a scene filter belongs to the script it was set on
     setIsLocked(doc.viewOnly === true); // each script opens in its own saved View Only state
     noteSession.current = null;
     setNoteId(null);
@@ -2092,6 +2099,8 @@ function Workspace({ boot }) {
             {/* Closes the Element · B I U S group, so it doesn't trail off into the bar's open space. */}
             <span className="bar-sep fmt-sep" aria-hidden="true" />
           </div>
+          {/* Plan's tools for its scenes: the same slot, on Breakdowns and Stripboard (not Reports). */}
+          {inPlan && planView !== 'reports' && <PlanFilter filter={planFilter} onChange={setPlanFilter} count={planCount} />}
 
           </div>
           </div>
@@ -2361,6 +2370,9 @@ function Workspace({ boot }) {
                 layout={layout}
                 onOpenCharacter={openCharacterInWrite}
                 onReportCsv={exportReport}
+                filter={planFilter}
+                onFilter={setPlanFilter}
+                onCount={setPlanCount}
               />
             </Suspense>
           )}

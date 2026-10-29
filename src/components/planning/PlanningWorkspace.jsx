@@ -1,7 +1,9 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { ChevronDown, CornerUpLeft, Plus, X } from 'lucide-react';
 import { PRODUCTION_BUCKETS, STRIP_COLORS, breakdownTotals, buildBreakdown } from '../../lib/productionEngine.js';
 import Reports from './Reports.jsx';
+import PlanFilter from './PlanFilter.jsx';
+import { EMPTY_PLAN_FILTER, filterPlanRows, planFilterActive } from '../../lib/planFilter.js';
 import './PlanningWorkspace.css';
 
 /**
@@ -20,13 +22,22 @@ import './PlanningWorkspace.css';
  *   layout: the script's pagination (Reports: characters' pages, the page count)
  *   onOpenCharacter(name): back to Write with that character's Dialogue spotlight (Reports)
  *   onReportCsv(kind, reports): download one report as .csv
+ *   filter, onFilter(next), onCount({ shown, total }): the header's scene filter (lib/planFilter.js),
+ *     applied to Breakdowns and Stripboard (Reports always cover the whole script). On narrower
+ *     windows the same filter shows at the top of the workspace instead of in the header.
  */
 export default function PlanningWorkspace({
   view, fold, onToggleCard, blocks, analysis, scenes, production, onAdd, onRemove, onNotes, onOpenScene,
-  layout = null, onOpenCharacter, onReportCsv,
+  layout = null, onOpenCharacter, onReportCsv, filter = EMPTY_PLAN_FILTER, onFilter, onCount,
 }) {
   const rows = useMemo(() => buildBreakdown({ blocks, analysis, scenes, production }), [blocks, analysis, scenes, production]);
   const totals = useMemo(() => breakdownTotals(rows), [rows]);
+  const shown = useMemo(() => filterPlanRows(rows, filter), [rows, filter]);
+  const shownTotals = useMemo(() => breakdownTotals(shown.rows), [shown]);
+  const filtering = view !== 'reports' && planFilterActive(filter);
+  useEffect(() => {
+    onCount?.({ shown: shown.shown, total: shown.total });
+  }, [onCount, shown.shown, shown.total]);
   return (
     <section className="plan" aria-label="Plan">
       <div className="plan-scroll">
@@ -34,14 +45,24 @@ export default function PlanningWorkspace({
           <p className="plan-empty">No scenes yet. Scene headings you write (INT. / EXT. …) appear here as breakdowns and strips.</p>
         ) : (
           <>
+            {view !== 'reports' && onFilter && (
+              <PlanFilter filter={filter} onChange={onFilter} count={{ shown: shown.shown, total: shown.total }} place="workspace" />
+            )}
             <p className="plan-summary" role="status">
-              {plural(totals.scenes, 'scene')} · {totals.length} {totals.eighths > 8 ? 'pages' : 'page'} · cast, sluglines and lengths come from the script
+              {filtering
+                ? <>{shown.shown} of {plural(totals.scenes, 'scene')} · {shownTotals.length} of {totals.length} {totals.eighths > 8 ? 'pages' : 'page'} · filtered</>
+                : <>{plural(totals.scenes, 'scene')} · {totals.length} {totals.eighths > 8 ? 'pages' : 'page'} · cast, sluglines and lengths come from the script</>}
             </p>
             {view === 'reports' ? (
               <Reports rows={rows} blocks={blocks} analysis={analysis} layout={layout} onOpenScene={onOpenScene} onOpenCharacter={onOpenCharacter} onCsv={onReportCsv} />
+            ) : filtering && !shown.shown ? (
+              <p className="plan-empty">
+                No scenes match.{' '}
+                <button type="button" className="plan-clear" onClick={() => onFilter?.(EMPTY_PLAN_FILTER)}>Clear the filter</button>
+              </p>
             ) : view === 'stripboard'
-              ? <Stripboard rows={rows} totals={totals} onOpenScene={onOpenScene} />
-              : <Breakdowns rows={rows} fold={fold} onToggle={onToggleCard} onAdd={onAdd} onRemove={onRemove} onNotes={onNotes} onOpenScene={onOpenScene} />}
+              ? <Stripboard rows={shown.rows} totals={shownTotals} onOpenScene={onOpenScene} />
+              : <Breakdowns rows={shown.rows} fold={fold} onToggle={onToggleCard} onAdd={onAdd} onRemove={onRemove} onNotes={onNotes} onOpenScene={onOpenScene} />}
           </>
         )}
       </div>

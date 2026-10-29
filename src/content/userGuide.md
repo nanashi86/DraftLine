@@ -307,6 +307,15 @@ The Scene Board's **Export Outline** downloads the board as a **Fountain Outline
 - Switching never loses anything. Your script stays exactly as it was, unsaved typing included, and it keeps saving. Coming back to Write puts the script and the Scene Board where you'd scrolled them.
 - **Write** on a breakdown card, or a click on a strip, takes you back to Write at that scene.
 
+### Finding scenes
+
+On **Breakdowns** and **Stripboard**, the top bar holds a scene filter: **Find scenes…**, **INT | EXT** and **DAY | NIGHT**. On smaller screens it sits at the top of the Plan page instead.
+
+- **Find scenes…** matches a heading or location (`Bouchard`), a speaking character (`Tati`), or a scene number on its own (`32` finds scene 32 only). Capitals and accents don't matter.
+- **INT | EXT** and **DAY | NIGHT** narrow it further. An INT./EXT. scene counts as both, and CONTINUOUS takes the light of the scene before.
+- While anything is set, the bar shows **5 of 53 scenes** with ✕ to clear it, and the line above the scenes counts what's showing (**5 of 53 scenes · 7 7/8 of 98 5/8 pages**).
+- The filter only hides scenes from view: nothing is changed or reordered, and **Export Breakdown** and **Reports** still cover the whole script. It stays on as you switch between Breakdowns and Stripboard, and clears when you open another script.
+
 ### What comes from the script
 
 - **Scene number and slugline**: every scene heading, numbered in script order.

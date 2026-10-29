@@ -1,0 +1,70 @@
+/* Plan's scene filter: the same 32px field, capsule and 10px rhythm as Write's Element ▾ · B I U S. */
+.plan-filter { display: flex; align-items: center; gap: 10px; flex: none; }
+.pf-find {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  width: 220px;
+  height: 32px;
+  box-sizing: border-box;
+  padding: 0 10px;
+  border: 1px solid var(--line-soft);
+  border-radius: 6px;
+  background: var(--field);
+  color: var(--muted);
+  cursor: text;
+}
+.pf-find:focus-within { border-color: var(--accent); }
+.pf-find input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: var(--text);
+  font: 13px var(--ui-font);
+}
+.pf-find input::-webkit-search-cancel-button { display: none; } /* ✕ in the count clears everything */
+.pf-seg {
+  display: inline-flex;
+  gap: 2px;
+  height: 32px;
+  box-sizing: border-box;
+  padding: 2px;
+  border: 1px solid var(--line-soft);
+  border-radius: 7px;
+  background: var(--field);
+}
+.pf-btn {
+  padding: 0 9px;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  color: var(--muted);
+  font: 600 12px/1 var(--ui-font);
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: background 120ms ease, color 120ms ease;
+}
+.pf-btn:hover { color: var(--text); background: color-mix(in srgb, var(--chip) 60%, transparent); }
+.pf-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.pf-btn.is-on {
+  background: color-mix(in srgb, var(--accent) 26%, var(--chip));
+  color: #fff;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 65%, transparent);
+}
+.pf-count { display: inline-flex; align-items: center; gap: 4px; color: var(--muted); font: 12.5px var(--ui-font); white-space: nowrap; }
+.pf-count b { color: var(--text); font-weight: 600; }
+.pf-clear { padding: 2px; color: var(--muted); }
+.pf-sep { margin-left: 4px; }
+
+/* Where it shows: the header on wide windows, the top of the Plan workspace on narrower ones. */
+.plan-filter.is-workspace { display: none; flex-wrap: wrap; width: 100%; max-width: 1100px; margin: 0 auto 10px; } /* lines up with the summary below */
+@media (max-width: 1499.98px) {
+  .plan-filter.is-bar { display: none; }
+  .plan-filter.is-workspace { display: flex; }
+}
+@media (max-width: 1799.98px) {
+  .plan-filter.is-bar .pf-find { width: 170px; }
+}
+@media print { .plan-filter { display: none; } }

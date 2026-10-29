@@ -82,7 +82,7 @@ describe('Top bar: Element ▾ · B I U S spacing', () => {
     assert.match(header, /<span className="bar-sep fmt-sep" aria-hidden="true" \/>\s*<\/div>/);
   });
   it('while the group shows, its divider stands in for the one before Page | Split | Board (never two)', () => {
-    assert.match(css, /\.bar:has\(\.g-format:not\(\[hidden\]\)\) \.zone-right > \.bar-sep \{ display: none; \}/);
+    assert.match(css, /\.bar:has\(\.g-format:not\(\[hidden\]\)\) \.zone-right > \.bar-sep,\n\.bar:has\(\.plan-filter\.is-bar\) \.zone-right > \.bar-sep \{ display: none; \}/);
     assert.match(media('1440'), /\.bar-sep \{ display: none; \}/, 'narrower bars drop every divider, this one included');
   });
 });

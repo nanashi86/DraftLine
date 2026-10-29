@@ -212,7 +212,8 @@
    so two dividers never sit either side of the bar's open space. */
 .bar-group.g-format { gap: 10px; }
 .fmt-sep { margin-left: 4px; }
-.bar:has(.g-format:not([hidden])) .zone-right > .bar-sep { display: none; }
+.bar:has(.g-format:not([hidden])) .zone-right > .bar-sep,
+.bar:has(.plan-filter.is-bar) .zone-right > .bar-sep { display: none; } /* Plan's filter closes the same way */
 
 /* [ Write | Plan ]: the workspace switch beside the title — 24px capsules, full pill. */
 .ws-switch { margin-left: 12px; padding: 2px; border-radius: 9999px; }
