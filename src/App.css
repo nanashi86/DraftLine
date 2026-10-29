@@ -570,6 +570,9 @@
 .stepper-pos { font-variant-numeric: tabular-nums; }
 .stepper-main:hover .stepper-pos,
 .stepper-main.is-open .stepper-pos { color: var(--stepper-strong); }
+/* Neutral capsules (Format, Find, a character's): the muted icon brightens with the count on hover. */
+.stepper.is-neutral .stepper-main:hover .stepper-icon,
+.stepper.is-neutral .stepper-main.is-open .stepper-icon { color: var(--stepper-strong); }
 .stepper-step,
 .stepper-dismiss {
   display: inline-flex;

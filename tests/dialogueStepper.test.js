@@ -160,7 +160,10 @@ describe('Status bar: the Format stepper', () => {
   const app = read('App.jsx');
   it('the same capsule: [ stethoscope Format · n of N ‹ › ] (✕)', () => {
     assert.match(fs, /import StatusStepper from '\.\/StatusStepper\.jsx';/);
-    assert.match(fs, /import \{ Stethoscope \} from 'lucide-react';/);
+    assert.match(fs, /import \{ Cross \} from 'lucide-react';/);
+    assert.match(fs, /const ICON = <Cross size=\{14\} strokeWidth=\{1\.5\} aria-hidden \/>;/, 'a crisp medical cross in the muted ink');
+    assert.doesNotMatch(fs, /Stethoscope/);
+    assert.match(readFileSync(new URL('../src/App.css', import.meta.url), 'utf8'), /\.stepper\.is-neutral \.stepper-main:hover \.stepper-icon,\s*\.stepper\.is-neutral \.stepper-main\.is-open \.stepper-icon \{ color: var\(--stepper-strong\); \}/);
     assert.match(fs, /label="Format"\s*position=\{stepperPosition\(index, total\)\}/);
     assert.ok(!/\p{Extended_Pictographic}/u.test(fs.replace(/\/\/.*|\/\*[\s\S]*?\*\/|^ \*.*$/gm, '')), 'a line icon, not an emoji');
   });

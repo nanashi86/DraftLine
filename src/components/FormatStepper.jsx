@@ -1,14 +1,15 @@
-import { Stethoscope } from 'lucide-react';
+import { Cross } from 'lucide-react';
 import StatusStepper from './StatusStepper.jsx';
 import { ISSUE_KINDS, canFix, findingPreview } from '../lib/formatDoctor.js';
 import { stepperPosition } from '../lib/dialogueFilter.js';
 
-const ICON = <Stethoscope size={14} strokeWidth={1.75} aria-hidden />;
+// A medical cross, outlined at a 1.5 stroke so it stays crisp at 14px; it takes the capsule's muted ink.
+const ICON = <Cross size={14} strokeWidth={1.5} aria-hidden />;
 
 /**
  * Status bar, while the Format Doctor has findings (StatusStepper's shared capsule):
  *
- *   [ 🩺 Format · 2 of 7   ‹  › ] (✕)
+ *   [ ✚ Format · 2 of 7   ‹  › ] (✕)
  *
  *   label → a dropup list of every finding (kind · page — the line) with Fix / Ignore on each, and
  *           "Open Format Doctor…" for Fix All
