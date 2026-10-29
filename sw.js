@@ -2,58 +2,58 @@
    src/pwa/vitePlugin.js, which fills in the build's file list and version.
 
    • Install: caches the whole app shell — index.html, every JS / CSS file of this build, the
-     icons and manifest — plus Courier Prime and Inter (the script and UI fonts) from Google
-     Fonts, so DraftLine starts and runs fully offline after one visit.
+     icons and manifest, Courier Prime (the script font, shipped with the build) — plus Inter (the
+     UI font) from Google Fonts, so DraftLine starts and runs fully offline after one visit.
    • Pages: network first (you get the newest deploy when online), cached index.html offline.
    • Built files (hashed names, never change): cache first.
    • credits.json (About's backers roll): network first, cached copy offline.
    • Google Fonts: cached as they're used (title-page fonts too), served from cache after that.
    • Your scripts never touch this: they live in IndexedDB. Nothing is sent anywhere. */
 
-const VERSION = "7e2c38fbe1fc";
+const VERSION = "e83231dfcc59";
 const PRECACHE = [
   "./",
   "./apple-touch-icon.png",
-  "./assets/BeatBoard-CFmtbApb.js",
+  "./assets/BeatBoard-CkHlrcby.js",
   "./assets/BeatBoard-H8jGm91A.css",
   "./assets/CourierPrime-Bold-CsRXgBhi.ttf",
   "./assets/CourierPrime-BoldItalic-C1DEdWqk.ttf",
   "./assets/CourierPrime-Italic-B-AEgkAt.ttf",
   "./assets/CourierPrime-Regular-DXo6U2x0.ttf",
-  "./assets/ExportBibleModal-B4T2zr2r.js",
+  "./assets/ExportBibleModal-BdUXhYYz.js",
   "./assets/ExportBibleModal-C9aHjvc7.css",
   "./assets/FeedbackModal-BUnIO7wc.css",
-  "./assets/FeedbackModal-yIyILTHq.js",
+  "./assets/FeedbackModal-VoTYtEjO.js",
   "./assets/FormatDoctorModal-CBCRztSC.css",
-  "./assets/FormatDoctorModal-CZz1MvjD.js",
-  "./assets/HelpModal-C1gTgCyo.js",
+  "./assets/FormatDoctorModal-CbeKxKjF.js",
+  "./assets/HelpModal-Ck_WTd87.js",
   "./assets/HelpModal-Dcv1R-Pi.css",
+  "./assets/ImportModal-C11wDkNc.js",
   "./assets/ImportModal-D6R5UZVT.css",
-  "./assets/ImportModal-S5yRFzXJ.js",
-  "./assets/PlanningWorkspace-DaenWrEz.js",
+  "./assets/PlanningWorkspace-N2fbzkCf.js",
   "./assets/PlanningWorkspace-Xw1FtPq3.css",
-  "./assets/RenameCharacterModal-CKNQcI6P.js",
   "./assets/RenameCharacterModal-DagY3wg-.css",
+  "./assets/RenameCharacterModal-lKJRh6ud.js",
+  "./assets/SnapshotCompare-DFuQRXfj.js",
   "./assets/SnapshotCompare-Dd53CaHc.css",
-  "./assets/SnapshotCompare-KEL8PZfx.js",
   "./assets/UserGuideModal-BVWC8KuI.css",
-  "./assets/UserGuideModal-CzK2qP1N.js",
-  "./assets/compilePdfAsync-CJk9UrBL.js",
-  "./assets/docxImport-UNNDCL7q.js",
+  "./assets/UserGuideModal-CljFja-s.js",
+  "./assets/compilePdfAsync-f6O1OuwN.js",
+  "./assets/docxImport-D-M0zaRT.js",
   "./assets/fonts-DoPv2lcE.js",
   "./assets/formatting-BYoP7DnV.js",
   "./assets/fountain-C7MS6wl1.js",
-  "./assets/index-CFuOtahL.js",
-  "./assets/index-DMu7jjHm.css",
+  "./assets/index-DEy13bh-.css",
+  "./assets/index-ek2iF_C1.js",
   "./assets/lib-DI1hcji2.js",
   "./assets/pdf.worker-Br8IDWIl.js",
   "./assets/printTitle-C1qWomuv.js",
-  "./assets/productionEngine-CdPqnZgC.js",
+  "./assets/productionEngine-C3_q3vcp.js",
   "./assets/react-DgawKyfb.js",
-  "./assets/reports-B5X6Vbno.js",
+  "./assets/reports-_lVxgeza.js",
   "./assets/rolldown-runtime-BCiCTKAo.js",
   "./assets/scriptDiff.worker-CU0LXjzf.js",
-  "./assets/scriptPdf-DmcybclI.js",
+  "./assets/scriptPdf-3oniOoBn.js",
   "./assets/sluglines-NngmNwiy.js",
   "./assets/titleFonts-CncB-K-b.js",
   "./credits.json",
@@ -64,7 +64,7 @@ const PRECACHE = [
   "./index.html",
   "./manifest.json"
 ]; // paths relative to this file, e.g. "./assets/index-abc123.js"
-const CORE_FONTS_CSS = "https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400;1,700&family=Inter:wght@400;500;600;700;800&display=swap";
+const CORE_FONTS_CSS = "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap";
 const SHELL_CACHE = `draftline-shell-${VERSION}`;
 const FONT_CACHE = 'draftline-fonts-v1';
 
