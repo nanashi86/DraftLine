@@ -207,6 +207,12 @@
    attributes win over the display rules above. */
 .bar-right > [hidden],
 .bar-group[hidden] { display: none !important; }
+/* Element ▾ · B I U S: 10px between the picker and the B I U S capsule, and a divider 14px after S
+   closing the group. While the group shows it takes over from the divider before Page | Split | Board,
+   so two dividers never sit either side of the bar's open space. */
+.bar-group.g-format { gap: 10px; }
+.fmt-sep { margin-left: 4px; }
+.bar:has(.g-format:not([hidden])) .zone-right > .bar-sep { display: none; }
 
 /* [ Write | Plan ]: the workspace switch beside the title — 24px capsules, full pill. */
 .ws-switch { margin-left: 12px; padding: 2px; border-radius: 9999px; }
@@ -277,18 +283,18 @@
   flex: none;
   height: 32px;
   padding: 2px;
-  gap: 1px;
+  gap: 2px; /* a segmented group: each button its own target */
   border: 1px solid var(--line-soft);
   border-radius: 7px;
   background: var(--field);
 }
 .fmt-btn {
-  min-width: 28px;
+  min-width: 30px;
   height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0 4px;
+  padding: 0 6px;
   border: 0;
   border-radius: 5px;
   background: transparent;

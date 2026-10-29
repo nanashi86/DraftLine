@@ -32,6 +32,7 @@ All notable changes to DraftLine are recorded here. The format follows [Keep a C
 
 ### Changed
 
+- Top bar spacing: 10px between Element ▾ and the B I U S group; B, I, U and S are 30px targets 2px apart, like a segmented control; and a divider 14px after S closes the group, standing in for the one before Page | Split | Board while the group shows (on the Board and in Plan the old divider returns). Checked from 1920px to 768px: nothing wraps, clips or overflows.
 - View Only (status bar badge, Ctrl+Alt+L) is now saved with each script as `viewOnly` on its record: it survives reloads, switching scripts restores each one's setting, and it travels in .draftline backups and the linked folder (the newest copy wins on another computer). Scripts saved before this open editable; duplicates start editable. It stays separate from the Project Lock padlock (`isLocked`).
 - Projects is easier to find: **File ▾ → Projects…** (Alt+P) is now the first item in the File menu, and the ▾ beside the title is a wider (28px), brighter button with a hairline divider. Title and ▾ share one outline on hover, while editing and while Projects is open, the tooltip reads "Projects (Alt+P)", and there's clearance before "by Author".
 - The title in the top bar now sizes to its actual text, from 120px up to 512px on wide screens (448px under 1024px, 320px under 768px, unchanged on phones), so medium titles like "THE MIDNIGHT COURIER" show in full. When the bar is short of room the title shortens with "…" before any toolbar control is clipped.

@@ -75,6 +75,18 @@ describe('Top bar: three zones that can’t collide', () => {
   });
 });
 
+describe('Top bar: Element ▾ · B I U S spacing', () => {
+  it('10px between Element ▾ and B; a divider 14px after S closes the group', () => {
+    assert.match(css, /\.bar-group\.g-format \{ gap: 10px; \}/);
+    assert.match(css, /\.fmt-sep \{ margin-left: 4px; \}/);
+    assert.match(header, /<span className="bar-sep fmt-sep" aria-hidden="true" \/>\s*<\/div>/);
+  });
+  it('while the group shows, its divider stands in for the one before Page | Split | Board (never two)', () => {
+    assert.match(css, /\.bar:has\(\.g-format:not\(\[hidden\]\)\) \.zone-right > \.bar-sep \{ display: none; \}/);
+    assert.match(media('1440'), /\.bar-sep \{ display: none; \}/, 'narrower bars drop every divider, this one included');
+  });
+});
+
 describe('Top bar: narrow windows collapse in steps', () => {
   it('one "File ▾" menu at every width; no loose New / Open / Import / Title Page / Export buttons', () => {
     assert.match(rule('.file-menu'), /display: inline-flex;/);
@@ -132,17 +144,18 @@ describe('Top bar: narrow windows collapse in steps', () => {
     assert.match(media('767.98'), /\.view-seg \.seg-label \{ display: none; \}/);
     assert.ok(!/[\u{1F300}-\u{1FAFF}]/u.test(seg), 'no emoji');
   });
-  it('B I U S match Element ▾ and File ▾: 32px capsule, 28px buttons, 13px/600 in the same type, fading whole when disabled', () => {
+  it('B I U S match Element ▾ and File ▾: 32px capsule, 30px buttons, 13px/600 in the same type, fading whole when disabled', () => {
     const seg = rule('.fmt-seg');
     for (const d of ['height: 32px', 'box-sizing: border-box', 'display: inline-flex']) assert.ok(seg.includes(d), d);
     const btn = rule('.fmt-btn');
-    for (const d of ['min-width: 28px', 'height: 100%', 'display: flex', 'align-items: center', 'justify-content: center', 'font: 600 13px/1 var(--ui-font)']) assert.ok(btn.includes(d), d);
+    for (const d of ['min-width: 30px', 'padding: 0 6px', 'height: 100%', 'display: flex', 'align-items: center', 'justify-content: center', 'font: 600 13px/1 var(--ui-font)']) assert.ok(btn.includes(d), d);
     assert.match(rule('.type-select'), /height: 32px;/);
     assert.match(css, /\.file-menu > \.menu > \.btn \{[^}]*height: 32px;/);
     assert.match(css, /\.fmt-seg\.is-disabled \{ opacity: 0\.45; \}/);
     assert.match(css, /\.type-select:disabled \{ opacity: 0\.45; \}/);
     assert.match(rule('.fmt-btn:disabled'), /cursor: default;/);
     assert.doesNotMatch(rule('.fmt-btn:disabled'), /opacity/, 'no double fade on top of the capsule’s');
+    assert.match(seg, /gap: 2px;/, 'a segmented group: 2px between B, I, U and S');
     assert.match(header, /className=\{`fmt-seg\$\{isLocked \? ' is-locked' : ''\}\$\{editControlsEnabled \? '' : ' is-disabled'\}`\}/);
   });
   it('the header row is space-between, full width, and no control is ever absolutely positioned', () => {

@@ -2089,6 +2089,8 @@ function Workspace({ boot }) {
                 );
               })}
             </div>
+            {/* Closes the Element · B I U S group, so it doesn't trail off into the bar's open space. */}
+            <span className="bar-sep fmt-sep" aria-hidden="true" />
           </div>
 
           </div>
