@@ -26,6 +26,36 @@
   color: var(--muted);
 }
 .tuner-stats b { color: var(--text); font-weight: 600; }
+/* The monologue count: a toggle that keeps only this character's monologues in the list. */
+.tuner-mono {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin: -3px 0;
+  padding: 2px 9px;
+  border: 1px solid var(--line-soft);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  cursor: pointer;
+}
+.tuner-mono:hover { border-color: var(--muted); color: var(--text); }
+.tuner-mono.is-on { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 18%, transparent); color: var(--text); }
+.tuner-mono:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.tuner-mono-x { flex: none; }
+.tuner-mono-note { margin: 0; padding: 0 18px 8px; color: var(--muted); font-size: 12px; }
+.tune-mono-tag {
+  display: inline-block;
+  margin: 2px 0 6px;
+  padding: 3px 6px;
+  border: 1px solid color-mix(in srgb, #f0b35a 55%, transparent);
+  border-radius: 4px;
+  color: #f0b35a;
+  font: 600 10.5px/1 var(--ui-font);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
 .tuner-rename { margin-left: auto; padding: 3px 10px; font-size: 12px; } /* a standard .btn .btn-outline */
 
 .tuner-tools {

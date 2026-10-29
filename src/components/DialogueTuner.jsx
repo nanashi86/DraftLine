@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import AutoTextarea from './AutoTextarea.jsx';
-import { CADENCE, MONOLOGUE_LINES, MONOLOGUE_WORDS, voiceMetrics } from '../lib/voice.js';
+import { X } from 'lucide-react';
+import { CADENCE, MONOLOGUE_LINES, MONOLOGUE_WORDS, isMonologue, speechLength, voiceMetrics } from '../lib/voice.js';
 import './DialogueTuner.css';
 
 /**
@@ -10,6 +11,11 @@ import './DialogueTuner.css';
  * edit in place. Edits write straight back to the script blocks (same ids), so the main
  * editor and this tab are always two views of one source of truth. `open` is whether the tab
  * is showing (so its text fields can measure themselves on return).
+ *
+ * The monologue count is a toggle: on, the list keeps only that character's monologues (speeches
+ * over MONOLOGUE_LINES printed lines or MONOLOGUE_WORDS words), each tagged with its length, with
+ * Go ↗ to jump to it. It belongs to the character it was turned on for, so picking someone else
+ * shows all of their speeches again. Nothing is flagged in the script or the status bar.
  */
 export default function DialogueTuner({
   open,
@@ -28,9 +34,13 @@ export default function DialogueTuner({
   const { characterList } = analysis;
   const current = (selected && analysis.characters.get(selected)) || null; // never a default pick
   const voice = useMemo(() => voiceMetrics(current), [current]);
+  const [monoFor, setMonoFor] = useState(null); // the character whose monologues are filtered, if any
+  // Picking anyone else turns it off for good (adjusted while rendering, React's pattern for this).
+  if (monoFor && monoFor !== current?.name) setMonoFor(null);
+  const monoOnly = !!current && monoFor === current.name && voice.monologues > 0;
   const q = query.trim().toLowerCase();
   const entries = current
-    ? current.entries.filter((en) => !q || en.parts.some((p) => p.text.toLowerCase().includes(q)))
+    ? current.entries.filter((en) => (!q || en.parts.some((p) => p.text.toLowerCase().includes(q))) && (!monoOnly || isMonologue(en)))
     : [];
 
   return (
@@ -62,7 +72,22 @@ export default function DialogueTuner({
               <span><b>{current.words}</b> words</span>
               <span><b>{current.scenes.size}</b> {current.scenes.size === 1 ? 'scene' : 'scenes'}</span>
               <span><b>{current.lines ? Math.round(current.words / current.lines) : 0}</b> avg words/line</span>
-              <span title={`Speeches over ${MONOLOGUE_LINES} printed lines or ${MONOLOGUE_WORDS} words`}><b>{voice.monologues}</b> {voice.monologues === 1 ? 'monologue' : 'monologues'}</span>
+              {voice.monologues > 0 ? (
+                <button
+                  type="button"
+                  className={`tuner-mono${monoOnly ? ' is-on' : ''}`}
+                  aria-pressed={monoOnly}
+                  onClick={() => setMonoFor(monoOnly ? null : current.name)}
+                  title={monoOnly
+                    ? 'Show every speech'
+                    : `Show only ${current.name}’s monologues: speeches over ${MONOLOGUE_LINES} printed lines or ${MONOLOGUE_WORDS} words`}
+                >
+                  <b>{voice.monologues}</b> {voice.monologues === 1 ? 'monologue' : 'monologues'}
+                  {monoOnly && <X size={12} strokeWidth={2} aria-hidden className="tuner-mono-x" />}
+                </button>
+              ) : (
+                <span title={`Speeches over ${MONOLOGUE_LINES} printed lines or ${MONOLOGUE_WORDS} words`}><b>0</b> monologues</span>
+              )}
               <span title={`Cadence from average words per line: under ${CADENCE.fast} Fast / Banter, over ${CADENCE.expository} Expository, else Balanced`}>
                 Cadence <b>{voice.cadence}</b>
               </span>
@@ -99,6 +124,12 @@ export default function DialogueTuner({
             </label>
           </div>
 
+          {monoOnly && (
+            <p className="tuner-mono-note" role="status">
+              Showing {current.name}’s {voice.monologues === 1 ? 'monologue' : `${voice.monologues} monologues`} · click the count again to see every speech
+            </p>
+          )}
+
           <div className="tuner-stream">
             {entries.length === 0 && <p className="tuner-empty">No matching lines.</p>}
             {entries.map((en) => (
@@ -118,6 +149,9 @@ export default function DialogueTuner({
                     Go ↗
                   </button>
                 </header>
+                {monoOnly && (
+                  <p className="tune-mono-tag">Monologue · {speechLength(en).printed} {speechLength(en).printed === 1 ? 'line' : 'lines'}</p>
+                )}
 
                 {showContext && en.context && (
                   <p className="tune-context">

@@ -265,6 +265,8 @@ The **Dialogue** tab ({{key:Alt+T}}) gathers every line one character speaks, in
 
 Above the lines are the character's totals: lines, words, scenes and average words per line, plus **Monologues** (speeches over five printed lines or 60 words) and **Cadence**: **Fast / Banter** under 8 words a line, **Expository** over 20, **Balanced** in between.
 
+Click the **monologues** count to show only that character's monologues, each tagged with its length (**Monologue · 7 lines**); **Go ↗** jumps to one in the script. Click the count again (or its ✕), or pick another character, to see every speech. Long speeches are often the point of a scene, so nothing is flagged in the script or the status bar.
+
 ## Scene Board & Pacing
 
 The **Scene Board** (formerly the Beat Board; **Board** or **Split** view) lays the story out as index cards in act columns.

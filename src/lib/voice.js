@@ -12,11 +12,18 @@ const wordCount = (t) => (String(t || '').trim().match(/\S+/g) || []).length;
 /** Printed lines of a dialogue block, wrapped at the Dialogue width (35 characters). */
 export const printedLines = (text) => (String(text || '').trim() ? wrapOffsets(String(text).trim(), ELEMENT_META.dialogue.cpl).length : 0);
 
-/** Is this speech (an analyzeScript() entry: its parts) a monologue? Its dialogue, parentheticals aside. */
-export function isMonologue(entry) {
+/** A speech's length (an analyzeScript() entry): its dialogue's printed lines and words, parentheticals aside. */
+export function speechLength(entry) {
   const lines = (entry?.parts || []).filter((p) => p.type === 'dialogue');
-  const printed = lines.reduce((n, p) => n + printedLines(p.text), 0);
-  const words = lines.reduce((n, p) => n + wordCount(p.text), 0);
+  return {
+    printed: lines.reduce((n, p) => n + printedLines(p.text), 0),
+    words: lines.reduce((n, p) => n + wordCount(p.text), 0),
+  };
+}
+
+/** Is this speech a monologue: over MONOLOGUE_LINES printed lines or MONOLOGUE_WORDS words? */
+export function isMonologue(entry) {
+  const { printed, words } = speechLength(entry);
   return printed > MONOLOGUE_LINES || words > MONOLOGUE_WORDS;
 }
 
