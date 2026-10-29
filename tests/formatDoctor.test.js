@@ -254,3 +254,47 @@ describe('Format Doctor: a heading is judged the way it shows — in capitals', 
     assert.match(read('components/FormatStepper.jsx'), /sub: findingPreview\(it\),/);
   });
 });
+
+describe('Format Doctor: leading spaces', () => {
+  it('flags Action that starts with spaces or tabs, and the fix removes them', () => {
+    const blocks = [B('a', 'action', '   Dave jumped up.'), B('t', 'action', '\tRosa waits.'), B('n', 'action', 'Nothing wrong here.')];
+    const found = auditScript(blocks);
+    assert.deepEqual(kinds(found), ['a:indent', 't:indent']);
+    assert.equal(ISSUE_KINDS.indent.label, 'Leading spaces');
+    assert.equal(ISSUE_KINDS.indent.fix, 'Remove leading spaces');
+    assert.equal(ISSUE_KINDS.indent.verb, 'Fix');
+    const fixed = applyFixes(blocks, found);
+    assert.deepEqual(fixed.map((b) => b.text), ['Dave jumped up.', 'Rosa waits.', 'Nothing wrong here.']);
+    assert.deepEqual(auditScript(fixed), [], 'clean afterwards');
+  });
+  it('bold and italic stay on the same words after the fix', () => {
+    // "   Dave **jumped** up." with "jumped" bold (8–14) and "up" italic (15–17).
+    const b = B('a', 'action', '   Dave jumped up.', { marks: { b: [[8, 14]], i: [[15, 17]] } });
+    const [out] = applyFixes([b], auditScript([b]));
+    assert.equal(out.text, 'Dave jumped up.');
+    assert.deepEqual(out.marks, { b: [[5, 11]], i: [[12, 14]] });
+    assert.equal(out.text.slice(5, 11), 'jumped');
+    assert.equal(out.text.slice(12, 14), 'up');
+  });
+  it('an indented line further down the paragraph is deliberate: not flagged', () => {
+    const lyric = B('a', 'action', 'She sings:\n    Sleep, little ferry,\n    the sea is wide.');
+    assert.deepEqual(auditScript([lyric]), []);
+  });
+  it('not while the line is being typed, and only on Action', () => {
+    assert.deepEqual(auditScript([B('a', 'action', '   Dave')], { skipId: 'a' }), []);
+    assert.ok(!auditScript([B('d', 'dialogue', '   Hi.'), B('c', 'character', 'X')]).some((i) => i.kind === 'indent'));
+  });
+  it('a heading or cue typed as indented Action is reported as that, and its fix trims it', () => {
+    const blocks = [B('h', 'action', '   INT. KITCHEN - NIGHT'), B('c', 'action', '  MARIE'), B('d', 'dialogue', 'Go.')];
+    assert.deepEqual(kinds(auditScript(blocks)), ['h:slugline', 'c:cue']);
+    assert.deepEqual(applyFixes(blocks, auditScript(blocks)).map((b) => [b.type, b.text]), [['scene', 'INT. KITCHEN - NIGHT'], ['character', 'MARIE'], ['dialogue', 'Go.']]);
+  });
+  it('a scene heading with leading spaces is flagged as its layout, and the fix strips them', () => {
+    const blocks = [B('s', 'scene', '   INT. KITCHEN - NIGHT'), B('a', 'action', 'Rosa stirs a pot.')];
+    const found = auditScript(blocks);
+    assert.deepEqual(kinds(found), ['s:slugformat']);
+    assert.equal(found[0].fixed, 'INT. KITCHEN - NIGHT');
+    assert.equal(applyFixes(blocks, found)[0].text, 'INT. KITCHEN - NIGHT');
+    assert.deepEqual(auditScript([B('s', 'scene', 'INT. KITCHEN - NIGHT')]), [], 'a clean heading stays clean');
+  });
+});

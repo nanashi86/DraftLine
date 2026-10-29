@@ -29,6 +29,7 @@ export const ISSUE_KINDS = {
   slugincomplete: { label: 'Scene heading missing INT./EXT. or time of day', fix: null, verb: null },
   intro: { label: 'Character introduced in lowercase', fix: 'Capitalize name', verb: 'Fix' },
   spacing: { label: 'Double blank lines', fix: 'Strip blank lines', verb: 'Strip' },
+  indent: { label: 'Leading spaces', fix: 'Remove leading spaces', verb: 'Fix' },
   pagebottom: { label: 'Stranded at the bottom of a page', fix: null, verb: null },
 };
 /**
@@ -98,6 +99,14 @@ export function isCompleteSlugline(text) {
 const DOUBLE_BLANK = /\n[ \t]*\n(?:[ \t]*\n)+/;
 /** Two or more blank lines in a row inside an element, or blank lines at its start or end. */
 export const hasExtraBlankLines = (text) => DOUBLE_BLANK.test(text) || /^[ \t]*\n/.test(text) || /\n[ \t]*$/.test(text);
+/**
+ * Spaces or tabs before the first word of an element ("   Dave jumped up."). Only the first line:
+ * an indented line further down (lyrics, a poem, a letter) is usually deliberate.
+ */
+export const hasLeadingSpaces = (text) => /^[ \t]+\S/.test(text);
+/** …and without them. */
+export const stripLeadingSpaces = (text) => text.replace(/^[ \t]+/, '');
+
 /** Collapse runs of blank lines to one, and drop blank lines at the start and end. */
 export const stripBlankLines = (text) => text.replace(/\n[ \t]*\n(?:[ \t]*\n)+/g, '\n\n').replace(/^(?:[ \t]*\n)+/, '').replace(/(?:\n[ \t]*)+$/, '');
 
@@ -284,7 +293,8 @@ export function auditScript(blocks, { skipId = null, ignore = new Set(), layout 
 
     // Scene headings: the standard layout first (fixable), then what's missing (yours to add).
     if (b.type === 'scene' && b.id !== skipId && !t.startsWith('.')) {
-      const plain = stripInline(t);
+      // As stored, not trimmed: spaces before (or after) the heading are layout too, and the fix removes them.
+      const plain = stripInline(b.text);
       // Compared in capitals: a heading always shows, prints and exports in capitals (Editor.css,
       // Fountain / FDX), so how it was typed — "Ext. … (Flashback)" — is never a finding by itself.
       // Only real layout (periods, dashes, spacing, a missing prefix period) is.
@@ -294,6 +304,12 @@ export function auditScript(blocks, { skipId = null, ignore = new Set(), layout 
       if (!isCompleteSlugline(plain)) {
         if (issue('slugincomplete', 'scene')) return;
       }
+    }
+
+    // Action that starts with spaces or tabs ("   Dave jumped up."): after the checks that retype an
+    // element, so a heading or cue typed as Action is reported as that instead. First line only.
+    if (b.type === 'action' && b.id !== skipId && hasLeadingSpaces(b.text)) {
+      if (issue('indent', 'action')) return;
     }
 
     // Alone at the foot of a page, away from what it introduces (not while it's being written).
@@ -393,6 +409,11 @@ export function applyFixes(blocks, issues) {
     }
     if (it.kind === 'slugformat') {
       const text = formatSlugline(b.text);
+      out.push(withMarks({ ...b, text }, remapMarks(b.text, text, b.marks)));
+      continue;
+    }
+    if (it.kind === 'indent') {
+      const text = stripLeadingSpaces(b.text);
       out.push(withMarks({ ...b, text }, remapMarks(b.text, text, b.marks)));
       continue;
     }

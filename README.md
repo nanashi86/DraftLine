@@ -341,7 +341,8 @@ end with a similar line at most every 30 days. Both are throttled and muted per 
   `--` under a valid cue are never flagged), **unspaced Super/Cue** (a
   `SUPER:` / `SUBTITLE:` / `TITLE:` line run into an Action paragraph; the fix splits it out as a Format Cue), a
   **misaligned script ending** (`THE END` as left-aligned Action or a Transition; **Center ‘THE END’**), act markers
-  and empty elements, and anything **stranded at the bottom of a page** (a heading, a cue or a lead-in line on an
+  and empty elements, **leading spaces** at the start of an Action line (first line only; indented lyrics further
+  down stay), and anything **stranded at the bottom of a page** (a heading, a cue or a lead-in line on an
   earlier page than what it introduces; flagged only, with no automatic fix). Format Cues themselves are never flagged. Review each in a list,
   **Show** it in the page, fix one with its button (e.g. **Convert to Scene Heading**) or **Fix All**; Ctrl+Z undoes.
 - **Rename a character** — **Rename…** in Dialogue (for the selected voice) or **Rename across script…**
