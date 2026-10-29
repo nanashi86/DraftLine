@@ -264,9 +264,9 @@ and travel inside .draftline backups.
 
 ## Projects
 
-Every script lives in a secure local project library. Choose between **Standalone (This Device Only)** for private
-zero-setup writing in your browser, or **Synced Folder (Local Disk / Cloud)** to save physical `.draftline` files
-directly to your machine or synced Google Drive folder. Click the title's **▾** or the **D** logo (or press **Alt+P**) to open the
+Every script lives in a secure local project library. Choose between **App Storage (Zero Setup)**, which saves
+automatically inside DraftLine on this device, or **Linked Folder (File Backup)** to save `.draftline` files directly
+into a folder on your computer, including locally synced Google Drive, Dropbox or OneDrive folders. Click the title's **▾** or the **D** logo (or press **Alt+P**) to open the
 **Projects** drawer:
 
 - Each card shows the title, author, page and scene counts and when it was last edited; the open script is marked
@@ -359,7 +359,7 @@ end with a similar line at most every 30 days. Both are throttled and muted per 
   view; character bios, Story Notes and Story DNA; and your Story Glossary wording. **Open** a `.draftline`
   file, or drop / choose one in **Import**, to restore it exactly — on this or any other browser. A restore never
   overwrites: if that project is already in your library, the backup comes in beside it. Your own dictionary wording
-  always wins over the backup's. A Standalone script stays in the browser it was written in, so this is also how you
+  always wins over the backup's. A script in App Storage stays in the browser it was written in, so this is also how you
   move projects between browsers, or between your local DraftLine and the published one.
 - **Page colour** (status bar, or the top-right corner in Focus mode): **Paper** — the classic ivory page with black
   ink — or **Midnight**, a dark page (#1f1f22) with soft light text (#e4e4e7) that matches the app around it.
@@ -390,7 +390,7 @@ end with a similar line at most every 30 days. Both are throttled and muted per 
 - Every change autosaves to the project library within half a second (status bar shows "Saved locally"), and the
   last open script reopens on reload. If the tab closes mid-save, the unsaved state is journaled and recovered on
   the next start. **⋮ → About DraftLine** shows the library's size and lets you ask the browser to protect it from
-  automatic clean-up. DraftLine is built local-first: link a Synced Folder to keep physical `.draftline` files on your
+  automatic clean-up. DraftLine is built local-first: link a folder (Linked Folder) to keep physical `.draftline` files on your
   hard drive, or export anytime to Final Draft (.fdx), Fountain, or spec PDF.
 
 ## Roadmap

@@ -61,9 +61,11 @@ describe('Folder sync: browsers without showDirectoryPicker (Safari, Firefox, ph
     const { readFileSync } = await import('node:fs');
     const ui = readFileSync(new URL('../src/components/StorageDestination.jsx', import.meta.url), 'utf8');
     assert.match(ui, /\{sync\.supported && \(/);
-    assert.match(ui, /<b>Synced Folder \(Local Disk \/ Cloud\)<\/b>/);
-    assert.match(ui, /<b>Standalone \(This Device Only\)<\/b>/);
-    assert.match(ui, /Scripts stay private in this browser\. No external setup required\./);
+    assert.match(ui, /<b>Linked Folder \(File Backup\)<\/b>/);
+    assert.match(ui, /<small>Saves \.draftline files directly into your chosen computer folder, including locally synced cloud storage like Google Drive, Dropbox, or OneDrive\.<\/small>/);
+    assert.match(ui, /<b>App Storage \(Zero Setup\)<\/b>/);
+    assert.match(ui, /<small>Saves automatically inside DraftLine on this device\. Start writing instantly\. Export a backup before you clear your browser history\.<\/small>/);
+    assert.doesNotMatch(ui, /Standalone \(This Device Only\)|Synced Folder \(Local Disk/, 'the old option names are gone');
     assert.doesNotMatch(ui, /IndexedDB\)|Browser Storage/, 'no storage jargon in the labels');
   });
   it('the folder status and its actions sit inside the Synced Folder card, outside its <label>', async () => {

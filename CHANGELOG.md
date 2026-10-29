@@ -26,6 +26,7 @@ All notable changes to DraftLine are recorded here. The format follows [Keep a C
 
 ### Changed
 
+- Projects → Storage Destination: the options are now **App Storage (Zero Setup)** ("Saves automatically inside DraftLine on this device. Start writing instantly. Export a backup before you clear your browser history.") and **Linked Folder (File Backup)** ("Saves .draftline files directly into your chosen computer folder, including locally synced cloud storage like Google Drive, Dropbox, or OneDrive.").
 - Keyboard Shortcuts (Ctrl+/): Ctrl+P now reads **Print Script…** (the browser's print preview) instead of "Export Script (PDF)"; the compiled PDF download is File → PDF.
 - File ▾ → Export Script now reads PDF (compiled) · Final Draft · Fountain · Print Script… (Ctrl+P); the other sections are unchanged.
 - Enter at the end of a Dialogue line now ends the speech and starts Action (as in Final Draft) instead of another Dialogue line; Enter mid-line still splits a speech.

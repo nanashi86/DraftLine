@@ -11,8 +11,8 @@ const ago = (ts) => {
 
 /**
  * Storage Destination (top of the Projects drawer): where scripts are kept.
- *   Standalone (This Device Only) — always; the default.
- *   Synced Folder (Local Disk / Cloud) — only in browsers with the File System Access API. Its folder
+ *   App Storage (Zero Setup) — always; the default.
+ *   Linked Folder (File Backup) — only in browsers with the File System Access API. Its folder
  *   status and actions (Allow access · Change Folder… · Disconnect, or Link Folder…) sit inside its card.
  * Every save goes to the browser first either way; the folder gets a .draftline copy of each
  * script, and Snapshots/ a file per snapshot.
@@ -37,8 +37,8 @@ export default function StorageDestination({ sync, onChoose, onLink, onDisconnec
           <label className="sd-option">
             <input type="radio" name="sd-dest" checked={!folder} disabled={busy} onChange={run(() => onChoose('browser'))} />
             <span>
-              <b>Standalone (This Device Only)</b>
-              <small>Scripts stay private in this browser. No external setup required.</small>
+              <b>App Storage (Zero Setup)</b>
+              <small>Saves automatically inside DraftLine on this device. Start writing instantly. Export a backup before you clear your browser history.</small>
             </span>
           </label>
         </div>
@@ -47,8 +47,8 @@ export default function StorageDestination({ sync, onChoose, onLink, onDisconnec
             <label className="sd-option">
               <input type="radio" name="sd-dest" checked={folder} disabled={busy} onChange={run(() => onChoose('folder'))} />
               <span>
-                <b>Synced Folder (Local Disk / Cloud)</b>
-                <small>Saves scripts directly as .draftline files in a folder you choose — link a Google Drive or local folder to keep your files permanent.</small>
+                <b>Linked Folder (File Backup)</b>
+                <small>Saves .draftline files directly into your chosen computer folder, including locally synced cloud storage like Google Drive, Dropbox, or OneDrive.</small>
               </span>
             </label>
 
