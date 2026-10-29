@@ -337,8 +337,12 @@
 /* ⋮ overflow menu */
 .btn-kebab { padding-inline: 8px; min-width: 30px; }
 .kebab { font-size: 17px; line-height: 1; font-weight: 700; }
-.btn-accent { border-color: var(--line-soft); }
-.btn-accent.is-on { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+/* Story Bible and Characters share the right-hand panel and switch each other off, so they look
+   alike: outlined at rest, the accent fill while their panel is open. */
+.btn-accent,
+.btn-bible { border-color: var(--line-soft); }
+.btn-accent.is-on,
+.btn-bible.is-on { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
 
 .type-select {
   box-sizing: border-box;

@@ -104,6 +104,15 @@ describe('Top bar: dividers sit 16px from their neighbours at every width', () =
   });
 });
 
+describe('Top bar: Story Bible and Characters look alike', () => {
+  it('both outlined at rest and filled with the accent while their panel is open', () => {
+    assert.match(header, /className=\{`btn btn-bible\$\{bibleOpen \? ' is-on' : ''\}`\}/);
+    assert.match(header, /className=\{`btn btn-accent\$\{charactersOpen \? ' is-on' : ''\}`\}/);
+    assert.match(css, /\.btn-accent,\n\.btn-bible \{ border-color: var\(--line-soft\); \}/);
+    assert.match(css, /\.btn-accent\.is-on,\n\.btn-bible\.is-on \{ background: var\(--accent\); border-color: var\(--accent\); color: var\(--on-accent\); \}/);
+  });
+});
+
 describe('Top bar: narrow windows collapse in steps', () => {
   it('one "File ▾" menu at every width; no loose New / Open / Import / Title Page / Export buttons', () => {
     assert.match(rule('.file-menu'), /display: inline-flex;/);

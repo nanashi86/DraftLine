@@ -2179,7 +2179,7 @@ function Workspace({ boot }) {
             <button
               ref={bibleBtnRef}
               hidden={inPlan}
-              className={`btn btn-bible${bibleOpen ? ' is-on-subtle' : ''}`}
+              className={`btn btn-bible${bibleOpen ? ' is-on' : ''}`}
               onClick={() => setDock((d) => toggleDock(d, 'bible'))}
               title="Story Bible: DNA (Blueprint & Glossary) · Notes (Alt+I)"
               aria-pressed={bibleOpen}
