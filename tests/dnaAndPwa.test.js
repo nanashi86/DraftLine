@@ -159,13 +159,13 @@ describe('PWA', () => {
     assert.match(html, /<link rel="manifest" href="%BASE_URL%manifest\.json" \/>/);
     assert.match(html, /<meta name="theme-color" content="#18181b" \/>/);
   });
-  it('the service worker precaches this build’s files, Courier Prime and Inter', () => {
+  it('the service worker precaches this build’s files (Courier Prime among them) and Inter', () => {
     const { source, list, version } = buildServiceWorker(['assets/index-abc.js', 'assets/index-def.css', 'icon-192.png', 'manifest.json', 'sw.js', 'x.js.map']);
     assert.deepEqual(list, ['./', './assets/index-abc.js', './assets/index-def.css', './icon-192.png', './index.html', './manifest.json']);
     assert.match(source, /const PRECACHE = \[/);
     assert.match(source, new RegExp(`const VERSION = "${version}"`));
-    assert.match(CORE_FONTS_CSS, /Courier\+Prime/);
-    assert.match(source, /Courier\+Prime/);
+    assert.match(CORE_FONTS_CSS, /family=Inter/);
+    assert.doesNotMatch(CORE_FONTS_CSS, /Courier/, 'Courier Prime ships with the build, not from Google Fonts');
     assert.ok(!/__PRECACHE__|__VERSION__|__CORE_FONTS_CSS__/.test(source), 'every placeholder filled');
     new Function(source.replace(/self\./g, 'globalThis.__sw.')); // it parses
   });

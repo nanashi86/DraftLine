@@ -2,8 +2,8 @@
    src/pwa/vitePlugin.js, which fills in the build's file list and version.
 
    • Install: caches the whole app shell — index.html, every JS / CSS file of this build, the
-     icons and manifest — plus Courier Prime and Inter (the script and UI fonts) from Google
-     Fonts, so DraftLine starts and runs fully offline after one visit.
+     icons and manifest, Courier Prime (the script font, shipped with the build) — plus Inter (the
+     UI font) from Google Fonts, so DraftLine starts and runs fully offline after one visit.
    • Pages: network first (you get the newest deploy when online), cached index.html offline.
    • Built files (hashed names, never change): cache first.
    • credits.json (About's backers roll): network first, cached copy offline.

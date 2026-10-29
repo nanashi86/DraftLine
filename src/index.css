@@ -1,3 +1,12 @@
+/* The script font, served with DraftLine (the same files the PDF embeds, precached for offline use)
+   rather than from Google Fonts, so it's there before the first line is measured on every device.
+   "block": lines aren't laid out in a fallback Courier, whose wider characters wrap 60-character
+   lines early. SIL Open Font License: assets/fonts/CourierPrime-OFL.txt. */
+@font-face { font-family: 'Courier Prime'; font-style: normal; font-weight: 400; font-display: block; src: url('./assets/fonts/CourierPrime-Regular.ttf') format('truetype'); }
+@font-face { font-family: 'Courier Prime'; font-style: normal; font-weight: 700; font-display: block; src: url('./assets/fonts/CourierPrime-Bold.ttf') format('truetype'); }
+@font-face { font-family: 'Courier Prime'; font-style: italic; font-weight: 400; font-display: block; src: url('./assets/fonts/CourierPrime-Italic.ttf') format('truetype'); }
+@font-face { font-family: 'Courier Prime'; font-style: italic; font-weight: 700; font-display: block; src: url('./assets/fonts/CourierPrime-BoldItalic.ttf') format('truetype'); }
+
 :root {
   --ui-font: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
 

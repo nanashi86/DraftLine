@@ -4,7 +4,7 @@ import { hasNote } from '../lib/editorialNotes.js';
 import { linePxFor } from '../lib/zoom.js';
 import { lockedKeyAction } from '../lib/lock.js';
 import { revealAndPulse } from '../lib/reveal.js';
-import { measureTextarea } from '../lib/measure.js';
+import { measureTextarea, remeasureTextareas } from '../lib/measure.js';
 import { backspaceAt, backspaceStepBack, deleteAt } from '../lib/editing.js';
 import {
   ELEMENT_META,
@@ -474,6 +474,35 @@ export default function Editor({
   });
 
   useLayoutEffect(() => syncFormat());
+
+  // Fonts that arrive after the first layout (Courier Prime from the network on a cold start) change
+  // how lines wrap — a full 60-character line fits in Courier Prime but not in the fallback Courier
+  // New — so every line is measured again once they've loaded. Without this a slow font left
+  // paragraphs a line too tall: blank space under them, extra Density flags and an extra page.
+  useEffect(() => {
+    const fonts = typeof document !== 'undefined' ? document.fonts : null;
+    if (!fonts) return undefined;
+    let live = true;
+    const remeasure = () => {
+      const lines = live && sheetRef.current?.querySelectorAll('textarea.el-input');
+      if (!lines?.length) return;
+      if (!lines[0].offsetParent) { // hidden (Board view): measured when shown
+        lines.forEach((el) => { el.dataset.stale = '1'; });
+        return;
+      }
+      remeasureTextareas(lines); // one layout for every line; the ResizeObserver reports any change
+    };
+    // Only the script font matters here: the title-page and UI fonts don't change script lines.
+    const onDone = (e) => {
+      if (!e?.fontfaces || e.fontfaces.some((f) => /Courier/i.test(f.family))) remeasure();
+    };
+    fonts.ready.then(remeasure, () => {});
+    fonts.addEventListener?.('loadingdone', onDone);
+    return () => {
+      live = false;
+      fonts.removeEventListener?.('loadingdone', onDone);
+    };
+  }, []);
 
   // Textareas edited while hidden (e.g. via the Dialogue panel in Board view) measure on return.
   useLayoutEffect(() => {

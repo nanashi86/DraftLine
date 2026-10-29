@@ -11,7 +11,7 @@ import { readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { join } from 'node:path';
 
-export const CORE_FONTS_CSS = 'https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400;1,700&family=Inter:wght@400;500;600;700;800&display=swap';
+export const CORE_FONTS_CSS = 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap'; // Courier Prime is precached with the build
 
 /** r2: the edge-to-edge maskable icon (icon-maskable-512.png) and manifest icon purposes.
  *  r3: every icon redrawn with the D optically centred (Oct 2026). */

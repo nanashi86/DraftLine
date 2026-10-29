@@ -7,6 +7,9 @@ const root = new URL('../', import.meta.url);
 const read = (p) => readFileSync(new URL(p, root), 'utf8');
 const html = read('index.html');
 const links = [...html.matchAll(/href="(https:\/\/fonts\.googleapis\.com\/css2\?[^"]+)"/g)].map((m) => m[1]);
+// Courier Prime ships with DraftLine (src/index.css @font-face, all four styles) instead of Google Fonts.
+const indexCss = read('src/index.css');
+const SELF_HOSTED = ['Courier Prime'];
 const familiesIn = (url) => [...url.matchAll(/family=([^:&]+)/g)].map((m) => decodeURIComponent(m[1].replace(/\+/g, ' ')));
 const primary = (f) => f.family.match(/'([^']+)'/)[1];
 
@@ -33,22 +36,30 @@ describe('title fonts', () => {
     assert.equal(primary(TITLE_FONTS.find((f) => f.label === 'Playwrite USA Modern')), 'Playwrite US Modern');
   });
   it('every title font is loaded by index.html, exactly once', () => {
-    const loaded = links.flatMap(familiesIn);
+    const loaded = [...links.flatMap(familiesIn), ...SELF_HOSTED];
     for (const f of TITLE_FONTS) assert.ok(loaded.includes(primary(f)), primary(f));
+    for (const fam of SELF_HOSTED) assert.ok(!links.flatMap(familiesIn).includes(fam), `${fam} isn’t also fetched from Google Fonts`);
     const fams = [...new Set(links)].flatMap(familiesIn); // the <noscript> copy repeats the same link
     assert.equal(new Set(fams).size, fams.length, 'no family requested twice');
   });
   it('asks for a bold weight only where the font has one (Bold is disabled otherwise)', () => {
     const all = `${links.join('&')}&`;
     for (const f of TITLE_FONTS.filter((x) => x.bold)) {
+      if (SELF_HOSTED.includes(primary(f))) {
+        assert.match(indexCss, new RegExp(`font-family: '${primary(f)}'; font-style: normal; font-weight: ${f.bold};`), `${f.label} ships weight ${f.bold}`);
+        continue;
+      }
       const spec = all.match(new RegExp(`family=${primary(f).replace(/ /g, '\\+')}(:[^&]*)?&`));
       assert.ok(spec?.[1]?.includes(String(f.bold)), `${f.label} loads weight ${f.bold}`);
     }
     assert.equal(titleTypography({ titleFont: 'anta', titleBold: true }).bold, false);
     assert.equal(titleTypography({ titleFont: 'google-sans', titleBold: true }).bold, true);
   });
-  it('title fonts load without blocking the first paint; Courier Prime and Inter load first', () => {
-    assert.match(html, /css2\?family=Courier\+Prime[^"]*&family=Inter[^"]*"\s+rel="stylesheet"\s*\/>/);
+  it('title fonts load without blocking the first paint; Inter loads first; Courier Prime ships with the app', () => {
+    assert.match(html, /css2\?family=Inter[^"]*"\s+rel="stylesheet"\s*\/>/);
+    for (const [style, weight, file] of [['normal', 400, 'Regular'], ['normal', 700, 'Bold'], ['italic', 400, 'Italic'], ['italic', 700, 'BoldItalic']]) {
+      assert.match(indexCss, new RegExp(`font-family: 'Courier Prime'; font-style: ${style}; font-weight: ${weight}; font-display: block; src: url\\('\\./assets/fonts/CourierPrime-${file}\\.ttf'\\)`));
+    }
     assert.match(html, /Asimovian[^"]*"\s+rel="stylesheet"\s+media="print"\s+onload="this\.media='all'"/);
     assert.match(html, /<link rel="preconnect" href="https:\/\/fonts\.gstatic\.com" crossorigin \/>/);
   });
