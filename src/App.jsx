@@ -86,8 +86,14 @@ import BrandMark from './components/BrandMark.jsx';
 import { MILESTONES, MILESTONE_TOAST_MS, finishedSentence, milestonesReached } from './lib/milestones.js';
 import BackupToast from './components/BackupToast.jsx';
 import {
-  BACKUP_TOAST_DISMISSED_KEY, BACKUP_TOAST_SESSION_KEY, readFlag, shouldShowBackupToast, writeFlag,
+  BACKUP_TOAST_DISMISSED_KEY, BACKUP_TOAST_SESSION_KEY, backupToastCopy, browserFamily, readFlag, readLastBackups, recordBackup,
+  shouldShowBackupToast, writeFlag,
 } from './lib/backupToast.js';
+import { requestPersistence } from './lib/storagePersist.js';
+
+// Which browser this is, for the backup tip's wording and the protected-storage request (lib/backupToast.js).
+const BROWSER_FAMILY = browserFamily(globalThis.navigator?.userAgent || '', { maxTouchPoints: globalThis.navigator?.maxTouchPoints || 0 });
+const RUNNING_STANDALONE = !!(globalThis.navigator?.standalone || globalThis.matchMedia?.('(display-mode: standalone)').matches);
 import { createNoirAudio } from './lib/noirAudio.js';
 import { NOIR_CLASS, NOIR_COMBO, noirGenrePicked, noirKeyAction } from './lib/noir.js';
 import {
@@ -661,6 +667,16 @@ function Workspace({ boot }) {
     if (forever) writeFlag(globalThis.localStorage, BACKUP_TOAST_DISMISSED_KEY);
     setBackupTipClosed((c) => ({ session: true, forever: c.forever || forever }));
   };
+  // When each project was last backed up (.draftline), for the Backup Project version of the tip.
+  const [lastBackups, setLastBackups] = useState(() => readLastBackups(globalThis.localStorage));
+  // Protected storage (lib/storagePersist.js): asked quietly after the first save with words in it,
+  // once per session until the browser agrees. Firefox is asked from Backup Project instead.
+  const persistAsked = useRef(false);
+  useEffect(() => {
+    if (persistAsked.current || !saved.ok || !saved.at || analysis.words === 0) return;
+    persistAsked.current = true;
+    requestPersistence({ family: BROWSER_FAMILY });
+  }, [saved.ok, saved.at, analysis.words]);
   // Projects: the browser library plus scripts found only in the synced folder (newest copy wins),
   // with browser scripts whose file has gone from the folder marked "File missing on disk".
   const libraryRef = useRef([]);
@@ -987,10 +1003,13 @@ function Workspace({ boot }) {
     const name = backupFileName(rec.title);
     download(name, serializeBackup(rec, { actMode, dictionary: dictOverrides, appVersion: pkg.version }), BACKUP_MIME);
     showExportToast(name);
+    setLastBackups((cur) => recordBackup(globalThis.localStorage, rec.id, Date.now(), cur));
   };
 
   /** Back up the open project: saved first, so the file matches what's on screen. */
   const backupProject = async () => {
+    // Firefox asks for protected storage with a permission bar, so it's asked here, on a click.
+    requestPersistence({ family: BROWSER_FAMILY, fromClick: true, local: globalThis.localStorage });
     const s = latest.current;
     const live = {
       id: s.projectId, meta: s.meta, blocks: s.blocks, beats: s.beats, characters: s.characters,
@@ -2542,11 +2561,15 @@ function Workspace({ boot }) {
           dismissedForever: backupTipClosed.forever,
           dismissedSession: backupTipClosed.session,
           busy: !!(milestone || exportToast || focusMode), // the corner is taken, or you're in Focus: later
+          lastBackupAt: lastBackups[projectId] ?? null,
+          savedAt: saved.at ?? null,
         }) && (
           <BackupToast
-            onLink={() => {
+            copy={backupToastCopy({ supported: sync.supported, family: BROWSER_FAMILY, standalone: RUNNING_STANDALONE })}
+            onAction={() => {
               closeBackupTip();
-              openStorage('folder');
+              if (sync.supported) openStorage('folder');
+              else backupProject();
             }}
             onDismiss={() => closeBackupTip()}
             onNever={() => closeBackupTip(true)}
