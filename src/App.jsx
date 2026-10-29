@@ -1905,6 +1905,7 @@ function Workspace({ boot }) {
 
   // The header's File ▾ menu (lib/toolbar.js fileMenuItems): Script · Export · Backup.
   const fileItems = () => fileMenuItems({
+    onProjects: () => setDrawerOpen(true),
     onNew: () => newScript(),
     onOpen: () => fileInputRef.current?.click(),
     onImport: () => setImportSeed({ text: '', name: '' }),
@@ -1989,11 +1990,11 @@ function Workspace({ boot }) {
                   type="button"
                   className="doc-switch-btn"
                   onClick={() => setDrawerOpen((o) => !o)}
-                  title="Switch Project (Alt+P)"
-                  aria-label="Switch Project"
+                  title="Projects (Alt+P)"
+                  aria-label="Projects"
                   aria-expanded={drawerOpen}
                 >
-                  <svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path d="M1.5 3.5 5 7l3.5-3.5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                  <svg width="12" height="12" viewBox="0 0 10 10" aria-hidden="true"><path d="M1.5 3.5 5 7l3.5-3.5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg>
                 </button>
               </div>
               <span className="doc-by">by</span>

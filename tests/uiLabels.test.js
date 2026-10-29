@@ -65,13 +65,14 @@ describe('toolbar: File ▾ holds Print; panels stay visible on laptops', () => 
   const app = readFileSync(join(root, 'App.jsx'), 'utf8');
   const css = readFileSync(join(root, 'App.css'), 'utf8');
 
-  it('File ▾ has Script, Export and Backup sections, in that order', () => {
+  it('File ▾ has Projects…, then Script, Export and Backup sections, in that order', () => {
     const calls = [];
     const h = new Proxy({}, { get: (_, k) => (k === 'snapshotCount' ? 2 : () => calls.push(k)) });
     const items = fileMenuItems(h);
     const shape = items.map((it) => (it.divider ? '---' : it.heading ? `# ${it.heading}`
       : `${it.label}${it.hint ? ` [${it.hint}]` : ''}${it.ext ? ` {${it.ext}}` : ''}`));
     assert.deepEqual(shape, [
+      'Projects… [Alt+P]', '---',
       '# Script', 'New… [Ctrl+Alt+N]', 'Open… [Ctrl+O]', 'Import… [Word · Docs · PDF]', 'Sample… [The Last Ferry]',
       'Edit Title…', '---',
       '# Export Script', 'PDF {.pdf}', 'Final Draft {.fdx}', 'Fountain {.fountain}', 'Print Script… [Ctrl+P]', '---',
@@ -80,9 +81,11 @@ describe('toolbar: File ▾ holds Print; panels stay visible on laptops', () => 
       '# Backup', 'Backup Project {.draftline}', 'Snapshot History [2]',
     ]);
     items.filter((i) => i.onSelect).forEach((i) => i.onSelect());
-    assert.deepEqual(calls, ['onNew', 'onOpen', 'onImport', 'onSample', 'onTitlePage', 'onCompiledPdf', 'onFdx', 'onFountain', 'onPrint', 'onBible', 'onBreakdownCsv', 'onOutlineCsv', 'onOutlineMd',
+    assert.deepEqual(calls, ['onProjects', 'onNew', 'onOpen', 'onImport', 'onSample', 'onTitlePage', 'onCompiledPdf', 'onFdx', 'onFountain', 'onPrint', 'onBible', 'onBreakdownCsv', 'onOutlineCsv', 'onOutlineMd',
       'onOutlineFountain', 'onBackup', 'onSnapshots']);
     assert.match(app, /onPrint: printScript,/);
+    assert.match(app, /onProjects: \(\) => setDrawerOpen\(true\),/, 'Projects… opens the same panel as the ▾');
+    assert.equal(fileMenuItems({})[0].heading, 'Script', 'no Projects… without a handler');
     assert.match(app, /onBreakdownCsv: exportBreakdown, \/\/ the same \.csv as Plan's Export Breakdown\s*hasScenes: scenes\.length > 0,/);
     assert.match(app, /onClick=\{exportBreakdown\}/, 'the Plan button runs the same export');
     const none = fileMenuItems({ onBreakdownCsv() {}, hasScenes: false }).find((i) => i.label === 'Scene Breakdown');

@@ -74,21 +74,27 @@
   display: inline-flex;
   min-width: 0;
   align-items: center;
+  margin-right: 8px; /* clearance before "by Author", resting or outlined */
+  border: 1px solid transparent;
   border-radius: 6px;
-  transition: background 120ms ease;
+  transition: background 120ms ease, border-color 120ms ease;
 }
+/* Title + ▾ read as one control: one outline around both on hover, while editing, and while Projects is open. */
 .doc-switch:hover,
-.doc-switch.is-open { background: var(--field); }
+.doc-switch:focus-within,
+.doc-switch.is-open { background: var(--field); border-color: var(--line-soft); }
 .doc-switch-btn {
   display: grid;
   place-items: center;
-  width: 22px;
+  flex: none;
+  width: 28px;
   height: 26px;
   padding: 0;
   border: 0;
-  border-radius: 0 6px 6px 0;
+  border-left: 1px solid var(--line-soft); /* hairline between the title and the ▾ */
+  border-radius: 0 5px 5px 0;
   background: transparent;
-  color: var(--muted);
+  color: color-mix(in srgb, var(--muted) 45%, var(--text));
   cursor: pointer;
 }
 .doc-switch-btn:hover,

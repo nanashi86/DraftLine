@@ -266,7 +266,7 @@ and travel inside .draftline backups.
 
 Every script lives in a secure local project library. Choose between **App Storage (Zero Setup)**, which saves
 automatically inside DraftLine on this device, or **Linked Folder (File Backup)** to save `.draftline` files directly
-into a folder on your computer, including locally synced Google Drive, Dropbox or OneDrive folders. Click the title's **▾** or the **D** logo (or press **Alt+P**) to open the
+into a folder on your computer, including locally synced Google Drive, Dropbox or OneDrive folders. Click the title's **▾**, choose **File ▾ → Projects…**, or press **Alt+P** to open the
 **Projects** drawer:
 
 - Each card shows the title, author, page and scene counts and when it was last edited; the open script is marked

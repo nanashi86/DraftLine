@@ -57,6 +57,16 @@ describe('Top bar: three zones that can’t collide', () => {
     assert.match(t, /width: 100%;\s*min-width: 0;\s*overflow: hidden;\s*text-overflow: ellipsis;\s*white-space: nowrap;/);
     assert.match(rule('.doc-author'), /max-width: 120px;\s*overflow: hidden;\s*text-overflow: ellipsis;/);
   });
+  it('title + ▾ read as one Projects control: 28px ▾ behind a hairline, one outline, clearance before "by"', () => {
+    const sw = rule('.doc-switch');
+    assert.match(sw, /margin-right: 8px;/);
+    assert.match(sw, /border: 1px solid transparent;/);
+    assert.match(css, /\.doc-switch:hover,\n\.doc-switch:focus-within,\n\.doc-switch\.is-open \{ background: var\(--field\); border-color: var\(--line-soft\); \}/);
+    const btn = rule('.doc-switch-btn');
+    assert.match(btn, /width: 28px;/);
+    assert.match(btn, /border-left: 1px solid var\(--line-soft\);/);
+    assert.match(header, /title="Projects \(Alt\+P\)"\s*aria-label="Projects"/);
+  });
   it('the bar is never a hidden sideways scroller, and nothing in it is absolutely positioned', () => {
     assert.ok(!/\.bar \{[^}]*overflow-x/.test(css), 'no overflow-x on .bar at any width');
     for (const sel of ['.bar', '.bar-zone', '.zone-left', '.zone-middle', '.zone-middle-tools', '.zone-right', '.brand', '.doc-meta', '.doc-switch', '.bar-group']) {

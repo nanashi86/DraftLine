@@ -56,9 +56,14 @@ export function moreMenuItems({
  */
 export function fileMenuItems({
   onNew, onOpen, onImport, onSample, onTitlePage, onPrint, onCompiledPdf, onBible, onFountain, onFdx, onBreakdownCsv, onOutlineCsv, onOutlineMd,
-  onOutlineFountain, onBackup, onSnapshots, snapshotCount = 0, hasScenes = true,
+  onOutlineFountain, onBackup, onSnapshots, snapshotCount = 0, hasScenes = true, onProjects,
 }) {
   return [
+    // Projects… first: the same panel as the ▾ beside the title (Alt+P).
+    ...(onProjects ? [
+      { label: 'Projects…', hint: 'Alt+P', onSelect: onProjects, title: 'All your scripts, and where they’re saved' },
+      { divider: true },
+    ] : []),
     { heading: 'Script' },
     { label: 'New…', hint: 'Ctrl+Alt+N', onSelect: onNew, title: 'Start a new script (your others stay in Projects)' },
     { label: 'Open…', hint: 'Ctrl+O', onSelect: onOpen, title: 'Open a .fountain, .fdx, .docx, .txt or .draftline file' },
