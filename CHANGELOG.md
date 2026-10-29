@@ -30,6 +30,7 @@ All notable changes to DraftLine are recorded here. The format follows [Keep a C
 
 ### Changed
 
+- The title in the top bar now sizes to its actual text, from 120px up to 512px on wide screens (448px under 1024px, 320px under 768px, unchanged on phones), so medium titles like "THE MIDNIGHT COURIER" show in full. When the bar is short of room the title shortens with "…" before any toolbar control is clipped.
 - The status bar's save indicator has three states, named like Storage Destination: **App Storage Only** (hollow muted circle; click to link a folder), **Click to resume folder sync** (amber circle; click for the browser's permission prompt) and **Linked Folder Synced** (green dot). Saving no longer swaps the words for "Saving…": the dot pulses instead. "Not saved" and "Folder sync paused" still show when a save fails.
 - File ▾: **Export Outline & Bible** is now **Export Planning & Production**, with **Scene Breakdown** (.csv) above Spreadsheet Outline: the same file as Plan's Export Breakdown, available from Write too. Plan's button now reads **Export Breakdown** (**Export** when narrow).
 - Spreadsheet Outline (.csv): a card not linked to a scene takes its Scene Number from its title ("13. INT. …") or its place in the outline, and Heading drops the "13. " prefix (a title like "1986 coup" is left alone).

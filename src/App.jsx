@@ -1974,14 +1974,17 @@ function Workspace({ boot }) {
             </button>
             <div className={`doc-meta${authorCramped ? ' is-cramped' : ''}`}>
               <div className={`doc-switch${drawerOpen ? ' is-open' : ''}`}>
-                <input
-                  className="doc-title"
-                  style={{ width: `calc(${Math.max(6, meta.title.length)} * 0.6em + 14px)` }}
-                  value={meta.title}
-                  onChange={(e) => setMeta((m) => ({ ...m, title: e.target.value }))}
-                  placeholder="Untitled"
-                  aria-label="Script title"
-                />
+                {/* The wrapper sizes the field to its text (the hidden ::after copy), within its limits. */}
+                <span className="doc-title-wrap" data-value={meta.title || 'Untitled'}>
+                  <input
+                    className="doc-title"
+                    size={1}
+                    value={meta.title}
+                    onChange={(e) => setMeta((m) => ({ ...m, title: e.target.value }))}
+                    placeholder="Untitled"
+                    aria-label="Script title"
+                  />
+                </span>
                 <button
                   type="button"
                   className="doc-switch-btn"

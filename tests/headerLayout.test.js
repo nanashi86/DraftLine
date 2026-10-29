@@ -30,7 +30,7 @@ describe('Top bar: three zones that can’t collide', () => {
     assert.match(right, /className="bar-group bar-right"/);
   });
   it('left and right never shrink; the middle takes what’s left and clips instead of overlapping', () => {
-    assert.match(rule('.zone-left'), /flex: 0 0 auto;.*position: relative; z-index: 20;/);
+    assert.match(rule('.zone-left'), /flex: 0 1000 auto;.*position: relative; z-index: 20;/); // the title gives way first
     assert.match(rule('.zone-right'), /flex: 0 0 auto;/);
     assert.match(rule('.zone-middle'), /flex: 1 1 auto;/);
     const tools = rule('.zone-middle-tools');
@@ -44,10 +44,17 @@ describe('Top bar: three zones that can’t collide', () => {
     assert.match(brand, /position: relative;/);
     assert.match(brand, /z-index: 30;/);
   });
-  it('long titles end in "…" at no more than 200px, so they can’t push into File / New', () => {
+  it('the title grows with its text (120px to 512px, 448px under 1024px, 320px under 768px), then ends in "…"', () => {
+    const wrap = rule('.doc-title-wrap');
+    assert.match(wrap, /display: inline-grid;\s*grid-template-columns: minmax\(0, 1fr\);\s*flex: 0 1 auto;\s*min-width: 120px;\s*max-width: 512px;/);
+    assert.match(rule('.doc-title-wrap::after'), /content: attr\(data-value\);[^}]*visibility: hidden;\s*white-space: pre;/);
+    assert.match(media('1023.98'), /\.doc-title-wrap \{ max-width: 448px; \}/);
+    assert.match(media('767.98'), /\.doc-title-wrap \{ max-width: 320px; \}/);
+    assert.match(media('639.98'), /\.doc-title-wrap \{ min-width: 6ch; max-width: 110px; \}/);
+    assert.match(header, /<span className="doc-title-wrap" data-value=\{meta\.title \|\| 'Untitled'\}>/);
+    assert.doesNotMatch(header, /0\.6em/, 'no width guessed from the character count');
     const t = rule('.doc-title');
-    assert.match(t, /max-width: clamp\(120px, 10vw, 200px\);/);
-    assert.match(t, /overflow: hidden;\s*text-overflow: ellipsis;\s*white-space: nowrap;/);
+    assert.match(t, /width: 100%;\s*min-width: 0;\s*overflow: hidden;\s*text-overflow: ellipsis;\s*white-space: nowrap;/);
     assert.match(rule('.doc-author'), /max-width: 120px;\s*overflow: hidden;\s*text-overflow: ellipsis;/);
   });
   it('the bar is never a hidden sideways scroller, and nothing in it is absolutely positioned', () => {

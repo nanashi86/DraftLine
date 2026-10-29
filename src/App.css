@@ -25,7 +25,7 @@
    clips, so when room runs out it loses its tail — it never slides under or over a neighbour. The
    breakpoints below collapse things (File ▾, panels into ⋮) well before that happens. */
 .bar-zone { display: flex; align-items: center; gap: 22px; min-width: 0; }
-.zone-left { flex: 0 0 auto; gap: 8px; position: relative; z-index: 20; }
+.zone-left { flex: 0 1000 auto; gap: 8px; position: relative; z-index: 20; } /* short of room, the title gives way before the tools */
 .zone-middle { flex: 1 1 auto; }
 .zone-middle-tools {
   display: flex;
@@ -72,6 +72,7 @@
 /* Title + ▾ : the project switcher */
 .doc-switch {
   display: inline-flex;
+  min-width: 0;
   align-items: center;
   border-radius: 6px;
   transition: background 120ms ease;
@@ -138,9 +139,30 @@
 }
 .doc-author:hover { border-color: var(--line-soft); }
 .doc-author:focus { border-color: var(--accent); outline: none; background: var(--field); color: var(--text); }
+/* The title field grows with its text: 120px at least, up to 512px on wide screens (448px under
+   1024px, 320px under 768px, less on phones), and gives way when the bar is short of room. Past
+   that it ends in "…". The hidden ::after copy of the text sets the width. */
+.doc-title-wrap {
+  display: inline-grid;
+  grid-template-columns: minmax(0, 1fr);
+  flex: 0 1 auto;
+  min-width: 120px;
+  max-width: 512px;
+}
+.doc-title-wrap::after {
+  content: attr(data-value);
+  grid-area: 1 / 1;
+  height: 0;
+  overflow: hidden;
+  visibility: hidden;
+  white-space: pre;
+  padding: 0 8px; /* the field's 6px padding + 1px border each side, and room for the caret */
+  font-weight: 600;
+}
 .doc-title {
-  min-width: 6ch;
-  max-width: clamp(120px, 10vw, 200px); /* 200px on wide screens, less as the bar tightens */
+  grid-area: 1 / 1;
+  width: 100%;
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -759,6 +781,7 @@
 }
 @media (max-width: 1023.98px) {
   .bar-right > .btn-accent { display: none; }      /* Characters → ⋮ (still Alt+C) */
+  .doc-title-wrap { max-width: 448px; }
   .bar, .bar-zone, .zone-middle-tools { gap: 10px; }
   .bar { padding: 0 10px; }
 }
@@ -772,23 +795,23 @@
   .plan-seg .seg-btn { padding: 4px 8px; }
   .ws-btn { padding: 0 9px; }
   .type-select { display: none; }                  /* element type stays on Alt+1…8 and Tab */
-  .doc-title { max-width: 120px; }
   .seg-btn { padding: 4px 7px; }
 }
 @media (max-width: 767.98px) {
+  .doc-title-wrap { max-width: 320px; }
   .bar-right > .btn-snapshot { display: none; }    /* ⋮ → View Snapshots */
   .view-seg .seg-label { display: none; }          /* Page | Split | Board: icons (names on hover), like Plan's */
   .view-seg .seg-btn { padding: 4px 8px; }
 }
 @media (max-width: 639.98px) {
   .bar-right > .btn-plan-export { display: none; } /* ⋮ → Export Breakdown */
-  .doc-title { max-width: 110px; }
+  .doc-title-wrap { min-width: 6ch; max-width: 110px; }
 }
 @media (max-width: 559.98px) {
   .zone-left > .btn-icon { display: none; }        /* the scene list stays on Alt+S */
   .plan-seg .seg-btn { padding: 4px 6px; }
   .ws-switch { margin-left: 4px; }
-  .doc-title { max-width: 90px; }
+  .doc-title-wrap { max-width: 90px; }
   .bar, .bar-zone, .zone-middle-tools { gap: 6px; }
   .bar { padding: 0 8px; }
 }
@@ -798,7 +821,7 @@
 }
 @media (max-width: 374.98px) {
   .zone-left > .btn-icon { display: none; }        /* the scene list stays on Alt+S */
-  .doc-title { max-width: 72px; }
+  .doc-title-wrap { max-width: 72px; }
 }
 
 /* ---- Writing milestones: a discreet corner toast, 3.5 s (lib/milestones.js) ---- */
