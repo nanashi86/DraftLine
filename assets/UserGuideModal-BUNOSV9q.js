@@ -1,4 +1,4 @@
-import{i as e,t}from"./react-DgawKyfb.js";import{C as n,D as r,E as i,Ft as a,Nt as o,O as s,Pt as c,Rt as l,Tt as u,_t as d,a as f,at as ee,bt as p,ct as m,dt as h,gt as g,i as _,it as v,l as te,lt as y,mt as b,n as x,nt as S,o as ne,r as re,rt as C,st as ie,tt as ae,u as oe,ut as se,vt as w,w as T,xt as E,yt as D}from"./index-CCKecPEN.js";import{r as O,t as k}from"./printTitle-C1qWomuv.js";/* empty css                  */var A=e(),j=`# DraftLine User Guide
+import{i as e,t}from"./react-DgawKyfb.js";import{C as n,D as r,E as i,Ft as a,Nt as o,O as s,Pt as c,Rt as l,Tt as u,_t as d,a as f,at as ee,bt as p,ct as m,dt as h,gt as g,i as _,it as v,l as te,lt as y,mt as b,n as x,nt as S,o as ne,r as re,rt as C,st as ie,tt as ae,u as oe,ut as se,vt as w,w as T,xt as E,yt as D}from"./index-BN6PxE0H.js";import{r as O,t as k}from"./printTitle-C1qWomuv.js";/* empty css                  */var A=e(),j=`# DraftLine User Guide
 
 DraftLine is a distraction-free screenwriting app that runs in your browser. It writes in Courier Prime at 12 pt with standard screenplay margins, saves as you type, and works offline. This guide covers everything from your first scene heading to the final PDF.
 
@@ -41,12 +41,17 @@ From then on, every save goes to the browser first (instant and offline-safe) an
 - **Scripts from the folder** appear in Projects. One marked **In folder** isn't in this browser yet; open it to bring it in. One marked **Newer in folder** was changed on another computer; opening it loads that newer copy.
 - **After a browser restart**, the browser may ask again before DraftLine can write to the folder. The status bar then says **Click to resume folder sync**, beside an amber circle. One click brings up the browser's own prompt: choose **Allow** (or **Allow on every visit**) and syncing resumes.
 - **If the folder can't be written** (an unplugged drive, for example), your work is still safe in the browser and the status bar says **Folder sync paused**.
-- **A reminder at 10 pages:** once a script reaches 10 pages (or 5,000 words) and it's saved only in this browser, a small card in the bottom-right corner suggests linking a folder. **Link Folder** opens Projects on the Linked Folder card, **Dismiss** or ✕ hides it for this session, and **Don't show again** hides it for good. It never blocks typing, and it doesn't appear in Focus mode or in browsers that can't link a folder.
+- **A reminder at 10 pages:** once a script reaches 10 pages (or 5,000 words) and it's saved only in this browser, a small card in the bottom-right corner suggests linking a folder. **Link Folder** opens Projects on the Linked Folder card, **Dismiss** or ✕ hides it for this session, and **Don't show again** hides it for good. It never blocks typing, and it doesn't appear in Focus mode.
 - **Change Folder…** links a different folder. **Disconnect** stops syncing and leaves the files where they are. Choosing **App Storage (Zero Setup)** pauses syncing but remembers the folder.
 - **Deleting a script** in DraftLine also takes its file out of the linked folder, so it doesn't come back. The file isn't erased: it's moved into a **Trash** folder inside the linked folder, renamed with the date it was deleted, so you can recover it there. If it can't be moved, DraftLine leaves it where it is and asks whether to delete it permanently.
 - **Two computers, one script:** the most recent save wins. DraftLine doesn't merge edits made on two computers at the same time.
 
-Safari, Firefox and phone browsers can't link folders. There, DraftLine uses browser storage only; use backups to move scripts.
+Safari, Firefox and phone browsers can't link folders. There, DraftLine uses browser storage only, so keep a backup file now and then (**File → Backup Project**, reopened with **File → Open**):
+
+- **The same reminder at 10 pages** offers **Backup Project** instead of Link Folder. After a backup it stays away until you've written in that script 7 or more days later; any Backup Project, from the reminder or the File menu, resets it. **Don't show again** hides it for good.
+- **In Safari**, it adds one line: on a Mac, add DraftLine to your Dock (File → Add to Dock); on iPad or iPhone, to your Home Screen (Share → Add to Home Screen). Safari clears data from sites you haven't visited in about a week, but not from apps opened that way. The line disappears once you open DraftLine from there.
+
+**Protected storage.** DraftLine also asks the browser not to clear your scripts to free up space. Chrome, Edge and Safari decide quietly, with no prompt; Firefox shows its own Allow / Block bar the first time you choose Backup Project. ⋮ → About DraftLine shows the answer on its **Protected** line. Clearing your browsing history or site data still deletes everything, in every browser, which is why a linked folder or a backup file matters.
 
 ### Snapshots
 
