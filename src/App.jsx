@@ -13,7 +13,7 @@ import { ChartColumn, Clapperboard, Columns2, FileText, LayoutList, PenLine, Row
 import { addAsset, removeAsset, setSceneNotes } from './lib/productionData.js';
 import { csvOutlineFileName, outlineCsv } from './lib/exportCsvOutline.js';
 import FormatStepper from './components/FormatStepper.jsx';
-import { applyFixes, auditScript, canFix } from './lib/formatDoctor.js';
+import { applyFixes, auditScript, canFix, canFixAll } from './lib/formatDoctor.js';
 import TitlePageSheet from './components/TitlePageSheet.jsx';
 import PrintView from './components/PrintView.jsx';
 import Menu from './components/Menu.jsx';
@@ -787,7 +787,8 @@ function Workspace({ boot }) {
     setDoctorTip(false);
   }, []);
   const fixIssues = useCallback((all, { bulk = false } = {}) => {
-    const list = all.filter((it) => canFix(it.kind)); // e.g. a heading missing its time of day: yours to write
+    // A row's Fix: anything with a fix. Fix All: only fixes that are safe unseen ("Add - DAY" may be wrong).
+    const list = all.filter((it) => (bulk ? canFixAll : canFix)(it.kind));
     if (!list.length) return;
     if (bulk) autoSnapshotRef.current('Fix All', { force: true }); // Fix All: the script as it was, first
     const next = applyFixes(blocks, list);

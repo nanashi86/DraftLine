@@ -149,8 +149,11 @@ When the Format Doctor finds nothing at all (findings you've ignored count as un
 ### What the Format Doctor checks
 
 - Elements that are probably tagged wrong: a scene heading or a character cue typed as Action, dialogue with no character above it, empty elements.
-- A character cue with no dialogue under it, or a parenthetical with no dialogue after it.
-- Scene headings: case, periods and dashes are fixed for you (`int kitchen–night` becomes `INT. KITCHEN - NIGHT`). A heading with no INT. / EXT. or no time of day is flagged for you to complete. `INT./EXT.`, `INT/EXT.` and `I/E.` are all accepted, and a time of day still counts with more after it (`- NIGHT - BACK TO SCENE`, `- NEXT DAY`, `- NIGHT (FLASHBACK)`).
+- A character cue with no dialogue under it.
+- **Dangling parenthetical**: a parenthetical with no dialogue right after it. **Make Action** turns it into Action without its parentheses ("(beat)" becomes "beat").
+- **Unclosed parenthetical**: one not wrapped in ( ) ("beat", "(beat"). **Wrap** adds what's missing and keeps bold or italic on the words.
+- **Consecutive character cue**: the same speaker twice in a row with nothing between them, one speech split in two. **Merge** removes the second cue and joins the lines. A cue that already says (CONT'D), or has a different extension ("THEO" then "THEO (V.O.)"), counts as deliberate, and so does dual dialogue. A speaker who returns after a line of Action isn't flagged, with or without (CONT'D).
+- Scene headings: case, periods and dashes are fixed for you (`int kitchen–night` becomes `INT. KITCHEN - NIGHT`). A heading with INT. / EXT. but no time of day shows **Missing time of day**: **Add DAY** on that row adds " - DAY", or write the right one yourself. Fix All never adds it, since the scene may be at night. A heading with no INT. / EXT. is flagged for you to complete. `INT./EXT.`, `INT/EXT.` and `I/E.` are all accepted, and a time of day still counts with more after it (`- NIGHT - BACK TO SCENE`, `- NEXT DAY`, `- NIGHT (FLASHBACK)`).
 - A speaking character whose first mention in the Action isn't in capitals ("Marie" for MARIE). The fix capitalizes it.
 - Double blank lines inside an element, which are stripped.
 - **Leading spaces**: Action that starts with spaces or tabs ("   Dave jumped up."). The fix removes them and keeps any bold or italic on the same words. Only the first line counts: an indented line further down a paragraph (lyrics, a poem, a letter) is left alone. A scene heading with spaces before it is flagged as **Scene heading format**, and its fix removes them too.

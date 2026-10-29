@@ -5,7 +5,7 @@ import {
   END_RE, hasTimeOfDaySuffix, headingParts, isActBreak, timeOfDayPeriod, isFormatCue, isLanguageDirective, isOnScreenText, isSecondarySlugline, isSlugline, isUnprefixedSlugline,
 } from './sluglines.js';
 import { looksLikeCue } from './textScriptParser.js';
-import { concatMarks, remapMarks, sliceMarks, stripInline } from './formatting.js';
+import { concatMarks, remapMarks, shiftMarks, sliceMarks, stripInline } from './formatting.js';
 import { isLeadInAction, newId } from './screenplay.js';
 
 const SPEECH = new Set(['character', 'dialogue', 'parenthetical']);
@@ -24,9 +24,13 @@ export const ISSUE_KINDS = {
   unspaced: { label: 'Unspaced Super/Cue', fix: 'Split out the cue', verb: 'Split' },
   ending: { label: 'Misaligned script ending', fix: 'Center ‘THE END’', verb: 'Center' },
   orphancue: { label: 'Character cue without dialogue', fix: 'Make Action', verb: 'Fix' },
-  orphanparen: { label: 'Parenthetical without dialogue after it', fix: 'Make Action', verb: 'Fix' },
+  orphanparen: { label: 'Dangling parenthetical', fix: 'Make Action', verb: 'Fix' },
+  'unclosed-parenthetical': { label: 'Unclosed parenthetical', fix: 'Wrap in parentheses', verb: 'Wrap' },
+  'duplicate-character-cue': { label: 'Consecutive character cue', fix: 'Merge speeches', verb: 'Merge' },
   slugformat: { label: 'Scene heading format', fix: 'Format heading', verb: 'Format' },
   slugincomplete: { label: 'Scene heading missing INT./EXT. or time of day', fix: null, verb: null },
+  // Has INT./EXT. but no time of day. "- DAY" may be the wrong guess, so only one at a time (bulk: false).
+  'slugline-missing-time': { label: 'Missing time of day', fix: 'Add - DAY', verb: 'Add DAY', bulk: false },
   intro: { label: 'Character introduced in lowercase', fix: 'Capitalize name', verb: 'Fix' },
   spacing: { label: 'Double blank lines', fix: 'Strip blank lines', verb: 'Strip' },
   indent: { label: 'Leading spaces', fix: 'Remove leading spaces', verb: 'Fix' },
@@ -43,8 +47,61 @@ export function findingPreview(it) {
   return it.from === 'scene' ? line.toUpperCase() : line;
 }
 
-/** Kinds the Fix All button (and a row's Fix) can repair. */
+/** Kinds a row's Fix can repair. */
 export const canFix = (kind) => !!ISSUE_KINDS[kind]?.fix;
+/** Kinds Fix All repairs: those with a fix that's safe without looking (not "Add - DAY"). */
+export const canFixAll = (kind) => canFix(kind) && ISSUE_KINDS[kind].bulk !== false;
+
+// ---- Parentheticals -------------------------------------------------------------------------------
+
+/** A parenthetical's text that isn't "(…)" ("beat", "(beat", "beat)"). */
+export const isUnclosedParen = (text) => {
+  const t = stripInline(text || '').trim();
+  return !!t && !(t.startsWith('(') && t.endsWith(')'));
+};
+/** "beat" / "(beat" / " beat) " → "(beat)". */
+export function wrapParenthetical(text) {
+  let t = String(text || '').trim();
+  if (!t.startsWith('(')) t = `(${t}`;
+  if (!t.endsWith(')')) t = `${t})`;
+  return t;
+}
+/** "(beat)" → "beat": a parenthetical's words, as Action. */
+export const unwrapParenthetical = (text) => String(text || '').trim().replace(/^\(\s*/, '').replace(/\s*\)$/, '');
+
+// ---- Scene headings: the time of day ---------------------------------------------------------------
+
+/** "INT. KITCHEN" → "INT. KITCHEN - DAY" (a trailing dash is reused, not doubled). */
+export const addDayToHeading = (text) => `${String(text || '').trim().replace(/\s*[-–—]+$/, '')} - DAY`;
+
+// ---- Consecutive cues ------------------------------------------------------------------------------
+
+/** A cue as compared for "the same speaker again": name and extensions, in capitals, no dual caret. */
+const cueKey = (text) => stripInline(text || '').replace(/^@/, '').replace(/\s*\^\s*$/, '').replace(/\s+/g, ' ').trim().toUpperCase();
+const CONTD = /\(\s*CONT['’]?D\s*\)/i;
+
+/**
+ * The cue of the speech right before cue `i`, when nothing but that speech's dialogue and
+ * parentheticals sits between them; else -1.
+ */
+function previousCueOf(blocks, i) {
+  let k = i - 1;
+  while (k >= 0 && (blocks[k].type === 'dialogue' || blocks[k].type === 'parenthetical')) k -= 1;
+  return k >= 0 && k < i - 1 && blocks[k].type === 'character' ? k : -1;
+}
+
+/**
+ * The same speaker twice in a row, nothing between ("MARIE / Go. / MARIE / Now."): one speech
+ * split in two. Not when the second already says (CONT'D), when the extensions differ ("THEO" then
+ * "THEO (V.O.)"), or in dual dialogue.
+ */
+export function isDuplicateCue(blocks, i) {
+  const b = blocks[i];
+  if (b?.type !== 'character' || b.dual || CONTD.test(b.text)) return false;
+  const p = previousCueOf(blocks, i);
+  if (p < 0 || blocks[p].dual) return false;
+  return cueKey(blocks[p].text) === cueKey(b.text);
+}
 
 // ---- Spec-script hygiene -------------------------------------------------------------------------
 
@@ -286,9 +343,17 @@ export function auditScript(blocks, { skipId = null, ignore = new Set(), layout 
     if (b.type === 'character' && !typing && !(next && (next.type === 'dialogue' || next.type === 'parenthetical'))) {
       if (issue('orphancue', 'action')) return;
     }
-    // A parenthetical inside a speech that no dialogue follows.
+    // A dangling parenthetical: no dialogue right after it.
     if (b.type === 'parenthetical' && !typing && !(next && next.type === 'dialogue')) {
       if (issue('orphanparen', 'action')) return;
+    }
+    // A parenthetical not wrapped in ( ): "beat", "(beat". Not while it's being typed.
+    if (b.type === 'parenthetical' && b.id !== skipId && isUnclosedParen(b.text)) {
+      if (issue('unclosed-parenthetical', 'parenthetical', { fixed: wrapParenthetical(b.text) })) return;
+    }
+    // The same speaker again with nothing between: one speech split in two. Not while typing it.
+    if (b.type === 'character' && !typing && isDuplicateCue(blocks, i)) {
+      if (issue('duplicate-character-cue', null, { merge: true })) return;
     }
 
     // Scene headings: the standard layout first (fixable), then what's missing (yours to add).
@@ -302,7 +367,10 @@ export function auditScript(blocks, { skipId = null, ignore = new Set(), layout 
         if (issue('slugformat', 'scene', { fixed: formatSlugline(b.text) })) return;
       }
       if (!isCompleteSlugline(plain)) {
-        if (issue('slugincomplete', 'scene')) return;
+        // Has INT./EXT. (or I/E., EST.): only the time of day is missing, and "- DAY" can be added.
+        if (isSlugline(plain.trim().toUpperCase())) {
+          if (issue('slugline-missing-time', 'scene', { fixed: addDayToHeading(b.text) })) return;
+        } else if (issue('slugincomplete', 'scene')) return;
       }
     }
 
@@ -372,6 +440,18 @@ function centerEnding(b) {
 }
 
 /** Cue + dialogue → one Action paragraph ("FITO (10)" + "--copper skin…" → "FITO (10)--copper skin…"). */
+/** Two lines of one speaker's dialogue as one: "Go." + "Now." → "Go. Now.", formatting and notes kept. */
+function joinDialogue(a, c) {
+  const head = a.text.replace(/\s+$/, '');
+  const body = c.text.trimStart();
+  const marks = concatMarks(sliceMarks(a.marks, 0, head.length), head.length + 1, sliceMarks(c.marks, c.text.length - body.length));
+  const note = [a.note, c.note].filter((n) => n?.trim()).join('\n');
+  const out = withMarks({ ...a, text: `${head} ${body}` }, marks);
+  if (note) out.note = note;
+  else delete out.note;
+  return out;
+}
+
 function mergeSpeech(cue, d) {
   const sep = NARRATIVE_DASH.test(d.text.trim()) ? '' : '\n';
   const head = cue.text.trim() + sep;
@@ -400,6 +480,37 @@ export function applyFixes(blocks, issues) {
     const it = byId.get(b.id);
     if (!it) {
       out.push(b);
+      continue;
+    }
+    if (it.kind === 'duplicate-character-cue') {
+      // Merge speeches: the repeated cue goes; its first line of dialogue joins the line before it.
+      const last = out[out.length - 1];
+      const nx = blocks[k + 1];
+      if (last?.type === 'dialogue' && nx?.type === 'dialogue' && !byId.has(nx.id)) {
+        out[out.length - 1] = joinDialogue(last, nx);
+        k += 1;
+      }
+      continue;
+    }
+    if (it.kind === 'unclosed-parenthetical') {
+      // Formatting stays on the words: trimmed off the front, moved right one if "(" is added.
+      const text = wrapParenthetical(b.text);
+      const trimmed = b.text.trim();
+      const lead = b.text.length - b.text.trimStart().length;
+      const marks = shiftMarks(sliceMarks(b.marks, lead, lead + trimmed.length), trimmed.startsWith('(') ? 0 : 1);
+      out.push(withMarks({ ...b, text }, marks));
+      continue;
+    }
+    if (it.kind === 'orphanparen') {
+      // Make Action, without the parentheses: "(beat)" → "beat".
+      const text = unwrapParenthetical(b.text);
+      const { dual: _d, ...rest } = b; // eslint-disable-line no-unused-vars
+      out.push(withMarks({ ...rest, type: 'action', text }, remapMarks(b.text, text, b.marks)));
+      continue;
+    }
+    if (it.kind === 'slugline-missing-time') {
+      const text = addDayToHeading(b.text);
+      out.push(withMarks({ ...b, text }, remapMarks(b.text, text, b.marks)));
       continue;
     }
     if (it.to === null) continue; // remove

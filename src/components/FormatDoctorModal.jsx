@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { ELEMENT_META } from '../lib/screenplay.js';
-import { ISSUE_KINDS, canFix, findingPreview } from '../lib/formatDoctor.js';
+import { ISSUE_KINDS, canFix, canFixAll, findingPreview } from '../lib/formatDoctor.js';
 import './FormatDoctorModal.css';
 
 const typeLabel = (t) => (t ? ELEMENT_META[t].label : 'Removed');
@@ -18,7 +18,7 @@ export default function FormatDoctorModal({ issues, pageOfBlock, onFix, onFixAll
   }, []);
 
   const counts = issues.reduce((m, it) => ({ ...m, [it.kind]: (m[it.kind] || 0) + 1 }), {});
-  const fixable = issues.filter((it) => canFix(it.kind)).length;
+  const fixable = issues.filter((it) => canFixAll(it.kind)).length; // what Fix All will do (not "Add - DAY")
 
   return (
     <dialog

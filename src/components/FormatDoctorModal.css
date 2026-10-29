@@ -55,6 +55,11 @@
 .fd-k-slugincomplete { --kc: var(--k-slugline); }
 .fd-k-intro { --kc: var(--k-cue); }
 .fd-k-spacing { --kc: var(--k-empty); }
+.fd-k-indent,
+.fd-k-pagebottom { --kc: var(--k-empty); }
+.fd-k-unclosed-parenthetical { --kc: var(--k-orphan); }
+.fd-k-duplicate-character-cue { --kc: var(--k-cue); }
+.fd-k-slugline-missing-time { --kc: var(--k-slugline); }
 
 .fd-list { flex: 1; min-height: 0; overflow-y: auto; margin: 0; padding: 8px 14px 16px; list-style: none; }
 .fd-clean { display: flex; align-items: center; gap: 10px; padding: 26px 8px; color: var(--muted); font-size: 13.5px; }

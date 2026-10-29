@@ -1,7 +1,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  ISSUE_KINDS, applyFixes, auditScript, canFix, formatSlugline, hasExtraBlankLines, hasTimeOfDayPart, isCompleteSlugline,
+  ISSUE_KINDS, applyFixes, auditScript, canFix, canFixAll, formatSlugline, hasExtraBlankLines, hasTimeOfDayPart, isCompleteSlugline,
   lowercaseIntroductions, stripBlankLines,
 } from '../src/lib/formatDoctor.js';
 import { readFileSync } from 'node:fs';
@@ -80,10 +80,10 @@ describe('Format Doctor: spec-script hygiene', () => {
     assert.equal(formatSlugline('EXT. PORT-AU-PRINCE - DAY'), 'EXT. PORT-AU-PRINCE - DAY', 'hyphenated names stay');
     const s = [B('s1', 'scene', 'int kitchen–night'), B('s2', 'scene', 'INT. CAR'), B('s3', 'scene', 'HARBOR - NIGHT'), B('s4', 'scene', 'INT. KITCHEN - NIGHT'),
       B('s5', 'scene', 'LATER'), B('s6', 'scene', 'MONTAGE - THE CITY WAKES')];
-    assert.deepEqual(kinds(s), [['s1', 'slugformat'], ['s2', 'slugincomplete'], ['s3', 'slugincomplete']]);
-    const fixed = applyFixes(s, auditScript(s));
+    assert.deepEqual(kinds(s), [['s1', 'slugformat'], ['s2', 'slugline-missing-time'], ['s3', 'slugincomplete']]);
+    const fixed = applyFixes(s, auditScript(s).filter((it) => canFixAll(it.kind)));
     assert.equal(fixed[0].text, 'INT. KITCHEN - NIGHT');
-    assert.equal(fixed[1].text, 'INT. CAR', 'nothing invented');
+    assert.equal(fixed[1].text, 'INT. CAR', 'Fix All invents nothing');
     assert.equal(canFix('slugincomplete'), false);
     assert.equal(ISSUE_KINDS.slugincomplete.fix, null);
   });
@@ -296,5 +296,127 @@ describe('Format Doctor: leading spaces', () => {
     assert.equal(found[0].fixed, 'INT. KITCHEN - NIGHT');
     assert.equal(applyFixes(blocks, found)[0].text, 'INT. KITCHEN - NIGHT');
     assert.deepEqual(auditScript([B('s', 'scene', 'INT. KITCHEN - NIGHT')]), [], 'a clean heading stays clean');
+  });
+});
+
+describe('Format Doctor: parentheticals', () => {
+  const speech = (paren, extra = {}) => [B('c', 'character', 'MARIE'), B('p', 'parenthetical', paren, extra), B('d', 'dialogue', 'Go.')];
+  it('unclosed: "beat", "(beat" and "beat)" are wrapped; "(beat)" is fine', () => {
+    for (const t of ['beat', '(beat', 'beat)', '  beat ']) {
+      const s = speech(t);
+      assert.deepEqual(kinds(auditScript(s)), ['p:unclosed-parenthetical'], t);
+      assert.equal(applyFixes(s, auditScript(s))[1].text, '(beat)', t);
+    }
+    assert.deepEqual(auditScript(speech('(beat)')), []);
+    assert.equal(ISSUE_KINDS['unclosed-parenthetical'].label, 'Unclosed parenthetical');
+    assert.equal(ISSUE_KINDS['unclosed-parenthetical'].fix, 'Wrap in parentheses');
+  });
+  it('unclosed: bold / italic stay on the words', () => {
+    for (const [t, marks] of [['beat', { i: [[0, 4]] }], ['  (beat ', { b: [[3, 7]] }], ['beat)', { i: [[0, 4]] }]]) {
+      const out = applyFixes(speech(t, { marks }), auditScript(speech(t, { marks })))[1];
+      const [style] = Object.keys(out.marks);
+      const [[a, z]] = out.marks[style];
+      assert.equal(out.text.slice(a, z), 'beat', t);
+    }
+  });
+  it('unclosed: not while it’s being typed', () => {
+    assert.deepEqual(auditScript(speech('(be'), { skipId: 'p' }), []);
+  });
+  it('dangling: renamed, and Make Action drops the parentheses', () => {
+    const s = [B('c', 'character', 'MARIE'), B('d', 'dialogue', 'Go.'), B('p', 'parenthetical', '(beat)'), B('a', 'action', 'She leaves.')];
+    assert.deepEqual(kinds(auditScript(s)), ['p:orphanparen']);
+    assert.equal(ISSUE_KINDS.orphanparen.label, 'Dangling parenthetical');
+    assert.equal(ISSUE_KINDS.orphanparen.fix, 'Make Action');
+    const fixed = applyFixes(s, auditScript(s));
+    assert.deepEqual([fixed[2].type, fixed[2].text], ['action', 'beat']);
+    const atEnd = [B('c', 'character', 'MARIE'), B('d', 'dialogue', 'Go.'), B('p', 'parenthetical', '(to herself)')];
+    assert.deepEqual(applyFixes(atEnd, auditScript(atEnd)).map((b) => [b.type, b.text]).at(-1), ['action', 'to herself'], 'at the very end of the script too');
+  });
+  it('one finding per element: dangling wins over unclosed', () => {
+    const s = [B('c', 'character', 'MARIE'), B('d', 'dialogue', 'Go.'), B('p', 'parenthetical', 'beat'), B('a', 'action', 'x')];
+    assert.deepEqual(kinds(auditScript(s)), ['p:orphanparen']);
+  });
+});
+
+describe('Format Doctor: missing time of day', () => {
+  it('a heading with INT./EXT. but no time: "Missing time of day", with Add - DAY', () => {
+    const s = [B('s', 'scene', 'INT. KITCHEN'), B('a', 'action', 'x')];
+    assert.deepEqual(kinds(auditScript(s)), ['s:slugline-missing-time']);
+    assert.equal(ISSUE_KINDS['slugline-missing-time'].label, 'Missing time of day');
+    assert.equal(ISSUE_KINDS['slugline-missing-time'].fix, 'Add - DAY');
+    assert.equal(applyFixes(s, auditScript(s))[0].text, 'INT. KITCHEN - DAY');
+    assert.equal(applyFixes([B('s', 'scene', 'EXT. ROOF -'), B('a', 'action', 'x')], auditScript([B('s', 'scene', 'EXT. ROOF -'), B('a', 'action', 'x')]))[0].text, 'EXT. ROOF - DAY', 'a trailing dash isn’t doubled');
+  });
+  it('the full time-of-day vocabulary counts: no false alarms', () => {
+    for (const t of ['EXT. ROOF - MORNING', 'INT. CAR - EVENING', 'INT. HALL - MOMENTS LATER', 'INT. HALL - CONTINUOUS', 'INT. HALL - SAME',
+      'EXT. FIELD - DUSK', 'INT. KITCHEN - NIGHT - BACK TO SCENE', 'MONTAGE - THE CITY WAKES', 'LATER']) {
+      assert.deepEqual(auditScript([B('s', 'scene', t), B('a', 'action', 'x')]), [], t);
+    }
+  });
+  it('no INT./EXT.: still the old finding, with nothing to invent', () => {
+    assert.deepEqual(kinds(auditScript([B('s', 'scene', 'BACK ALLEY'), B('a', 'action', 'x')])), ['s:slugincomplete']);
+  });
+  it('one at a time only: Fix All leaves it (and doesn’t count it)', () => {
+    assert.equal(canFix('slugline-missing-time'), true, 'its own row can fix it');
+    assert.equal(canFixAll('slugline-missing-time'), false);
+    assert.equal(canFixAll('slugformat'), true);
+    const modal = readFileSync(new URL('../src/components/FormatDoctorModal.jsx', import.meta.url), 'utf8');
+    assert.match(modal, /const fixable = issues\.filter\(\(it\) => canFixAll\(it\.kind\)\)\.length;/);
+  });
+});
+
+describe('Format Doctor: consecutive character cues', () => {
+  it('the same speaker twice with nothing between: Merge speeches', () => {
+    const s = [B('c1', 'character', 'MARIE'), B('d1', 'dialogue', 'Go.'), B('c2', 'character', 'MARIE'), B('d2', 'dialogue', 'Now.')];
+    assert.deepEqual(kinds(auditScript(s)), ['c2:duplicate-character-cue']);
+    assert.equal(ISSUE_KINDS['duplicate-character-cue'].label, 'Consecutive character cue');
+    assert.equal(ISSUE_KINDS['duplicate-character-cue'].fix, 'Merge speeches');
+    assert.deepEqual(applyFixes(s, auditScript(s)).map((b) => [b.type, b.text]), [['character', 'MARIE'], ['dialogue', 'Go. Now.']]);
+  });
+  it('merging keeps formatting and notes', () => {
+    const s = [B('c1', 'character', 'MARIE'), B('d1', 'dialogue', 'Go.', { marks: { b: [[0, 2]] } }), B('c2', 'character', 'MARIE'),
+      B('d2', 'dialogue', 'Now.', { marks: { i: [[0, 3]] }, note: 'louder' })];
+    const [, d] = applyFixes(s, auditScript(s));
+    assert.deepEqual([d.text, d.marks, d.note], ['Go. Now.', { b: [[0, 2]], i: [[4, 7]] }, 'louder']);
+  });
+  it('a second speech starting with a parenthetical keeps it', () => {
+    const s = [B('c1', 'character', 'MARIE'), B('d1', 'dialogue', 'Go.'), B('c2', 'character', 'MARIE'), B('p', 'parenthetical', '(quietly)'), B('d2', 'dialogue', 'Now.')];
+    assert.deepEqual(applyFixes(s, auditScript(s)).map((b) => b.type), ['character', 'dialogue', 'parenthetical', 'dialogue']);
+  });
+  it('not flagged: (CONT’D) already, a different extension, dual dialogue, action between, someone else between', () => {
+    const ok = [
+      [B('c1', 'character', 'THEO (V.O.)'), B('d1', 'dialogue', 'I kept it.'), B('c2', 'character', "THEO (V.O.) (CONT'D)"), B('d2', 'dialogue', 'I never read it.')],
+      [B('c1', 'character', 'THEO'), B('d1', 'dialogue', 'Here.'), B('c2', 'character', 'THEO (V.O.)'), B('d2', 'dialogue', 'Gone.')],
+      [B('c1', 'character', 'THEO'), B('d1', 'dialogue', 'A.'), B('c2', 'character', 'THEO', { dual: true }), B('d2', 'dialogue', 'B.')],
+      [B('c1', 'character', 'THEO'), B('d1', 'dialogue', 'A.'), B('a', 'action', 'He sits.'), B('c2', 'character', 'THEO'), B('d2', 'dialogue', 'B.')],
+      [B('c1', 'character', 'THEO'), B('d1', 'dialogue', 'A.'), B('c2', 'character', 'MARIE'), B('d2', 'dialogue', 'B.')],
+    ];
+    for (const s of ok) assert.deepEqual(auditScript(s), [], s.map((b) => b.text).join(' / '));
+  });
+  it('the same name typed differently still counts ("marie" after "MARIE"); not while typing', () => {
+    const s = [B('c1', 'character', 'MARIE'), B('d1', 'dialogue', 'Go.'), B('c2', 'character', 'marie'), B('d2', 'dialogue', 'Now.')];
+    assert.deepEqual(kinds(auditScript(s)), ['c2:duplicate-character-cue']);
+    assert.deepEqual(auditScript(s, { skipId: 'c2' }), []);
+    assert.deepEqual(auditScript(s, { skipId: 'd2' }), []);
+  });
+});
+
+describe('Format Doctor: no false alarms on real scripts', () => {
+  it('the sample script and the 12 Final Draft fixtures raise none of the new findings', async () => {
+    const { readdirSync } = await import('node:fs');
+    const { installDOMParser } = await import('./helpers/miniDom.js');
+    const { parseFDX } = await import('../src/lib/fdx.js');
+    const { SAMPLE_SCRIPT } = await import('../src/lib/sampleScript.js');
+    installDOMParser();
+    const NEW = new Set(['unclosed-parenthetical', 'slugline-missing-time', 'duplicate-character-cue', 'indent']);
+    const dir = new URL('./fixtures/fdx/', import.meta.url);
+    const sets = [['sample', SAMPLE_SCRIPT.blocks.map(([type, text], i) => ({ id: `s${i}`, type, text }))]];
+    for (const f of readdirSync(dir).filter((x) => x.endsWith('.fdx'))) {
+      sets.push([f, parseFDX(readFileSync(new URL(f, dir), 'utf8')).blocks.map((b, i) => ({ id: b.id || `x${i}`, ...b }))]);
+    }
+    assert.equal(sets.length, 13);
+    for (const [name, blocks] of sets) {
+      assert.deepEqual(auditScript(blocks).filter((it) => NEW.has(it.kind)).map((it) => it.kind), [], name);
+    }
   });
 });

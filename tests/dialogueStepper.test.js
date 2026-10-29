@@ -183,7 +183,7 @@ describe('Status bar: the Format stepper', () => {
     const tools = app.slice(app.indexOf('<div className="status-tools" hidden={inPlan}>'), app.indexOf('</div>', app.indexOf('<div className="status-tools" hidden={inPlan}>')));
     assert.ok(tools.indexOf('<DialogueStepper') < tools.indexOf('<FormatStepper') && tools.indexOf('<FormatStepper') < tools.indexOf('<DensityStepper'));
   });
-  it('Fix All fixes only what can be fixed', () => {
-    assert.match(app, /const list = all\.filter\(\(it\) => canFix\(it\.kind\)\);/);
+  it('Fix All fixes only what can be fixed unseen; a row fixes anything with a fix', () => {
+    assert.match(app, /const list = all\.filter\(\(it\) => \(bulk \? canFixAll : canFix\)\(it\.kind\)\);/);
   });
 });
