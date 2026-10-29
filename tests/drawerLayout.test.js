@@ -50,7 +50,7 @@ describe('Blueprint layout', () => {
     for (const d of ['padding: 4px 10px', 'font-size: 11.5px', 'border-radius: 12px', 'border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.1))', 'background: rgba(255, 255, 255, 0.05)']) {
       assert.ok(pill.includes(d), d);
     }
-    assert.match(read('index.css'), /\.pill\.is-on,\s*\.pill\.is-selected \{ background: var\(--accent, #d9532f\); color: #ffffff;/);
+    assert.match(read('index.css'), /\.pill\.is-on,\s*\.pill\.is-selected \{ background: var\(--accent\); color: var\(--on-accent\);/);
     assert.match(read('components/StoryDna.jsx'), /className=\{`pill dna-pill/);
   });
   it('one header style for Genre, Theme and Plot Devices, with inline hints', () => {

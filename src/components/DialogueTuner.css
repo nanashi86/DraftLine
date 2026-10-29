@@ -45,7 +45,7 @@
   font: inherit;
   cursor: pointer;
 }
-.tuner-mono:hover { border-color: var(--muted); color: var(--text); }
+.tuner-mono:hover { border-color: var(--border-hover); color: var(--text); }
 .tuner-mono.is-on { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 18%, transparent); color: var(--text); }
 .tuner-mono:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 .tuner-mono-x { flex: none; }
@@ -148,7 +148,7 @@
   font: 11px var(--ui-font);
   cursor: pointer;
 }
-.tune-jump:hover { color: var(--text); background: var(--chip); }
+.tune-jump:hover { color: var(--text); background: var(--hover-bg); }
 
 .tune-context {
   margin: 0 0 6px;
@@ -180,7 +180,7 @@
 .tune-line { font-size: 15px; line-height: 1.45; }
 .tune-paren { font-size: 13px; line-height: 1.4; color: var(--muted); padding-left: 18px; }
 .tune-line:hover,
-.tune-paren:hover { background: var(--field); }
+.tune-paren:hover { background: var(--hover-bg); }
 .tune-line:focus,
 .tune-paren:focus { background: var(--field); border-color: var(--line-soft); }
 

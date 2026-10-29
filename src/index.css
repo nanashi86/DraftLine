@@ -28,6 +28,16 @@
   --accent-amber: #f59e0b; /* Density: the skim-risk stepper and highlights' warm amber */
   --on-accent: #fff;
 
+  /* Interactive states — every hover, selection and active fill comes from these, never a hex. */
+  --hover-bg: rgba(255, 255, 255, 0.04);   /* subtle hover on any dark surface: buttons, triggers, rows */
+  --border-hover: color-mix(in srgb, var(--text) 30%, var(--line-soft)); /* an outline under the pointer */
+  --accent-border: color-mix(in srgb, var(--accent) 60%, var(--line-soft)); /* selected / open card edge */
+  --accent-tint: color-mix(in srgb, var(--accent) 8%, transparent);           /* …and its fill, over anything */
+  --accent-tint-card: color-mix(in srgb, var(--accent) 8%, var(--card));      /* …solid, on a card */
+  --accent-tint-field: color-mix(in srgb, var(--accent) 8%, var(--field));    /* …solid, on a field */
+  --accent-soft: color-mix(in srgb, var(--accent) 26%, var(--chip));         /* an on segment (B I U S, filters) */
+  --danger: #b5402c;                       /* destructive hovers: Delete, Delete character */
+
   /* The page */
   --paper: #fdfcf8;
   --ink: #141414;
@@ -111,12 +121,12 @@ button { font-family: inherit; }
   cursor: pointer;
   transition: background 120ms ease, border-color 120ms ease, color 120ms ease;
 }
-.pill:hover:not(.is-on, .is-selected) { color: var(--text-normal, #e9e7e2); border: 1px solid rgba(255, 255, 255, 0.22); background: rgba(255, 255, 255, 0.08); }
+.pill:hover:not(.is-on, .is-selected) { color: var(--text-normal, #e9e7e2); border: 1px solid rgba(255, 255, 255, 0.22); background: linear-gradient(var(--hover-bg), var(--hover-bg)), rgba(255, 255, 255, 0.05); }
 .pill.is-on,
-.pill.is-selected { background: var(--accent, #d9532f); color: #ffffff; border: 1px solid transparent; border-color: transparent; font-weight: 600; }
+.pill.is-selected { background: var(--accent); color: var(--on-accent); border: 1px solid transparent; border-color: transparent; font-weight: 600; }
 .pill-count { opacity: 0.6; color: inherit; font-weight: normal; margin-left: 4px; }
 .pill.is-on .pill-count,
-.pill.is-selected .pill-count { color: #ffffff; opacity: 0.9; }
+.pill.is-selected .pill-count { color: var(--on-accent); opacity: 0.9; }
 .pill:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 
 /* ---- Micro-headers: GENRE · THEME · PLOT DEVICES · MISSING BIOS ---- */

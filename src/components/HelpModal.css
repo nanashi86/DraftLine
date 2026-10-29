@@ -149,8 +149,8 @@
   transition: border-color 0.15s, background-color 0.15s;
 }
 .hm-pill:hover {
-  border-color: color-mix(in srgb, var(--accent) 65%, var(--line-soft));
-  background: color-mix(in srgb, var(--accent) 9%, var(--field));
+  border-color: var(--accent-border);
+  background: var(--accent-tint-field);
 }
 .hm-pill:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .hm-pill-icon {

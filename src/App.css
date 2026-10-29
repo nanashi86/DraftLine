@@ -78,7 +78,7 @@
   z-index: 30; /* nothing in the bar can sit on top of the D */
 }
 .brand:hover,
-.brand.is-open { background: var(--field); }
+.brand.is-open { background: var(--hover-bg); }
 .brand:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 
 /* Title + ▾ : the project switcher */
@@ -281,10 +281,10 @@
   cursor: pointer;
   white-space: nowrap;
 }
-.btn:hover:not(:disabled) { background: var(--field); }
+.btn:hover:not(:disabled) { background: var(--hover-bg); }
 /* Secondary (outline) button — defined here, after .btn, so it wins everywhere it's used. */
 .btn.btn-outline { border-color: var(--line-soft); }
-.btn.btn-outline:hover:not(:disabled) { border-color: var(--muted); }
+.btn.btn-outline:hover:not(:disabled) { border-color: var(--border-hover); }
 .btn:disabled { opacity: 0.45; cursor: default; }
 .btn-icon { padding: 6px 7px; display: inline-grid; place-items: center; color: var(--muted); }
 .btn.is-on-subtle { background: var(--chip); color: var(--text); }
@@ -319,7 +319,7 @@
   cursor: pointer;
   transition: background 120ms ease, color 120ms ease;
 }
-.fmt-btn:hover:not(:disabled) { color: var(--text); background: color-mix(in srgb, var(--chip) 60%, transparent); }
+.fmt-btn:hover:not(:disabled) { color: var(--text); background: var(--hover-bg); }
 /* Disabled (title page, Board, View Only): the whole capsule fades as one, shape unchanged. */
 .fmt-seg.is-disabled { opacity: 0.45; }
 .fmt-btn:disabled { cursor: default; }
@@ -329,8 +329,8 @@
 .fmt-u { text-decoration: underline; text-underline-offset: 3px; }
 .fmt-s { text-decoration: line-through; }
 .fmt-btn.is-on {
-  background: color-mix(in srgb, var(--accent) 26%, var(--chip));
-  color: #fff;
+  background: var(--accent-soft);
+  color: var(--on-accent);
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 65%, transparent);
 }
 
@@ -412,7 +412,7 @@
 .menu-item:focus-visible:not(:disabled) { background: var(--accent); color: var(--on-accent); outline: none; }
 .menu-item:disabled { opacity: 0.45; cursor: default; }
 .menu-item.is-danger:not(:disabled) { color: #f0a090; }
-.menu-item.is-danger:hover:not(:disabled) { background: #b5402c; color: #fff; }
+.menu-item.is-danger:hover:not(:disabled) { background: var(--danger); color: var(--on-accent); }
 .menu-hint { opacity: 0.6; font-size: 12px; white-space: nowrap; }
 /* A file type on the right (.fountain, .fdx, .pdf, .csv, .md, .draftline): the hint column, in monospace. */
 .menu-ext { font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; font-size: 11.5px; letter-spacing: 0; }
@@ -469,7 +469,7 @@
   font: 12px var(--ui-font);
   cursor: pointer;
 }
-.cover-btn:hover { background: var(--field); }
+.cover-btn:hover { background: linear-gradient(var(--hover-bg), var(--hover-bg)), var(--bar); }
 .cover-primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
 .cover-primary:hover { background: var(--accent); filter: brightness(1.08); }
 .cover-close { padding: 2px 8px; font-size: 15px; line-height: 1.2; color: var(--muted); }
@@ -525,7 +525,7 @@
   font: inherit;
   cursor: pointer;
 }
-.status-save:hover { color: var(--text); background: var(--field); }
+.status-save:hover { color: var(--text); background: var(--hover-bg); }
 .status-save.is-synced { color: #9fd3aa; }
 /* App Storage Only: a muted hollow circle (nothing wrong, just no folder). Click to resume folder sync:
    an amber hollow circle. Linked Folder Synced: the soft green dot. While saving, the dot pulses. */
@@ -575,7 +575,7 @@
   font-size: 13px;
   cursor: pointer;
 }
-.mini:hover:not(:disabled) { background: var(--field); }
+.mini:hover:not(:disabled) { background: var(--hover-bg); }
 .mini:disabled { opacity: 0.35; cursor: default; }
 .zoom-val { font-size: 11px; min-width: 40px; }
 
@@ -688,7 +688,7 @@
 .stepper-list .menu-sub { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .stepper-list .menu-sub.is-mono { font: 12px/1.35 'Courier Prime', 'Courier New', monospace; opacity: 0.6; }
 .status-btn { padding: 0 6px; border: 0; border-radius: 4px; background: transparent; color: inherit; font: inherit; cursor: pointer; }
-.status-btn:hover { color: var(--text); background: var(--field); }
+.status-btn:hover { color: var(--text); background: var(--hover-bg); }
 .status-canvas { display: inline-flex; align-items: center; gap: 6px; padding: 0 7px; font-size: 11.5px; color: var(--muted); }
 .status-canvas:hover { color: var(--text); }
 .canvas-swatch {
@@ -711,7 +711,7 @@
   line-height: 1;
   cursor: pointer;
 }
-.icon-btn:hover { background: var(--field); color: var(--text); }
+.icon-btn:hover { background: var(--hover-bg); color: var(--text); }
 
 /* ---------- Focus mode ---------- */
 .focus-mode .bar,
@@ -892,7 +892,7 @@
   color: var(--muted);
   cursor: pointer;
 }
-.et-close:hover { background: var(--chip); color: var(--text); }
+.et-close:hover { background: var(--hover-bg); color: var(--text); }
 .et-tip { margin: 6px 0 0 23px; padding-top: 6px; border-top: 1px solid var(--line-soft); font-size: 12px; color: var(--muted); }
 .et-tip a { color: var(--text); text-decoration: underline; text-decoration-color: color-mix(in srgb, currentColor 35%, transparent); text-underline-offset: 2px; }
 .et-tip a:hover { text-decoration-color: currentColor; }
@@ -989,7 +989,7 @@
   font: 11.5px var(--ui-font);
   cursor: pointer;
 }
-.status-noir:hover { background: rgba(255, 255, 255, 0.12); }
+.status-noir:hover { background: linear-gradient(var(--hover-bg), var(--hover-bg)), rgba(255, 255, 255, 0.06); }
 @media print { .film-noir-mode .workspace::after, .film-noir-mode .workspace::before { display: none; } .milestone-toast { display: none; } }
 @media (prefers-reduced-motion: reduce) { .milestone-toast, .film-noir-mode .workspace::after, .film-noir-mode .workspace::before { animation: none; } }
 
@@ -1008,7 +1008,7 @@
   font: 500 11px/1 var(--ui-font);
   cursor: pointer;
 }
-.stepper-list-act:hover { background: rgba(255, 255, 255, 0.1); color: var(--text); }
+.stepper-list-act:hover { background: var(--hover-bg); color: var(--text); }
 .stepper-list-act.is-primary { border-color: color-mix(in srgb, var(--accent) 60%, transparent); color: var(--text); }
 .stepper-list-act.is-primary:hover { background: color-mix(in srgb, var(--accent) 22%, transparent); }
 .stepper-list-footer { justify-content: center; border-top: 1px solid var(--line-soft); border-radius: 0; color: var(--muted); }

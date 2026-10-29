@@ -83,7 +83,7 @@
   padding: 8px;
   border-radius: 8px;
 }
-.fd-row:hover { background: var(--card); }
+.fd-row:hover { background: var(--hover-bg); }
 .fd-kind {
   justify-self: start;
   max-width: 100%;

@@ -132,7 +132,7 @@
   font: 13px var(--ui-font);
   cursor: pointer;
 }
-.col-add:hover { color: var(--text); border-color: var(--muted); background: var(--card); }
+.col-add:hover { color: var(--text); border-color: var(--border-hover); background: var(--card); }
 
 .midpoint {
   flex: none;

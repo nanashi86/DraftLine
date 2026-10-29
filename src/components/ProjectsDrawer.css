@@ -90,11 +90,11 @@
   transition: border-color 120ms ease, background 120ms ease;
   outline: none;
 }
-.pd-card:hover { border-color: color-mix(in srgb, var(--text) 30%, var(--line-soft)); }
+.pd-card:hover { border-color: var(--border-hover); }
 .pd-card:focus-visible { box-shadow: 0 0 0 2px var(--accent); }
 .pd-card.is-active {
-  border-color: color-mix(in srgb, var(--accent) 75%, transparent);
-  background: color-mix(in srgb, var(--accent) 9%, var(--card));
+  border-color: var(--accent-border);
+  background: var(--accent-tint-card);
   cursor: default;
 }
 .pd-card.is-active::before {
@@ -144,7 +144,7 @@
   cursor: pointer;
   transition: color 120ms ease, background 120ms ease;
 }
-.pd-lock:hover { color: #a1a1aa; background: rgba(255, 255, 255, 0.06); }
+.pd-lock:hover { color: #a1a1aa; background: var(--hover-bg); }
 .pd-lock.is-locked { color: var(--accent-amber); }
 .pd-lock.is-locked:hover { color: #fbbf24; background: rgba(245, 158, 11, 0.12); }
 .pd-lock:focus-visible { outline: 2px solid var(--accent-amber); outline-offset: 1px; }
@@ -181,7 +181,7 @@
 .sd-options { display: grid; gap: 6px; }
 /* One card per destination; the Synced Folder card also holds its folder status and actions. */
 .sd-card { border: 1px solid var(--line-soft); border-radius: 8px; }
-.sd-card.is-on { border-color: color-mix(in srgb, var(--accent) 55%, var(--line-soft)); background: color-mix(in srgb, var(--accent) 7%, transparent); }
+.sd-card.is-on { border-color: var(--accent-border); background: var(--accent-tint); }
 .sd-option {
   display: grid;
   grid-template-columns: auto 1fr;
@@ -207,7 +207,7 @@
 .sd-folder { container-type: inline-size; }
 .sd-actions { display: flex; flex-wrap: nowrap; gap: 6px; }
 .sd-actions .btn { flex: 1 1 auto; min-width: 0; padding: 5px 6px; border-color: var(--line-soft); text-align: center; overflow: hidden; text-overflow: ellipsis; }
-.sd-actions .btn:hover:not(:disabled) { border-color: var(--muted); }
+.sd-actions .btn:hover:not(:disabled) { border-color: var(--border-hover); }
 .sd-actions .sd-allow { border-color: color-mix(in srgb, var(--accent) 60%, var(--line-soft)); background: color-mix(in srgb, var(--accent) 12%, transparent); }
 @container (max-width: 300px) { .sd-long { display: none; } }
 /* Phones: the nested folder panel uses the card's full width instead of indenting under the text. */

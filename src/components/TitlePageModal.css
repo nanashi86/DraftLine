@@ -43,7 +43,7 @@
   font: 800 16px var(--ui-font);
   cursor: pointer;
 }
-.tp-bold:hover:not(:disabled) { color: var(--text); border-color: var(--muted); }
+.tp-bold:hover:not(:disabled) { color: var(--text); border-color: var(--border-hover); }
 .tp-bold.is-on { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
 .tp-bold:disabled { opacity: 0.4; cursor: not-allowed; }
 .tp-font select {

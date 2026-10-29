@@ -60,7 +60,7 @@
   text-align: left;
   cursor: pointer;
 }
-.nav-item:hover { background: var(--card); }
+.nav-item:hover { background: var(--hover-bg); }
 .nav-item.is-current { background: var(--card); border-left-color: var(--accent); }
 
 .nav-num {

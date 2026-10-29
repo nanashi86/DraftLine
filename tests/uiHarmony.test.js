@@ -177,10 +177,10 @@ describe('Pills: one neutral palette — genre, MISSING BIOS and Dialogue charac
     assert.match(read('components/DialogueTuner.jsx'), /<span className="pill-count cast-count">\{c\.lines\}<\/span>/);
   });
   it('hover: normal text, 22 % white border, a touch more fill', () => {
-    assert.match(rule('.pill:hover:not(.is-on, .is-selected)'), /color: var\(--text-normal, #e9e7e2\); border: 1px solid rgba\(255, 255, 255, 0\.22\); background: rgba\(255, 255, 255, 0\.08\);/);
+    assert.match(rule('.pill:hover:not(.is-on, .is-selected)'), /color: var\(--text-normal, #e9e7e2\); border: 1px solid rgba\(255, 255, 255, 0\.22\); background: linear-gradient\(var\(--hover-bg\), var\(--hover-bg\)\), rgba\(255, 255, 255, 0\.05\);/);
   });
   it('selected: accent fill, white text, transparent border', () => {
-    assert.match(css, /\.pill\.is-on,\s*\.pill\.is-selected \{ background: var\(--accent, #d9532f\); color: #ffffff;[^}]*border-color: transparent;/);
+    assert.match(css, /\.pill\.is-on,\s*\.pill\.is-selected \{ background: var\(--accent\); color: var\(--on-accent\);[^}]*border-color: transparent;/);
   });
 });
 

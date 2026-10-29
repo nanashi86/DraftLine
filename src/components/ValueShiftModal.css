@@ -31,7 +31,7 @@
   color: var(--muted);
   cursor: pointer;
 }
-.vsm-close:hover { background: var(--field); color: var(--text); }
+.vsm-close:hover { background: var(--hover-bg); color: var(--text); }
 
 .vsm-table { flex: 1; min-height: 0; overflow-y: auto; padding: 4px 22px 4px; }
 .vsm-row {

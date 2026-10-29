@@ -31,9 +31,9 @@
   font-size: 12.5px;
   cursor: pointer;
 }
-.afb-pill:hover { border-color: #71717a; }
+.afb-pill:hover { border-color: var(--border-hover); }
 .afb-pill.is-none { grid-column: 1 / -1; justify-self: start; margin-top: 2px; }
-.afb-pill.is-on { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 22%, #27272a); color: #fff; }
+.afb-pill.is-on { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 22%, var(--field)); color: var(--on-accent); }
 .afb-pill:focus-visible, .afb-input:focus-visible { outline: 2px solid color-mix(in srgb, var(--accent) 70%, transparent); outline-offset: 1px; }
 
 .afb-input {

@@ -77,7 +77,7 @@
   cursor: pointer;
   flex: none;
 }
-.fb-icon:hover:not(:disabled) { background: var(--chip); color: var(--text); }
+.fb-icon:hover:not(:disabled) { background: var(--hover-bg); color: var(--text); }
 .fb-icon:disabled { opacity: 0.35; cursor: default; }
 .fb-opt.is-on { background: color-mix(in srgb, var(--accent) 20%, transparent); color: var(--text); }
 .fb-spacer { cursor: default; }

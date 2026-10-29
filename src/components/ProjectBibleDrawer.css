@@ -88,7 +88,7 @@
 
 .pb-chars { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; }
 .pb-char { border: 1px solid var(--line-soft); border-radius: 8px; background: var(--card); }
-.pb-char.is-open { border-color: color-mix(in srgb, var(--accent) 55%, var(--line-soft)); }
+.pb-char.is-open { border-color: var(--accent-border); }
 .pb-char-head { display: flex; align-items: center; }
 .pb-char-toggle {
   flex: 1;
@@ -111,7 +111,7 @@
 .pb-char:hover .pb-move,
 .pb-move:focus-within { opacity: 1; }
 .pb-move button { width: 22px; height: 22px; border: 0; border-radius: 4px; background: transparent; color: var(--text); cursor: pointer; }
-.pb-move button:hover { background: var(--field); }
+.pb-move button:hover { background: var(--hover-bg); }
 
 .pb-char-body { display: grid; gap: 9px; padding: 2px 12px 12px 28px; }
 .pb-field { display: grid; gap: 3px; font-size: 11.5px; color: var(--muted); }
@@ -134,7 +134,7 @@
 .pb-char-foot { display: flex; justify-content: flex-end; gap: 8px; }
 .pb-rename { margin-right: auto; }
 .pb-danger { color: #f0a090; }
-.pb-danger:hover { background: #b5402c !important; color: #fff; }
+.pb-danger:hover { background: var(--danger) !important; color: var(--on-accent); }
 
 .pb-import { margin-bottom: 12px; padding: 10px; border: 1px solid var(--line-soft); border-radius: 8px; background: var(--card); }
 .pb-import-head { display: flex; align-items: baseline; gap: 8px; margin-bottom: 6px; font-size: 13px; }
@@ -264,8 +264,8 @@
   transition: background 120ms ease, color 120ms ease;
 }
 .dna-yn-btn + .dna-yn-btn { border-left: 1px solid rgba(255, 255, 255, 0.12); }
-.dna-yn-btn:hover:not(.is-on) { background: rgba(255, 255, 255, 0.05); color: var(--text); }
-.dna-yn-btn.is-on { background: var(--accent); color: #fff; }
+.dna-yn-btn:hover:not(.is-on) { background: var(--hover-bg); color: var(--text); }
+.dna-yn-btn.is-on { background: var(--accent); color: var(--on-accent); }
 .dna-yn-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
 
 /* Blueprint field headers (Genre · Theme · Central Dramatic Question · Plot Devices) */
@@ -373,7 +373,7 @@
 .dict-section-count { font-weight: 500; letter-spacing: 0; }
 .dict-entries { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; }
 .dict-entry { border: 1px solid var(--line-soft); border-radius: 8px; background: var(--card); scroll-margin: 12px; }
-.dict-entry.is-open { border-color: color-mix(in srgb, var(--accent) 45%, var(--line-soft)); }
+.dict-entry.is-open { border-color: var(--accent-border); }
 .dict-head {
   width: 100%;
   display: flex;
@@ -444,7 +444,7 @@
   font: 500 12.5px var(--ui-font);
   cursor: pointer;
 }
-.dna-device-add:hover { background: var(--field); }
+.dna-device-add:hover { background: var(--hover-bg); }
 .dna-device-add:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 .dna-device-remove {
   width: 22px;
@@ -459,7 +459,7 @@
   line-height: 1;
   cursor: pointer;
 }
-.dna-device-remove:hover { background: var(--field); color: var(--text); }
+.dna-device-remove:hover { background: var(--hover-bg); color: var(--text); }
 .dna-device-remove.is-placeholder { visibility: hidden; } /* keeps Yes/No aligned on the default rows */
 .dna-toggle-row .dna-toggle-label { margin-right: auto; }
 .dna-genre-other {
