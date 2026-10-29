@@ -1,4 +1,4 @@
-import{i as e,t}from"./react-DgawKyfb.js";import{C as n,D as r,E as i,Lt as a,Mt as o,Nt as s,Pt as c,S as l,T as u,_t as d,a as f,bt as p,ct as m,et as h,gt as g,ht as _,i as v,it as y,l as b,lt as x,n as S,nt as C,o as ee,ot as te,pt as ne,r as re,rt as ie,st as ae,tt as oe,u as w,ut as T,vt as E,wt as D,yt as O}from"./index-CS3eMvOQ.js";import{r as k,t as A}from"./printTitle-C1qWomuv.js";/* empty css                  */var j=e(),M=`# DraftLine User Guide
+import{i as e,t}from"./react-DgawKyfb.js";import{C as n,D as r,E as i,Lt as a,Mt as o,Nt as s,Pt as c,S as l,T as u,_t as d,a as f,bt as p,ct as m,et as h,gt as g,ht as _,i as v,it as y,l as b,lt as x,n as S,nt as C,o as ee,ot as te,pt as ne,r as re,rt as ie,st as ae,tt as oe,u as w,ut as T,vt as E,wt as D,yt as O}from"./index-CM9BHbvD.js";import{r as k,t as A}from"./printTitle-C1qWomuv.js";/* empty css                  */var j=e(),M=`# DraftLine User Guide
 
 DraftLine is a distraction-free screenwriting app that runs in your browser. It writes in Courier Prime at 12 pt with standard screenplay margins, saves as you type, and works offline. This guide covers everything from your first scene heading to the final PDF.
 
@@ -33,7 +33,7 @@ Browser storage belongs to this browser profile. Clearing the browser's site dat
 In Chrome, Edge and other Chromium browsers on a computer, DraftLine can also keep every script as a file in a folder you choose. Pick a folder inside Google Drive, Dropbox or OneDrive, and your scripts follow you to any computer that has that folder.
 
 1. Click the save status in the status bar (it says **Saved locally**), or open Projects.
-2. Under **Storage Destination**, in the **Synced Folder (Local Disk / Cloud)** card, choose **Link Folder…** and pick a folder.
+2. Under **Storage Destination**, in the **Linked Folder (File Backup)** card, choose **Link Folder…** and pick a folder.
 3. Allow the browser to edit files in that folder.
 
 From then on, every save goes to the browser first (instant and offline-safe) and then to the folder, as \`Your-Title.draftline\`. The status bar shows **Synced: [Folder name]** in green.
@@ -41,7 +41,7 @@ From then on, every save goes to the browser first (instant and offline-safe) an
 - **Scripts from the folder** appear in Projects. One marked **In folder** isn't in this browser yet; open it to bring it in. One marked **Newer in folder** was changed on another computer; opening it loads that newer copy.
 - **After a browser restart**, the browser may ask again before DraftLine can write to the folder. The status bar then says **Click to allow folder sync**. One click resumes syncing.
 - **If the folder can't be written** (an unplugged drive, for example), your work is still safe in the browser and the status bar says **Folder sync paused**.
-- **Change Folder…** links a different folder. **Disconnect** stops syncing and leaves the files where they are. Choosing **Standalone (This Device Only)** pauses syncing but remembers the folder.
+- **Change Folder…** links a different folder. **Disconnect** stops syncing and leaves the files where they are. Choosing **App Storage (Zero Setup)** pauses syncing but remembers the folder.
 - **Deleting a script** in DraftLine also takes its file out of the linked folder, so it doesn't come back. The file isn't erased: it's moved into a **Trash** folder inside the linked folder, renamed with the date it was deleted, so you can recover it there. If it can't be moved, DraftLine leaves it where it is and asks whether to delete it permanently.
 - **Two computers, one script:** the most recent save wins. DraftLine doesn't merge edits made on two computers at the same time.
 
