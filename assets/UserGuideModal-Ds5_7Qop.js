@@ -1,4 +1,4 @@
-import{i as e,t}from"./react-DgawKyfb.js";import{C as n,D as r,E as i,Lt as a,Mt as o,Nt as s,Pt as c,S as l,T as u,_t as d,a as f,bt as p,ct as m,et as h,gt as g,ht as _,i as v,it as y,l as b,lt as x,n as S,nt as C,o as ee,ot as te,pt as ne,r as re,rt as ie,st as ae,tt as oe,u as w,ut as T,vt as E,wt as D,yt as O}from"./index-BsQ1xFgK.js";import{r as k,t as A}from"./printTitle-C1qWomuv.js";/* empty css                  */var j=e(),M=`# DraftLine User Guide
+import{i as e,t}from"./react-DgawKyfb.js";import{C as n,D as r,E as i,Lt as a,Mt as o,Nt as s,Pt as c,S as l,T as u,_t as d,a as f,bt as p,ct as m,et as h,gt as g,ht as _,i as v,it as y,l as b,lt as x,n as S,nt as C,o as ee,ot as te,pt as ne,r as re,rt as ie,st as ae,tt as oe,u as w,ut as T,vt as E,wt as D,yt as O}from"./index-B9JNj1q-.js";import{r as k,t as A}from"./printTitle-C1qWomuv.js";/* empty css                  */var j=e(),M=`# DraftLine User Guide
 
 DraftLine is a distraction-free screenwriting app that runs in your browser. It writes in Courier Prime at 12 pt with standard screenplay margins, saves as you type, and works offline. This guide covers everything from your first scene heading to the final PDF.
 
@@ -153,6 +153,7 @@ When the Format Doctor finds nothing at all (findings you've ignored count as un
 - Scene headings: case, periods and dashes are fixed for you (\`int kitchen–night\` becomes \`INT. KITCHEN - NIGHT\`). A heading with no INT. / EXT. or no time of day is flagged for you to complete. \`INT./EXT.\`, \`INT/EXT.\` and \`I/E.\` are all accepted, and a time of day still counts with more after it (\`- NIGHT - BACK TO SCENE\`, \`- NEXT DAY\`, \`- NIGHT (FLASHBACK)\`).
 - A speaking character whose first mention in the Action isn't in capitals ("Marie" for MARIE). The fix capitalizes it.
 - Double blank lines inside an element, which are stripped.
+- **Leading spaces**: Action that starts with spaces or tabs ("   Dave jumped up."). The fix removes them and keeps any bold or italic on the same words. Only the first line counts: an indented line further down a paragraph (lyrics, a poem, a letter) is left alone. A scene heading with spaces before it is flagged as **Scene heading format**, and its fix removes them too.
 - Anything left alone at the bottom of a page, away from what it introduces: a scene heading, a character cue, or a lead-in line of Action (one that ends in a colon, like "She reads it aloud:", or starts with SUPER, INSERT, TITLE, CHYRON, PRE-LAP or "IN … WITH SUBTITLES"). Page breaks already keep these with what follows, so this only shows up where they can't, such as before an element taller than a page. There's nothing to fix automatically: move or trim something nearby, or Ignore it.
 
 ### Scene headings: formatting tips
