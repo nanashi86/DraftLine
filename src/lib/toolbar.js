@@ -91,6 +91,6 @@ export function fileMenuItems({
     { divider: true },
     { heading: 'Backup' },
     { label: 'Backup Project', ext: '.draftline', onSelect: onBackup },
-    { label: 'Snapshot History', hint: String(snapshotCount), onSelect: onSnapshots },
+    { label: 'View Snapshots', hint: String(snapshotCount), onSelect: onSnapshots },
   ];
 }

@@ -84,7 +84,7 @@ describe('toolbar: File ▾ holds Print; panels stay visible on laptops', () => 
       '# Export Script', 'PDF {.pdf}', 'Final Draft {.fdx}', 'Fountain {.fountain}', 'Print Script… [Ctrl+P]', '---',
       '# Export Planning & Production', 'Story Bible {.pdf}', 'Scene Breakdown {.csv}', 'Spreadsheet Outline {.csv}', 'Markdown Outline {.md}',
       'Fountain Outline {.fountain}', '---',
-      '# Backup', 'Backup Project {.draftline}', 'Snapshot History [2]',
+      '# Backup', 'Backup Project {.draftline}', 'View Snapshots [2]',
     ]);
     items.filter((i) => i.onSelect).forEach((i) => i.onSelect());
     assert.deepEqual(calls, ['onProjects', 'onNew', 'onOpen', 'onImport', 'onSample', 'onTitlePage', 'onCompiledPdf', 'onFdx', 'onFountain', 'onPrint', 'onBible', 'onBreakdownCsv', 'onOutlineCsv', 'onOutlineMd',
