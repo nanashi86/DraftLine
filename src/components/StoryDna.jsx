@@ -6,6 +6,7 @@ import {
   setField, storyDnaProgress, toggleGenre,
 } from '../lib/storyDna.js';
 import { dictionaryEntry, glossarySections } from '../lib/structureDictionary.js';
+import { nativePickerOpen } from '../lib/pickerGuard.js';
 import { TIP_MAX_WIDTH, clipToViewport, placeTooltip } from '../lib/tooltip.js';
 import { DNA_VIEWS } from '../lib/bible.js';
 
@@ -14,8 +15,20 @@ import { DNA_VIEWS } from '../lib/bible.js';
  * The definition is drawn in a fixed layer (a portal on <body>) and placed with
  * placeTooltip, so the drawer's edges and scrolling can never clip it.
  */
+/** Hover intent: the pointer has to rest on an ⓘ this long before its card opens. */
+export const TIP_HOVER_DELAY = 350;
+
+// Start following native dropdown lists as soon as this module loads (before any picker is used).
+nativePickerOpen();
+
+/**
+ * An ⓘ with the term's definition card. The card opens after a short hover (or at once on keyboard
+ * focus), never while a dropdown list is open (the browser draws that list above everything, so the
+ * card would sit hidden behind it), and closes on any click, scroll, resize or Escape.
+ */
 export function InfoTip({ entry, onOpen }) {
   const [open, setOpen] = useState(false);
+  const hoverTimer = useRef(0);
   const btnRef = useRef(null);
   const popRef = useRef(null);
   const id = useId();
@@ -42,12 +55,27 @@ export function InfoTip({ entry, onOpen }) {
     window.addEventListener('scroll', hide, true); // the drawer scrolled: the anchor moved
     window.addEventListener('resize', hide);
     window.addEventListener('keydown', onKey);
+    window.addEventListener('pointerdown', hide, true); // any click, opening a dropdown included
     return () => {
       window.removeEventListener('scroll', hide, true);
       window.removeEventListener('resize', hide);
       window.removeEventListener('keydown', onKey);
+      window.removeEventListener('pointerdown', hide, true);
     };
   }, [open]);
+  useEffect(() => () => clearTimeout(hoverTimer.current), []);
+
+  const show = () => {
+    if (!nativePickerOpen()) setOpen(true);
+  };
+  const hoverIn = () => {
+    clearTimeout(hoverTimer.current);
+    hoverTimer.current = setTimeout(show, TIP_HOVER_DELAY);
+  };
+  const hoverOut = () => {
+    clearTimeout(hoverTimer.current);
+    setOpen(false);
+  };
 
   if (!entry) return null;
   return (
@@ -59,10 +87,12 @@ export function InfoTip({ entry, onOpen }) {
         aria-label={`${entry.term}: definition`}
         aria-describedby={open ? id : undefined}
         onClick={() => onOpen(entry.id)}
-        onMouseEnter={() => setOpen(true)}
-        onMouseLeave={() => setOpen(false)}
-        onFocus={() => setOpen(true)}
-        onBlur={() => setOpen(false)}
+        onMouseEnter={hoverIn}
+        onMouseLeave={hoverOut}
+        onFocus={(e) => {
+          if (e.target.matches(':focus-visible')) show(); // keyboard focus: at once (a click's focus doesn't count)
+        }}
+        onBlur={hoverOut}
       >
         i
       </button>
