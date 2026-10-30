@@ -412,6 +412,7 @@ function Workspace({ boot }) {
     return { ...f, except };
   }), []);
   const planFoldBtnRef = useRef(null);
+  const viewSegRef = useRef(null); // Page | Split | Board: when it's off the bar, ⋮ lists the views
   const planExportBtnRef = useRef(null);
   const planSegRef = useRef(null);
   const inPlan = workspace === 'plan' && !focusMode;
@@ -1969,6 +1970,55 @@ function Workspace({ boot }) {
     fileShortcuts.current = { open: () => fileInputRef.current?.click(), new: () => newScript() };
   });
 
+
+  // Element ▾ and B I U S, drawn in two places like Plan's scene filter: in the top bar on wide windows,
+  // and under 1200px in a row at the top of the writing pane (write-tools), so a touch screen without
+  // a keyboard never loses them. CSS shows exactly one copy.
+  const formatTools = (
+    <>
+      <select
+        className="type-select"
+        value={elementControlsEnabled ? activeBlock.type : ''}
+        disabled={!editControlsEnabled}
+        onChange={(e) => {
+          // "Dual Dialogue" is an action on the speech, not a type: the select keeps showing the type.
+          if (e.target.value === DUAL_SHORTCUT.action) editorRef.current?.toggleDual(activeId);
+          else editorRef.current?.setType(activeId, e.target.value);
+        }}
+        aria-label="Element type"
+        title={isLocked ? `View Only — ${LOCK_COMBO} to edit` : 'Element type (Alt+1…8) · Dual Dialogue (Alt+D)'}
+      >
+        {!elementControlsEnabled && <option value="">Element</option>}
+        {ELEMENT_MENU.map((s) => (s.action ? (
+          <option key={s.action} value={s.action}>
+            {`${activeInDual && elementControlsEnabled ? '✓ ' : ''}${s.label}  ·  ${s.combo}`}
+          </option>
+        ) : (
+          <option key={s.type} value={s.type}>{`${s.label}  ·  ${s.combo}`}</option>
+        )))}
+      </select>
+      <div className={`fmt-seg${isLocked ? ' is-locked' : ''}${editControlsEnabled ? '' : ' is-disabled'}`} role="group" aria-label="Text formatting">
+        {STYLES.map((k) => {
+          const on = fmtState[k] && elementControlsEnabled;
+          return (
+            <button
+              key={k}
+              type="button"
+              className={`fmt-btn fmt-${k}${on ? ' is-on' : ''}`}
+              disabled={!editControlsEnabled}
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={() => editorRef.current?.format(k)}
+              title={`${STYLE_INFO[k].label} (${STYLE_INFO[k].keys}) · Clear formatting: Ctrl+\\`}
+              aria-label={STYLE_INFO[k].label}
+              aria-pressed={on}
+            >
+              {k.toUpperCase()}
+            </button>
+          );
+        })}
+      </div>
+    </>
+  );
   return (
     <>
       <div
@@ -2080,47 +2130,7 @@ function Workspace({ boot }) {
           {/* Active element & formatting: only on a writing canvas (Page, Split, Focus) — not on the
               Scene Board or in Plan, where there's nothing to format and the room is better spent. */}
           <div className="bar-group g-format" hidden={!formatBarShown}>
-            <select
-              className="type-select"
-              value={elementControlsEnabled ? activeBlock.type : ''}
-              disabled={!editControlsEnabled}
-              onChange={(e) => {
-                // "Dual Dialogue" is an action on the speech, not a type: the select keeps showing the type.
-                if (e.target.value === DUAL_SHORTCUT.action) editorRef.current?.toggleDual(activeId);
-                else editorRef.current?.setType(activeId, e.target.value);
-              }}
-              aria-label="Element type"
-              title={isLocked ? `View Only — ${LOCK_COMBO} to edit` : 'Element type (Alt+1…8) · Dual Dialogue (Alt+D)'}
-            >
-              {!elementControlsEnabled && <option value="">Element</option>}
-              {ELEMENT_MENU.map((s) => (s.action ? (
-                <option key={s.action} value={s.action}>
-                  {`${activeInDual && elementControlsEnabled ? '✓ ' : ''}${s.label}  ·  ${s.combo}`}
-                </option>
-              ) : (
-                <option key={s.type} value={s.type}>{`${s.label}  ·  ${s.combo}`}</option>
-              )))}
-            </select>
-            <div className={`fmt-seg${isLocked ? ' is-locked' : ''}${editControlsEnabled ? '' : ' is-disabled'}`} role="group" aria-label="Text formatting">
-              {STYLES.map((k) => {
-                const on = fmtState[k] && elementControlsEnabled;
-                return (
-                  <button
-                    key={k}
-                    type="button"
-                    className={`fmt-btn fmt-${k}${on ? ' is-on' : ''}`}
-                    disabled={!editControlsEnabled}
-                    onMouseDown={(e) => e.preventDefault()}
-                    onClick={() => editorRef.current?.format(k)}
-                    title={`${STYLE_INFO[k].label} (${STYLE_INFO[k].keys}) · Clear formatting: Ctrl+\\`}
-                    aria-label={STYLE_INFO[k].label}
-                    aria-pressed={on}
-                  >
-                    {k.toUpperCase()}
-                  </button>
-                );
-              })}
-            </div>
+            {formatTools}
             {/* Closes the Element · B I U S group, so it doesn't trail off into the bar's open space. */}
             <span className="bar-sep fmt-sep" aria-hidden="true" />
           </div>
@@ -2154,7 +2164,7 @@ function Workspace({ boot }) {
               ))}
             </div>
           ) : (
-          <div className="seg view-seg" role="radiogroup" aria-label="Workspace view (Alt+B cycles)">
+          <div className="seg view-seg" role="radiogroup" aria-label="Workspace view (Alt+B cycles)" ref={viewSegRef}>
             {VIEWS.map(({ id, label, title, Icon }) => (
               <button
                 key={id}
@@ -2264,6 +2274,10 @@ function Workspace({ boot }) {
                 onGuide: () => setGuideOpen(true),
                 focusOnBar: inPlan || isOnBar(focusBtnRef.current, barRef.current),
                 onFocus: () => setFocusMode(true),
+                writeViews: inPlan ? null : {
+                  onBar: isOnBar(viewSegRef.current, barRef.current),
+                  views: VIEWS.map((v) => ({ label: v.label, on: view === v.id, onSelect: () => setView(v.id) })),
+                },
                 planTools: inPlan ? {
                   viewsOnBar: isOnBar(planSegRef.current, barRef.current),
                   views: PLAN_VIEWS.map((v) => ({ label: v.label, on: planView === v.id, onSelect: () => setPlanView(v.id) })),
@@ -2292,6 +2306,11 @@ function Workspace({ boot }) {
         />
 
         <div className="workspace">
+          {/* The writing pane: under 1200px, Element and B I U S move here from the top bar (formatTools). */}
+          <div className="write-pane" hidden={!showEditor}>
+          <div className="write-tools" role="toolbar" aria-label="Element and formatting" hidden={focusMode}>
+            {formatTools}
+          </div>
           <main className="scroller" ref={scrollerRef} hidden={!showEditor}>
             {find.open && showEditor && (
               <div className="find-dock">
@@ -2359,6 +2378,7 @@ function Workspace({ boot }) {
               onLockedEdit={notifyLocked}
             />
           </main>
+          </div>
           {showBoard && (
             <Suspense fallback={<div className="board-loading" aria-busy="true" />}>
             <BeatBoard

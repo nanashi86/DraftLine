@@ -61,8 +61,9 @@ describe('toolbar & About wiring', () => {
 
   it('there is no standalone Dual button; the Element dropdown carries Dual Dialogue', () => {
     assert.ok(!/>\s*Dual\s*</.test(bar), 'no "Dual" button');
-    assert.match(bar, /ELEMENT_MENU\.map/);
-    assert.match(bar, /e\.target\.value === DUAL_SHORTCUT\.action\) editorRef\.current\?\.toggleDual\(activeId\)/);
+    assert.match(bar, /\{formatTools\}/, 'the bar draws the shared Element ▾ · B I U S');
+    assert.match(app, /const formatTools = \(\s*<>[\s\S]*?ELEMENT_MENU\.map/);
+    assert.match(app, /e\.target\.value === DUAL_SHORTCUT\.action\) editorRef\.current\?\.toggleDual\(activeId\)/);
   });
   it('Alt+D still toggles dual dialogue from the keyboard', () => {
     const editor = readFileSync(new URL('../src/components/Editor.jsx', import.meta.url), 'utf8');

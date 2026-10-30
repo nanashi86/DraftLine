@@ -440,6 +440,11 @@
   padding: 40px 32px 30vh;
 }
 .scroller[hidden] { display: none; }
+/* The writing pane: the script, with Element ▾ and B I U S above it once they leave the top bar. */
+.write-pane { flex: 1 1 0; min-width: 0; min-height: 0; display: flex; flex-direction: column; }
+.write-pane[hidden] { display: none; }
+.write-pane > .scroller { flex: 1 1 0; min-height: 0; }
+.write-tools { display: none; } /* on the bar until 1200px (see Narrow windows) */
 .scroller > .sheet { margin-bottom: 0; }
 .workspace > .board { flex: 1 1 0; }
 .view-split .workspace > .board { border-left: 1px solid var(--line-soft); }
@@ -806,6 +811,7 @@
 }
 
 @media (max-width: 720px) {
+  .workspace .write-tools:not([hidden]) { padding: 8px 16px 0; } /* the script's own 16px gutter */
   :root { --tuner-w: 100vw; }
   .brand-name,
   .bar-label { display: none; }
@@ -826,7 +832,16 @@
    before the next width would clip anything. */
 @media (max-width: 1199.98px) {
   .bar-right > .btn-plan-fold { display: none; }   /* Plan: ⋮ → Collapse All / Expand All */
-  .fmt-seg { display: none; }                      /* B I U S stay on Ctrl+B / I / U and Ctrl+Shift+X */
+  .bar .g-format { display: none; }                /* Element ▾ · B I U S: one group, moved to the writing pane */
+  .write-tools:not([hidden]) {                     /* …in a row above the script, like Plan's scene filter */
+    flex: none;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 32px 2px;
+  }
+  .view-split .write-tools { padding-left: 24px; padding-right: 24px; }
+  .write-tools .type-select { width: 170px; }
 }
 @media (max-width: 1099.98px) {
   .bar-right > .btn-focus { display: none; }       /* → ⋮ */
@@ -843,17 +858,16 @@
 }
 @media (max-width: 899.98px) {
   .ws-label { display: none; }                     /* Write | Plan: icons only (names on hover) — never hidden */
-  .plan-seg .seg-label { display: none; }          /* Breakdowns | Stripboard too */
-  .plan-seg .seg-btn { padding: 4px 8px; }
+  .plan-seg .seg-label,
+  .view-seg .seg-label { display: none; }          /* both view switches go icons-only together (names on hover): */
+  .plan-seg .seg-btn,                              /* Breakdowns | Stripboard | Reports and Page | Split | Board */
+  .view-seg .seg-btn { padding: 4px 8px; }
   .ws-btn { padding: 0 9px; }
-  .type-select { display: none; }                  /* element type stays on Alt+1…8 and Tab */
   .seg-btn { padding: 4px 7px; }
 }
 @media (max-width: 767.98px) {
   .doc-title-wrap { max-width: 320px; }
   .bar-right > .btn-snapshot { display: none; }    /* ⋮ → View Snapshots */
-  .view-seg .seg-label { display: none; }          /* Page | Split | Board: icons (names on hover), like Plan's */
-  .view-seg .seg-btn { padding: 4px 8px; }
 }
 @media (max-width: 639.98px) {
   .bar-right > .btn-plan-export { display: none; } /* ⋮ → Export Breakdown */
@@ -869,7 +883,7 @@
 }
 @media (max-width: 439.98px) {
   .zone-right .plan-seg { display: none; }         /* ⋮ → Breakdowns / Stripboard */
-  .zone-right .view-seg { display: none; }         /* Page / Split / Board stay on Alt+B */
+  .zone-right .view-seg { display: none; }         /* ⋮ → Page / Split / Board (and Alt+B), like Plan's */
 }
 @media (max-width: 374.98px) {
   .zone-left > .btn-icon { display: none; }        /* the scene list stays on Alt+S */

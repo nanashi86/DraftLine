@@ -130,11 +130,12 @@ describe('Top bar: narrow windows collapse in steps', () => {
     const fileMenu = header.indexOf('className="file-menu"');
     assert.ok(fileMenu > 0 && fileMenu < header.indexOf('className="zone-middle-tools"'));
   });
-  it('Write: B I U S hide (1200), Focus (1100) and Characters (1024) → ⋮, Element hides (900), views hide (440), scene list (560)', () => {
-    assert.match(media('1199.98'), /\.fmt-seg \{ display: none; \}/);
+  it('Write: Element · B I U S move to the writing pane (1200), Focus (1100) and Characters (1024) → ⋮, views → ⋮ (440), scene list (560)', () => {
+    assert.match(media('1199.98'), /\.bar \.g-format \{ display: none; \}/);
+    assert.match(media('1199.98'), /\.write-tools:not\(\[hidden\]\) \{[^}]*display: flex;/);
     assert.match(media('1099.98'), /\.bar-right > \.btn-focus \{ display: none; \}/);
     assert.match(media('1023.98'), /\.bar-right > \.btn-accent \{ display: none; \}/);
-    assert.match(media('899.98'), /\.type-select \{ display: none; \}/);
+    assert.doesNotMatch(css, /^\s*\.(type-select|fmt-seg) \{ display: none; \}/m, 'never simply hidden: they move');
     assert.match(media('899.98'), /\.ws-label \{ display: none; \}/, 'Write | Plan stays, icons only');
     assert.match(media('439.98'), /\.zone-right \.view-seg \{ display: none; \}/, 'Page | Split | Board: icons until 440px, then Alt+B');
     assert.match(media('559.98'), /\.zone-left > \.btn-icon \{ display: none; \}/);
@@ -144,7 +145,7 @@ describe('Top bar: narrow windows collapse in steps', () => {
     assert.match(media('1199.98'), /\.bar-right > \.btn-plan-fold \{ display: none; \}/);
     assert.match(media('999.98'), /\.btn-plan-export \.plan-lbl-long \{ display: none; \}/);
     assert.match(media('999.98'), /\.btn-plan-export \.plan-lbl-short \{ display: inline; \}/);
-    assert.match(media('899.98'), /\.plan-seg \.seg-label \{ display: none; \}/);
+    assert.match(media('899.98'), /\.plan-seg \.seg-label,\s*\.view-seg \.seg-label \{ display: none; \}/);
     assert.ok(!/(^|[^-])\.lbl-(long|short)/m.test(css), 'no generic label classes for other rules to catch');
     assert.match(media('639.98'), /\.bar-right > \.btn-plan-export \{ display: none; \}/);
     assert.match(media('439.98'), /\.zone-right \.plan-seg \{ display: none; \}/);
@@ -159,7 +160,7 @@ describe('Top bar: narrow windows collapse in steps', () => {
     assert.deepEqual(tucked.slice(0, 5).map((i) => (i.divider ? '---' : `${i.label}${i.hint ? ` [${i.hint}]` : ''}`)),
       ['Breakdowns [Showing]', 'Stripboard', 'Collapse All', 'Export Breakdown [.csv]', '---']);
   });
-  it('Page | Split | Board carry line icons (page, two columns, kanban) — labels from 768px, icons only below', () => {
+  it('Page | Split | Board carry line icons (page, two columns, kanban) — labels from 900px, icons only below, like Plan', () => {
     assert.match(app, /\{ id: 'page', label: 'Page', title: 'Script only', Icon: FileText \}/);
     assert.match(app, /\{ id: 'split', label: 'Split', title: 'Script \+ Scene Board side by side', Icon: Columns2 \}/);
     assert.match(app, /\{ id: 'board', label: 'Board', title: 'Scene Board only', Icon: SquareKanban \}/);
@@ -167,7 +168,8 @@ describe('Top bar: narrow windows collapse in steps', () => {
     assert.match(seg, /aria-label=\{label\}/, 'icon-only buttons keep their names');
     assert.match(seg, /<Icon size=\{14\} strokeWidth=\{1\.75\} aria-hidden \/>\s*<span className="seg-label">\{label\}<\/span>/);
     assert.match(css, /\.view-seg \.seg-btn,\s*\.plan-seg \.seg-btn \{ display: inline-flex; align-items: center; gap: 6px; \}/);
-    assert.match(media('767.98'), /\.view-seg \.seg-label \{ display: none; \}/);
+    assert.match(media('899.98'), /\.plan-seg \.seg-label,\s*\.view-seg \.seg-label \{ display: none; \}/, 'the same width as Breakdowns | Stripboard | Reports');
+    assert.doesNotMatch(media('767.98'), /seg-label/);
     assert.ok(!/[\u{1F300}-\u{1FAFF}]/u.test(seg), 'no emoji');
   });
   it('B I U S match Element ▾ and File ▾: 32px capsule, 30px buttons, 13px/600 in the same type, fading whole when disabled', () => {
@@ -182,7 +184,7 @@ describe('Top bar: narrow windows collapse in steps', () => {
     assert.match(rule('.fmt-btn:disabled'), /cursor: default;/);
     assert.doesNotMatch(rule('.fmt-btn:disabled'), /opacity/, 'no double fade on top of the capsule’s');
     assert.match(seg, /gap: 2px;/, 'a segmented group: 2px between B, I, U and S');
-    assert.match(header, /className=\{`fmt-seg\$\{isLocked \? ' is-locked' : ''\}\$\{editControlsEnabled \? '' : ' is-disabled'\}`\}/);
+    assert.match(app, /className=\{`fmt-seg\$\{isLocked \? ' is-locked' : ''\}\$\{editControlsEnabled \? '' : ' is-disabled'\}`\}/);
   });
   it('the header row is space-between, full width, and no control is ever absolutely positioned', () => {
     assert.match(rule('.bar'), /justify-content: space-between;\s*align-items: center;\s*width: 100%;/);

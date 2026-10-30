@@ -20,12 +20,14 @@ export function isOnBar(el, bar) {
 export function moreMenuItems({
   bibleOnBar, charactersOnBar, onBible, onCharacters, onSnapshots, snapshotCount = 0, onNotes, noteCount = 0,
   onShortcuts, onAbout, focusOnBar = true, onFocus, onGuide, onFormatDoctor, issueCount = 0, planTools = null, onReports = null,
-  onFeedback = null,
+  onFeedback = null, writeViews = null,
 }) {
   const panels = [
     !focusOnBar && onFocus && { label: 'Focus', hint: 'Esc exits', onSelect: onFocus },
     !bibleOnBar && { label: 'Story Bible', hint: 'Alt+I', onSelect: onBible },
     !charactersOnBar && { label: 'Characters', hint: 'Alt+C', onSelect: onCharacters },
+    // Write: Page / Split / Board, when a narrow bar has tucked the view switch away (as Plan's views)
+    ...(writeViews && !writeViews.onBar ? writeViews.views.map((v) => ({ label: v.label, hint: v.on ? 'Showing' : '', onSelect: v.onSelect })) : []),
     // Plan: its header tools, when a narrow bar has tucked them away
     ...(planTools && !planTools.viewsOnBar ? planTools.views.map((v) => ({ label: v.label, hint: v.on ? 'Showing' : '', onSelect: v.onSelect })) : []),
     planTools?.hasScenes && !planTools.foldOnBar && { label: planTools.foldLabel, onSelect: planTools.onFold },
