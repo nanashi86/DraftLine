@@ -46,7 +46,7 @@ export default function PlanningWorkspace({
         ) : (
           <>
             {view !== 'reports' && onFilter && (
-              <PlanFilter filter={filter} onChange={onFilter} count={{ shown: shown.shown, total: shown.total }} place="workspace" />
+              <PlanFilter filter={filter} onChange={onFilter} place="workspace" />
             )}
             <p className="plan-summary" role="status">
               {filtering

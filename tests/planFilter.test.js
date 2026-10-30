@@ -79,6 +79,17 @@ describe('Plan scene filter: where it shows', () => {
     assert.match(ui, /<b>\{count\.shown\} of \{count\.total\}<\/b>/);
     assert.match(ui, /\{place === 'bar' && <span className="bar-sep pf-sep" aria-hidden="true" \/>\}/);
   });
+  it('the count shows once: "4 of 53 scenes ✕" in the header, only ✕ at the top of the workspace (the summary carries it)', () => {
+    assert.match(ui, /\{active && place === 'bar' && count && \(\s*<span className="pf-count" role="status">/);
+    assert.match(ui, /\{active && place === 'workspace' && clear\}/);
+    assert.match(ui, /const clear = \(\s*<button type="button" className="btn btn-icon pf-clear" onClick=\{\(\) => onChange\(EMPTY_PLAN_FILTER\)\} aria-label="Clear the scene filter" title="Clear the scene filter">/);
+    // exactly one ✕ button and one count in the component, shared by both places
+    assert.equal(ui.match(/aria-label="Clear the scene filter"/g).length, 1);
+    assert.equal(ui.match(/className="pf-count"/g).length, 1);
+    // the workspace copy gets no count; its summary line says "N of M scenes · … · filtered" (and is the live status)
+    assert.match(ws, /<PlanFilter filter=\{filter\} onChange=\{onFilter\} place="workspace" \/>/);
+    assert.match(ws, /<p className="plan-summary" role="status">\s*\{filtering\s*\? <>\{shown\.shown\} of \{plural\(totals\.scenes, 'scene'\)\}/);
+  });
   it('on smaller screens it shares the list’s column: filter, summary and cards / strips line up', () => {
     const pw = read('components/planning/PlanningWorkspace.css');
     assert.match(ws, /<section className="plan" data-view=\{view\} aria-label="Plan">/);

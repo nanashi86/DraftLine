@@ -8,11 +8,17 @@ const PERIODS = [['day', 'DAY', 'Day scenes (CONTINUOUS takes the light of the s
 /**
  * Plan's scene filter (lib/planFilter.js): Find scenes… · INT | EXT · DAY | NIGHT, and while anything
  * is set, "4 of 53 scenes ✕". In the header on wide windows (place 'bar', closing with a divider like
- * Write's Element · B I U S), at the top of the workspace on narrower ones (place 'workspace').
- *   filter: { q, ie, dn } · onChange(next) · count: { shown, total } (null until Plan has rows)
+ * Write's Element · B I U S), at the top of the workspace on narrower ones (place 'workspace'), where
+ * only ✕ shows: the summary line under it carries the count.
+ *   filter: { q, ie, dn } · onChange(next) · count: { shown, total } (header only; null until Plan has rows)
  */
 export default function PlanFilter({ filter, onChange, count, place = 'bar' }) {
   const active = planFilterActive(filter);
+  const clear = (
+    <button type="button" className="btn btn-icon pf-clear" onClick={() => onChange(EMPTY_PLAN_FILTER)} aria-label="Clear the scene filter" title="Clear the scene filter">
+      <X size={13} strokeWidth={1.75} aria-hidden />
+    </button>
+  );
   const seg = (items, key) => (
     <div className="pf-seg" role="group" aria-label={key === 'ie' ? 'Interior or exterior' : 'Day or night'}>
       {items.map(([v, label, title]) => {
@@ -53,14 +59,15 @@ export default function PlanFilter({ filter, onChange, count, place = 'bar' }) {
       </label>
       {seg(SETTINGS, 'ie')}
       {seg(PERIODS, 'dn')}
-      {active && count && (
+      {/* While set: the header shows "4 of 53 scenes ✕". At the top of the workspace only ✕ — the
+          summary line right under it already says "4 of 53 scenes · …", so the count isn't shown twice. */}
+      {active && place === 'bar' && count && (
         <span className="pf-count" role="status">
           <b>{count.shown} of {count.total}</b> {count.total === 1 ? 'scene' : 'scenes'}
-          <button type="button" className="btn btn-icon pf-clear" onClick={() => onChange(EMPTY_PLAN_FILTER)} aria-label="Clear the scene filter" title="Clear the scene filter">
-            <X size={13} strokeWidth={1.75} aria-hidden />
-          </button>
+          {clear}
         </span>
       )}
+      {active && place === 'workspace' && clear}
       {place === 'bar' && <span className="bar-sep pf-sep" aria-hidden="true" />}
     </div>
   );
