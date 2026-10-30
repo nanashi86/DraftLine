@@ -3,8 +3,9 @@ import StatusStepper from './StatusStepper.jsx';
 import { ISSUE_KINDS, canFix, findingPreview } from '../lib/formatDoctor.js';
 import { stepperPosition } from '../lib/dialogueFilter.js';
 
-// A medical cross, outlined at a 1.5 stroke so it stays crisp at 14px; it takes the capsule's muted ink.
-const ICON = <Cross size={14} strokeWidth={1.5} aria-hidden />;
+// A medical cross at the stepper weight (14px, stroke 1.75 ≈ 1px, like Dialogue, Density and Find);
+// it takes the capsule's muted ink.
+const ICON = <Cross size={14} strokeWidth={1.75} aria-hidden />;
 
 /**
  * Status bar, while the Format Doctor has findings (StatusStepper's shared capsule):

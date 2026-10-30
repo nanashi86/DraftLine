@@ -1,11 +1,16 @@
 import StatusStepper from './StatusStepper.jsx';
-import TabIcon from './TabIcon.jsx';
+import { MessageSquare } from 'lucide-react';
 import { stepperPosition } from '../lib/dialogueFilter.js';
+
+// A speech bubble from Lucide at the stepper weight (14px, stroke 1.75 ≈ 1px), the same line as Format,
+// Density and Find beside it. (The Characters drawer's Dialogue tab keeps its own bubble, drawn to match
+// the other drawer tab icons.)
+const ICON = <MessageSquare size={14} strokeWidth={1.75} aria-hidden />;
 
 /**
  * Status bar, while the Characters → Dialogue filter is on (StatusStepper's shared capsule):
  *
- *   [ 💬 MARIE · 3 of 12   ‹  › ] (✕)      💬 = the Characters drawer's Dialogue tab icon
+ *   [ 💬 MARIE · 3 of 12   ‹  › ] (✕)      💬 = Lucide MessageSquare
  *
  *   label  → a dropup list of every speech (Sc. · p. — "snippet"); a row jumps there
  *   ‹ ›    → previous / next speech, looping (also Alt+↑ / Alt+↓, and [ / ] outside the text)
@@ -18,7 +23,7 @@ export default function DialogueStepper({ name, stops, index, onStep, onGo, onCl
     <StatusStepper
       tone="neutral"
       name={name}
-      icon={<TabIcon name="dialogue" />}
+      icon={ICON}
       label={<span className="stepper-name">{name}</span>}
       position={stepperPosition(index, total)}
       ariaLabel={`${name}’s dialogue`}

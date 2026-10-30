@@ -106,8 +106,11 @@ describe('Status bar steppers: one capsule for Dialogue and Density', () => {
     assert.ok(!/setListOpen[^\n]*onStep|onStep[^\n]*setListOpen/.test(capsule), 'stepping never touches the list');
     assert.match(capsule, /createPortal\(/);
   });
-  it('Dialogue: [ 💬 NAME · n of N ‹ › ] (✕) with the drawer’s own speech bubble; ✕ clears the filter', () => {
-    assert.match(dlg, /icon=\{<TabIcon name="dialogue" \/>\}/);
+  it('Dialogue: [ 💬 NAME · n of N ‹ › ] (✕) with a Lucide speech bubble; ✕ clears the filter', () => {
+    assert.match(dlg, /import \{ MessageSquare \} from 'lucide-react';/);
+    assert.match(dlg, /const ICON = <MessageSquare size=\{14\} strokeWidth=\{1\.75\} aria-hidden \/>;/);
+    assert.match(dlg, /icon=\{ICON\}/);
+    assert.doesNotMatch(dlg, /TabIcon/);
     assert.match(dlg, /label=\{<span className="stepper-name">\{name\}<\/span>\}/);
     assert.match(dlg, /position=\{stepperPosition\(index, total\)\}/);
     assert.match(dlg, /onDismiss=\{onClear\}/);
@@ -161,7 +164,7 @@ describe('Status bar: the Format stepper', () => {
   it('the same capsule: [ stethoscope Format · n of N ‹ › ] (✕)', () => {
     assert.match(fs, /import StatusStepper from '\.\/StatusStepper\.jsx';/);
     assert.match(fs, /import \{ Cross \} from 'lucide-react';/);
-    assert.match(fs, /const ICON = <Cross size=\{14\} strokeWidth=\{1\.5\} aria-hidden \/>;/, 'a crisp medical cross in the muted ink');
+    assert.match(fs, /const ICON = <Cross size=\{14\} strokeWidth=\{1\.75\} aria-hidden \/>;/, 'a medical cross at the stepper weight, in the muted ink');
     assert.doesNotMatch(fs, /Stethoscope/);
     assert.match(readFileSync(new URL('../src/App.css', import.meta.url), 'utf8'), /\.stepper\.is-neutral \.stepper-main:hover \.stepper-icon,\s*\.stepper\.is-neutral \.stepper-main\.is-open \.stepper-icon \{ color: var\(--stepper-strong\); \}/);
     assert.match(fs, /label="Format"\s*position=\{stepperPosition\(index, total\)\}/);
@@ -186,4 +189,17 @@ describe('Status bar: the Format stepper', () => {
   it('Fix All fixes only what can be fixed unseen; a row fixes anything with a fix', () => {
     assert.match(app, /const list = all\.filter\(\(it\) => \(bulk \? canFixAll : canFix\)\(it\.kind\)\);/);
   });
+});
+
+describe('Status bar: every stepper icon draws at one line weight', () => {
+  // All four are Lucide (24-unit canvas) at 14px and stroke 1.75, so they render ≈1px thick alike.
+  // A custom 14-unit icon at 1.75 would render 1.75px, nearly twice as heavy.
+  for (const [file, icon] of [['DialogueStepper', 'MessageSquare'], ['FormatStepper', 'Cross'], ['DensityStepper', 'TriangleAlert'], ['FindStepper', 'Search']]) {
+    it(`${file}: Lucide ${icon}, 14px, stroke 1.75`, () => {
+      const src = read(`components/${file}.jsx`);
+      assert.match(src, new RegExp(`import \\{ ${icon} \\} from 'lucide-react';`));
+      assert.match(src, new RegExp(`<${icon} size=\\{14\\} strokeWidth=\\{1\\.75\\} aria-hidden />`));
+      assert.doesNotMatch(src, /TabIcon|strokeWidth=\{(?!1\.75\})/);
+    });
+  }
 });
