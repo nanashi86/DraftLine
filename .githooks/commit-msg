@@ -1,0 +1,6 @@
+#!/bin/sh
+# Keeps attribution trailers out of DraftLine's history: every commit message is saved without
+# "Co-authored-by:" or "Claude-Session:" lines, whatever tool wrote it. Enabled per clone with:
+#   git config core.hooksPath .githooks
+msg="$1"
+sed -e '/^[Cc][Oo]-[Aa][Uu][Tt][Hh][Oo][Rr][Ee][Dd]-[Bb][Yy]:/d' -e '/^[Cc][Ll][Aa][Uu][Dd][Ee]-[Ss][Ee][Ss][Ss][Ii][Oo][Nn]:/d' "$msg" | git stripspace > "$msg.tmp" && mv "$msg.tmp" "$msg"
