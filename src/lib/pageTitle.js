@@ -4,7 +4,7 @@
 // DraftLine" in a search result says nothing about what DraftLine is.
 import { SAMPLE_SCRIPT } from './sampleScript.js';
 
-export const SEO_TITLE = 'DraftLine — Free, Offline-First Screenwriting Software (PWA)';
+export const SEO_TITLE = 'DraftLine — Fast, Distraction-Free Screenwriting Software (PWA)';
 
 /** document.title for the open script: "<title> — DraftLine", or SEO_TITLE on the demo. */
 export function pageTitle(scriptTitle) {

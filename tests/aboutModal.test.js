@@ -191,9 +191,10 @@ describe('Trademark notices: brand anchors only, never on controls', () => {
     assert.match(jsx, /<p className="hm-trademark">\s*DraftLine™ is an open-source, local-first screenwriting application developed by Eric\{'\\u00a0'\}Lemaire\{'\\u00a0'\}Jr\.\s*<\/p>/, 'the name never breaks across lines');
     assert.match(css, /\.hm-trademark \{[^}]*font-size: 11px;[^}]*color: #71717a;[^}]*text-align: center;/);
   });
-  it('README and ROADMAP titles carry ™; the README ends with the trademark line', () => {
+  it('README and ROADMAP carry ™ (the README on its first mention, under the search-friendly title); the README ends with the trademark line', () => {
     const readme = read('README.md');
-    assert.match(readme, /^# DraftLine™$/m);
+    assert.match(readme, /^# DraftLine — Fast, Distraction-Free Screenwriting Software \(PWA\)$/m);
+    assert.match(readme, /^# DraftLine — [^\n]*\n\nDraftLine™ is a fast, distraction-free screenwriting progressive web app \(PWA\)/m);
     assert.match(readme.trimEnd(), /DraftLine™ and the DraftLine logo are trademarks of Eric Lemaire Jr\.$/);
     assert.match(read('ROADMAP.md'), /^# DraftLine™ Roadmap$/m);
   });

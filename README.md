@@ -3,9 +3,28 @@
 [![Patreon](https://img.shields.io/badge/Patreon-Support-F96854?style=for-the-badge&logo=patreon)](https://patreon.com/DraftLine)
 [![Discord](https://img.shields.io/badge/Discord-Community-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/8ytSsSWsPX)
 
-# DraftLine™
+# DraftLine — Fast, Distraction-Free Screenwriting Software (PWA)
 
-A fast, distraction-free, local-first screenwriting app built on open formats (Fountain, Final Draft XML). Zero corporate clouds, zero tracking, and complete writer IP ownership.
+DraftLine™ is a fast, distraction-free screenwriting progressive web app (PWA): free, open source (MIT) and local-first.
+It runs in the browser, installs like a desktop app and keeps working offline, with no account and no subscription.
+Your scripts stay on your device in open formats (Fountain and Final Draft XML), so you own your work outright.
+
+**Highlights**
+
+- **Strict 54-line Hollywood pagination engine.** Pages break the way a production reads them: 54 lines per page in
+  12pt Courier, with (MORE) / (CONT'D) across page breaks, so one page stays roughly one minute of screen time.
+- **Integrated 4-act index card beat board.** The Scene Board lays your story out as index cards in four acts (Setup,
+  Escalation to Midpoint, Fall & Crisis, Climax & Resolution) or three, imports cards from your scenes, and shows each
+  act's pacing against its target.
+- **Local-first privacy with IndexedDB persistence (zero telemetry, zero remote database storage).** Scripts are saved
+  in your browser's own database, or in a folder you link (Google Drive, Dropbox, OneDrive or a local disk). The editor
+  sends nothing about you or your writing anywhere; the website only counts page views (Cloudflare Web Analytics,
+  no cookies), and Send Feedback sends only what you type, when you choose to.
+- **Full FDX and Fountain import/export compatibility.** Open and save Final Draft (.fdx) and Fountain files, margin
+  notes included, plus PDF, Word and Google Docs import. The User Guide's *Final Draft (.fdx)* section lists the few
+  Final Draft settings that don't carry over.
+- **Built for rewriting.** Format Doctor, dialogue spotlight, snapshots, a Story Bible with character bios, and Plan
+  (breakdowns, stripboard and reports) for when the script is ready to shoot.
 
 ```bash
 npm install
