@@ -92,7 +92,7 @@ describe('Header: the red D opens About DraftLine', () => {
     assert.match(app, /\{helpKind && \(\s*<HelpModal/);
   });
   it('Projects stays on the title’s ▾ and Alt+P', () => {
-    assert.match(app, /className="doc-switch-btn"\s*onClick=\{\(\) => setDrawerOpen\(\(o\) => !o\)\}/);
+    assert.match(app, /className="doc-switch-btn"\s*data-projects-toggle\s*onClick=\{\(\) => setDrawerOpen\(\(o\) => !o\)\}/);
     assert.match(app, /e\.code === 'KeyP'\) \{\s*e\.preventDefault\(\);\s*setDrawerOpen\(\(o\) => !o\);/);
   });
 });

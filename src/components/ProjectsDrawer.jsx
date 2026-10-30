@@ -3,6 +3,7 @@ import { Lock, LockOpen } from 'lucide-react';
 import Menu from './Menu.jsx';
 import StorageDestination from './StorageDestination.jsx';
 import { relativeTime } from '../lib/projectStorage.js';
+import { projectsClickCloses } from '../lib/projectsDismiss.js';
 import './ProjectsDrawer.css';
 
 const plural = (n, w) => `${n} ${w}${n === 1 ? '' : 's'}`;
@@ -143,6 +144,19 @@ export default function ProjectsDrawer({
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [open, creating, renaming, onClose]);
+
+  // Click outside to close. Projects is a quick picker, not a workspace: a click on the top bar (it
+  // isn't dimmed) closes it and still does what you clicked (File opens and works, Bold bolds); a
+  // click on the dimmed area only closes it (the backdrop), so a dismissing click can't land on a
+  // card or button under the dim. A rename in progress is kept: its field saves when it loses focus.
+  useEffect(() => {
+    if (!open) return undefined;
+    const onDown = (e) => {
+      if (projectsClickCloses(e.target, panelRef.current)) onClose();
+    };
+    document.addEventListener('pointerdown', onDown, true);
+    return () => document.removeEventListener('pointerdown', onDown, true);
+  }, [open, onClose]);
 
   /** Run an action, then re-read the library. */
   const act = async (fn) => {

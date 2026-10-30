@@ -40,7 +40,7 @@ describe('Header: the D badge opens About; the title ▾ opens the one Projects 
   it('the title’s single chevron toggles the Projects drawer; the badge no longer does', () => {
     assert.match(id, /className=\{`brand\$\{helpKind === 'about' \? ' is-open' : ''\}`\}\s*onClick=\{\(\) => setHelpKind\('about'\)\}/);
     assert.equal((id.match(/setDrawerOpen\(\(o\) => !o\)/g) || []).length, 1, 'only the chevron opens Projects');
-    assert.match(id, /className="doc-switch-btn"\s*onClick=\{\(\) => setDrawerOpen\(\(o\) => !o\)\}/);
+    assert.match(id, /className="doc-switch-btn"\s*data-projects-toggle\s*onClick=\{\(\) => setDrawerOpen\(\(o\) => !o\)\}/);
     assert.equal((id.match(/className="doc-switch-btn"/g) || []).length, 1);
     assert.equal((app.match(/<ProjectsDrawer\b/g) || []).length, 1, 'one Projects drawer in the app');
   });

@@ -2252,6 +2252,7 @@ function Workspace({ boot }) {
                 <button
                   type="button"
                   className="doc-switch-btn"
+                  data-projects-toggle
                   onClick={() => setDrawerOpen((o) => !o)}
                   title="Projects (Alt+P)"
                   aria-label="Projects"

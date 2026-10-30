@@ -38,7 +38,7 @@ Tips only appear at a quiet moment: a few seconds after you stop typing, a minut
 
 ### Projects and browser storage
 
-Every script lives in your **Projects** library ({{key:Alt+P}}, the ▾ beside the title, or **File ▾ → Projects…**). From there you can create, switch, rename, duplicate, export or delete scripts. Deleting asks first: the **Delete Screenplay?** dialog only deletes when you press **Permanently Delete**; **Cancel** leaves everything as it was.
+Every script lives in your **Projects** library ({{key:Alt+P}}, the ▾ beside the title, or **File ▾ → Projects…**). From there you can create, switch, rename, duplicate, export or delete scripts. To close it, press {{key:Esc}} or click anywhere outside it. A click on the top bar also does what you clicked (File opens, Bold bolds), while a click on the dimmed page only closes Projects, so it never lands on something underneath. Deleting asks first: the **Delete Screenplay?** dialog only deletes when you press **Permanently Delete**; **Cancel** leaves everything as it was.
 
 **Project Lock.** The padlock to the left of a script's ⋮ menu locks it (it turns amber). A locked script can't be deleted, and nothing is loaded over it: Import and pasted scripts open as a new script beside it (Append is hidden), and snapshots can't be restored over it. You can still type in it; to stop all editing switch to Viewing ({{key:Ctrl+Alt+L}}). The lock is saved with the script, in backups and in a linked folder. Click the padlock again to unlock. Duplicates start unlocked.
 
