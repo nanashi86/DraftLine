@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://nanashi86.github.io/DraftLine/sitemap.xml

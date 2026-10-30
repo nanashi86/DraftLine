@@ -12,7 +12,24 @@
     <!-- Installable, offline-capable app (PWA): manifest + service worker (src/pwa/). -->
     <link rel="manifest" href="/DraftLine/manifest.json" />
     <meta name="theme-color" content="#18181b" />
-    <meta name="description" content="DraftLine — a fast, distraction-free screenwriting app that works offline." />
+    <!-- Search and sharing: one title and description everywhere (tab, search result, link previews).
+         The title must match SEO_TITLE in src/lib/pageTitle.js. Link previews need absolute URLs. -->
+    <link rel="canonical" href="https://nanashi86.github.io/DraftLine/" />
+    <meta name="description" content="DraftLine is a 100% free, open-source, local-first screenwriting tool. Fast and distraction-free with strict 54-line Hollywood pagination, 4-act index card beat board, and FDX/Fountain export with no subscriptions or accounts required." />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="DraftLine" />
+    <meta property="og:url" content="https://nanashi86.github.io/DraftLine/" />
+    <meta property="og:title" content="DraftLine — Fast, Distraction-Free Screenwriting Software (PWA)" />
+    <meta property="og:description" content="DraftLine is a 100% free, open-source, local-first screenwriting tool. Fast and distraction-free with strict 54-line Hollywood pagination, 4-act index card beat board, and FDX/Fountain export with no subscriptions or accounts required." />
+    <meta property="og:image" content="https://nanashi86.github.io/DraftLine/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="DraftLine: fast, distraction-free screenwriting. Free." />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:url" content="https://nanashi86.github.io/DraftLine/" />
+    <meta name="twitter:title" content="DraftLine — Fast, Distraction-Free Screenwriting Software (PWA)" />
+    <meta name="twitter:description" content="DraftLine is a 100% free, open-source, local-first screenwriting tool. Fast and distraction-free with strict 54-line Hollywood pagination, 4-act index card beat board, and FDX/Fountain export with no subscriptions or accounts required." />
+    <meta name="twitter:image" content="https://nanashi86.github.io/DraftLine/og-image.png" />
     <!-- Google Search Console ownership check for the published site: leave it in place, or the site is unverified. -->
     <meta name="google-site-verification" content="DrCDehHt3vN0jJh4gijIObittLvGD1iLPm2yA6TGQrA" />
     <link rel="apple-touch-icon" href="/DraftLine/apple-touch-icon.png?v=2" />
@@ -39,7 +56,7 @@
     </noscript>
     <!-- Search engines index this. The app keeps it on the demo script (src/lib/pageTitle.js) and names the
          tab after the script once you're working on your own. -->
-    <title>DraftLine — Free, Offline-First Screenwriting Software (PWA)</title>
+    <title>DraftLine — Fast, Distraction-Free Screenwriting Software (PWA)</title>
     <!-- Cloudflare Web Analytics, skipped on the admin's own devices. Visit once with ?dev=true to mark this
          browser as admin (?dev=false clears it); the parameter is then removed from the address bar. The beacon
          is cross-origin, so the service worker never touches it, and nothing here uses IndexedDB. -->
@@ -69,7 +86,7 @@
         document.head.appendChild(beacon);
       })();
     </script>
-    <script type="module" crossorigin src="/DraftLine/assets/index-DJxp1Q9V.js"></script>
+    <script type="module" crossorigin src="/DraftLine/assets/index-Bwd1cgzT.js"></script>
     <link rel="modulepreload" crossorigin href="/DraftLine/assets/rolldown-runtime-BCiCTKAo.js">
     <link rel="modulepreload" crossorigin href="/DraftLine/assets/react-DgawKyfb.js">
     <link rel="modulepreload" crossorigin href="/DraftLine/assets/formatting-BYoP7DnV.js">
