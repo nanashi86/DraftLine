@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import { createPickerGuard } from '../src/lib/pickerGuard.js';
 
 /** A tiny stand-in for document: listeners by type, and dispatch. */
@@ -104,5 +104,29 @@ describe('InfoTip: hover intent, and never behind a dropdown list', () => {
     assert.match(tip, /window\.addEventListener\('pointerdown', hide, true\);/);
     assert.match(tip, /window\.removeEventListener\('pointerdown', hide, true\);/);
     assert.match(tip, /window\.addEventListener\('scroll', hide, true\);/);
+  });
+});
+
+describe('the cue bio card follows the same rule', () => {
+  const card = readFileSync(new URL('../src/components/CueBioCard.jsx', import.meta.url), 'utf8');
+  it('a hover never opens it while a dropdown list is open; clicking a cue still does', () => {
+    assert.match(card, /import \{ nativePickerOpen \} from '\.\.\/lib\/pickerGuard\.js';/);
+    assert.match(card, /\nnativePickerOpen\(\);\n/, 'the guard starts listening when the module loads');
+    assert.match(card, /t\.open = setTimeout\(\(\) => \{\s*if \(!nativePickerOpen\(\)\) dispatch\(\{ type: 'timer', cueId: id \}\);\s*\}, CUE_CARD_DELAY\);/);
+    assert.match(card, /dispatch\(\{ type: 'click', cueId: input\.dataset\.id \}\)/);
+  });
+  it('the app has no other hover-opened card: every other hover handler only highlights or pauses', () => {
+    // If a new file starts reacting to hover, decide whether it opens a card (then guard it) and add it here.
+    const dir = new URL('../src/components/', import.meta.url);
+    const hover = readdirSync(dir).filter((f) => /\.jsx?$/.test(f))
+      .filter((f) => /onMouseEnter|onPointerEnter|'mouseover'|'mouseenter'|'pointerenter'/.test(readFileSync(new URL(f, dir), 'utf8')))
+      .sort();
+    assert.deepEqual(hover, [
+      'CueBioCard.jsx', // card: guarded (above)
+      'DialogueTuner.jsx', // highlights the speech in the script
+      'Editor.jsx', // moves the autocomplete highlight
+      'StoryDna.jsx', // ⓘ cards: guarded
+      'SupportCallouts.js', // pauses a corner toast's timer
+    ]);
   });
 });

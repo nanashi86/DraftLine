@@ -3,14 +3,20 @@ import { createPortal } from 'react-dom';
 import {
   CUE_CARD_DELAY, CUE_CARD_GRACE, CUE_CARD_IDLE, bioCard, cueCardReducer, cueCardVisible, findBio, placeCueCard,
 } from '../lib/cueBio.js';
+import { nativePickerOpen } from '../lib/pickerGuard.js';
 import './CueBioCard.css';
+
+// Follow native dropdown lists from the start: the Element ▾ list can drop over the script.
+nativePickerOpen();
 
 /**
  * A floating bio card for character cues in the script. Hover a cue (300 ms) or click it: if the
  * character has a bio in Characters → Bios, a card shows beside the cue with name, role · age,
  * traits and a backstory excerpt, and "Edit in Bios →". It never takes focus, so typing,
  * selecting and moving the caret work as usual; it closes when the pointer leaves, on Esc,
- * on typing and on scroll. It lives outside the page, so print and exports never see it.
+ * on typing and on scroll. A hover never opens it while a dropdown list is open (the Element ▾ list
+ * drops over the script, and the browser draws it above everything, so the card would be hidden
+ * behind it). It lives outside the page, so print and exports never see it.
  *
  * root — ref to the scrolling script pane (events are delegated from there).
  */
@@ -44,7 +50,9 @@ export default function CueBioCard({ root, characters, onEdit, disabled = false 
       const id = input.dataset.id;
       dispatch({ type: 'enter', cueId: id });
       clearTimeout(t.open);
-      t.open = setTimeout(() => dispatch({ type: 'timer', cueId: id }), CUE_CARD_DELAY);
+      t.open = setTimeout(() => {
+        if (!nativePickerOpen()) dispatch({ type: 'timer', cueId: id });
+      }, CUE_CARD_DELAY);
     };
     const onOut = (e) => {
       const from = e.target?.closest?.('.el-character');
