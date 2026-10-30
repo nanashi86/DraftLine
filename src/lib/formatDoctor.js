@@ -29,8 +29,9 @@ export const ISSUE_KINDS = {
   'duplicate-character-cue': { label: 'Consecutive character cue', fix: 'Merge speeches', verb: 'Merge' },
   slugformat: { label: 'Scene heading format', fix: 'Format heading', verb: 'Format' },
   slugincomplete: { label: 'Scene heading missing INT./EXT. or time of day', fix: null, verb: null },
-  // Has INT./EXT. but no time of day. "- DAY" may be the wrong guess, so only one at a time (bulk: false).
-  'slugline-missing-time': { label: 'Missing time of day', fix: 'Add - DAY', verb: 'Add DAY', bulk: false },
+  // Has INT./EXT. but no time of day. Any time would be a guess, so the writer picks it (choose: a
+  // DAY / NIGHT / … picker on each row, and "Add to all" for the group), never Fix All (bulk: false).
+  'slugline-missing-time': { label: 'Missing time of day', fix: 'Add a time of day: you choose DAY, NIGHT…', verb: 'Add time', bulk: false, choose: true },
   intro: { label: 'Character introduced in lowercase', fix: 'Capitalize name', verb: 'Fix' },
   spacing: { label: 'Double blank lines', fix: 'Strip blank lines', verb: 'Strip' },
   indent: { label: 'Leading spaces', fix: 'Remove leading spaces', verb: 'Fix' },
@@ -72,7 +73,13 @@ export const unwrapParenthetical = (text) => String(text || '').trim().replace(/
 // ---- Scene headings: the time of day ---------------------------------------------------------------
 
 /** "INT. KITCHEN" → "INT. KITCHEN - DAY" (a trailing dash is reused, not doubled). */
-export const addDayToHeading = (text) => `${String(text || '').trim().replace(/\s*[-–—]+$/, '')} - DAY`;
+/** The times of day a heading's picker offers, most used first. */
+export const HEADING_TIMES = ['DAY', 'NIGHT', 'MORNING', 'AFTERNOON', 'EVENING', 'CONTINUOUS', 'LATER'];
+/** "INT. KITCHEN" (or "INT. KITCHEN -") + NIGHT → "INT. KITCHEN - NIGHT". */
+export const addTimeToHeading = (text, time) => `${String(text || '').trim().replace(/\s*[-–—]+$/, '')} - ${time}`;
+export const addDayToHeading = (text) => addTimeToHeading(text, 'DAY');
+/** A finding with the writer's choice attached (Missing time of day → { …it, time: 'NIGHT' }). */
+export const withTime = (it, time) => ({ ...it, time });
 
 // ---- Consecutive cues ------------------------------------------------------------------------------
 
@@ -509,7 +516,11 @@ export function applyFixes(blocks, issues) {
       continue;
     }
     if (it.kind === 'slugline-missing-time') {
-      const text = addDayToHeading(b.text);
+      if (!it.time) { // never assumed: without the writer's choice, nothing changes
+        out.push(b);
+        continue;
+      }
+      const text = addTimeToHeading(b.text, it.time);
       out.push(withMarks({ ...b, text }, remapMarks(b.text, text, b.marks)));
       continue;
     }

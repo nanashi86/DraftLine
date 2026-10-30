@@ -1,6 +1,6 @@
 import { Cross } from 'lucide-react';
 import StatusStepper from './StatusStepper.jsx';
-import { ISSUE_KINDS, canFix, findingPreview } from '../lib/formatDoctor.js';
+import { ISSUE_KINDS, canFix, findingPreview, withTime } from '../lib/formatDoctor.js';
 import { stepperPosition } from '../lib/dialogueFilter.js';
 
 // A medical cross at the stepper weight (14px, stroke 1.75 ≈ 1px, like Dialogue, Density and Find);
@@ -44,7 +44,10 @@ export default function FormatStepper({ issues, index, pageOfBlock = {}, onStep,
           sub: findingPreview(it),
           mono: true,
           actions: [
-            ...(canFix(it.kind) ? [{ label: 'Fix', primary: true, title: ISSUE_KINDS[it.kind].fix, onClick: () => onFix(it) }] : []),
+            // Missing time of day: your call, never assumed. DAY and NIGHT here; every other time in the Format Doctor.
+            ...(ISSUE_KINDS[it.kind].choose
+              ? ['DAY', 'NIGHT'].map((t) => ({ label: t, title: `Add - ${t} · other times in Open Format Doctor…`, onClick: () => onFix(withTime(it, t)) }))
+              : canFix(it.kind) ? [{ label: 'Fix', primary: true, title: ISSUE_KINDS[it.kind].fix, onClick: () => onFix(it) }] : []),
             { label: 'Ignore', title: 'Hide this finding for this session', onClick: () => onIgnore(it) },
           ],
         })),

@@ -171,7 +171,8 @@ describe('Status bar: the Format stepper', () => {
     assert.ok(!/\p{Extended_Pictographic}/u.test(fs.replace(/\/\/.*|\/\*[\s\S]*?\*\/|^ \*.*$/gm, '')), 'a line icon, not an emoji');
   });
   it('its list: every finding with Fix (when there is one) and Ignore, and Open Format Doctor…', () => {
-    assert.match(fs, /\.\.\.\(canFix\(it\.kind\) \? \[\{ label: 'Fix', primary: true/);
+    assert.match(fs, /: canFix\(it\.kind\) \? \[\{ label: 'Fix', primary: true/);
+    assert.match(fs, /ISSUE_KINDS\[it\.kind\]\.choose\s*\? \['DAY', 'NIGHT'\]/, 'a missing time of day: DAY or NIGHT, your pick');
     assert.match(fs, /\{ label: 'Ignore', title: 'Hide this finding for this session', onClick: \(\) => onIgnore\(it\) \}/);
     assert.match(fs, /footer: \{ label: 'Open Format Doctor…', onClick: onOpenDoctor \}/);
     const ss = read('components/StatusStepper.jsx');

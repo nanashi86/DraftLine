@@ -1,7 +1,8 @@
 import { useEffect, useRef } from 'react';
 import { BookOpen } from 'lucide-react';
 import { ELEMENT_META } from '../lib/screenplay.js';
-import { ISSUE_KINDS, canFix, canFixAll, findingPreview } from '../lib/formatDoctor.js';
+import { HEADING_TIMES, ISSUE_KINDS, canFix, canFixAll, findingPreview, withTime } from '../lib/formatDoctor.js';
+import Select from './Select.jsx';
 import { FORMAT_TERM_FOR_ISSUE } from '../lib/structureDictionary.js';
 import './FormatDoctorModal.css';
 
@@ -12,7 +13,16 @@ const typeLabel = (t) => (t ? ELEMENT_META[t].label : 'Removed');
  * every fix is a normal edit, so Ctrl+Z undoes it. A finding's chip opens the Glossary's Screenplay
  * Format term behind it (onTerm), when there is one.
  */
-export default function FormatDoctorModal({ issues, pageOfBlock, onFix, onFixAll, onIgnore, onShow, onClose, onTerm = null, supportFooter = null }) {
+const TIME_OPTIONS = HEADING_TIMES.map((t) => ({ value: t, label: t }));
+
+/**
+ * Lists the Format Doctor's findings. Each can be fixed on its own or all at once;
+ * every fix is a normal edit, so Ctrl+Z undoes it. A finding's chip opens the Glossary's Screenplay
+ * Format term behind it (onTerm), when there is one. A fix that needs the writer's call (Missing
+ * time of day) is a DAY / NIGHT / … picker on its row, plus "Add to all" for the group (onFixGroup);
+ * Fix All leaves those alone.
+ */
+export default function FormatDoctorModal({ issues, pageOfBlock, onFix, onFixAll, onFixGroup, onIgnore, onShow, onClose, onTerm = null, supportFooter = null }) {
   const dialogRef = useRef(null);
 
   useEffect(() => {
@@ -21,7 +31,11 @@ export default function FormatDoctorModal({ issues, pageOfBlock, onFix, onFixAll
   }, []);
 
   const counts = issues.reduce((m, it) => ({ ...m, [it.kind]: (m[it.kind] || 0) + 1 }), {});
-  const fixable = issues.filter((it) => canFixAll(it.kind)).length; // what Fix All will do (not "Add - DAY")
+  const fixable = issues.filter((it) => canFixAll(it.kind)).length; // what Fix All will do (no time-of-day guesses)
+  const choosing = issues.filter((it) => ISSUE_KINDS[it.kind].choose); // findings that need your call
+  const fixAllTitle = fixable
+    ? `Fix the ${fixable} ${fixable === 1 ? 'finding' : 'findings'} with one right answer${choosing.length ? `; ${choosing.length} missing a time of day ${choosing.length === 1 ? 'needs' : 'need'} your pick` : ''} · a snapshot is saved first`
+    : choosing.length ? 'Missing time of day needs your call: pick a time on each row, or Add to all' : undefined;
 
   return (
     <dialog
@@ -46,7 +60,7 @@ export default function FormatDoctorModal({ issues, pageOfBlock, onFix, onFixAll
         </div>
         <div className="fd-head-actions">
           <button type="button" className="btn" onClick={onClose}>Close</button>
-          <button type="button" className="btn btn-primary" disabled={!fixable} onClick={onFixAll}>
+          <button type="button" className="btn btn-primary" disabled={!fixable} onClick={onFixAll} title={fixAllTitle}>
             Fix All{fixable ? ` (${fixable})` : ''}
           </button>
         </div>
@@ -71,6 +85,17 @@ export default function FormatDoctorModal({ issues, pageOfBlock, onFix, onFixAll
               <span key={k} className={`fd-chip fd-k-${k}`}>{v.label} <b>{counts[k]}</b></span>
             );
           })}
+          {onFixGroup && choosing.length > 1 && (
+            <Select
+              className="fd-time fd-time-all"
+              value=""
+              placeholder={`Add to all ${choosing.length}…`}
+              options={TIME_OPTIONS}
+              onChange={(t) => onFixGroup(choosing.map((it) => withTime(it, t)))}
+              ariaLabel={`Add a time of day to all ${choosing.length} headings missing one`}
+              title={`Add the same time of day to all ${choosing.length} headings · Ctrl+Z undoes`}
+            />
+          )}
         </div>
       )}
 
@@ -98,7 +123,17 @@ export default function FormatDoctorModal({ issues, pageOfBlock, onFix, onFixAll
               </span>
               {/* One button each: the fix (short verb, the full change in its tooltip), Show, Ignore. */}
               <span className="fd-actions">
-                {canFix(it.kind) && (
+                {kind.choose ? (
+                  <Select
+                    className="fd-time"
+                    value=""
+                    placeholder={`${kind.verb}…`}
+                    options={TIME_OPTIONS}
+                    onChange={(t) => onFix(withTime(it, t))}
+                    ariaLabel={`Add a time of day to ${findingPreview(it)}`}
+                    title={kind.fix}
+                  />
+                ) : canFix(it.kind) && (
                   <button type="button" className="btn fd-fix" onClick={() => onFix(it)} title={kind.fix}>{kind.verb}</button>
                 )}
                 <button type="button" className="btn" onClick={() => onShow(it.id)} title="Jump to it in the script">Show</button>

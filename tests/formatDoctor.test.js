@@ -2,8 +2,7 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   ISSUE_KINDS, applyFixes, auditScript, canFix, canFixAll, formatSlugline, hasExtraBlankLines, hasTimeOfDayPart, isCompleteSlugline,
-  lowercaseIntroductions, stripBlankLines,
-} from '../src/lib/formatDoctor.js';
+  lowercaseIntroductions, stripBlankLines, HEADING_TIMES, withTime } from '../src/lib/formatDoctor.js';
 import { readFileSync } from 'node:fs';
 
 const B = (id, type, text, extra = {}) => ({ id, type, text, ...extra });
@@ -339,13 +338,30 @@ describe('Format Doctor: parentheticals', () => {
 });
 
 describe('Format Doctor: missing time of day', () => {
-  it('a heading with INT./EXT. but no time: "Missing time of day", with Add - DAY', () => {
+  it('a heading with INT./EXT. but no time: "Missing time of day"; the time is your pick, never assumed', () => {
     const s = [B('s', 'scene', 'INT. KITCHEN'), B('a', 'action', 'x')];
-    assert.deepEqual(kinds(auditScript(s)), ['s:slugline-missing-time']);
+    const found = auditScript(s);
+    assert.deepEqual(kinds(found), ['s:slugline-missing-time']);
     assert.equal(ISSUE_KINDS['slugline-missing-time'].label, 'Missing time of day');
-    assert.equal(ISSUE_KINDS['slugline-missing-time'].fix, 'Add - DAY');
-    assert.equal(applyFixes(s, auditScript(s))[0].text, 'INT. KITCHEN - DAY');
-    assert.equal(applyFixes([B('s', 'scene', 'EXT. ROOF -'), B('a', 'action', 'x')], auditScript([B('s', 'scene', 'EXT. ROOF -'), B('a', 'action', 'x')]))[0].text, 'EXT. ROOF - DAY', 'a trailing dash isn’t doubled');
+    assert.equal(ISSUE_KINDS['slugline-missing-time'].choose, true);
+    assert.deepEqual(HEADING_TIMES, ['DAY', 'NIGHT', 'MORNING', 'AFTERNOON', 'EVENING', 'CONTINUOUS', 'LATER']);
+    assert.equal(applyFixes(s, found)[0].text, 'INT. KITCHEN', 'no pick, no change: DAY is never assumed');
+    assert.equal(applyFixes(s, found.map((it) => withTime(it, 'NIGHT')))[0].text, 'INT. KITCHEN - NIGHT');
+    assert.equal(applyFixes(s, found.map((it) => withTime(it, 'DAY')))[0].text, 'INT. KITCHEN - DAY');
+    const roof = [B('s', 'scene', 'EXT. ROOF -'), B('a', 'action', 'x')];
+    assert.equal(applyFixes(roof, auditScript(roof).map((it) => withTime(it, 'DAY')))[0].text, 'EXT. ROOF - DAY', 'a trailing dash isn’t doubled');
+  });
+  it('the pickers: each row, "Add to all N…" for the group, DAY / NIGHT in the status-bar list', () => {
+    const modal = readFileSync(new URL('../src/components/FormatDoctorModal.jsx', import.meta.url), 'utf8');
+    assert.match(modal, /onChange=\{\(t\) => onFix\(withTime\(it, t\)\)\}/);
+    assert.match(modal, /choosing\.length > 1 && \(/);
+    assert.match(modal, /placeholder=\{`Add to all \$\{choosing\.length\}…`\}/);
+    assert.match(modal, /onChange=\{\(t\) => onFixGroup\(choosing\.map\(\(it\) => withTime\(it, t\)\)\)\}/);
+    assert.match(modal, /'Missing time of day needs your call: pick a time on each row, or Add to all'/, 'a disabled Fix All says why');
+    const app = readFileSync(new URL('../src/App.jsx', import.meta.url), 'utf8');
+    assert.match(app, /onFixGroup=\{\(list\) => fixIssues\(list, \{ snapshot: 'Add time of day' \}\)\}/, 'Add to all saves a snapshot first, like Fix All');
+    const stepper = readFileSync(new URL('../src/components/FormatStepper.jsx', import.meta.url), 'utf8');
+    assert.match(stepper, /\['DAY', 'NIGHT'\]\.map\(\(t\) => \(\{ label: t,/);
   });
   it('the full time-of-day vocabulary counts: no false alarms', () => {
     for (const t of ['EXT. ROOF - MORNING', 'INT. CAR - EVENING', 'INT. HALL - MOMENTS LATER', 'INT. HALL - CONTINUOUS', 'INT. HALL - SAME',

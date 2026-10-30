@@ -838,11 +838,11 @@ function Workspace({ boot }) {
     setDoctorOpen(false);
     setDoctorTip(false);
   }, []);
-  const fixIssues = useCallback((all, { bulk = false } = {}) => {
-    // A row's Fix: anything with a fix. Fix All: only fixes that are safe unseen ("Add - DAY" may be wrong).
+  const fixIssues = useCallback((all, { bulk = false, snapshot = bulk && 'Fix All' } = {}) => {
+    // A row's Fix: anything with a fix. Fix All: only fixes with one right answer (never a time-of-day guess).
     const list = all.filter((it) => (bulk ? canFixAll : canFix)(it.kind));
     if (!list.length) return;
-    if (bulk) autoSnapshotRef.current('Fix All', { force: true }); // Fix All: the script as it was, first
+    if (snapshot && (bulk || list.length > 1)) autoSnapshotRef.current(snapshot, { force: true }); // Fix All, Add to all: the script as it was, first
     const next = applyFixes(blocks, list);
     set(next);
     if (doctorOpen && !doctorTip && scriptIsClean(next)) setDoctorTip(claimTip(FORMAT_DOCTOR_TIP));
@@ -2959,6 +2959,7 @@ function Workspace({ boot }) {
             pageOfBlock={layout.pageOfBlock}
             onFix={(it) => fixIssues([it])}
             onFixAll={() => fixIssues(issues, { bulk: true })}
+            onFixGroup={(list) => fixIssues(list, { snapshot: 'Add time of day' })}
             onIgnore={ignoreIssue}
             onShow={(id) => {
               closeDoctor();
