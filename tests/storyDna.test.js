@@ -19,7 +19,7 @@ import { readFileSync } from 'node:fs';
 describe('Story DNA', () => {
   it('has the eight narrative questions in order, each tied to a dictionary term', () => {
     assert.deepEqual(DNA_QUESTIONS.map((q) => q.label), [
-      'Protagonist', 'Inciting Incident', 'Goal / Desire', 'Flaw', 'Conflict / Obstacle', 'Rising Action (Complications)', 'Crisis (All Is Lost)', 'Climax & Resolution',
+      'Protagonist', 'Inciting Incident', 'Goal / Desire', 'Flaw', 'Conflict / Obstacle', 'Complications', 'All Is Lost / Crisis', 'Climax / Resolution',
     ]);
     for (const q of DNA_QUESTIONS) assert.ok(dictionaryEntry(STRUCTURE_DICTIONARY, q.dict), q.dict);
     for (const d of PLOT_DEVICES) assert.ok(dictionaryEntry(STRUCTURE_DICTIONARY, d.dict), d.dict);

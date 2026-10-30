@@ -49,9 +49,9 @@ const ROLES = [
   'Shadow / Mirror', 'Skeptic / Voice of Reason', 'Threshold Guardian',
 ];
 const CRAFT = [
-  'B-Story', 'Cliffhanger', 'Climax', 'Conflict / Obstacle', 'Crisis (All Is Lost)', 'Deus ex machina', 'Flashback', 'Flaw', 'Foreshadowing',
-  'Goal / Desire', 'Inciting Incident', 'Love triangle', 'MacGuffin', 'Midpoint', 'Quest', 'Red herring', 'Resolution (Falling Action)',
-  'Rising Action (Complications)', 'Setup & Payoff', 'Stakes', 'Text / Subtext / Context', 'Ticking Clock', 'Want vs. Need',
+  'All Is Lost / Crisis', 'B-Story', 'Cliffhanger', 'Climax', 'Complications', 'Conflict / Obstacle', 'Deus ex machina', 'Flashback', 'Flaw',
+  'Foreshadowing', 'Goal / Desire', 'Inciting Incident', 'Love triangle', 'MacGuffin', 'Midpoint', 'Quest', 'Red herring',
+  'Resolution / Falling Action', 'Setup & Payoff', 'Stakes', 'Text / Subtext / Context', 'Ticking Clock', 'Want vs. Need',
 ];
 
 describe('Glossary: three sections — Character Roles, Narrative & Dramatic Craft, Screenplay Format', () => {

@@ -20,12 +20,16 @@ describe('Story DNA: the renamed questions keep every saved answer in place', ()
   const byLabel = Object.fromEntries(DNA_QUESTIONS.map((q) => [q.label, { question: q.question, answer: dna.answers[q.key] }]));
 
   it('each answer is still under the question it was written for', () => {
-    assert.deepEqual(byLabel['Crisis (All Is Lost)'], { question: 'Why doesn’t that work?', answer: 'The storm sinks the plan' });
-    assert.deepEqual(byLabel['Climax & Resolution'], { question: 'How does it end?', answer: 'She steers it herself' });
-    assert.deepEqual(byLabel['Rising Action (Complications)'], { question: 'What did they do about it?', answer: 'She bribes the crew' });
+    assert.deepEqual(byLabel['All Is Lost / Crisis'], { question: 'Why doesn’t that work?', answer: 'The storm sinks the plan' });
+    assert.deepEqual(byLabel['Climax / Resolution'], { question: 'How does it end?', answer: 'She steers it herself' });
+    assert.deepEqual(byLabel['Complications'], { question: 'What did they do about it?', answer: 'She bribes the crew' });
     assert.deepEqual(byLabel['Conflict / Obstacle'], { question: 'Why can’t they get it?', answer: 'Augustin won’t sail' });
     assert.equal(storyDnaProgress(dna), 8, 'still eight of eight');
     assert.equal(dna.conflictType, 'Individual vs. Nature', 'conflict types are unchanged');
+  });
+  it('card titles are plain or slash-separated, with no parentheses', () => {
+    for (const q of DNA_QUESTIONS) assert.ok(!/[()]/.test(q.label), q.label);
+    assert.deepEqual(DNA_QUESTIONS.slice(5).map((q) => q.label), ['Complications', 'All Is Lost / Crisis', 'Climax / Resolution']);
   });
   it('the storage keys did not move (only labels and glossary links changed)', () => {
     assert.deepEqual(DNA_QUESTIONS.map((q) => q.key), ['protagonist', 'incitingIncident', 'goal', 'flaw', 'conflict', 'risingAction', 'climax', 'fallingAction']);
@@ -36,8 +40,9 @@ describe('Story DNA: the renamed questions keep every saved answer in place', ()
   });
   it('each question’s ⓘ opens the term that matches it now', () => {
     const dict = Object.fromEntries(DNA_QUESTIONS.map((q) => [q.label, dictionaryEntry(STRUCTURE_DICTIONARY, q.dict).term]));
-    assert.equal(dict['Crisis (All Is Lost)'], 'Crisis (All Is Lost)');
-    assert.equal(dict['Climax & Resolution'], 'Climax');
+    assert.equal(dict['Complications'], 'Complications');
+    assert.equal(dict['All Is Lost / Crisis'], 'All Is Lost / Crisis');
+    assert.equal(dict['Climax / Resolution'], 'Climax');
     assert.equal(dict['Conflict / Obstacle'], 'Conflict / Obstacle');
     assert.match(dictionaryEntry(STRUCTURE_DICTIONARY, 'climax').definition, /after the crisis/);
   });
@@ -69,10 +74,10 @@ describe('Glossary: the new and reworded craft terms', () => {
   });
   it('renames the terms but keeps their ids, so a writer’s own wording stays on the same entry', () => {
     const mine = mergeDictionary({ fallingAction: { definition: 'My teacher’s wording.' }, conflict: { definition: 'Mine too.' } });
-    assert.equal(dictionaryEntry(mine, 'fallingAction').term, 'Resolution (Falling Action)');
+    assert.equal(dictionaryEntry(mine, 'fallingAction').term, 'Resolution / Falling Action');
     assert.equal(dictionaryEntry(mine, 'fallingAction').definition, 'My teacher’s wording.');
     assert.equal(dictionaryEntry(mine, 'conflict').term, 'Conflict / Obstacle');
-    assert.equal(dictionaryEntry(mine, 'risingAction').term, 'Rising Action (Complications)');
+    assert.equal(dictionaryEntry(mine, 'risingAction').term, 'Complications');
   });
   it('Deus ex machina reads as a warning; Catalyst explains its Save the Cat meaning; Conflict maps to McKee’s three levels', () => {
     assert.match(dictionaryEntry(STRUCTURE_DICTIONARY, 'deusExMachina').definition, /Something to avoid rather than plan/);

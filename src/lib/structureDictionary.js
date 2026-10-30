@@ -51,8 +51,8 @@ export const STRUCTURE_DICTIONARY = [
   },
   {
     id: 'risingAction',
-    term: 'Rising Action (Complications)',
-    definition: 'What the protagonist does about the problem: a series of attempts, each met by a complication that raises the stakes, building from the inciting incident toward the crisis. Robert McKee calls these progressive complications; each one should make things harder than the last, never simply repeat it.',
+    term: 'Complications',
+    definition: 'What the protagonist does about the problem: a series of attempts, each met by a complication that raises the stakes, building from the inciting incident toward the crisis. Robert McKee calls these progressive complications; classic story analysis calls the stretch rising action. Each one should make things harder than the last, never simply repeat it.',
   },
   {
     id: 'climax',
@@ -61,7 +61,7 @@ export const STRUCTURE_DICTIONARY = [
   },
   {
     id: 'fallingAction',
-    term: 'Resolution (Falling Action)',
+    term: 'Resolution / Falling Action',
     definition: 'What follows the climax: consequences play out, loose ends are tied and we see what has changed. On screen it is short, often a few minutes, which is why screenwriters call it the resolution rather than a whole falling action.',
   },
   {
@@ -112,7 +112,7 @@ export const STRUCTURE_DICTIONARY = [
   },
   {
     id: 'crisis',
-    term: 'Crisis (All Is Lost)',
+    term: 'All Is Lost / Crisis',
     definition: 'The low point where the protagonist’s plan fails and the goal looks impossible: the moment that shows why everything they tried was not enough. It forces the hardest choice of the story, which the climax then plays out. Save the Cat calls it All Is Lost.',
   },
   {
@@ -360,8 +360,8 @@ export const GLOSSARY_SECTIONS = [
     id: 'craft',
     label: 'Narrative & Dramatic Craft',
     ids: [
-      'bStory', 'cliffhanger', 'climax', 'conflict', 'crisis', 'deusExMachina', 'flashback', 'flaw', 'foreshadowing', 'goal',
-      'incitingIncident', 'loveTriangle', 'macguffin', 'midpoint', 'quest', 'redHerring', 'fallingAction', 'risingAction',
+      'crisis', 'bStory', 'cliffhanger', 'climax', 'risingAction', 'conflict', 'deusExMachina', 'flashback', 'flaw', 'foreshadowing',
+      'goal', 'incitingIncident', 'loveTriangle', 'macguffin', 'midpoint', 'quest', 'redHerring', 'fallingAction',
       'setupPayoff', 'stakes', 'textSubtext', 'tickingClock', 'wantNeed',
     ],
   },

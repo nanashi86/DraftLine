@@ -152,12 +152,12 @@ export const DNA_QUESTIONS = [
   { key: 'goal', label: 'Goal / Desire', question: 'What do they want?', dict: 'goal' },
   { key: 'flaw', label: 'Flaw', question: 'What must they overcome to get it?', dict: 'flaw' },
   { key: 'conflict', label: 'Conflict / Obstacle', question: 'Why can’t they get it?', dict: 'conflict', conflictType: true },
-  { key: 'risingAction', label: 'Rising Action (Complications)', question: 'What did they do about it?', dict: 'risingAction' },
+  { key: 'risingAction', label: 'Complications', question: 'What did they do about it?', dict: 'risingAction' },
   // The last two kept their storage keys, so every saved answer stays under the same question:
-  // "Why doesn't that work?" (stored as `climax`) is the Crisis, and "How does it end?" (stored as
-  // `fallingAction`) is the Climax & Resolution. Only the labels and glossary links changed.
-  { key: 'climax', label: 'Crisis (All Is Lost)', question: 'Why doesn’t that work?', dict: 'crisis' },
-  { key: 'fallingAction', label: 'Climax & Resolution', question: 'How does it end?', dict: 'climax' },
+  // "Why doesn't that work?" (stored as `climax`) is All Is Lost / Crisis, and "How does it end?" (stored
+  // as `fallingAction`) is Climax / Resolution. Only the labels and glossary links changed.
+  { key: 'climax', label: 'All Is Lost / Crisis', question: 'Why doesn’t that work?', dict: 'crisis' },
+  { key: 'fallingAction', label: 'Climax / Resolution', question: 'How does it end?', dict: 'climax' },
 ];
 
 export function emptyStoryDna() {

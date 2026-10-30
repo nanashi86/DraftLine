@@ -227,8 +227,8 @@ Two tabs — **DNA** opens first unless you've picked Notes this session:
     MacGuffin, Quest, Cliffhanger, Red herring, Love triangle (a Deus ex machina added before it left the list is kept); each added device has Yes / No, a notes box ("How the
     script uses …") and an **i** with its glossary definition (older projects' Foreshadowing / Flashback / Special
     Plot Technique notes carry over as devices); then the eight question cards — Protagonist, Inciting Incident, Goal /
-    Desire, Flaw, Conflict / Obstacle (with the six conflict types), Rising Action (Complications), Crisis (All Is Lost),
-    Climax & Resolution. Every **i**
+    Desire, Flaw, Conflict / Obstacle (with the six conflict types), Complications, All Is Lost / Crisis,
+    Climax / Resolution. Every **i**
     shows the definition in a tooltip that always fits inside the drawer (it flips above near the bottom and slides
     in from the edges); click it to open the entry. Saved with the project.
   - **Story Glossary** (formerly Structure Dictionary): 57 terms in three sections — Character Roles, Narrative &
