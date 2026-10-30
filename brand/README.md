@@ -23,6 +23,7 @@ Built from the app icon (`public/favicon.svg`): the white Courier Prime Bold **D
 | | Header, tagline version | `X/x-banner-tagline.png` | 1500×500 (3:1): the same tagline banner as the Patreon, Ko-fi and GitHub covers ("Local-First · Works Offline · Fountain & Final Draft"). Logo and text sit in x 501–999, y 130–315: clear of the avatar and inside the phone crop |
 | | Logo with name | `X/draftline-x-full-logo-dark.png` / `-light.png` | Transparent, for dark or light backgrounds (2112×520) |
 | | Logo, vector | `X/draftline-x-full-logo.svg` | One file: the name switches to light or dark with the viewer's setting where SVG styles apply |
+| **Website** | Link preview (`og:image` / `twitter:image`) | `website/site-link-preview-1200x630.png`, served from `public/og-image.png` | 1200×630 (1.91:1), the size Facebook, LinkedIn, X, Discord and Slack previews use. The live copy is `public/og-image.png`: replace that file (same name and size) to change what links show |
 
 **Minimal versions:** each banner also comes as just the logo with the name in light lettering on solid black: `X/x-banner-minimal.png`, `patreon/patreon-cover-minimal-*`, `discord/discord-server-banner-minimal-1920x1080.png` and `discord-profile-banner-minimal-*`, `ko-fi/kofi-cover-minimal-*`, and `github/github-social-preview-minimal-1280x640.png` and `readme-banner-minimal-*`. Same sizes and safe areas as the designed banners above.
 
