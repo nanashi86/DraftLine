@@ -217,7 +217,11 @@ It also records genre, theme and **Plot Devices**. {{dna.defaultDevices}} are al
 
 ### DNA: Glossary
 
-The **Glossary** defines every story term in two sections, {{glossary.sections}}. Search filters both at once. Definitions marked **starter** are DraftLine's; click **Edit** to paste your own reference's wording. Your wording is kept for all your projects, and **Reset to starter text** brings the original back.
+The **Glossary** defines every story term in three sections, {{glossary.sections}}. **Screenplay Format** covers the page itself: scene headings, action, cues, dialogue and parentheticals, V.O. / O.S., (CONT'D) and (MORE), transitions, and the terms writers look up most (Intercut, Montage, Pre-lap, Insert, Super, Page Eighths, Spec Script…). Search filters all three at once.
+
+Every definition starts as DraftLine's, marked **starter**. To use your own wording, from a class handout, a book or a teacher, click a term to open it, click **Edit** under its definition, paste your wording and click **Save**. The badge turns to **yours**. Your wording is kept for all your projects in this browser and travels in **Backup Project** files. **Edit → Reset to starter text** brings DraftLine's back.
+
+In the **Format Doctor**, a finding's chip at the top (Scene heading format, Dangling parenthetical…) opens the Screenplay Format term that explains it.
 
 ### Notes
 

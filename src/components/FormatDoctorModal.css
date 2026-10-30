@@ -39,6 +39,11 @@
   font-size: 11.5px;
 }
 .fd-chip b { color: var(--text); margin-left: 3px; }
+/* A chip with a Glossary term behind it: a button, with a small book after the count. */
+.fd-chip.is-term { display: inline-flex; align-items: center; border: 0; font-family: inherit; line-height: inherit; cursor: pointer; }
+.fd-chip.is-term:hover { background: linear-gradient(var(--hover-bg), var(--hover-bg)), color-mix(in srgb, var(--kc) 16%, transparent); }
+.fd-chip.is-term:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.fd-chip-term { margin-left: 5px; opacity: 0.75; }
 .fd-k-slugline { --kc: var(--k-slugline); }
 .fd-k-secondary { --kc: var(--k-slugline); }
 .fd-k-formatcue { --kc: #6fb7c0; }

@@ -2,8 +2,9 @@
 // and Plot Devices refer to — the eight structure terms, Text / Subtext / Context, and the
 // plot devices (Foreshadowing, Flashback, Deus ex machina, MacGuffin, Quest, Cliffhanger,
 // Red herring, Love triangle), and the Character Roles a bio's Primary Role and Secondary
-// Function pick from (Protagonist … Shadow / Mirror). The Glossary lists them in two sections —
-// Character Roles, and Narrative & Dramatic Craft (GLOSSARY_SECTIONS below).
+// Function pick from (Protagonist … Shadow / Mirror), and the Screenplay Format terms (the page's
+// elements, (MORE) / (CONT'D), V.O. / O.S., Intercut, Pre-lap, Page Eighths…). The Glossary lists them
+// in three sections: Character Roles, Narrative & Dramatic Craft, Screenplay Format (GLOSSARY_SECTIONS).
 //
 // The wording below is DraftLine's STARTER text — short, conventional definitions. It is
 // meant to be replaced by the writer's own reference (a class handout, a book): every
@@ -179,6 +180,104 @@ export const STRUCTURE_DICTIONARY = [
     term: 'Shadow / Mirror',
     definition: 'A dark reflection of the protagonist showing the catastrophic outcome of their negative impulses.',
   },
+
+  // ---- Screenplay Format: the page itself (elements, extensions, and the terms writers look up) ----
+  {
+    id: 'sceneHeading',
+    term: 'Scene Heading (Slugline)',
+    definition: 'The line that opens every scene, in capitals: INT. or EXT. (inside or outside), the location, then the time of day. A new heading means a new place or a new time.',
+    example: 'INT. DINER - NIGHT\nEXT. HARBOR - CONTINUOUS\nINT./EXT. TAXI - MOVING - DAY',
+  },
+  {
+    id: 'action',
+    term: 'Action',
+    definition: 'What the audience sees and hears, written in the present tense as it happens. Keep paragraphs to three or four lines, and introduce each character in CAPITALS the first time they appear, usually with an age and a quick impression.',
+  },
+  {
+    id: 'characterCue',
+    term: 'Character Cue',
+    definition: 'The speaker’s name, in capitals, above their lines. Keep it the same all the way through (not MARIE in one scene and MRS. DUVAL in the next), so actors and readers always know who is talking.',
+  },
+  {
+    id: 'dialogue',
+    term: 'Dialogue',
+    definition: 'What a character says, under their cue in a narrower column. Dialogue never appears without a cue above it; a sound or a line nobody speaks on screen belongs in Action.',
+  },
+  {
+    id: 'parenthetical',
+    term: 'Parenthetical (Wryly)',
+    definition: 'A short note in parentheses under the cue or between lines: how a line is said (whispering), who it is said to (to Theo), or a small action. Use them sparingly; one never ends a speech or stands without dialogue after it.',
+  },
+  {
+    id: 'extensions',
+    term: 'V.O. / O.S. / O.C.',
+    definition: 'Cue extensions. (V.O.), voice-over: the speaker is not in the scene, as with narration, a voice on the phone or a thought. (O.S.) or (O.C.), off-screen or off-camera: the speaker is in the scene but out of view, like someone calling from the next room.',
+  },
+  {
+    id: 'contd',
+    term: '(CONT’D)',
+    definition: 'Two uses. Beside a cue, it marks a character speaking again after only Action interrupted them (many writers now leave this one off). At the top of a page, NAME (CONT’D) carries on a speech split by the page break; DraftLine adds that one for you.',
+  },
+  {
+    id: 'more',
+    term: '(MORE)',
+    definition: 'Written under the last line of a speech that carries on over the page, paired with NAME (CONT’D) at the top of the next page. DraftLine adds both when a speech splits, and never splits one right after a parenthetical.',
+  },
+  {
+    id: 'dualDialogue',
+    term: 'Dual Dialogue',
+    definition: 'Two characters talking at the same moment, printed side by side in two columns so the reader takes them in together. In DraftLine, Alt+D on the second speech puts it beside the first.',
+  },
+  {
+    id: 'transition',
+    term: 'Transition',
+    definition: 'An editing instruction in capitals at the right margin: CUT TO:, DISSOLVE TO:, SMASH CUT TO:, FADE OUT. A new scene heading already implies a cut, so spec scripts use transitions only when the cut itself means something.',
+  },
+  {
+    id: 'beat',
+    term: 'Beat',
+    definition: 'Two meanings. In a parenthetical, (beat) is a short pause inside a speech. In story talk, a beat is the smallest unit of change: a moment where something shifts between characters.',
+  },
+  {
+    id: 'insert',
+    term: 'Insert',
+    definition: 'A close view of something the audience must read or see in detail, such as a letter, a phone screen or a clock. Written as INSERT - THE TEXT MESSAGE, followed by BACK TO SCENE when it ends.',
+  },
+  {
+    id: 'intercut',
+    term: 'Intercut',
+    definition: 'Cutting back and forth between two places that make up one scene, most often a phone call. Set up both locations once, then write INTERCUT - MARIE / THEO instead of a new heading for every line.',
+  },
+  {
+    id: 'montage',
+    term: 'Montage / Series of Shots',
+    definition: 'A run of short images that compresses time or shows a process: training, a city waking up, a romance in a minute. Written as MONTAGE (or SERIES OF SHOTS) with a short line for each image, then END MONTAGE.',
+  },
+  {
+    id: 'pageMinute',
+    term: 'One Page, One Minute',
+    definition: 'The rule of thumb that a properly formatted page runs about a minute on screen, which is why the format is fixed: Courier 12 point and standard margins. A 110-page script suggests a film of a little under two hours.',
+  },
+  {
+    id: 'eighths',
+    term: 'Page Eighths',
+    definition: 'How production measures a scene’s length: each page is divided into eighths, so a scene runs 3/8 or 1 2/8 pages. Schedules and stripboards add these up, and DraftLine shows them in Plan.',
+  },
+  {
+    id: 'prelap',
+    term: 'Pre-lap',
+    definition: 'Sound from the next scene, usually a line of dialogue, heard before we cut to it. Written as a cue extension, MARIE (PRE-LAP), at the end of the scene before.',
+  },
+  {
+    id: 'spec',
+    term: 'Spec Script',
+    definition: 'A script written on speculation, unpaid, to sell or to show your writing. Spec scripts leave out camera directions and usually scene numbers; a shooting script adds them once a film is in production. DraftLine’s PDF leaves scene numbers off unless you include them.',
+  },
+  {
+    id: 'super',
+    term: 'Super (Superimpose)',
+    definition: 'Text laid over the picture: a place, a date, a caption. Written in Action as SUPER: "Port-au-Prince, 1986." At a page break DraftLine keeps a SUPER: line with what follows it.',
+  },
 ];
 
 /** Entries with the writer's own wording laid over the starter text. */
@@ -228,9 +327,40 @@ export const GLOSSARY_SECTIONS = [
       'incitingIncident', 'loveTriangle', 'macguffin', 'quest', 'redHerring', 'risingAction', 'textSubtext',
     ],
   },
+  {
+    // The page's elements in the order they appear on it, then the other terms A–Z.
+    id: 'format',
+    label: 'Screenplay Format',
+    ids: [
+      'sceneHeading', 'action', 'characterCue', 'dialogue', 'parenthetical', 'extensions', 'contd', 'more', 'dualDialogue', 'transition',
+      'beat', 'insert', 'intercut', 'montage', 'pageMinute', 'eighths', 'prelap', 'spec', 'super',
+    ],
+  },
 ];
 
-/** The section an entry is listed under ('roles' | 'craft'). */
+/**
+ * Format Doctor findings → the Screenplay Format term that explains them (the finding's chip in the
+ * Format Doctor opens it). Findings with no matching term are left out.
+ */
+export const FORMAT_TERM_FOR_ISSUE = {
+  slugline: 'sceneHeading',
+  secondary: 'sceneHeading',
+  slugformat: 'sceneHeading',
+  slugincomplete: 'sceneHeading',
+  'slugline-missing-time': 'sceneHeading',
+  cue: 'characterCue',
+  orphancue: 'characterCue',
+  'duplicate-character-cue': 'characterCue',
+  intro: 'action',
+  indent: 'action',
+  orphan: 'dialogue',
+  falsedialogue: 'dialogue',
+  orphanparen: 'parenthetical',
+  'unclosed-parenthetical': 'parenthetical',
+  unspaced: 'super',
+};
+
+/** The section an entry is listed under ('roles' | 'craft' | 'format'). */
 export const sectionOf = (id) => GLOSSARY_SECTIONS.find((sec) => sec.ids.includes(id))?.id ?? 'craft';
 
 /**

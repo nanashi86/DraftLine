@@ -1,15 +1,18 @@
 import { useEffect, useRef } from 'react';
+import { BookOpen } from 'lucide-react';
 import { ELEMENT_META } from '../lib/screenplay.js';
 import { ISSUE_KINDS, canFix, canFixAll, findingPreview } from '../lib/formatDoctor.js';
+import { FORMAT_TERM_FOR_ISSUE } from '../lib/structureDictionary.js';
 import './FormatDoctorModal.css';
 
 const typeLabel = (t) => (t ? ELEMENT_META[t].label : 'Removed');
 
 /**
  * Lists the Format Doctor's findings. Each can be fixed on its own or all at once;
- * every fix is a normal edit, so Ctrl+Z undoes it.
+ * every fix is a normal edit, so Ctrl+Z undoes it. A finding's chip opens the Glossary's Screenplay
+ * Format term behind it (onTerm), when there is one.
  */
-export default function FormatDoctorModal({ issues, pageOfBlock, onFix, onFixAll, onIgnore, onShow, onClose, supportFooter = null }) {
+export default function FormatDoctorModal({ issues, pageOfBlock, onFix, onFixAll, onIgnore, onShow, onClose, onTerm = null, supportFooter = null }) {
   const dialogRef = useRef(null);
 
   useEffect(() => {
@@ -51,9 +54,23 @@ export default function FormatDoctorModal({ issues, pageOfBlock, onFix, onFixAll
 
       {issues.length > 0 && (
         <div className="fd-chips">
-          {Object.entries(ISSUE_KINDS).filter(([k]) => counts[k]).map(([k, v]) => (
-            <span key={k} className={`fd-chip fd-k-${k}`}>{v.label} <b>{counts[k]}</b></span>
-          ))}
+          {Object.entries(ISSUE_KINDS).filter(([k]) => counts[k]).map(([k, v]) => {
+            const term = onTerm && FORMAT_TERM_FOR_ISSUE[k];
+            return term ? (
+              <button
+                key={k}
+                type="button"
+                className={`fd-chip fd-k-${k} is-term`}
+                onClick={() => onTerm(term)}
+                title="What does this mean? Open the term in the Glossary"
+              >
+                {v.label} <b>{counts[k]}</b>
+                <BookOpen size={12} strokeWidth={1.75} aria-hidden className="fd-chip-term" />
+              </button>
+            ) : (
+              <span key={k} className={`fd-chip fd-k-${k}`}>{v.label} <b>{counts[k]}</b></span>
+            );
+          })}
         </div>
       )}
 

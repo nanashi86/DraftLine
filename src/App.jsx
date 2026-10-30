@@ -2795,6 +2795,10 @@ function Workspace({ boot }) {
               requestAnimationFrame(() => jumpTo(id));
             }}
             onClose={closeDoctor}
+            onTerm={(id) => {
+              closeDoctor();
+              openGlossary(id);
+            }}
             supportFooter={doctorTip && issues.length === 0 ? (
               <DoctorSupportFooter
                 onDismiss={() => {

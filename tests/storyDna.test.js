@@ -154,11 +154,11 @@ describe('right dock (Story Bible / Characters)', () => {
 });
 
 describe('Story Glossary', () => {
-  it('has the 31 terms — roles named as the Bios pickers name them — with the conflict types and the text/subtext example', () => {
+  it('has the 50 terms — roles named as the Bios pickers name them — with the conflict types and the text/subtext example', () => {
     const terms = STRUCTURE_DICTIONARY.map((e) => e.term);
     for (const t of ['Catalyst', 'Mentor / Guide', 'Shadow / Mirror', 'Protagonist', 'Love triangle']) assert.ok(terms.includes(t), t);
     for (const e of STRUCTURE_DICTIONARY) assert.ok(e.definition.length > 40, `${e.term} has a real definition`);
-    assert.equal(new Set(STRUCTURE_DICTIONARY.map((e) => e.id)).size, 31);
+    assert.equal(new Set(STRUCTURE_DICTIONARY.map((e) => e.id)).size, 50);
     assert.deepEqual(dictionaryEntry(STRUCTURE_DICTIONARY, 'conflict').items.map((i) => i.term), CONFLICT_TYPES);
     assert.match(dictionaryEntry(STRUCTURE_DICTIONARY, 'textSubtext').example, /gun/);
     assert.match(dictionaryEntry(STRUCTURE_DICTIONARY, 'textSubtext').example, /drink/);
@@ -173,7 +173,7 @@ describe('Story Glossary', () => {
   it('searches terms, definitions, examples and conflict types', () => {
     assert.deepEqual(searchDictionary(STRUCTURE_DICTIONARY, 'supernatural').map((e) => e.id), ['conflict']);
     assert.deepEqual(searchDictionary(STRUCTURE_DICTIONARY, 'GUN').map((e) => e.id), ['textSubtext']);
-    assert.equal(searchDictionary(STRUCTURE_DICTIONARY, '  ').length, 31);
+    assert.equal(searchDictionary(STRUCTURE_DICTIONARY, '  ').length, 50);
     assert.deepEqual(searchDictionary(STRUCTURE_DICTIONARY, 'false clue').map((e) => e.id), ['redHerring']);
     assert.deepEqual(searchDictionary(STRUCTURE_DICTIONARY, 'deus').map((e) => e.id), ['deusExMachina']);
   });

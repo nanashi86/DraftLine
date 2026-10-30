@@ -320,7 +320,11 @@ function Dictionary({ dictionary, openId, setOpenId, onEdit }) {
                     <button type="button" className="dict-head" onClick={() => setOpenId(openId === e.id ? null : e.id)} aria-expanded={open}>
                       <span className="pb-chev" aria-hidden="true">▸</span>
                       <b>{e.term}</b>
-                      {e.starter ? <span className="dict-badge">starter</span> : <span className="dict-badge is-yours">yours</span>}
+                      {e.starter ? (
+                        <span className="dict-badge" title="DraftLine’s starter definition. Open the term and click Edit to use your own wording">starter</span>
+                      ) : (
+                        <span className="dict-badge is-yours" title="Your wording, kept for all your projects. Edit → Reset to starter text brings DraftLine’s back">yours</span>
+                      )}
                     </button>
                     {open && (
                       editing === e.id ? (
