@@ -1,4 +1,4 @@
-import{i as e,t}from"./react-DgawKyfb.js";import{A as n,At as r,Gt as i,Kt as a,Lt as o,M as s,Mt as c,N as l,Nt as u,Ot as d,P as ee,Xt as te,_t as f,bt as p,c as m,ht as h,jt as g,k as _,kt as v,l as y,lt as b,m as x,mt as S,n as C,p as ne,pt as w,qt as T,r as re,u as ie,ut as ae,vt as oe,wt as E,xt as D,yt as O}from"./index-Divf3_OJ.js";import{r as k,t as A}from"./printTitle-C1qWomuv.js";/* empty css                  */var j=e(),M=`# DraftLine User Guide
+import{i as e,t}from"./react-DgawKyfb.js";import{A as n,At as r,Gt as i,Kt as a,Lt as o,M as s,Mt as c,N as l,Nt as u,Ot as d,P as ee,Xt as te,_t as f,bt as p,c as m,ht as h,jt as g,k as _,kt as v,l as y,lt as b,m as x,mt as S,n as C,p as ne,pt as w,qt as T,r as re,u as ie,ut as ae,vt as oe,wt as E,xt as D,yt as O}from"./index-DkfGxLPw.js";import{r as k,t as A}from"./printTitle-C1qWomuv.js";/* empty css                  */var j=e(),M=`# DraftLine User Guide
 
 DraftLine is a distraction-free screenwriting app that runs in your browser. It writes in Courier Prime at 12 pt with standard screenplay margins, saves as you type, and works offline. This guide covers everything from your first scene heading to the final PDF.
 
@@ -38,7 +38,7 @@ Tips only appear at a quiet moment: a few seconds after you stop typing, a minut
 
 ### Projects and browser storage
 
-Every script lives in your **Projects** library ({{key:Alt+P}}, the ▾ beside the title, or **File ▾ → Projects…**). From there you can create, switch, rename, duplicate, export or delete scripts. Deleting asks first: the **Delete Screenplay?** dialog only deletes when you press **Permanently Delete**; **Cancel** leaves everything as it was.
+Every script lives in your **Projects** library ({{key:Alt+P}}, the ▾ beside the title, or **File ▾ → Projects…**). From there you can create, switch, rename, duplicate, export or delete scripts. To close it, press {{key:Esc}} or click anywhere outside it. A click on the top bar also does what you clicked (File opens, Bold bolds), while a click on the dimmed page only closes Projects, so it never lands on something underneath. Deleting asks first: the **Delete Screenplay?** dialog only deletes when you press **Permanently Delete**; **Cancel** leaves everything as it was.
 
 **Project Lock.** The padlock to the left of a script's ⋮ menu locks it (it turns amber). A locked script can't be deleted, and nothing is loaded over it: Import and pasted scripts open as a new script beside it (Append is hidden), and snapshots can't be restored over it. You can still type in it; to stop all editing switch to Viewing ({{key:Ctrl+Alt+L}}). The lock is saved with the script, in backups and in a linked folder. Click the padlock again to unlock. Duplicates start unlocked.
 
