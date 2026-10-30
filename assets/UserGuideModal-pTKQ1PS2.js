@@ -1,4 +1,4 @@
-import{i as e,t}from"./react-DgawKyfb.js";import{A as n,Bt as r,Ct as i,D as a,Dt as o,Et as s,M as c,O as l,St as u,Tt as d,Vt as f,Wt as p,_t as m,bt as h,c as g,ct as _,dt as v,gt as y,ht as ee,j as b,jt as x,l as S,lt as C,m as te,mt as ne,n as re,p as ie,pt as ae,r as oe,st as se,u as w,ut as T,wt as E,zt as D}from"./index-UKZpuWR0.js";import{r as O,t as k}from"./printTitle-C1qWomuv.js";/* empty css                  */var A=e(),j=`# DraftLine User Guide
+import{i as e,t}from"./react-DgawKyfb.js";import{A as n,Bt as r,Ct as i,D as a,Dt as o,Et as s,M as c,O as l,St as u,Tt as d,Vt as f,Wt as p,_t as m,bt as h,c as g,ct as _,dt as v,gt as y,ht as ee,j as b,jt as x,l as S,lt as C,m as te,mt as ne,n as re,p as ie,pt as ae,r as oe,st as se,u as w,ut as T,wt as E,zt as D}from"./index-BJgHmrtO.js";import{r as O,t as k}from"./printTitle-C1qWomuv.js";/* empty css                  */var A=e(),j=`# DraftLine User Guide
 
 DraftLine is a distraction-free screenwriting app that runs in your browser. It writes in Courier Prime at 12 pt with standard screenplay margins, saves as you type, and works offline. This guide covers everything from your first scene heading to the final PDF.
 
@@ -15,6 +15,7 @@ The top bar holds your script's title, the **Write | Plan** switch, the **File �
 - The **Scenes** sidebar ({{key:Alt+S}}) lists every scene with its length in eighths of a page. Click one to jump to it, or type to find a scene.
 - **Write | Plan** switches between writing the script and planning the shoot (see Production & Planning). Write is where you start.
 - The status bar's steppers (**Format · 1 of 7**, **Density · 1 of 9**, a character's **MARIE · 1 of 8**) all work the same way: before your first step they show just how many there are (**Format · 7**), then ‹ › step through, clicking the name lists every one, and ✕ closes it.
+- On a narrower window the status bar makes room by giving up the least important things first, one at a time: the keyboard hints (shown only on wide windows with no stepper open), then the scene and word counts, then the page colour's name (its icon stays), then undo / redo, then zoom's − and + (the percentage stays). If it's still tight, steppers drop their names down to ‹ ›, the count and ✕, and the save status and **Edit / View Only** badge show just their icons (hover for the words). The current element, the save status, **Edit / View Only**, the page count and every open stepper never disappear.
 - **File ▾** holds everything to do with files, in three parts. **Script**: New… ({{key:Ctrl+Alt+N}}), Open… ({{key:Ctrl+O}}), Import…, Sample… (adds *The Last Ferry* to your Projects) and Edit Title…. **Export Script**: PDF, Final Draft, Fountain and Print Script…. **Export Planning & Production**: Story Bible, Scene Breakdown (the same .csv as Plan's Export Breakdown), and the Scene Board as a Spreadsheet, Markdown or Fountain Outline. **Backup**: Backup Project and Snapshot History. Each export shows its file type on the right (.fountain, .fdx, .pdf, .csv, .md, .draftline).
 - Narrow windows move panels you can't see on the bar into the **⋮** menu.
 
@@ -59,6 +60,7 @@ A snapshot is a named checkpoint of the whole project: script, title page, Scene
 
 - Click the camera button (**Snapshot**) in the top bar, give it a label (or keep the date and time), and save.
 - **⋮ → View Snapshots** lists them, newest first. **Restore** puts a snapshot back. It offers to snapshot your current draft first (on by default), and {{key:Ctrl+Z}} undoes the restore.
+- **Restore**, **Compare** and **Delete** appear when you point at a snapshot or Tab to it, so the list stays easy to scan. They're always showing on the newest snapshot, on one you're deleting (**Delete?** asks you to confirm or **Keep** it), and on touch screens.
 - **Compare** shows what changed since a snapshot, without changing anything. **Inline** shows one column: deleted text struck through in red, added text highlighted in green, and a tag such as **Action → Scene Heading** where an element changed type. **Side by Side** puts the snapshot on the left and your current draft on the right. Long unchanged stretches fold into a **Show** bar. **Close Comparison** (or {{key:Esc}}) takes you back to the list. Only the script is compared, not the title page, Scene Board or Story Bible.
 - Snapshots are saved with the script and included in backups.
 - With Folder Sync on, each snapshot is also written to \`{{sync.snapshotDir}}/Your-Title_YYYY-MM-DD_HHmm.draftline\` inside the linked folder. Snapshots found only in that folder (from another computer, for example) show **In folder** and can be restored like any other.
@@ -253,11 +255,13 @@ The ⓘ beside each role picker explains the role, and clicking it opens that te
 
 ### Script characters and your own additions
 
-DraftLine reads the character cues in your script. Anyone who speaks but has no bio appears under **Missing bios**; click a name to start their bio. You can also add bios yourself with **+ Add Character**, for characters who haven't spoken yet or never do. Filter, sort A–Z, or move bios up and down.
+DraftLine reads the character cues in your script. Anyone who speaks but has no bio appears under **Missing bios**; click a name to start their bio. You can also add bios yourself with **+ Add Character**, for characters who haven't spoken yet or never do. Filter, sort A–Z, or move bios up and down with ↑ ↓.
 
 **Populate Bio** (top of the Bios tab, beside expand and close) reads how your script introduces each character, the standard way: \`MARJORIE (30s)--warm-dark skin, in a blue and white server's outfit\`. It puts the age (\`30s\`, \`early 40s\`, \`mid-40s\`, \`50-something\`…) in **Age / Timeline** and the short description after it in **Physical Description**, stopping where the description turns into action (\`…, drags a suitcase\`) or the sentence ends. It sets **Gender** from the most direct clue first: a word that names them, just before the name or in their description (\`her female FRIEND (45)\`, \`SANDRA (late-40s)--petite, amber-skinned woman…\`, \`THEO (20s), her brother\`), and otherwise the pronouns in the introduction and the sentence after it (\`NEWS REPORTER (40s)--fills the frame. She's a striking woman\` is Female). A pronoun for someone else in the scene ("looks up at him") doesn't outweigh a clear description. Evenly mixed pronouns, or none, leave it blank, and "they" never sets it. Only empty fields are filled: anything you've typed or picked is never changed, so clicking it again is safe. Speaking characters the script introduces who don't have a bio yet get one. A note says what it did, with **Undo**.
 
 **Rename** changes a character's name everywhere at once: cues, dialogue and action mentions, the Scene Board, the Story Bible and other bios. It shows a review first and is one undo step.
+
+**Rename** and the ↑ ↓ arrows appear when you point at a bio or Tab to it, and stay showing while a bio is open and on touch screens.
 
 ### Dialogue
 
@@ -278,6 +282,8 @@ The **Scene Board** (formerly the Beat Board; **Board** or **Split** view) lays 
 - **Value Shift** (the **+/−** button on a card) records how the scene's emotional charge turns: **+ / −** (a setback), **− / +** (a small win or insight), or **+ / +** and **− / −**, which are marked as warnings because the scene doesn't turn. It's saved with the project.
 - **Analyze Value Shifts** (beside Import Scenes) reads every scene and suggests its Value Shift. It compares the opening quarter of the scene's Action and Dialogue with the closing quarter: calm, help and agreement count as **+**; threats, obstacles and tension as **−**, and at the end, interruptions, weapons, violence, sudden exits and discoveries count double. The list shows each scene's number, slugline, the suggested shift and the card's current one. Hover a suggestion to see the words it's based on; **weak** means the scene gave little to go on. ✓ sets one card, **Apply to All Cards** sets every linked card (with Undo). Scenes without a card need **Import Scenes** first. It's a word-level reading, so treat it as a second opinion.
 - **+ Add Card** adds a card to a column. Drag cards by their grip to reorder them or move them between acts.
+- The number beside a card's grip is its place on the board. When a headline starts with that same number ("1. INT. STATION SIX - NIGHT" on card 1), the board doesn't repeat it: the card shows **1** beside **INT. STATION SIX - NIGHT**. It's still in the saved title (and the outline exports); if the card moves, the number shows again.
+- In **Split**, act columns stay at least wide enough to read, even with Story Bible or Characters open; when they don't all fit, scroll the board sideways. Headlines wrap between words, never in the middle of one.
 
 ### Linking cards to scenes
 
@@ -313,7 +319,7 @@ On **Breakdowns** and **Stripboard**, the top bar holds a scene filter: **Find s
 
 - **Find scenes…** matches a heading or location (\`Bouchard\`), a speaking character (\`Tati\`), or a scene number on its own (\`32\` finds scene 32 only). Capitals and accents don't matter.
 - **INT | EXT** and **DAY | NIGHT** narrow it further. An INT./EXT. scene counts as both, and CONTINUOUS takes the light of the scene before.
-- While anything is set, the bar shows **5 of 53 scenes** with ✕ to clear it, and the line above the scenes counts what's showing (**5 of 53 scenes · 7 7/8 of 98 5/8 pages**).
+- While anything is set, the top bar shows **5 of 53 scenes** with ✕ to clear it, and the line above the scenes counts what's showing (**5 of 53 scenes · 7 7/8 of 98 5/8 pages**). On a smaller screen, where the filter sits right above that line, it shows only the ✕, so the count isn't said twice.
 - The filter only hides scenes from view: nothing is changed or reordered, and **Export Breakdown** and **Reports** still cover the whole script. It stays on as you switch between Breakdowns and Stripboard, and clears when you open another script.
 
 ### What comes from the script
@@ -328,6 +334,8 @@ On **Breakdowns** and **Stripboard**, the top bar holds a scene filter: **Find s
 ### Breakdowns
 
 One card per scene: **number · slugline · INT/EXT and DAY/NIGHT badges · length in eighths**, the speaking cast as pills, and four lists you fill in: **Background / Extras**, **Props & Set Dressing**, **Wardrobe & SFX** and **Vehicles & Stunts**. Click **+ Add** on a list, type, and press \`Enter\` (commas add several at once). The × on an item removes it. **Production Notes** takes anything else: permits, locations to scout, a stunt to rehearse. The ▾ folds a card.
+
+A script with more than 10 scenes opens Breakdowns with every card folded, so you see the list of scenes first: open the ones you're working on, or click **Expand All**. Shorter scripts open with every card open. After that, Breakdowns stays the way you leave it as you go back and forth between Write and Plan, until you open another script.
 
 ### Stripboard
 
