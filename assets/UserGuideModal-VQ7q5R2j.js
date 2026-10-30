@@ -1,4 +1,4 @@
-import{i as e,t}from"./react-DgawKyfb.js";import{A as n,Bt as r,Ct as i,D as a,Dt as o,Et as s,M as c,O as l,St as u,Tt as d,Vt as f,Wt as p,_t as m,bt as h,c as g,ct as _,dt as v,gt as y,ht as ee,j as b,jt as x,l as S,lt as C,m as te,mt as ne,n as re,p as ie,pt as ae,r as oe,st as se,u as w,ut as T,wt as E,zt as D}from"./index-CJUq1xcA.js";import{r as O,t as k}from"./printTitle-C1qWomuv.js";/* empty css                  */var A=e(),j=`# DraftLine User Guide
+import{i as e,t}from"./react-DgawKyfb.js";import{A as n,Bt as r,Ct as i,D as a,Dt as o,Et as s,M as c,O as l,St as u,Tt as d,Vt as f,Wt as p,_t as m,bt as h,c as g,ct as _,dt as v,gt as y,ht as ee,j as b,jt as x,l as S,lt as C,m as te,mt as ne,n as re,p as ie,pt as ae,r as oe,st as se,u as w,ut as T,wt as E,zt as D}from"./index-CUOmG1pR.js";import{r as O,t as k}from"./printTitle-C1qWomuv.js";/* empty css                  */var A=e(),j=`# DraftLine User Guide
 
 DraftLine is a distraction-free screenwriting app that runs in your browser. It writes in Courier Prime at 12 pt with standard screenplay margins, saves as you type, and works offline. This guide covers everything from your first scene heading to the final PDF.
 
@@ -8,7 +8,11 @@ Press {{key:F1}} at any time to open this guide. {{key:Ctrl+/}} shows every keyb
 
 ### The workspace
 
-The top bar holds your script's title, the **Write | Plan** switch, the **File ▾** menu, the Element picker and the B / I / U / S formatting buttons (only while you're on the page: **Page**, **Split** or Focus), the view switch (**Page**, **Split**, **Board**) and **Snapshot**. Story Bible and Characters open as panels on the right. The status bar at the bottom shows the current element, where your work is saved, scene and word counts, page count, page colour, undo / redo and zoom.
+The top bar holds your script's title, the **Write | Plan** switch, the **File ▾** menu, the Element picker and the B / I / U / S formatting buttons (only while you're on the page: **Page**, **Split** or Focus), the view switch (**Page**, **Split**, **Board**) and **Snapshot**. Story Bible and Characters open as panels on the right.
+
+On a smaller screen the top bar makes room the same way in Write and Plan. A workspace's own tools move to a row at the top of the workspace instead of disappearing: Write's Element picker and B / I / U / S sit just above the script (under 1200px wide), as Plan's scene filter sits above the scenes. **Page | Split | Board** and **Breakdowns | Stripboard | Reports** both turn to icons at the same width (point at one for its name), and on a phone-sized screen, where the switch leaves the bar, **⋮** lists the views.
+
+The status bar at the bottom shows the current element, where your work is saved, scene and word counts, page count, page colour, undo / redo and zoom.
 
 - **Page** shows the script. **Split** shows the script beside the Scene Board. **Board** shows the Scene Board alone. {{key:Alt+B}} cycles through them.
 - **Focus** hides everything but the page. Press {{key:Esc}} to come back.
@@ -308,7 +312,7 @@ The Scene Board's **Export Outline** downloads the board as a **Fountain Outline
 
 ### Write and Plan
 
-- **Write** is the screenplay editor, with **Page**, **Split** and **Board**, **Focus**, **Story Bible** and **Characters** on the right of the top bar. In **Plan** those same places hold **Breakdowns | Stripboard**, **Collapse All / Expand All** and **Export Breakdown**; the title, **Write | Plan**, **File ▾**, **Snapshot** and **⋮** stay put. On a smaller screen Plan's tools shorten (Export Breakdown becomes **Export**, the view switch turns to icons) and then move into **⋮**, the same way Write's do.
+- **Write** is the screenplay editor, with **Page**, **Split** and **Board**, **Focus**, **Story Bible** and **Characters** on the right of the top bar. In **Plan** those same places hold **Breakdowns | Stripboard**, **Collapse All / Expand All** and **Export Breakdown**; the title, **Write | Plan**, **File ▾**, **Snapshot** and **⋮** stay put. On a smaller screen Plan's tools shorten (Export Breakdown becomes **Export**, the view switch turns to icons) and then move into **⋮**, the same way Write's do; the scene filter moves above the scenes, as Write's Element picker and B / I / U / S move above the script.
 - The title, the Projects library, **File ▾**, **Snapshot** and the ⋮ menu (About, User Guide) stay in both.
 - Switching never loses anything. Your script stays exactly as it was, unsaved typing included, and it keeps saving. Coming back to Write puts the script and the Scene Board where you'd scrolled them.
 - **Write** on a breakdown card, or a click on a strip, takes you back to Write at that scene.
