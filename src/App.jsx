@@ -7,6 +7,7 @@ import CharactersDrawer from './components/CharactersDrawer.jsx';
 import Navigator from './components/Navigator.jsx';
 import TitlePageModal from './components/TitlePageModal.jsx';
 import ExportPdfModal from './components/ExportPdfModal.jsx';
+import Select from './components/Select.jsx';
 import ExportFdxModal from './components/ExportFdxModal.jsx';
 import DeleteProjectModal from './components/DeleteProjectModal.jsx';
 import DialogueStepper from './components/DialogueStepper.jsx';
@@ -1976,27 +1977,23 @@ function Workspace({ boot }) {
   // a keyboard never loses them. CSS shows exactly one copy.
   const formatTools = (
     <>
-      <select
+      <Select
         className="type-select"
+        keepFocus
         value={elementControlsEnabled ? activeBlock.type : ''}
+        placeholder="Element"
         disabled={!editControlsEnabled}
-        onChange={(e) => {
-          // "Dual Dialogue" is an action on the speech, not a type: the select keeps showing the type.
-          if (e.target.value === DUAL_SHORTCUT.action) editorRef.current?.toggleDual(activeId);
-          else editorRef.current?.setType(activeId, e.target.value);
+        options={ELEMENT_MENU.map((s) => (s.action
+          ? { value: s.action, label: s.label, hint: s.combo, checked: activeInDual && elementControlsEnabled }
+          : { value: s.type, label: s.label, hint: s.combo }))}
+        onChange={(v) => {
+          // "Dual Dialogue" is an action on the speech, not a type: the control keeps showing the type.
+          if (v === DUAL_SHORTCUT.action) editorRef.current?.toggleDual(activeId);
+          else editorRef.current?.setType(activeId, v);
         }}
-        aria-label="Element type"
+        ariaLabel="Element type"
         title={isLocked ? `Viewing — ${LOCK_COMBO} to edit` : 'Element type (Alt+1…8) · Dual Dialogue (Alt+D)'}
-      >
-        {!elementControlsEnabled && <option value="">Element</option>}
-        {ELEMENT_MENU.map((s) => (s.action ? (
-          <option key={s.action} value={s.action}>
-            {`${activeInDual && elementControlsEnabled ? '✓ ' : ''}${s.label}  ·  ${s.combo}`}
-          </option>
-        ) : (
-          <option key={s.type} value={s.type}>{`${s.label}  ·  ${s.combo}`}</option>
-        )))}
-      </select>
+      />
       <div className={`fmt-seg${isLocked ? ' is-locked' : ''}${editControlsEnabled ? '' : ' is-disabled'}`} role="group" aria-label="Text formatting">
         {STYLES.map((k) => {
           const on = fmtState[k] && elementControlsEnabled;

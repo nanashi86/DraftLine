@@ -106,8 +106,8 @@ describe('Conflict types grouped under McKee’s three levels', () => {
     assert.equal(matchConflictType('man vs. nature'), 'Individual vs. Nature');
     assert.equal(matchConflictType('vs self'), 'Individual vs. Self');
   });
-  it('the picker wraps its options in one <optgroup> per level; each option’s value is the type itself', () => {
-    assert.match(ui, /<option value="">Type of conflict…<\/option>\s*\{CONFLICT_LEVELS\.map\(\(lv\) => \(\s*<optgroup key=\{lv\.id\} label=\{lv\.group\}>\s*\{lv\.types\.map\(\(t\) => <option key=\{t\} value=\{t\}>\{t\}<\/option>\)\}\s*<\/optgroup>/);
+  it('the picker has one titled group per level; each option’s value is the type itself', () => {
+    assert.match(ui, /\{ value: '', label: 'Type of conflict…', muted: true \},\s*\.\.\.CONFLICT_LEVELS\.map\(\(lv\) => \(\{ group: lv\.group, options: lv\.types\.map\(\(t\) => \(\{ value: t, label: t \}\)\) \}\)\),/);
   });
   it('the Glossary nests the six types under Inner, Personal and Wider World, matching the picker', () => {
     const items = dictionaryEntry(STRUCTURE_DICTIONARY, 'conflict').items;

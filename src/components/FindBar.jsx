@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import { CaseSensitive, ChevronDown, ChevronRight, ChevronUp, Replace, ReplaceAll, Search, WholeWord, X } from 'lucide-react';
 import { FIND_SCOPES, MATCH_LIMIT } from '../lib/findReplace.js';
 import './FindBar.css';
+import Select from './Select.jsx';
 
 const ICON = { size: 14, strokeWidth: 1.75, 'aria-hidden': true };
 
@@ -106,15 +107,14 @@ export default function FindBar({
         >
           <WholeWord {...ICON} />
         </button>
-        <select
+        <Select
           className="fb-scope"
           value={scope}
-          aria-label="Search in"
+          ariaLabel="Search in"
           title="Search in"
-          onChange={(e) => onChange({ scope: e.target.value })}
-        >
-          {FIND_SCOPES.map((s) => <option key={s.id} value={s.id}>{s.label}</option>)}
-        </select>
+          onChange={(v) => onChange({ scope: v })}
+          options={FIND_SCOPES.map((s) => ({ value: s.id, label: s.label }))}
+        />
         <button type="button" className="fb-icon fb-close" onClick={onClose} aria-label="Close Find" title="Close (Esc)">
           <X {...ICON} />
         </button>

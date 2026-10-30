@@ -7,6 +7,7 @@ import {
 } from '../lib/storyDna.js';
 import { dictionaryEntry, glossarySections } from '../lib/structureDictionary.js';
 import { nativePickerOpen } from '../lib/pickerGuard.js';
+import Select from './Select.jsx';
 import { TIP_MAX_WIDTH, clipToViewport, placeTooltip } from '../lib/tooltip.js';
 import { DNA_VIEWS } from '../lib/bible.js';
 
@@ -147,16 +148,16 @@ function PlotDevices({ dna, onChange, dictionary, onOpenTerm }) {
       {plotDeviceLayout(dna).map((item) => {
         if (item.kind === 'add') {
           return (
-            <select
-              key="add"
-              className="dna-device-add"
-              value=""
-              aria-label="Add a plot device"
-              onChange={(e) => e.target.value && onChange(addDevice(dna, e.target.value))}
-            >
-              <option value="">+ Add device…</option>
-              {item.options.map((d) => <option key={d.id} value={d.id}>{d.label}</option>)}
-            </select>
+            <span key="add" className="dna-device-add-wrap">
+              <Select
+                className="dna-device-add"
+                value=""
+                placeholder="+ Add device…"
+                ariaLabel="Add a plot device"
+                onChange={(v) => v && onChange(addDevice(dna, v))}
+                options={item.options.map((d) => ({ value: d.id, label: d.label }))}
+              />
+            </span>
           );
         }
         const { id, info, notes } = item;
@@ -256,19 +257,16 @@ function Blueprint({ dna, onChange, dictionary, onOpenTerm }) {
               <InfoTip entry={dictionaryEntry(dictionary, q.dict)} onOpen={onOpenTerm} />
             </header>
             {q.conflictType && (
-              <select
+              <Select
                 className="dna-select"
                 value={dna.conflictType}
-                onChange={(e) => onChange(setField(dna, 'conflictType', e.target.value))}
-                aria-label="Type of conflict"
-              >
-                <option value="">Type of conflict…</option>
-                {CONFLICT_LEVELS.map((lv) => (
-                  <optgroup key={lv.id} label={lv.group}>
-                    {lv.types.map((t) => <option key={t} value={t}>{t}</option>)}
-                  </optgroup>
-                ))}
-              </select>
+                onChange={(v) => onChange(setField(dna, 'conflictType', v))}
+                ariaLabel="Type of conflict"
+                options={[
+                  { value: '', label: 'Type of conflict…', muted: true },
+                  ...CONFLICT_LEVELS.map((lv) => ({ group: lv.group, options: lv.types.map((t) => ({ value: t, label: t })) })),
+                ]}
+              />
             )}
             <AutoTextarea
               className="dna-answer"

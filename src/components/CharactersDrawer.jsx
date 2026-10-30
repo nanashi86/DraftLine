@@ -7,6 +7,7 @@ import AutoTextarea from './AutoTextarea.jsx';
 import TabIcon from './TabIcon.jsx';
 import DialogueTuner from './DialogueTuner.jsx';
 import { InfoTip } from './StoryDna.jsx';
+import Select from './Select.jsx';
 import {
   CHARACTER_FIELDS, CHARACTER_TABS, DEFAULT_CHARACTER_TAB, GENDERS, PRIMARY_ROLES, SECONDARY_ROLES, addCharacter, bibleTabBadge,
   filterCharacters, missingFromScript, moveCharacter, primaryRole, removeCharacter, roleSummary, secondaryRole, sortCharacters,
@@ -41,19 +42,24 @@ function RolePickers({ c, onChange, dictionary, onOpenTerm }) {
           Primary Role
           {tips && <InfoTip entry={roleTipEntry(dictionary, PRIMARY_ROLES, p, 'Primary Role', 'Where the character ranks in the story — from the protagonist who drives it to a one-scene cameo.')} onOpen={onOpenTerm} />}
         </span>
-        <select value={c.primaryRole || ''} onChange={(e) => onChange({ primaryRole: e.target.value })} aria-label="Primary Role">
-          <option value="">Choose…</option>
-          {PRIMARY_ROLES.map((r) => <option key={r.id} value={r.id}>{r.label}</option>)}
-        </select>
+        <Select
+          value={c.primaryRole || ''}
+          onChange={(v) => onChange({ primaryRole: v })}
+          ariaLabel="Primary Role"
+          options={[{ value: '', label: 'Choose…', muted: true }, ...PRIMARY_ROLES.map((r) => ({ value: r.id, label: r.label }))]}
+        />
       </label>
       <label className="pb-field">
         <span className="pb-role-label">
           Secondary Function
           {tips && <InfoTip entry={roleTipEntry(dictionary, SECONDARY_ROLES, s, 'Secondary Function', 'What the character does for the protagonist’s story — reflect, disrupt, guide, listen, tempt, block…')} onOpen={onOpenTerm} />}
         </span>
-        <select value={c.secondaryRole || 'none'} onChange={(e) => onChange({ secondaryRole: e.target.value })} aria-label="Secondary Function">
-          {SECONDARY_ROLES.map((r) => <option key={r.id} value={r.id}>{r.label}</option>)}
-        </select>
+        <Select
+          value={c.secondaryRole || 'none'}
+          onChange={(v) => onChange({ secondaryRole: v })}
+          ariaLabel="Secondary Function"
+          options={SECONDARY_ROLES.map((r) => ({ value: r.id, label: r.label, muted: r.id === 'none' }))}
+        />
       </label>
     </div>
   );
@@ -69,10 +75,12 @@ function AgeGender({ c, field, onChange }) {
       </label>
       <label className="pb-field">
         <span>Gender</span>
-        <select value={c.gender || ''} onChange={(e) => onChange({ gender: e.target.value })} aria-label="Gender">
-          <option value="">Not set</option>
-          {GENDERS.map((g) => <option key={g} value={g}>{g}</option>)}
-        </select>
+        <Select
+          value={c.gender || ''}
+          onChange={(v) => onChange({ gender: v })}
+          ariaLabel="Gender"
+          options={[{ value: '', label: 'Not set', muted: true }, ...GENDERS.map((g) => ({ value: g, label: g }))]}
+        />
       </label>
     </div>
   );

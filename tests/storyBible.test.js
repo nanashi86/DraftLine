@@ -262,7 +262,7 @@ describe('Story Notes: Treatment card, in three acts like the Synopsis', () => {
     assert.equal(importNotes(n, 'Second.', { targetId: 'treatment:act2', mode: 'append' }).treatment.act2, 'First.\n\nSecond.');
     assert.equal(importNotes(n, 'New.', { targetId: 'treatment:act2', mode: 'replace' }).treatment.act2, 'New.');
     assert.equal(importNotes(n, 'Opening.', { targetId: 'treatment:act1' }).treatment.act1, 'Opening.');
-    assert.match(ui, /\{treatmentTargets\(actMode, notes\.treatment\)\.map\(\(t\) => <option key=\{t\.id\} value=\{t\.id\}>\{t\.label\}<\/option>\)\}/);
+    assert.match(ui, /\.\.\.treatmentTargets\(actMode, notes\.treatment\)\.map\(\(t\) => \(\{ value: t\.id, label: t\.label \}\)\)/);
     assert.deepEqual(splitByHeadings('## A\n\nx\n\n### B').map((p) => p.level), [2, 3]);
   });
   it('renaming a character reaches every Treatment act, and undo puts them all back', () => {

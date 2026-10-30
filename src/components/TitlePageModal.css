@@ -46,7 +46,7 @@
 .tp-bold:hover:not(:disabled) { color: var(--text); border-color: var(--border-hover); }
 .tp-bold.is-on { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
 .tp-bold:disabled { opacity: 0.4; cursor: not-allowed; }
-.tp-font select {
+.tp-font .dl-select {
   width: 100%;
   padding: 8px 10px;
   border: 1px solid var(--line-soft);
@@ -55,7 +55,8 @@
   color: var(--text);
   font: 14px var(--ui-font);
 }
-.tp-font select:focus { outline: none; border-color: var(--accent); }
+.tp-font .dl-select:focus-visible { outline: none; border-color: var(--accent); }
+.tp-font-note { color: var(--muted); font-family: var(--ui-font); }
 .tp-specimen {
   padding: 12px 14px;
   border-radius: 6px;

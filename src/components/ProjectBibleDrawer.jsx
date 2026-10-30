@@ -13,6 +13,7 @@ import {
 import StoryDna from './StoryDna.jsx';
 import { storyDnaProgress, DNA_QUESTIONS } from '../lib/storyDna.js';
 import './ProjectBibleDrawer.css';
+import Select from './Select.jsx';
 
 // ---- Story Notes ------------------------------------------------------------------------
 
@@ -57,10 +58,15 @@ function ImportPanel({ notes, onImport, onCancel, actMode = 3 }) {
       <div className="pb-import-opts">
         <label>
           Into
-          <select value={target} onChange={(e) => setTarget(e.target.value)}>
-            {notes.sections.map((s) => <option key={s.id} value={s.id}>{s.title || 'Untitled section'}</option>)}
-            {treatmentTargets(actMode, notes.treatment).map((t) => <option key={t.id} value={t.id}>{t.label}</option>)}
-          </select>
+          <Select
+            value={target}
+            onChange={setTarget}
+            ariaLabel="Import into"
+            options={[
+              ...notes.sections.map((s) => ({ value: s.id, label: s.title || 'Untitled section' })),
+              ...treatmentTargets(actMode, notes.treatment).map((t) => ({ value: t.id, label: t.label })),
+            ]}
+          />
         </label>
         <div className="seg seg-sm" role="radiogroup" aria-label="How to import">
           {[['append', 'Append'], ['replace', 'Replace'], ['sections', 'Split by headings']].map(([id, label]) => (

@@ -15,6 +15,7 @@ import {
 } from '../lib/titleFonts.js';
 import { AUTHOR_PLACEHOLDER, CONTACT_PLACEHOLDER, contactAfterAuthorChange, titlePageSeed } from '../lib/authorDefaults.js';
 import './TitlePageModal.css';
+import Select from './Select.jsx';
 
 const FIELDS = [
   { key: 'title', label: 'Title', placeholder: 'The Last Ferry' },
@@ -108,27 +109,27 @@ export default function TitlePageModal({ meta, onSave, onClose, onViewCover, spe
             <div className="tp-type-row">
               <label className="tp-control tp-grow">
                 <span>Title Font</span>
-                <select id="tp-font-select" value={form.titleFont} onChange={set('titleFont')}>
-                  {TITLE_FONT_GROUPS.map((g, gi) => (
-                    <optgroup key={g} label={g}>
-                      {TITLE_FONTS.filter((f) => f.group === gi).map((f) => (
-                        <option key={f.id} value={f.id} style={{ fontFamily: f.family }}>
-                          {f.label} — {f.note}
-                        </option>
-                      ))}
-                    </optgroup>
-                  ))}
-                </select>
+                <Select
+                  id="tp-font-select"
+                  value={form.titleFont}
+                  onChange={(v) => setForm((f) => ({ ...f, titleFont: v }))}
+                  ariaLabel="Title Font"
+                  renderValue={(o) => <>{o.label} <span className="tp-font-note">— {o.hint}</span></>}
+                  options={TITLE_FONT_GROUPS.map((g, gi) => ({
+                    group: g,
+                    options: TITLE_FONTS.filter((f) => f.group === gi).map((f) => ({ value: f.id, label: f.label, hint: f.note, style: { fontFamily: f.family } })),
+                  }))}
+                />
               </label>
               <label className="tp-control">
                 <span>Title Size</span>
-                <select
+                <Select
                   id="tp-size-select"
                   value={form.titleSize}
-                  onChange={(e) => setForm((f) => ({ ...f, titleSize: Number(e.target.value) }))}
-                >
-                  {TITLE_SIZES.map((sz) => <option key={sz.pt} value={sz.pt}>{sz.label}</option>)}
-                </select>
+                  onChange={(v) => setForm((f) => ({ ...f, titleSize: Number(v) }))}
+                  ariaLabel="Title Size"
+                  options={TITLE_SIZES.map((sz) => ({ value: sz.pt, label: sz.label }))}
+                />
               </label>
               <div className="tp-control">
                 <span>Bold</span>

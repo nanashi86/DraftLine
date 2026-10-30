@@ -1,0 +1,71 @@
+/* DraftLine's dropdown (Select.jsx). The closed control takes its size from the class it's given
+   (.type-select, .dna-select, .fb-scope…); this sets only what every one of them shares. */
+.dl-select {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  min-width: 0;
+  text-align: left;
+  cursor: pointer;
+}
+.dl-select:disabled { cursor: default; }
+.dl-select:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.dl-select[aria-expanded='true'] { border-color: var(--accent); }
+.dl-select-value { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dl-select-value.is-placeholder { color: var(--muted); }
+.dl-select-chev { flex: none; color: var(--muted); transition: transform 120ms ease; }
+.dl-select[aria-expanded='true'] .dl-select-chev { transform: rotate(180deg); }
+
+/* The open list: the same surface as File ▾ and ⋮. Drawn position: fixed, outside any clipping box
+   (inside a dialog when the control is in one), over drawers and the toolbar. */
+.dl-select-list {
+  position: fixed;
+  z-index: 1100;
+  box-sizing: border-box;
+  max-width: min(420px, calc(100vw - 16px));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 4px;
+  border: 1px solid var(--line-soft);
+  border-radius: 8px;
+  background: var(--panel);
+  color: var(--text);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
+  font: 13px var(--ui-font);
+}
+.dl-select-list.is-measuring { visibility: hidden; }
+
+.dl-opt {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px 6px 6px;
+  border-radius: 5px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+/* The keyboard / pointer position: the accent fill File ▾'s items use on hover. */
+.dl-opt.is-active { background: var(--accent); color: var(--on-accent); }
+.dl-opt.is-muted .dl-opt-label { color: var(--muted); }
+.dl-opt.is-active.is-muted .dl-opt-label { color: inherit; }
+.dl-opt[aria-disabled='true'] { opacity: 0.45; cursor: default; }
+.dl-opt-check { flex: none; width: 14px; height: 14px; display: inline-flex; color: var(--accent); }
+.dl-opt.is-active .dl-opt-check { color: inherit; }
+.dl-opt-label { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+/* Shortcuts and notes on the right, like File ▾'s file types. */
+.dl-opt-hint { flex: none; margin-left: 16px; font-size: 12px; opacity: 0.6; }
+.dl-opt.is-active .dl-opt-hint { opacity: 0.85; }
+
+.dl-group + .dl-group,
+.dl-opt + .dl-group { margin-top: 4px; padding-top: 4px; border-top: 1px solid var(--line-soft); }
+.dl-group-label {
+  padding: 4px 10px 3px 28px; /* lines up with the option labels, past the ✓ column */
+  color: var(--muted);
+  font: 600 10.5px var(--ui-font);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+@media (prefers-reduced-motion: reduce) { .dl-select-chev { transition: none; } }
+@media print { .dl-select-list { display: none; } }

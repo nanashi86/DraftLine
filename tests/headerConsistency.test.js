@@ -22,7 +22,7 @@ const media = (px) => {
 
 describe('Write: Element ▾ and B I U S move, like Plan’s scene filter', () => {
   it('one shared fragment, drawn in the bar and in the writing pane', () => {
-    assert.match(app, /const formatTools = \(\s*<>\s*<select\s*className="type-select"/);
+    assert.match(app, /const formatTools = \(\s*<>\s*<Select\s*className="type-select"/);
     assert.equal(app.match(/\{formatTools\}/g).length, 2);
     const header = app.slice(app.indexOf('<header className="bar"'), app.indexOf('</header>'));
     assert.match(header, /<div className="bar-group g-format" hidden=\{!formatBarShown\}>\s*\{formatTools\}/);

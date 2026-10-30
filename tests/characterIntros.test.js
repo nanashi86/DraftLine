@@ -241,7 +241,7 @@ describe('Bios: the Gender field', () => {
   it('a) Age / Timeline and Gender share a row, like the role pickers', () => {
     assert.match(drawer, /<div className="pb-roles pb-age-gender">/);
     assert.match(drawer, /\{f\.key === 'age' \? <AgeGender c=\{c\} field=\{f\} onChange=\{onChange\} \/> : \(/);
-    assert.match(drawer, /<select value=\{c\.gender \|\| ''\} onChange=\{\(e\) => onChange\(\{ gender: e\.target\.value \}\)\} aria-label="Gender">\s*<option value="">Not set<\/option>\s*\{GENDERS\.map/);
+    assert.match(drawer, /<Select\s*value=\{c\.gender \|\| ''\}\s*onChange=\{\(v\) => onChange\(\{ gender: v \}\)\}\s*ariaLabel="Gender"\s*options=\{\[\{ value: '', label: 'Not set', muted: true \}, \.\.\.GENDERS\.map/);
     assert.match(css, /\.pb-roles \{ display: grid; grid-template-columns: 1fr 1fr;/);
   });
   it('shows on the cue hover card and in the Story Bible PDF', () => {

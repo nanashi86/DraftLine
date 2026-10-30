@@ -125,6 +125,7 @@ describe('the cue bio card follows the same rule', () => {
       'CueBioCard.jsx', // card: guarded (above)
       'DialogueTuner.jsx', // highlights the speech in the script
       'Editor.jsx', // moves the autocomplete highlight
+      'Select.jsx', // moves the dropdown's active-row highlight
       'StoryDna.jsx', // ⓘ cards: guarded
       'SupportCallouts.js', // pauses a corner toast's timer
     ]);
