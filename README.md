@@ -217,10 +217,9 @@ covers the page, and the highlighting is on screen only: never printed or in a P
 
 ### Story Bible (Alt+I)
 
-Two tabs — **DNA** opens first unless you've picked Notes this session:
+Three tabs — **DNA** opens first unless you've picked another this session:
 
-- **📖 DNA** — two views:
-  - **Story Blueprint**: **Genre** as clickable pills (Drama, Thriller, Crime, Horror, Comedy, Action, Adventure,
+- **📖 DNA** — the story blueprint: **Genre** as clickable pills (Drama, Thriller, Crime, Horror, Comedy, Action, Adventure,
     Romance, Fantasy, Science Fiction, Western, Noir, Other — with a text box for Other; projects that saved the old
     "Noire" spelling load as Noir); **Theme — revealed by the Climax**; **Central Dramatic Question** ("What core
     question does the climax answer?"); **Plot Devices** — pick from Foreshadowing, Flashback, Ticking Clock,
@@ -230,13 +229,7 @@ Two tabs — **DNA** opens first unless you've picked Notes this session:
     Desire, Flaw, Conflict / Obstacle (with the six conflict types), Complications, All Is Lost / Crisis,
     Climax / Resolution. Every **i**
     shows the definition in a tooltip that always fits inside the drawer (it flips above near the bottom and slides
-    in from the edges); click it to open the entry. Saved with the project.
-  - **Story Glossary** (formerly Structure Dictionary): 57 terms in three sections — Character Roles, Narrative &
-    Dramatic Craft (the Blueprint's terms, the plot devices, Crisis, Midpoint, Stakes, Want vs. Need, Setup & Payoff,
-    B-Story…) and Screenplay Format (the page's elements, V.O. / O.S., (MORE) / (CONT'D), Intercut, Pre-lap…) —
-    searchable. They ship with DraftLine's *starter* definitions — **Edit** any entry to paste your own
-    reference's wording (kept for all projects, including wording you saved before the rename; **Reset** restores the
-    starter).
+    in from the edges); click it to open the entry in the Glossary tab. Saved with the project.
 - **📝 Notes** — Markdown sections (**Logline**, **Tone**, **Timeline**, **Pitch**, **Scratchpad**, plus any you add
   below them). The story's theme has one home — **Theme** in DNA ("revealed by the Climax") — so there's no Themes
   card. Notes from earlier versions are updated once on open: a Themes card's text moves into DNA's Theme when that's
@@ -245,6 +238,12 @@ Two tabs — **DNA** opens first unless you've picked Notes this session:
   becomes Timeline, "General Scratchpad" Scratchpad, missing presets are added and your own sections follow — keeping
   every word, edited in place and shown formatted in Preview. **Import from Notes** pastes text from anywhere: append
   to a section, replace it, or split it at `# headings` into matching or new sections (undoable).
+- **📕 Glossary** (formerly Structure Dictionary, then a view inside DNA): 57 terms in three sections — Character
+  Roles, Narrative & Dramatic Craft (the DNA questions' terms, the plot devices, Crisis, Midpoint, Stakes, Want vs.
+  Need, Setup & Payoff, B-Story…) and Screenplay Format (the page's elements, V.O. / O.S., (MORE) / (CONT'D),
+  Intercut, Pre-lap…) — searchable. They ship with DraftLine's *starter* definitions — **Edit** any entry to paste
+  your own reference's wording (kept for all projects, including wording you saved before the rename; **Reset**
+  restores the starter). Every ⓘ in DNA and Characters → Bios, and every Format Doctor chip, opens it at the term.
 
 ## Install & offline (PWA)
 

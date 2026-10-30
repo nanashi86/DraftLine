@@ -21,6 +21,14 @@ const PATHS = {
       <path d="M7 3.6V12" />
     </>
   ),
+  // Glossary: a closed reference book with lines of entries on its cover
+  glossary: (
+    <>
+      <path d="M3 2.9a1.3 1.3 0 0 1 1.3-1.3H11v10.8H4.3A1.3 1.3 0 0 0 3 13.7Z" />
+      <path d="M3 13.7a1.3 1.3 0 0 1 1.3-1.3H11" />
+      <path d="M5.8 4.6h3M5.8 6.8h2.2" />
+    </>
+  ),
   // Notes: a sheet of paper with a folded corner
   notes: (
     <>

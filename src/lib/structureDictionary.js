@@ -8,7 +8,7 @@
 //
 // The wording below is DraftLine's STARTER text — short, conventional definitions. It is
 // meant to be replaced by the writer's own reference (a class handout, a book): every
-// entry can be edited in the app (Story Bible → DNA → Story Glossary), and edits are kept
+// entry can be edited in the app (Story Bible → Glossary), and edits are kept
 // in the library's settings for all projects (the setting key is still
 // 'structureDictionary', so earlier wording carries over). `starter: true` marks text that
 // hasn't been replaced yet, so the UI can say so.

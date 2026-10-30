@@ -9,7 +9,6 @@ import { dictionaryEntry, glossarySections } from '../lib/structureDictionary.js
 import { nativePickerOpen } from '../lib/pickerGuard.js';
 import Select from './Select.jsx';
 import { TIP_MAX_WIDTH, clipToViewport, placeTooltip } from '../lib/tooltip.js';
-import { DNA_VIEWS } from '../lib/bible.js';
 
 /**
  * (i) with the term's Glossary definition on hover / focus; click opens the entry.
@@ -421,42 +420,32 @@ function Dictionary({ dictionary, openId, setOpenId, onEdit }) {
   );
 }
 
-/** Story DNA tab: [ Blueprint | Glossary ]. */
-export default function StoryDna({ dna, onChange, dictionary, onDictionaryEdit, showTerm = null }) {
-  const [view, setView] = useState('blueprint');
-  const [openId, setOpenId] = useState(null);
-  // A term opened from elsewhere (Characters → Bios role ⓘ): switch to the Glossary, open it.
+/**
+ * Story Bible → DNA: the story blueprint. An ⓘ's "click for the Glossary" calls onOpenTerm(id),
+ * which opens the Glossary tab at that term.
+ */
+export default function StoryDna({ dna, onChange, dictionary, onOpenTerm }) {
+  return (
+    <div className="pb-pane">
+      <Blueprint dna={dna} onChange={onChange} dictionary={dictionary} onOpenTerm={onOpenTerm} />
+    </div>
+  );
+}
+
+/**
+ * Story Bible → Glossary. `showTerm` ({ id }, a new object each time) opens and scrolls to a term
+ * asked for from elsewhere: an ⓘ in DNA or Characters → Bios, or a Format Doctor chip.
+ */
+export function StoryGlossary({ dictionary, onDictionaryEdit, showTerm = null }) {
+  const [openId, setOpenId] = useState(showTerm?.id ?? null);
   const [shownTerm, setShownTerm] = useState(showTerm);
   if (showTerm !== shownTerm) {
     setShownTerm(showTerm);
-    if (showTerm?.id) {
-      setOpenId(showTerm.id);
-      setView('dictionary');
-    }
+    if (showTerm?.id) setOpenId(showTerm.id);
   }
-  const openTerm = (id) => {
-    setOpenId(id);
-    setView('dictionary');
-  };
   return (
     <div className="pb-pane">
-      <div className="seg dna-view" role="radiogroup" aria-label="Story DNA view">
-        {DNA_VIEWS.map(({ id, label }) => (
-          <button
-            key={id}
-            type="button"
-            role="radio"
-            aria-checked={view === id}
-            className={`seg-btn${view === id ? ' is-on' : ''}`}
-            onClick={() => setView(id)}
-          >
-            {label}
-          </button>
-        ))}
-      </div>
-      {view === 'blueprint'
-        ? <Blueprint dna={dna} onChange={onChange} dictionary={dictionary} onOpenTerm={openTerm} />
-        : <Dictionary dictionary={dictionary} openId={openId} setOpenId={setOpenId} onEdit={onDictionaryEdit} />}
+      <Dictionary dictionary={dictionary} openId={openId} setOpenId={setOpenId} onEdit={onDictionaryEdit} />
     </div>
   );
 }

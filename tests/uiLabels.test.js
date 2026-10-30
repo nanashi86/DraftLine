@@ -5,7 +5,7 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { SHORTCUTS } from '../src/lib/shortcuts.js';
 import { RENAME_CATEGORIES } from '../src/lib/renameCharacter.js';
-import { BIBLE_TABS, DNA_VIEWS } from '../src/lib/bible.js';
+import { BIBLE_TABS } from '../src/lib/bible.js';
 import { fileMenuItems } from '../src/lib/toolbar.js';
 
 // fileURLToPath, not .pathname: on Windows .pathname is "/C:/Users/…", which Windows reads as "C:\C:\Users\…".
@@ -15,15 +15,21 @@ const files = (dir) => readdirSync(dir, { withFileTypes: true })
 // Everything the writer can see or hear: components, the app shell, menus, shortcut and rename labels.
 const uiSources = files(root).filter((f) => /\.jsx$/.test(f) || /lib[\\/](shortcuts|renameCharacter)\.js$/.test(f));
 
-describe('DNA tab views: Blueprint and Glossary', () => {
-  it('the toggle reads [ Blueprint | Glossary ], in that order', () => {
-    assert.deepEqual(DNA_VIEWS.map((v) => v.label), ['Blueprint', 'Glossary']);
-    assert.deepEqual(DNA_VIEWS.map((v) => v.id), ['blueprint', 'dictionary']);
-    assert.match(readFileSync(join(root, 'components/StoryDna.jsx'), 'utf8'), /DNA_VIEWS\.map/);
+describe('Story Bible tabs: DNA · Notes · Glossary', () => {
+  it('the Glossary is its own tab, after Notes; DNA has no sub-switch any more', () => {
+    assert.deepEqual(BIBLE_TABS.map((t) => [t.id, t.label]), [['dna', 'DNA'], ['notes', 'Notes'], ['glossary', 'Glossary']]);
+    const dna = readFileSync(join(root, 'components/StoryDna.jsx'), 'utf8');
+    assert.ok(!/dna-view|Blueprint \| Glossary|setView\(/.test(dna), 'no Blueprint | Glossary switch');
+    const drawer = readFileSync(join(root, 'components/ProjectBibleDrawer.jsx'), 'utf8');
+    assert.match(drawer, /\{tab === 'glossary' && <StoryGlossary dictionary=\{dictionary\} onDictionaryEdit=\{onDictionaryEdit\} showTerm=\{glossaryTerm\} \/>\}/);
+    assert.match(drawer, /\{tab === 'dna' && <StoryDna dna=\{storyDna\} onChange=\{onStoryDnaChange\} dictionary=\{dictionary\} onOpenTerm=\{onOpenTerm\} \/>\}/);
+    assert.match(readFileSync(join(root, 'components/TabIcon.jsx'), 'utf8'), /\n {2}glossary: \(/, 'with its own tab icon');
   });
-  it('the DNA tab title and toolbar tooltip use the short names', () => {
-    assert.equal(BIBLE_TABS.find((t) => t.id === 'dna').title, 'Blueprint & Glossary');
-    assert.match(readFileSync(join(root, 'App.jsx'), 'utf8'), /DNA \(Blueprint & Glossary\)/);
+  it('every ⓘ and Format Doctor chip opens the Glossary tab; the toolbar tooltip names the three tabs', () => {
+    const app = readFileSync(join(root, 'App.jsx'), 'utf8');
+    assert.match(app, /setBibleTab\('glossary'\);/);
+    assert.match(app, /glossaryTerm=\{glossaryTerm\}\s*onOpenTerm=\{openGlossary\}/);
+    assert.match(app, /title="Story Bible: DNA · Notes · Glossary \(Alt\+I\)"/);
   });
   it('no toggle, tab header, tooltip or aria-label says "Story Blueprint" or "Story Glossary"', () => {
     for (const f of uiSources) {

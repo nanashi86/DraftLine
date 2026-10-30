@@ -101,8 +101,9 @@ describe('Character roles: the Bios form', () => {
     assert.match(ui, /\{roleSummary\(c\) \? <><span aria-hidden="true">· <\/span>\{roleSummary\(c\)\}<\/> :/);
   });
   it('an (i) click opens Story Bible → Glossary at that term', () => {
-    assert.match(read('App.jsx'), /const openGlossary = useCallback\(\(id\) => \{\s*setBibleTab\('dna'\);\s*setDock\('bible'\);\s*setGlossaryTerm\(\{ id \}\);/);
-    assert.match(read('components/StoryDna.jsx'), /if \(showTerm\?\.id\) \{\s*setOpenId\(showTerm\.id\);\s*setView\('dictionary'\);/);
+    assert.match(read('App.jsx'), /const openGlossary = useCallback\(\(id\) => \{\s*setBibleTab\('glossary'\);\s*setDock\('bible'\);\s*setGlossaryTerm\(\{ id \}\);/);
+    assert.match(read('components/StoryDna.jsx'), /const \[openId, setOpenId\] = useState\(showTerm\?\.id \?\? null\);/, 'opens at the term on arrival');
+    assert.match(read('components/StoryDna.jsx'), /if \(showTerm\?\.id\) setOpenId\(showTerm\.id\);/, 'and when asked again while open');
   });
 });
 

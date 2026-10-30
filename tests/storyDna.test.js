@@ -101,8 +101,8 @@ describe('Genre pills', () => {
 });
 
 describe('drawer tabs', () => {
-  it('Story Bible: DNA (the default), then Notes', () => {
-    assert.deepEqual(BIBLE_TABS.map((t) => [t.id, t.label]), [['dna', 'DNA'], ['notes', 'Notes']]);
+  it('Story Bible: DNA (the default), then Notes, then Glossary', () => {
+    assert.deepEqual(BIBLE_TABS.map((t) => [t.id, t.label]), [['dna', 'DNA'], ['notes', 'Notes'], ['glossary', 'Glossary']]);
     assert.equal(DEFAULT_BIBLE_TAB, 'dna');
   });
   it('Characters: Bios (the default), then Dialogue', () => {
@@ -114,7 +114,7 @@ describe('drawer tabs', () => {
       assert.match(t.label, /^\S{1,8}$/, t.label);
       assert.ok(t.title.length > t.label.length, t.id);
     }
-    assert.equal(BIBLE_TABS[0].title, 'Blueprint & Glossary');
+    assert.deepEqual(BIBLE_TABS.map((t) => t.label), ['DNA', 'Notes', 'Glossary']);
   });
   it('badges: DNA progress, bio count, speaking characters; Notes has none', () => {
     assert.equal(bibleTabBadge('dna', { dnaAnswered: 3, dnaTotal: 8 }), '3/8');

@@ -251,8 +251,6 @@
 .pb-tabs { overflow-x: auto; scrollbar-width: none; }
 .pb-tab { flex: none; }
 .pb-spacer { flex: 1; }
-.dna-view { margin-bottom: 12px; }
-.dna-view .seg-btn { padding: 5px 14px; }
 
 .dna-meta { display: grid; gap: 9px; padding: 10px 12px 12px; border: 1px solid var(--line-soft); border-radius: 8px; background: var(--card); }
 .pb-field em { font-style: normal; opacity: 0.75; }

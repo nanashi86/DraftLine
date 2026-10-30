@@ -203,25 +203,17 @@ The status bar switches the page colour: {{themes}}. The zoom controls sit at th
 
 ## Story Bible
 
-The Story Bible ({{key:Alt+I}}) keeps everything about the story that isn't the script. It's saved with the project and switches with it in Projects. The ⤢ button in the panel's header expands it to the full window; {{key:Esc}} collapses it again.
+The Story Bible ({{key:Alt+I}}) keeps everything about the story that isn't the script, in three tabs: **DNA**, **Notes** and **Glossary**. It's saved with the project and switches with it in Projects. The ⤢ button in the panel's header expands it to the full window; {{key:Esc}} collapses it again.
 
-### DNA: Blueprint
+### DNA
 
-The **Blueprint** walks through the spine of the story in {{dna.count}} questions:
+The **DNA** tab walks through the spine of the story in {{dna.count}} questions:
 
 {{dna.questions}}
 
 The Conflict question also records its type: Individual vs. {{dna.conflictTypes}}.
 
 It also records genre, theme and **Plot Devices**. {{dna.defaultDevices}} are always listed. You can add {{dna.optionalDevices}}, each with Yes / No and notes. The ⓘ beside any term shows its definition.
-
-### DNA: Glossary
-
-The **Glossary** defines every story term in three sections, {{glossary.sections}}. **Screenplay Format** covers the page itself: scene headings, action, cues, dialogue and parentheticals, V.O. / O.S., (CONT'D) and (MORE), transitions, and the terms writers look up most (Intercut, Montage, Pre-lap, Insert, Super, Page Eighths, Spec Script…). Search filters all three at once.
-
-Every definition starts as DraftLine's, marked **starter**. To use your own wording, from a class handout, a book or a teacher, click a term to open it, click **Edit** under its definition, paste your wording and click **Save**. The badge turns to **yours**. Your wording is kept for all your projects in this browser and travels in **Backup Project** files. **Edit → Reset to starter text** brings DraftLine's back.
-
-In the **Format Doctor**, a finding's chip at the top (Scene heading format, Dangling parenthetical…) opens the Screenplay Format term that explains it.
 
 ### Notes
 
@@ -240,6 +232,16 @@ Switching never loses text, and never adds any. Going from 4 acts to 3 joins Act
 
 - **Copy as Markdown** copies every note, in order, ready to paste into a document. The acts come out in the active view: the Treatment as {{acts.headings.3}} in 3 acts, or {{acts.headings.4}} in 4 acts.
 - **Import from Notes** pastes text from Docs, Word, Notion or Apple Notes into a section (or straight into one act of the Treatment), appended or replacing what's there. **Split by headings** turns each heading into a section. Under a `## Treatment` or `## Synopsis` heading, act headings fill that act: both traditional Roman numerals and 4-act numbers are recognized, such as {{acts.importExamples}}. Any other sub-headings stay inside the act they follow, so Copy as Markdown output imports straight back.
+
+### Glossary
+
+The **Glossary** tab defines every story term in three sections, {{glossary.sections}}. **Screenplay Format** covers the page itself: scene headings, action, cues, dialogue and parentheticals, V.O. / O.S., (CONT'D) and (MORE), transitions, and the terms writers look up most (Intercut, Montage, Pre-lap, Insert, Super, Page Eighths, Spec Script…). Search filters all three at once.
+
+Every definition starts as DraftLine's, marked **starter**. To use your own wording, from a class handout, a book or a teacher, click a term to open it, click **Edit** under its definition, paste your wording and click **Save**. The badge turns to **yours**. Your wording is kept for all your projects in this browser and travels in **Backup Project** files. **Edit → Reset to starter text** brings DraftLine's back.
+
+In the **Format Doctor**, a finding's chip at the top (Scene heading format, Dangling parenthetical…) opens the Screenplay Format term that explains it.
+
+Every ⓘ in the app, in DNA and beside the Bios role pickers, opens the Glossary at its term when you click it.
 
 ## Characters
 

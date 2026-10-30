@@ -10,7 +10,7 @@ import {
   importNotes, markdownBlocks, normalizeSynopsis, normalizeTreatment, removeSection, setSynopsisAct, setTreatmentAct,
   storyNotesMarkdown, synopsisHasText, synopsisIndex, treatmentHasText, updateSection,
 } from '../lib/bible.js';
-import StoryDna from './StoryDna.jsx';
+import StoryDna, { StoryGlossary } from './StoryDna.jsx';
 import { storyDnaProgress, DNA_QUESTIONS } from '../lib/storyDna.js';
 import './ProjectBibleDrawer.css';
 import Select from './Select.jsx';
@@ -320,13 +320,14 @@ function StoryNotes({ notes, onChange, onUndoable, projectTitle = '', actMode = 
 // ---- Drawer -----------------------------------------------------------------------------
 
 /**
- * Story Bible: a right-hand drawer with two tabs — DNA (Blueprint & Glossary)
- * and Notes. Character bios live in the Characters drawer. Everything edits the
+ * Story Bible: a right-hand drawer with three tabs — DNA (the story blueprint), Notes and
+ * Glossary (story terms).  An ⓘ in DNA opens the Glossary tab at its term (onOpenTerm). Character bios live in the Characters drawer. Everything edits the
  * project in place, so it autosaves with the script and switches with it in Projects.
  */
 export default function ProjectBibleDrawer({
   open, onClose, projectTitle, storyNotes, onStoryNotesChange, actMode = 3, onActModeChange, onRealignActs,
   storyDna, onStoryDnaChange, dictionary, onDictionaryEdit, tab = DEFAULT_BIBLE_TAB, onTabChange, glossaryTerm = null,
+  onOpenTerm,
 }) {
   const [undo, setUndo] = useState(null); // { message, restore }
   const panelRef = useRef(null);
@@ -391,9 +392,9 @@ export default function ProjectBibleDrawer({
       </div>
 
       <div className="pb-scroll" role="tabpanel">
-        {tab === 'dna' ? (
-          <StoryDna dna={storyDna} onChange={onStoryDnaChange} dictionary={dictionary} onDictionaryEdit={onDictionaryEdit} showTerm={glossaryTerm} />
-        ) : (
+        {tab === 'dna' && <StoryDna dna={storyDna} onChange={onStoryDnaChange} dictionary={dictionary} onOpenTerm={onOpenTerm} />}
+        {tab === 'glossary' && <StoryGlossary dictionary={dictionary} onDictionaryEdit={onDictionaryEdit} showTerm={glossaryTerm} />}
+        {tab === 'notes' && (
           <StoryNotes
             notes={storyNotes}
             projectTitle={projectTitle}

@@ -988,9 +988,9 @@ function Workspace({ boot }) {
   const [renameFrom, setRenameFrom] = useState(null); // the name being renamed, while the review is open
   const [revealBio, setRevealBio] = useState(null); // { id } — a bio the Characters drawer should open to
   const [glossaryTerm, setGlossaryTerm] = useState(null); // { id } — a term Story Bible → Glossary should open
-  /** A role's (i) in Characters → Bios: Story Bible → DNA → Glossary, at that term. */
+  /** An ⓘ (DNA, Characters → Bios) or a Format Doctor chip: Story Bible → Glossary, at that term. */
   const openGlossary = useCallback((id) => {
-    setBibleTab('dna');
+    setBibleTab('glossary');
     setDock('bible');
     setGlossaryTerm({ id });
   }, []);
@@ -2213,7 +2213,7 @@ function Workspace({ boot }) {
               hidden={inPlan}
               className={`btn btn-bible${bibleOpen ? ' is-on' : ''}`}
               onClick={() => setDock((d) => toggleDock(d, 'bible'))}
-              title="Story Bible: DNA (Blueprint & Glossary) · Notes (Alt+I)"
+              title="Story Bible: DNA · Notes · Glossary (Alt+I)"
               aria-pressed={bibleOpen}
             >
               Story Bible
@@ -2685,6 +2685,7 @@ function Workspace({ boot }) {
           dictionary={dictionary}
           onDictionaryEdit={editDictionary}
           glossaryTerm={glossaryTerm}
+          onOpenTerm={openGlossary}
         />
 
         <SnapshotsDrawer

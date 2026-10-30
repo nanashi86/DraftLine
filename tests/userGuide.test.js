@@ -69,7 +69,7 @@ describe('Rendered User Guide matches the app', () => {
     for (const f of CHARACTER_FIELDS) assert.ok(flat.includes(`**${f.label}**`), f.label);
   });
   it('the Blueprint questions in order, the plot devices, the Glossary sections', () => {
-    const g = parseGuide(text).chapters.find((c) => c.title === 'Story Bible').topics.find((t) => t.title === 'DNA: Blueprint');
+    const g = parseGuide(text).chapters.find((c) => c.title === 'Story Bible').topics.find((t) => t.title === 'DNA');
     const ol = g.blocks.find((b) => b.type === 'ol');
     assert.deepEqual(ol.items, DNA_QUESTIONS.map((q) => `**${q.label}**: ${q.question.replace(/’/g, "'")}`));
     for (const d of PLOT_DEVICES) assert.ok(flat.includes(d.label), d.label);
