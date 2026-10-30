@@ -157,7 +157,9 @@ describe('feature hints: the app never interrupts, and nothing runs without a cl
   it('the Format stepper, a spotlight or Plan, used any way and any time, ends that hint (even before it showed)', () => {
     assert.match(app, /const formatUsed = formatAt !== null \|\| doctorOpen;/);
     assert.match(app, /const dialogueUsed = !!selectedChar;/);
-    assert.match(app, /\[formatUsed && 'formatDoctor', dialogueUsed && 'dialogue', inPlan && 'plan'\]/);
+    assert.match(app, /const now = \{ formatDoctor: formatUsed, dialogue: dialogueUsed, plan: inPlan \};/);
+    assert.match(app, /now\[id\] && !usedBefore\.current\[id\]/, 'counted at the moment of use (off → on), so Show tips again sticks even with a spotlight still on');
+    assert.doesNotMatch(app, /\}, \[formatUsed, dialogueUsed, inPlan, hintStates\]\);/, 'not re-run when the states are cleared');
     assert.equal(HINTS.formatDoctor.usedBy, '.stepper[aria-label="Format Doctor findings"]', 'opening its list counts');
     assert.match(app, /if \(e\.target\?\.closest\?\.\(HINTS\[id\]\.usedBy\)\) hintToolUsed\(id\);/);
   });
@@ -171,10 +173,15 @@ describe('feature hints: the app never interrupts, and nothing runs without a cl
     assert.match(app, /const hintBusy = !!\(focusMode \|\| isLocked \|\| inPlan \|\| milestone \|\| exportToast \|\| backupTipShown\);/);
     assert.match(app, /hintClock\.current\.openedAt = Date\.now\(\); \/\/ a script just opened or imported: hints wait a minute/);
   });
-  it('About → Tips → Show tips again, once any hint has been seen or used', () => {
+  it('About → Tips: always there, with how many you’ve seen, Show tips again, and a confirmation', () => {
     const help = read('components/HelpModal.jsx');
-    assert.match(help, /\{onResetTips && tipsFinished > 0 && \(/);
-    assert.match(help, />Show tips again<\/button>/);
+    assert.match(help, /\{onResetTips && \(\s*<div>\s*<dt>Tips<\/dt>/, 'never hidden: no more “where is it?”');
+    assert.match(help, /\{tipsFinished\} of \{tipsTotal\} seen ·/);
+    assert.match(help, /onResetTips\(\);\s*setTipsReset\(true\);/);
+    assert.match(help, /Reset\. Tips will show again as you write, one at a time\./);
+    assert.match(help, /None seen yet: each one shows once, when its tool would help\./);
+    assert.match(help, />\s*Show tips again\s*<\/button>/);
+    assert.match(app, /tipsTotal=\{HINT_IDS\.length\}/);
     assert.match(app, /onResetTips=\{resetTips\}/);
   });
   it('reduced motion: no pulse, no slide', () => {

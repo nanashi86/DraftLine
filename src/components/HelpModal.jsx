@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { CodeXml, Coffee, ExternalLink, Heart, MessageCircle } from 'lucide-react';
+import { Check, CodeXml, Coffee, ExternalLink, Heart, MessageCircle } from 'lucide-react';
 import { SHORTCUT_SECTIONS as SECTIONS, keycaps } from '../lib/shortcuts.js';
 import pkg from '../../package.json';
 import BrandMark from './BrandMark.jsx';
@@ -72,7 +72,8 @@ function fmtBytes(n) {
 }
 
 /** Keyboard Shortcuts or About DraftLine, from the ⋮ menu. */
-export default function HelpModal({ kind, storage, onClose, tipsFinished = 0, onResetTips }) {
+export default function HelpModal({ kind, storage, onClose, tipsFinished = 0, tipsTotal = 0, onResetTips }) {
+  const [tipsReset, setTipsReset] = useState(false); // Show tips again was just clicked: say so
   const dialogRef = useRef(null);
   const [lib, setLib] = useState({ count: null, persisted: null, usage: null });
   const [credits, setCredits] = useState(() => normalizeCredits(null));
@@ -224,12 +225,32 @@ export default function HelpModal({ kind, storage, onClose, tipsFinished = 0, on
                   ? `DraftLine uploads nothing – if "${storage.sync.folderName}" is a Drive folder, your Drive app syncs it`
                   : 'your script never leaves this computer'}
               </dd></div>
-            {onResetTips && tipsFinished > 0 && (
+            {/* Always here, so it's never a mystery: how many tips you've seen, and a way to see them again. */}
+            {onResetTips && (
               <div>
                 <dt>Tips</dt>
                 <dd>
-                  <button type="button" className="hm-tips-reset" onClick={onResetTips}>Show tips again</button>
-                  <span className="hm-tips-note"> · Import Scenes, Analyze Value Shifts and Populate Bio</span>
+                  {tipsReset ? (
+                    <span className="hm-tips-done" role="status">
+                      <Check size={13} strokeWidth={2} aria-hidden /> Reset. Tips will show again as you write, one at a time.
+                    </span>
+                  ) : tipsFinished > 0 ? (
+                    <>
+                      {tipsFinished} of {tipsTotal} seen ·{' '}
+                      <button
+                        type="button"
+                        className="hm-tips-reset"
+                        onClick={() => {
+                          onResetTips();
+                          setTipsReset(true);
+                        }}
+                      >
+                        Show tips again
+                      </button>
+                    </>
+                  ) : (
+                    <span className="hm-tips-note">None seen yet: each one shows once, when its tool would help.</span>
+                  )}
                 </dd>
               </div>
             )}

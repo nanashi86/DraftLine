@@ -2116,16 +2116,21 @@ function Workspace({ boot }) {
       setActiveHint(null);
     }
   }, [activeHint, sceneCardCount, shiftedCardCount]);
-  // Using the Format stepper or Doctor, spotlighting a character, or opening Plan, any way and at
-  // any time (even before its hint ever showed), means that hint is never needed.
+  // Using the Format stepper or Doctor, spotlighting a character, or opening Plan, any way (even
+  // before its hint ever showed), means that hint is never needed. It counts at the moment of use
+  // (off → on), not while it stays on: otherwise Show tips again, clicked with a character still
+  // spotlit, would be undone at once.
   const formatUsed = formatAt !== null || doctorOpen;
   const dialogueUsed = !!selectedChar;
+  const usedBefore = useRef({ formatDoctor: false, dialogue: false, plan: false });
   useEffect(() => {
-    const used = [formatUsed && 'formatDoctor', dialogueUsed && 'dialogue', inPlan && 'plan'].filter(Boolean);
-    if (!used.some((id) => hintStates[id] !== 'done')) return;
+    const now = { formatDoctor: formatUsed, dialogue: dialogueUsed, plan: inPlan };
+    const used = Object.keys(now).filter((id) => now[id] && !usedBefore.current[id]);
+    usedBefore.current = now;
+    if (!used.length) return;
     setHintStates((st) => used.reduce((acc, id) => markHint(globalThis.localStorage, id, 'done', acc), st));
     setActiveHint((a) => (used.includes(a) ? null : a));
-  }, [formatUsed, dialogueUsed, inPlan, hintStates]);
+  }, [formatUsed, dialogueUsed, inPlan]);
   /** A hinted tool was used (from the hint or not): that hint is done for good. */
   const hintToolUsed = useCallback((id) => {
     setHintStates((st) => markHint(globalThis.localStorage, id, 'done', st));
@@ -2949,6 +2954,7 @@ function Workspace({ boot }) {
             storage={{ ok: saved.ok, savedAt: saved.at, bytes: JSON.stringify({ meta, blocks, beats, characters, storyNotes, storyDna, production }).length, countProjects: () => projects.getAllProjects().then((l) => l.length), sync }}
             onClose={() => setHelpKind(null)}
             tipsFinished={HINT_IDS.filter((id) => hintStates[id]).length}
+            tipsTotal={HINT_IDS.length}
             onResetTips={resetTips}
           />
         )}
