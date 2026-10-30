@@ -113,7 +113,7 @@ describe('feature hints: the app never interrupts, and nothing runs without a cl
     assert.match(read('components/CharactersDrawer.jsx'), /\$\{tabBeacon === t\.id \? ' has-hint-beacon' : ''\}/);
   });
   it('the card only shows once the tool’s panel is open; hidden in Focus, Plan and Viewing', () => {
-    assert.match(app, /const hintHidden = !activeHint \|\| focusMode \|\| inPlan \|\| isLocked;/);
+    assert.match(app, /const hintHidden = !activeHint \|\| hintHandedOff === activeHint \|\| focusMode \|\| inPlan \|\| isLocked;/);
     assert.match(app, /const hintPanelOpen = activeHint === 'populateBio' \? charactersOpen && characterTab !== 'dialogue' : showBoard;/);
     assert.match(app, /\{hintCardShown && \(\s*<HintCard id=\{activeHint\}/);
   });
@@ -121,6 +121,9 @@ describe('feature hints: the app never interrupts, and nothing runs without a cl
     assert.match(app, /document\.querySelector\(HINTS\[activeHint\]\.target\)\?\.click\(\); \/\/ exactly what clicking the tool does/);
     assert.match(app, /k\.el\.focus\(\{ preventScroll: true \}\);\s*try \{\s*k\.el\.setSelectionRange\(k\.start, k\.end\);/);
     assert.match(card, /onMouseDown=\{\(e\) => e\.preventDefault\(\)\} \/\/ never pull focus/);
+  });
+  it('once its button is clicked, the card steps aside so it never sits under the tool’s own menu', () => {
+    assert.match(app, /setHintHandedOff\(activeHint\); \/\/ the tool takes over/);
   });
   it('using a tool any way at all ends its hint', () => {
     assert.match(read('components/BeatBoard.jsx'), /onChange\(result\.beats\);\s*onToolUsed\?\.\('importScenes'\);/);

@@ -2041,6 +2041,8 @@ function Workspace({ boot }) {
   });
   const [hintStates, setHintStates] = useState(() => readHints(globalThis.localStorage));
   const [activeHint, setActiveHint] = useState(null);
+  // The hint whose button was clicked: its card steps aside for the tool's own menu or window.
+  const [hintHandedOff, setHintHandedOff] = useState(null);
   const hintNow = useRef({});
   const sceneCardCount = beats.filter((b) => b.sceneId).length;
   const shiftedCardCount = beats.filter((b) => b.sceneId && b.valueShift).length;
@@ -2112,6 +2114,7 @@ function Workspace({ boot }) {
   const hintToolUsed = useCallback((id) => {
     setHintStates((st) => markHint(globalThis.localStorage, id, 'done', st));
     setActiveHint((a) => (a === id ? null : a));
+    setHintHandedOff(null);
     const c = hintClock.current;
     if (c.fromHint !== id) return;
     c.fromHint = null;
@@ -2127,6 +2130,7 @@ function Workspace({ boot }) {
   }, []);
   const runHint = () => {
     hintClock.current.fromHint = activeHint;
+    setHintHandedOff(activeHint); // the tool takes over; closed without using it, the tip may come back another session
     document.querySelector(HINTS[activeHint].target)?.click(); // exactly what clicking the tool does
   };
   const dismissHint = () => {
@@ -2136,10 +2140,11 @@ function Workspace({ boot }) {
   const resetTips = () => {
     setHintStates(resetHints(globalThis.localStorage, globalThis.sessionStorage));
     setActiveHint(null);
+    setHintHandedOff(null);
   };
   // Where the hint is now: a card beside the tool when its panel is open, else a dot on the button
   // that opens it (Analyze has no dot: it follows Import on the board). Hidden in Focus, Plan, Viewing.
-  const hintHidden = !activeHint || focusMode || inPlan || isLocked;
+  const hintHidden = !activeHint || hintHandedOff === activeHint || focusMode || inPlan || isLocked;
   const hintPanelOpen = activeHint === 'populateBio' ? charactersOpen && characterTab !== 'dialogue' : showBoard;
   const hintCardShown = !hintHidden && hintPanelOpen;
   // Characters already open on Dialogue: the dot goes on the Bios tab (clicking Characters would close it).
