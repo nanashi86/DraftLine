@@ -291,6 +291,24 @@ export function firstSentence(text, max = 180) {
 
 export const sceneCardTitle = (scene) => `${scene.number}. ${scene.heading.toUpperCase()}`;
 
+/**
+ * A card's headline as the board shows it: a leading "N. " is hidden when N is the number already
+ * printed beside the grip ("1. INT. STATION SIX - NIGHT" on card 1 → "INT. STATION SIX - NIGHT").
+ * Display only — the saved title keeps it. Returns { lead, text }: lead is the hidden prefix ('' if
+ * none), and lead + text is always the saved title, so edits put it back.
+ */
+export function cardTitleParts(title, number) {
+  const t = title || '';
+  const m = number == null ? null : t.match(/^(\s*(\d+[A-Z]?)\.\s+)/);
+  if (!m || m[2] !== String(number)) return { lead: '', text: t };
+  return { lead: m[1], text: t.slice(m[1].length) };
+}
+
+/** The saved title after the visible headline is edited to `text`: the hidden prefix goes back on, unless it's now empty. */
+export function joinCardTitle(lead, text) {
+  return lead && text.trim() ? `${lead}${text}` : text;
+}
+
 const flatten = (cols) => cols.flat();
 
 /**

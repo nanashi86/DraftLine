@@ -50,7 +50,8 @@
   padding: 4px 20px 20px;
   overflow-x: auto;
 }
-.board.is-compact .board-cols { grid-template-columns: repeat(var(--cols, 4), minmax(176px, 1fr)); gap: 8px; padding: 4px 12px 12px; }
+/* Split view: act columns never go below 220px (readable headlines); past that the row scrolls sideways. */
+.board.is-compact .board-cols { grid-template-columns: repeat(var(--cols, 4), minmax(220px, 1fr)); gap: 8px; padding: 4px 12px 12px; }
 .board.is-compact .board-head { padding: 14px 12px 10px; }
 .board.is-compact .card-syn,
 .board.is-compact .card-foot { padding-left: 12px; }
@@ -237,6 +238,12 @@
   resize: none;
   overflow: hidden;
   display: block;
+  /* Break between words ("STATION / SIX", never "STATIO / N SIX"); only a word too long for the whole
+     line is split, and nothing is hyphenated. */
+  white-space: pre-wrap;
+  word-break: normal;
+  overflow-wrap: break-word;
+  hyphens: manual;
 }
 .card-title::placeholder,
 .card-syn::placeholder { color: #aaa497; font-weight: 400; font-style: italic; }

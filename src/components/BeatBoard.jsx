@@ -6,7 +6,7 @@ import ValueShiftModal from './ValueShiftModal.jsx';
 import { Film, Zap } from 'lucide-react';
 import { scanValueShifts } from '../lib/valueShiftScanner.js';
 import {
-  TAGS, VALUE_SHIFTS, actPacing, beatTags, beatsWithTag, byAct, formatPageTargets, formatPercentTargets, moveBeat, newBeat, populateByPages, populateByRanges, setValueShift, structureFor, tagAccent, toggleTag, valueShiftInfo,
+  TAGS, VALUE_SHIFTS, actPacing, beatTags, beatsWithTag, byAct, cardTitleParts, joinCardTitle, formatPageTargets, formatPercentTargets, moveBeat, newBeat, populateByPages, populateByRanges, setValueShift, structureFor, tagAccent, toggleTag, valueShiftInfo,
 } from '../lib/beats.js';
 import './BeatBoard.css';
 
@@ -85,6 +85,8 @@ const BeatCard = memo(function BeatCard({
 }) {
   const tags = beatTags(beat);
   const accent = tagAccent(tags);
+  // "1. INT. STATION…" on card 1 shows without the "1." (it's beside the grip); the saved title keeps it.
+  const title = cardTitleParts(beat.title, number);
   const cardRef = useRef(null);
   const titleRef = useRef(null);
 
@@ -139,10 +141,10 @@ const BeatCard = memo(function BeatCard({
           ref={titleRef}
           fitOnResize
           className="card-title"
-          value={beat.title}
+          value={title.text}
           placeholder="Card headline"
           aria-label="Card headline"
-          onChange={(e) => onField(beat.id, 'title', e.target.value.replace(/\n/g, ' '))}
+          onChange={(e) => onField(beat.id, 'title', joinCardTitle(title.lead, e.target.value.replace(/\n/g, ' ')))}
           onKeyDown={(e) => {
             if (e.key === 'Enter') {
               e.preventDefault();
