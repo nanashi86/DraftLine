@@ -53,14 +53,35 @@ const runStyle = (run, base) => {
   return st.join('+');
 };
 
-function paragraph(type, content, attrs = '', indent = '    ', textAttrs = '', style = '') {
+function paragraph(type, content, attrs = '', indent = '    ', textAttrs = '', style = '', note = '') {
   const runs = typeof content === 'string' ? [{ text: content }] : content;
   const xml = runs.map((run) => {
     const { text } = run;
     const st = runStyle(run, style);
     return `<Text${textAttrs}${st ? ` Style="${st}"` : ''}>${esc(text)}</Text>`;
   }).join(`\n${indent}  `);
-  return `${indent}<Paragraph${attrs} Type="${type}">\n${indent}  ${xml}\n${indent}</Paragraph>`;
+  return `${indent}<Paragraph${attrs} Type="${type}">\n${note}${indent}  ${xml}\n${indent}</Paragraph>`;
+}
+
+/** The Script Note definition Final Draft keys every <ScriptNote Type="0"> to (yellow "N" marker). */
+const NOTE_DEFINITIONS = `  <ScriptNoteDefinitions Active="0">
+    <ScriptNoteDefinition Color="#FFFFFF8F0000" ID="0" Marker="N" Name="Script Note"/>
+  </ScriptNoteDefinitions>
+`;
+
+/**
+ * A margin note as Final Draft's <ScriptNote>, the way Final Draft writes one: inside the element's
+ * <Paragraph>, before its text, anchored to the whole element (Range="start,length"), one note
+ * paragraph per line. '' when the block has no note.
+ */
+function scriptNote(b, id, indent) {
+  const text = (b.note || '').trim();
+  if (!text) return '';
+  const lines = text.split('\n').map((l) => l.replace(/\s+$/, ''));
+  const len = Math.max(1, b.text.replace(/\s+$/, '').length);
+  const inner = `${indent}    `;
+  const paras = lines.map((l) => `${inner}<Paragraph Alignment="Left" FirstIndent="0.00" Leading="Regular" LeftIndent="0.00" RightIndent="1.39" SpaceBefore="0" Spacing="1" StartsNewPage="No">\n${inner}  <Text>${esc(l)}</Text>\n${inner}</Paragraph>`).join('\n');
+  return `${indent}  <ScriptNote ID="${id}" Marker="N" Range="0,${len}" Type="0">\n${paras}\n${indent}  </ScriptNote>\n`;
 }
 
 const CAPS = new Set(['scene', 'character', 'transition', 'format_cue']);
@@ -88,19 +109,29 @@ function cleanRuns(b) {
 
 const styleOf = (b) => (b.type === 'format_cue' ? 'Bold' : '');
 
-export function toFDX({ meta = {}, blocks }) {
-  // Margin notes are private editorial notes: never written to Final Draft (no <ScriptNote>).
-  const kept = blocks.filter((b) => b.text.trim() !== '' && b.text.trim() !== '()');
+/**
+ * DraftLine → Final Draft XML.
+ *   includeNotes — margin notes go out as Final Draft Script Notes (File → Final Draft's "Include
+ *                  margin notes"). Off by default: margin notes are private editorial notes, so a
+ *                  plain export never carries them. A note on an empty line keeps that line.
+ */
+export function toFDX({ meta = {}, blocks }, { includeNotes = false } = {}) {
+  const hasNote = (b) => includeNotes && !!b.note?.trim();
+  const kept = blocks.filter((b) => (b.text.trim() !== '' && b.text.trim() !== '()') || hasNote(b));
   let sceneNo = 0;
+  let noteId = 0;
+  const note = (b, indent) => (hasNote(b) ? scriptNote(b, ++noteId, indent) : '');
   const body = buildItems(kept)
     .map((it) => {
       if (it.kind === 'dual') {
-        const inner = it.blocks.map((b) => paragraph(TO_FDX[b.type], cleanRuns(b), '', '        ')).join('\n');
+        const inner = it.blocks.map((b) => paragraph(TO_FDX[b.type], cleanRuns(b), '', '        ', '', '', note(b, '        '))).join('\n');
         return `    <Paragraph>\n      <DualDialogue>\n${inner}\n      </DualDialogue>\n    </Paragraph>`;
       }
       const b = it.block;
+      // A note on an empty line: the line goes out as empty Action holding the note, as Final Draft writes it.
+      if (!b.text.trim()) return paragraph('Action', '', '', '    ', '', '', note(b, '    '));
       const attrs = b.type === 'scene' ? ` Number="${++sceneNo}"` : b.type === 'centered' ? ' Alignment="Center"' : '';
-      return paragraph(TO_FDX[b.type], cleanRuns(b), attrs, '    ', '', styleOf(b));
+      return paragraph(TO_FDX[b.type], cleanRuns(b), attrs, '    ', '', styleOf(b), note(b, '    '));
     })
     .join('\n');
 
@@ -149,7 +180,7 @@ ${body}
 ${tp.join('\n')}
     </Content>
   </TitlePage>
-</FinalDraft>
+${noteId ? NOTE_DEFINITIONS : ''}</FinalDraft>
 `;
 }
 

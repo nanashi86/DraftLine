@@ -362,12 +362,22 @@ Your lists and notes are saved with the script, inside the project, and kept by 
 
 - **.draftline**: DraftLine's own format, holding the complete project. Use **Backup Project**, or link a folder (above), to keep and move scripts with nothing lost.
 - **.fountain**: plain-text screenplay format, readable by Highland, Slugline, WriteSolo, Fade In and many others.
-- **.fdx**: Final Draft's format, for sending to Final Draft users and productions.
+- **.fdx**: Final Draft's format, for sending to Final Draft users and productions (see Final Draft (.fdx), below).
 - **Scene outline**: a Fountain Outline, Markdown, or a Spreadsheet (.csv), from the Scene Board.
 - **Breakdown**: **Export Breakdown** in Plan, or **File ▾ → Scene Breakdown** from anywhere, a spreadsheet (.csv) of every scene's breakdown (see Production & Planning).
 - **Story Bible (PDF)**: **File → Story Bible** turns Story DNA, Story Notes and Character Bios (any or all of them) into a formatted dossier headed with the title, author and "Story Bible & Project Dossier", each section starting on a new page. Choose **Save as PDF** in the print dialog; the file is named "<Title> - Story Bible". Story Notes go in this order: Logline, Tone, Pitch, Timeline, Synopsis, then the Treatment by act. Of your own note cards, only those with "Note" in the title are included ("Note: Haiti 1986", "Note Revisions"); research questions and brainstorms stay in DraftLine, and the Scratchpad never goes. Only characters with something in their bio are included.
 
 Each script export (.fountain, .fdx, .draftline, and the print dialog) is confirmed in a small note in the bottom-right corner that closes itself after 8 seconds; point at it to keep it open. At most once every two weeks it adds a line about supporting DraftLine on Ko-fi or Patreon. **Don't show again**, or closing the note while that line is showing, turns it off for good in this browser.
+
+### Final Draft (.fdx)
+
+**File → Final Draft** opens **Export Final Draft** before the file downloads. **Include margin notes (as Final Draft Script Notes)** puts each margin note on its line as a Final Draft Script Note, so a Final Draft user sees it in their Notes. It's off by default, because margin notes are your private notes: leave it unchecked when the script goes to readers, contests or productions. The choice is saved with the script. Opening an .fdx brings its Script Notes in as margin notes.
+
+**What doesn't carry over to Final Draft:**
+
+- **Scene numbers** like 12A, 12B or numbers locked in Final Draft. DraftLine numbers scenes 1, 2, 3… in order, so an exported script is renumbered and an imported one comes in renumbered.
+- **Shots, act breaks and other special elements.** Final Draft's Shot, New Act, End of Act, Lyrics and Cast List come in as Action, with their text kept.
+- **Final Draft's own settings.** Its SmartType lists, page layout, element settings, revision colours and marks, and its All Caps display style aren't read when you open an .fdx, and an exported .fdx opens with Final Draft's standard settings.
 
 ### Opening and importing
 

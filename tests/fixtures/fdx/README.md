@@ -55,8 +55,12 @@ The suite pins these, so a fix shows up as a failing test to update.
 
 - **Scene numbers:** `12A`, `12B` and locked numbers are not kept. DraftLine renumbers 1, 2, 3… on
   export.
-- **ScriptNotes:** these import as DraftLine margin notes but are never written back, because
-  DraftLine keeps notes private. A note-only empty line is dropped on export.
+- **ScriptNotes:** these import as DraftLine margin notes. By default they are not written back,
+  because DraftLine keeps notes private, and a note-only empty line is dropped on export. With
+  **Include margin notes** (`toFDX(doc, { includeNotes: true })`) every note goes out as a
+  `<ScriptNote>` in its paragraph, a note-only line is kept as empty Action, and
+  `<ScriptNoteDefinitions>` is added; `tests/fdxFixtures.test.js` round-trips `06-script-notes.fdx`
+  through it.
 - **Shot** imports as Action and exports as Action.
 - **New Act, End of Act, Lyrics, Cast List** and other element types DraftLine doesn't have
   import as Action. Their text is kept but the type is lost.

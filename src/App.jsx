@@ -7,6 +7,7 @@ import CharactersDrawer from './components/CharactersDrawer.jsx';
 import Navigator from './components/Navigator.jsx';
 import TitlePageModal from './components/TitlePageModal.jsx';
 import ExportPdfModal from './components/ExportPdfModal.jsx';
+import ExportFdxModal from './components/ExportFdxModal.jsx';
 import DeleteProjectModal from './components/DeleteProjectModal.jsx';
 import DialogueStepper from './components/DialogueStepper.jsx';
 import { ChartColumn, Clapperboard, Columns2, FileText, LayoutList, PenLine, Rows3, SquareKanban } from 'lucide-react';
@@ -857,8 +858,12 @@ function Workspace({ boot }) {
     download(`${base}.fountain`, toFountain({ meta, blocks }), 'text/plain;charset=utf-8');
     showExportToast(`${base}.fountain`);
   };
+  // File → Final Draft opens Export Final Draft (ExportFdxModal): margin notes go out as Script Notes
+  // only when "Include margin notes" is on (meta.fdxIncludeNotes, saved with the script, off by default).
+  const [fdxOpen, setFdxOpen] = useState(false);
+  const setFdxNotes = (on) => setMeta((m) => ({ ...m, fdxIncludeNotes: on }));
   const exportFDX = () => {
-    download(`${base}.fdx`, toFDX({ meta, blocks }), 'application/xml;charset=utf-8');
+    download(`${base}.fdx`, toFDX({ meta, blocks }, { includeNotes: !!meta.fdxIncludeNotes }), 'application/xml;charset=utf-8');
     showExportToast(`${base}.fdx`);
   };
   const exportOutline = useCallback((kind) => {
@@ -1203,7 +1208,7 @@ function Workspace({ boot }) {
       doc = toDoc(rec);
     }
     const name = slugify(doc.meta.title);
-    if (kind === 'fdx') download(`${name}.fdx`, toFDX(doc), 'application/xml;charset=utf-8');
+    if (kind === 'fdx') download(`${name}.fdx`, toFDX(doc, { includeNotes: !!doc.meta.fdxIncludeNotes }), 'application/xml;charset=utf-8');
     else download(`${name}.fountain`, toFountain(doc), 'text/plain;charset=utf-8');
     showExportToast(`${name}.${kind}`);
   };
@@ -1948,7 +1953,7 @@ function Workspace({ boot }) {
     onCompiledPdf: () => setPdfOpen(true),
     onBible: () => setBibleExportOpen(true),
     onFountain: exportFountain,
-    onFdx: exportFDX,
+    onFdx: () => setFdxOpen(true),
     onBreakdownCsv: exportBreakdown, // the same .csv as Plan's Export Breakdown
     hasScenes: scenes.length > 0,
     onOutlineCsv: () => exportOutline('csv'),
@@ -2810,6 +2815,18 @@ function Workspace({ boot }) {
             onDownload={() => {
               setPdfOpen(false);
               exportCompiledPdf({ showSceneNumbers: !!meta.showSceneNumbers });
+            }}
+          />
+        )}
+        {fdxOpen && (
+          <ExportFdxModal
+            includeNotes={!!meta.fdxIncludeNotes}
+            noteCount={blocks.filter((b) => b.note?.trim()).length}
+            onChange={setFdxNotes}
+            onClose={() => setFdxOpen(false)}
+            onDownload={() => {
+              setFdxOpen(false);
+              exportFDX();
             }}
           />
         )}

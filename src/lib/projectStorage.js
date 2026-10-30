@@ -3,7 +3,7 @@
 //   database "draftline_db"
 //     store "projects"  (keyPath "id")
 //       { id, title, author, credit, basedOn, draftVersion, draftDate, contact,
-//         titleFont, titleSize, titleBold, showSceneNumbers, script, beats, characters, storyNotes, storyDna, production,
+//         titleFont, titleSize, titleBold, showSceneNumbers, fdxIncludeNotes, script, beats, characters, storyNotes, storyDna, production,
 //         pages, scenes, createdAt, updatedAt }
 //       characters — the Project Bible's bios [{ id, name, primaryRole, secondaryRole, relationship, age,
 //                    gender, description, traits, backstory }] (older ones: a free-text `role`)
@@ -47,6 +47,7 @@ export const JOURNAL_KEY = 'draftline:journal:v1';
 export const META_FIELDS = [
   'title', 'credit', 'author', 'basedOn', 'draftVersion', 'draftDate', 'contact', 'titleFont', 'titleSize', 'titleBold',
   'showSceneNumbers', // export setting: scene numbers in the PDF and printout (off = spec, on = production)
+  'fdxIncludeNotes', // export setting: margin notes go into .fdx files as Final Draft Script Notes (off = private)
 ];
 
 export const EMPTY_META = {
@@ -61,6 +62,7 @@ export const EMPTY_META = {
   titleSize: DEFAULT_TITLE_SIZE,
   titleBold: DEFAULT_TITLE_BOLD,
   showSceneNumbers: false, // spec scripts go out unnumbered; production drafts turn this on
+  fdxIncludeNotes: false, // margin notes stay private unless the writer includes them in a Final Draft export
 };
 
 export function newProjectId() {

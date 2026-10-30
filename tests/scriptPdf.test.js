@@ -292,7 +292,7 @@ describe('Compiled PDF: Scene Numbers setting (spec by default)', () => {
     const { EMPTY_META, META_FIELDS } = await import('../src/lib/projectStorage.js');
     assert.equal(EMPTY_META.showSceneNumbers, false);
     assert.ok(META_FIELDS.includes('showSceneNumbers'));
-    assert.match(read('src/lib/folderSync.js').toString(), /'titleBold', 'showSceneNumbers'\]/, 'kept in snapshot files too');
+    assert.match(read('src/lib/folderSync.js').toString(), /'titleBold', 'showSceneNumbers'[,\]]/, 'kept in snapshot files too');
   });
   it('File → PDF opens Export PDF: the scene-numbers checkbox, Download PDF, Cancel / Esc / backdrop close', () => {
     const modal = read('src/components/ExportPdfModal.jsx').toString();

@@ -2,6 +2,7 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 // Right-click on a script element must always open the browser's own context menu: spelling
 // suggestions and Add to dictionary come from it. Nothing in the editor may cancel, stop or
@@ -22,9 +23,11 @@ function sources(dir) {
 describe('Right-click reaches the browser on script elements', () => {
   it('no contextmenu listener anywhere except the margin-note button and the status stepper label', () => {
     const hits = [];
-    for (const f of [...sources(new URL('src', root).pathname), new URL('index.html', root).pathname]) {
+    // fileURLToPath, not .pathname: on Windows .pathname is "/C:/Users/…", which Windows reads as "C:\C:\Users\…".
+    for (const f of [...sources(fileURLToPath(new URL('src', root))), fileURLToPath(new URL('index.html', root))]) {
       const text = readFileSync(f, 'utf8');
-      if (/contextmenu/i.test(text)) hits.push(f.replace(/^.*?(src\/|index\.html)/, '$1'));
+      // Forward slashes first: Windows paths come back as src\components\….
+      if (/contextmenu/i.test(text)) hits.push(f.replace(/\\/g, '/').replace(/^.*?(src\/|index\.html)/, '$1'));
     }
     assert.deepEqual(hits.sort(), ['src/components/Editor.jsx', 'src/components/StatusStepper.jsx']);
     // In the editor, the only one is NoteMarker's: a button in the left margin, never over text.

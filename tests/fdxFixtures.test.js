@@ -396,9 +396,10 @@ describe('FDX fixtures: known gaps (pinned, see README)', () => {
     assert.ok(!('number' in load('05-scene-numbers.fdx').blocks[0]), 'no scene number on the imported block');
   });
 
-  it('ScriptNotes: imported as margin notes, not exported (DraftLine keeps notes private)', () => {
+  it('ScriptNotes: imported as margin notes, and by default not exported (DraftLine keeps notes private)', () => {
     const xml = toFDX(load('06-script-notes.fdx'));
     assert.doesNotMatch(xml, /ScriptNote|Too quiet|A note on an empty line/);
+    assert.equal(toFDX(load('06-script-notes.fdx'), { includeNotes: false }), xml);
   });
 
   it('Shot becomes Action; New Act, End of Act, Lyrics and Cast List become Action', () => {
@@ -410,5 +411,64 @@ describe('FDX fixtures: known gaps (pinned, see README)', () => {
   it("Final Draft's own settings (ElementSettings, SmartType, PageLayout, Revisions…) are not carried over", () => {
     const xml = toFDX(load('10-fd13-full-skeleton.fdx'));
     assert.doesNotMatch(xml, /<ElementSettings|<SmartType|<PageLayout|<Revisions|SceneProperties|RevisionID/);
+  });
+});
+
+// ---------------------------------------------------------------------------------------------
+
+describe('FDX: Include margin notes (Script Notes on export)', () => {
+  const NOTES = load('06-script-notes.fdx');
+  const notesOf = (blocks) => blocks.filter((b) => b.note).map((b) => [b.type, b.text, b.note]);
+  it('off by default: no <ScriptNote> and no note definitions, byte for byte the same as before', () => {
+    for (const f of FILES) {
+      const doc = load(f);
+      assert.equal(toFDX(doc), toFDX(doc, { includeNotes: false }), f);
+      assert.doesNotMatch(toFDX(doc), /ScriptNote/, f);
+    }
+  });
+  it('on: every margin note goes out as a Final Draft <ScriptNote> inside its element, before the text', () => {
+    const xml = toFDX(NOTES, { includeNotes: true });
+    assertFinalDraftShape(xml);
+    assert.equal(xml.match(/<ScriptNote /g).length, 3);
+    assert.match(xml, /<Paragraph Type="Action">\n {6}<ScriptNote ID="1" Marker="N" Range="0,22" Type="0">\n {8}<Paragraph Alignment="Left"[^>]*>\n {10}<Text>Too quiet\? Open on the horn instead\.<\/Text>\n {8}<\/Paragraph>\n {6}<\/ScriptNote>\n {6}<Text>Mist over black water\.<\/Text>/);
+    assert.match(xml, /<ScriptNote ID="2" [^>]*>[\s\S]*?Should she say this or just walk\?[\s\S]*?<\/ScriptNote>\n {6}<Text>We go now\.<\/Text>/);
+    const ids = [...xml.matchAll(/<ScriptNote ID="(\d+)"/g)].map((m) => m[1]);
+    assert.deepEqual(ids, ['1', '2', '3'], 'unique, in script order');
+  });
+  it('on: the Script Note definition Final Draft keys them to is written once, after the title page', () => {
+    const xml = toFDX(NOTES, { includeNotes: true });
+    assert.match(xml, /<\/TitlePage>\n {2}<ScriptNoteDefinitions Active="0">\n {4}<ScriptNoteDefinition Color="#FFFFFF8F0000" ID="0" Marker="N" Name="Script Note"\/>\n {2}<\/ScriptNoteDefinitions>\n<\/FinalDraft>/);
+    assert.doesNotMatch(toFDX(load('01-standard-scene.fdx'), { includeNotes: true }), /ScriptNote/, 'no notes, no definitions');
+  });
+  it('on: a note on an empty line keeps the line, as empty Action holding the note', () => {
+    const xml = toFDX(NOTES, { includeNotes: true });
+    assert.match(xml, /<Paragraph Type="Action">\n {6}<ScriptNote ID="3"[^>]*>[\s\S]*?A note on an empty line: keep it\.[\s\S]*?<\/ScriptNote>\n {6}<Text><\/Text>\n {4}<\/Paragraph>/);
+  });
+  it('round trip: FDX → DraftLine → FDX with notes → DraftLine keeps every note on its element', () => {
+    const back = parseFDX(toFDX(NOTES, { includeNotes: true }));
+    assert.deepEqual(notesOf(back.blocks), notesOf(NOTES.blocks));
+    assert.deepEqual(pairs(back.blocks), pairs(NOTES.blocks));
+  });
+  it('multi-line notes: one note paragraph per line, escaped; they read back as the same lines', () => {
+    const blocks = [
+      { id: 'a', type: 'scene', text: 'INT. FERRY - NIGHT' },
+      { id: 'b', type: 'action', text: 'Rain.', note: 'Line one\nTom & Jerry <cut>\n' },
+      { id: 'c', type: 'action', text: 'Silence.', note: '   ' },
+    ];
+    const xml = toFDX({ blocks }, { includeNotes: true });
+    assertFinalDraftShape(xml);
+    assert.equal(xml.match(/<ScriptNote /g).length, 1, 'a blank note is no note');
+    assert.match(xml, /<Text>Line one<\/Text>[\s\S]*?<Text>Tom &amp; Jerry &lt;cut&gt;<\/Text>/);
+    assert.equal(parseFDX(xml).blocks.find((b) => b.text === 'Rain.').note, 'Line one\nTom & Jerry <cut>');
+  });
+  it('dual dialogue: a note on either speech goes inside that speech', () => {
+    const blocks = [
+      { id: 'a', type: 'character', text: 'MARIE' }, { id: 'b', type: 'dialogue', text: 'Go.', note: 'louder' },
+      { id: 'c', type: 'character', text: 'THEO', dual: true }, { id: 'd', type: 'dialogue', text: 'Stay.', note: 'whisper' },
+    ];
+    const xml = toFDX({ blocks }, { includeNotes: true });
+    assertFinalDraftShape(xml);
+    assert.match(xml, /<DualDialogue>[\s\S]*louder[\s\S]*whisper[\s\S]*<\/DualDialogue>/);
+    assert.deepEqual(notesOf(parseFDX(xml).blocks), [['dialogue', 'Go.', 'louder'], ['dialogue', 'Stay.', 'whisper']]);
   });
 });

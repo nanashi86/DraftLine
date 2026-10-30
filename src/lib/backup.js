@@ -16,7 +16,8 @@
 //                  note and dual-dialogue flag
 //   • title page — title, credit, author, based on, draft version / date, contact, and the
 //                  title typography (titleFont, titleSize, titleBold), and whether the PDF and
-//                  printout show scene numbers (showSceneNumbers)
+//                  printout show scene numbers (showSceneNumbers), and whether .fdx exports
+//                  include margin notes as Script Notes (fdxIncludeNotes)
 //   • beats      — Scene Board cards in board order: act column / Act 2 lane, title, synopsis,
 //                  colour tags (`tags: string[]`; older backups' single `tag` is read as one) and
 //                  linked scene
