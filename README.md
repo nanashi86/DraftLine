@@ -3,6 +3,10 @@
 [![Patreon](https://img.shields.io/badge/Patreon-Support-F96854?style=for-the-badge&logo=patreon)](https://patreon.com/DraftLine)
 [![Discord](https://img.shields.io/badge/Discord-Community-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/8ytSsSWsPX)
 
+<p align="center">
+  <img src="public/og-image.png" alt="DraftLine — Fast, Distraction-Free Screenwriting Software" width="100%">
+</p>
+
 # DraftLine — Fast, Distraction-Free Screenwriting Software (PWA)
 
 DraftLine™ is a fast, distraction-free screenwriting progressive web app (PWA): free, open source (MIT) and local-first.
