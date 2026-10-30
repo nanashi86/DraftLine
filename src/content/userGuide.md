@@ -19,7 +19,7 @@ The status bar at the bottom shows the current element, where your work is saved
 - The **Scenes** sidebar ({{key:Alt+S}}) lists every scene with its length in eighths of a page. Click one to jump to it, or type to find a scene.
 - **Write | Plan** switches between writing the script and planning the shoot (see Production & Planning). Write is where you start.
 - The status bar's steppers (**Format · 1 of 7**, **Density · 1 of 9**, a character's **MARIE · 1 of 8**) all work the same way: before your first step they show just how many there are (**Format · 7**), then ‹ › step through, clicking the name lists every one, and ✕ closes it.
-- On a narrower window the status bar makes room by giving up the least important things first, one at a time: the keyboard hints (shown only on wide windows with no stepper open), then the scene and word counts, then the page colour's name (its icon stays), then undo / redo, then zoom's − and + (the percentage stays). If it's still tight, steppers drop their names down to ‹ ›, the count and ✕, and the save status and **Edit / View Only** badge show just their icons (hover for the words). The current element, the save status, **Edit / View Only**, the page count and every open stepper never disappear.
+- On a narrower window the status bar makes room by giving up the least important things first, one at a time: the keyboard hints (shown only on wide windows with no stepper open), then the scene and word counts, then the page colour's name (its icon stays), then undo / redo, then zoom's − and + (the percentage stays). If it's still tight, steppers drop their names down to ‹ ›, the count and ✕, and the save status and **Editing / Viewing** badge show just their icons (hover for the words). The current element, the save status, **Editing / Viewing**, the page count and every open stepper never disappear.
 - **File ▾** holds everything to do with files, in three parts. **Script**: New… ({{key:Ctrl+Alt+N}}), Open… ({{key:Ctrl+O}}), Import…, Sample… (adds *The Last Ferry* to your Projects) and Edit Title…. **Export Script**: PDF, Final Draft, Fountain and Print Script…. **Export Planning & Production**: Story Bible, Scene Breakdown (the same .csv as Plan's Export Breakdown), and the Scene Board as a Spreadsheet, Markdown or Fountain Outline. **Backup**: Backup Project and Snapshot History. Each export shows its file type on the right (.fountain, .fdx, .pdf, .csv, .md, .draftline).
 - Narrow windows move panels you can't see on the bar into the **⋮** menu.
 
@@ -27,7 +27,7 @@ The status bar at the bottom shows the current element, where your work is saved
 
 Every script lives in your **Projects** library ({{key:Alt+P}}, the ▾ beside the title, or **File ▾ → Projects…**). From there you can create, switch, rename, duplicate, export or delete scripts. Deleting asks first: the **Delete Screenplay?** dialog only deletes when you press **Permanently Delete**; **Cancel** leaves everything as it was.
 
-**Project Lock.** The padlock to the left of a script's ⋮ menu locks it (it turns amber). A locked script can't be deleted, and nothing is loaded over it: Import and pasted scripts open as a new script beside it (Append is hidden), and snapshots can't be restored over it. You can still type in it; to stop all editing use View Only ({{key:Ctrl+Alt+L}}). The lock is saved with the script, in backups and in a linked folder. Click the padlock again to unlock. Duplicates start unlocked.
+**Project Lock.** The padlock to the left of a script's ⋮ menu locks it (it turns amber). A locked script can't be deleted, and nothing is loaded over it: Import and pasted scripts open as a new script beside it (Append is hidden), and snapshots can't be restored over it. You can still type in it; to stop all editing switch to Viewing ({{key:Ctrl+Alt+L}}). The lock is saved with the script, in backups and in a linked folder. Click the padlock again to unlock. Duplicates start unlocked.
 
 By default, scripts are saved in this browser's own database (IndexedDB) on this computer. Saving is automatic, about half a second after you stop typing. {{key:Ctrl+S}} saves immediately. Nothing is uploaded and no account is needed.
 
@@ -138,17 +138,17 @@ Select text and press {{key:Ctrl+B}} (bold), {{key:Ctrl+I}} (italic), {{key:Ctrl
 - **Aa** matches capitals exactly; **W** finds whole words only ("cat" won't find "catch"). The list chooses where to look: every element, or only Scene Headings, Action, Character cues, Dialogue, Parentheticals or Transitions — "night" → "dusk" in headings only, say.
 - **Replace** changes the highlighted match and moves to the next; **All** changes every match at once. Either way {{key:Ctrl+Z}} undoes it, and DraftLine takes a snapshot before **All**. Bold, italic and underline stay where they were.
 - {{key:Esc}} closes the bar and leaves the match selected in your script. If a search is still on, **Find · 3 of 12** stays in the status bar: ‹ › step through the matches, clicking **Find** lists them all, ✕ ends the search.
-- In View Only, Find works but Replace is turned off.
+- While Viewing, Find works but Replace is turned off.
 
 ### Margin notes
 
 {{key:Alt+N}} opens a private margin note for the current line. Selected words are quoted into the note. Notes open in the Notes drawer (**⋮ → Margin Notes**) and are never printed or exported.
 
-### View Only lock
+### Editing and Viewing
 
-{{lock.combo}}, or the **Edit** badge in the status bar, locks the script. While it shows **View Only** you can read, scroll, select and copy, and character bio cards still appear, but nothing can be typed, deleted, formatted or undone. The Element picker and B / I / U / S are dimmed. Press {{lock.combo}} again (or click the badge) to edit.
+The badge in the status bar shows which mode the script is in: **Editing** (a muted open padlock) or **Viewing** (amber, locked). {{lock.combo}}, or clicking the badge, switches between them. While **Viewing** you can read, scroll, select and copy, and character bio cards still appear, but nothing can be typed, deleted, formatted or undone. The Element picker and B / I / U / S are dimmed. Press {{lock.combo}} again (or click the badge) to go back to **Editing**.
 
-View Only is remembered for each script: it's still on after a reload, each script opens in its own setting when you switch, and it's saved in backups and in a linked folder, so the script opens the same way on another computer. Duplicates start editable.
+Viewing is remembered for each script: it's still on after a reload, each script opens in its own setting when you switch, and it's saved in backups and in a linked folder, so the script opens the same way on another computer. Duplicates start editable.
 
 ### Checking your pages
 

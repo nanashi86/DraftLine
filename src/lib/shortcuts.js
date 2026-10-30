@@ -65,7 +65,7 @@ export const SHORTCUT_SECTIONS = [
       ['Ctrl+H', 'Find & Replace'],
       ['Ctrl+S', 'Save now (it also autosaves)'],
       ['Ctrl+P', 'Print Script… — the browser’s print preview (File → PDF downloads a .pdf)'],
-      ['Ctrl+Alt+L', 'Lock / unlock the script — View Only: read, select and copy, no changes'],
+      ['Ctrl+Alt+L', 'Switch between Editing and Viewing — Viewing: read, select and copy, no changes'],
     ],
   },
   {

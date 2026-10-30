@@ -103,7 +103,7 @@ export function toRecord({
   // Project Lock (Projects → padlock): no deleting, no import or snapshot restore over it. Left out
   // when the caller doesn't say — the editor's saves never do — so saving keeps it (saveActiveProject).
   if (isLocked !== undefined) rec.isLocked = isLocked === true;
-  // View Only (status bar badge, Ctrl+Alt+L): no edits while it's on. Unlike the Project Lock it's part
+  // Viewing (status bar badge, Ctrl+Alt+L): no edits while it's on. Unlike the Project Lock it's part
   // of the editor's document, so every editor save sends it; left out (an older crash journal) it's kept.
   if (viewOnly !== undefined) rec.viewOnly = viewOnly === true;
   const est = pages == null || scenes == null ? projectStats(blocks) : null;
@@ -131,7 +131,7 @@ export function toDoc(rec) {
     production: normalizeProduction(rec.production),
     revisions: normalizeRevisions(rec.revisions),
     isLocked: rec.isLocked === true,
-    viewOnly: rec.viewOnly === true, // scripts from before View Only was saved open editable
+    viewOnly: rec.viewOnly === true, // scripts from before the Viewing setting was saved open editable
     createdAt: rec.createdAt,
     updatedAt: rec.updatedAt,
   };

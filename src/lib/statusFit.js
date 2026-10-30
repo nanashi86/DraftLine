@@ -1,10 +1,10 @@
 // The status bar's step-aside order. When everything doesn't fit on one line, helpers leave one at a
-// time — never the status (element, saved / synced, Edit / View Only, page) or an active stepper:
+// time — never the status (element, saved / synced, Editing / Viewing, page) or an active stepper:
 //   1 key hints (Enter / Tab)   2 scene, note and word counts   3 Paper's label (the swatch stays)
 //   4 undo / redo (Ctrl+Z / Ctrl+Shift+Z still work)            5 zoom − + (the % stays; click resets)
 //   6 steppers go compact: icon · position · ‹ › ✕ (the word or name stays in the tooltip and list)
 //   7 on the narrowest windows the status itself goes to its icons — the saved / synced dot and the
-//     Edit / View Only lock — so it's still there, with its words in the tooltip, rather than cut off
+//     Editing / Viewing lock — so it's still there, with its words in the tooltip, rather than cut off
 // The bar is measured, not guessed: steppers vary in width (a long character name, "12 of 140"),
 // so fixed breakpoints would be wrong half the time. It's re-checked when the bar or a stepper
 // changes size — never on a keystroke — and applied as data-fit="0…7" on the bar (App.css).

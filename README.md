@@ -113,7 +113,7 @@ page seam; **Enter** / **Shift+Enter** step through them, **Aa** matches case, *
 where to look (all elements, or only Scene Headings, Action, Character cues, Dialogue, Parentheticals or
 Transitions). **Replace** changes one and moves on; **All** (Ctrl+Enter) changes every match as one undo step,
 snapshotting the script first; inline formatting follows the text. **Esc** closes the bar with the match selected;
-a search still on stays in the status bar as **Find · 3 of 12** (‹ › and a list of matches) until ✕. In View Only,
+a search still on stays in the status bar as **Find · 3 of 12** (‹ › and a list of matches) until ✕. While Viewing,
 Find works and Replace is off.
 
 ### Shortcuts

@@ -1,6 +1,6 @@
 import { lockBadge } from '../lib/lock.js';
 
-/** Status bar: Edit ⇄ View Only (Ctrl+Alt+L). Muted while editable; warm amber when locked. */
+/** Status bar: Editing ⇄ Viewing (Ctrl+Alt+L). Muted while editable; warm amber when locked. */
 export default function LockBadge({ locked, onToggle }) {
   const b = lockBadge(locked);
   return (

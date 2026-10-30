@@ -35,6 +35,7 @@ All notable changes to DraftLine are recorded here. The format follows [Keep a C
 
 ### Changed
 
+- **View Only** is now **Viewing**, and its partner **Edit** is now **Editing**: the status bar badge names the mode you're in, not a button. Its tooltip says what a click does (**Switch to Viewing (read only)** / **Switch to Editing**), and the toasts, Element picker and Replace tooltips, keyboard shortcuts list, User Guide (the section is now **Editing and Viewing**) and README use the same words. Saved scripts still store it as `viewOnly`, so older scripts and backups open exactly as before.
 - Top bar on smaller screens: Write and Plan now follow one rule.
   - **Element ▾ and B I U S move instead of disappearing.** Under 1200px they leave the bar together and sit in a row just above the script, in Page and Split (not Board or Focus), lined up with the script's gutter. That's what Plan's scene filter already did. Before, B I U S vanished under 1200px and the Element picker under 900px, leaving only keyboard shortcuts, so a tablet without a keyboard couldn't change element type or format at all. One shared fragment (`formatTools`) draws both copies, and CSS shows exactly one.
   - **Page | Split | Board turns to icons at the same width as Breakdowns | Stripboard | Reports** (under 900px; it was 768px), in one CSS rule.

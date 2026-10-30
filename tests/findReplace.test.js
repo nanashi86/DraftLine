@@ -106,7 +106,7 @@ describe('Find & Replace in the app', () => {
     assert.match(bar, /Enter[\s\S]*onStep\(e\.shiftKey \? -1 : 1\)/);
     assert.match(bar, /if \(e\.ctrlKey \|\| e\.metaKey\) onReplaceAll\(\);\s*else onReplace\(\);/);
   });
-  it('Replace All is one undo step, with a snapshot first; View Only blocks replacing', () => {
+  it('Replace All is one undo step, with a snapshot first; Viewing blocks replacing', () => {
     const all = app.slice(app.indexOf('const replaceAll = () => {'), app.indexOf('const blocksById = '));
     assert.match(all, /if \(isLocked\) \{ notifyLocked\(\); return; \}/);
     assert.ok(all.indexOf("autoSnapshotRef.current('Replace All', { force: true })") < all.indexOf('set(next)'));

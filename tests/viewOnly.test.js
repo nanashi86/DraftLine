@@ -13,24 +13,25 @@ import { createFakeDirectory } from './helpers/fakeDirectory.js';
 const read = (p) => readFileSync(new URL(`../src/${p}`, import.meta.url), 'utf8');
 const key = (k, o = {}) => ({ key: k, code: o.code ?? (k.length === 1 ? `Key${k.toUpperCase()}` : k), ctrlKey: false, metaKey: false, altKey: false, shiftKey: false, ...o });
 
-describe('View Only lock: shortcut and badge', () => {
+describe('Viewing mode: shortcut and badge', () => {
   it('Ctrl+Alt+L and Cmd+Option+L toggle it (matched on the L key, so Option+L’s "¬" still counts)', () => {
     assert.ok(isLockShortcut(key('l', { ctrlKey: true, altKey: true })));
     assert.ok(isLockShortcut(key('¬', { code: 'KeyL', metaKey: true, altKey: true })));
     assert.ok(!isLockShortcut(key('l', { ctrlKey: true })));
     assert.ok(!isLockShortcut(key('l', { altKey: true })));
     assert.ok(!isLockShortcut(key('L', { ctrlKey: true, altKey: true, shiftKey: true })));
-    assert.match(SHORTCUTS[LOCK_COMBO], /View Only/);
+    assert.match(SHORTCUTS[LOCK_COMBO], /Viewing/);
   });
-  it('the badge: a muted "Edit" when unlocked, an amber "View Only" when locked, with the tooltips asked for', () => {
-    assert.deepEqual(lockBadge(false), { label: 'Edit', icon: 'unlocked', title: 'Lock Script (View Mode) — Ctrl+Alt+L', className: 'status-lock' });
-    assert.deepEqual(lockBadge(true), { label: 'View Only', icon: 'locked', title: 'Unlock Script (Edit Mode) — Ctrl+Alt+L', className: 'status-lock is-locked' });
+  it('the badge: a muted "Editing" when unlocked, an amber "Viewing" when locked; the tooltip says what a click does', () => {
+    assert.deepEqual(lockBadge(false), { label: 'Editing', icon: 'unlocked', title: 'Switch to Viewing (read only) — Ctrl+Alt+L', className: 'status-lock' });
+    assert.deepEqual(lockBadge(true), { label: 'Viewing', icon: 'locked', title: 'Switch to Editing — Ctrl+Alt+L', className: 'status-lock is-locked' });
+    assert.ok(!/View Only|'Edit'/.test(read('lib/lock.js')), 'the old labels are gone');
     const css = read('App.css');
     assert.match(css, /\.status-lock\.is-locked \{[^}]*rgba\(224, 164, 88/);
   });
 });
 
-describe('View Only lock: what still works on a locked script', () => {
+describe('Viewing mode: what still works on a locked script', () => {
   it('typing, deleting, Enter, Tab, paste, cut, undo/redo, B/I/U, element types and dual dialogue are blocked', () => {
     for (const e of [
       key('a'), key(' ', { code: 'Space' }), key('('), key('Enter'), key('Backspace'), key('Delete'), key('Tab'),
@@ -48,7 +49,7 @@ describe('View Only lock: what still works on a locked script', () => {
   });
 });
 
-describe('View Only lock: wiring', () => {
+describe('Viewing mode: wiring', () => {
   const app = read('App.jsx');
   const editor = read('components/Editor.jsx');
   it('isLocked lives in the app, starting from the script’s saved viewOnly; the shortcut and the badge both toggle it', () => {
@@ -96,12 +97,12 @@ describe('Header: the red D opens About DraftLine', () => {
   });
 });
 
-describe('View Only lock: saved with the script', () => {
+describe('Viewing mode: saved with the script', () => {
   const app = read('App.jsx');
   const newStore = () => createProjectStore({ indexedDB: createFakeIndexedDB() });
   const doc = (title, extra = {}) => ({ meta: { title }, blocks: [makeBlock('scene', 'INT. CAR - NIGHT')], beats: [], ...extra });
 
-  it('new scripts start editable; scripts saved before View Only was stored open editable', async () => {
+  it('new scripts start editable; scripts saved before Viewing was stored open editable', async () => {
     const rec = await newStore().saveActiveProject(doc('Run!'));
     assert.equal(rec.viewOnly, false);
     assert.equal(toDoc(rec).viewOnly, false);
@@ -138,10 +139,10 @@ describe('View Only lock: saved with the script', () => {
     assert.equal((await store.duplicateProject(a.id)).viewOnly, false);
   });
 
-  it('opening a script with viewOnly: true starts in View Only (on load and on switching)', () => {
+  it('opening a script with viewOnly: true starts in Viewing (on load and on switching)', () => {
     assert.equal(toDoc({ id: 'x', script: [], viewOnly: true }).viewOnly, true);
     assert.match(app, /const \[isLocked, setIsLocked\] = useState\(initialDoc\.viewOnly === true\);/);
-    assert.match(app, /setIsLocked\(doc\.viewOnly === true\); \/\/ each script opens in its own saved View Only state/);
+    assert.match(app, /setIsLocked\(doc\.viewOnly === true\); \/\/ each script opens in its own saved Viewing state/);
   });
 
   it('the app saves it like any edit: it makes the script unsaved and goes out with the next save', () => {

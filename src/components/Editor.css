@@ -365,5 +365,5 @@
   .sheet .el.is-pulse { animation: none; box-shadow: 0 0 0 2px rgba(217, 83, 47, 0.45); }
 }
 
-/* View Only: no caret, a plain arrow over the text; selecting and copying still work. */
+/* Viewing: no caret, a plain arrow over the text; selecting and copying still work. */
 .sheet.is-locked .el-input { caret-color: transparent; cursor: default; }

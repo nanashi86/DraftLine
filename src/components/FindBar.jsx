@@ -13,7 +13,7 @@ const ICON = { size: 14, strokeWidth: 1.75, 'aria-hidden': true };
  *       [⇄ boat         ]  Replace   All
  *
  * Find box: Enter next · Shift+Enter previous · Esc closes (the match is selected in the script).
- * Replace box: Enter replaces this one · Ctrl+Enter replaces all. View Only: Find works, Replace is off.
+ * Replace box: Enter replaces this one · Ctrl+Enter replaces all. Viewing: Find works, Replace is off.
  */
 export default function FindBar({
   state, total, index, locked = false, focusSignal = 0,
@@ -52,7 +52,7 @@ export default function FindBar({
 
   const count = !query ? '' : total === 0 ? 'No results'
     : `${index + 1} of ${total >= MATCH_LIMIT ? `${MATCH_LIMIT}+` : total}`;
-  const replaceTitle = locked ? 'View Only — unlock the script (Ctrl+Alt+L) to replace' : undefined;
+  const replaceTitle = locked ? 'Viewing — switch to Editing (Ctrl+Alt+L) to replace' : undefined;
 
   return (
     <div className="find-bar" role="search" aria-label="Find and replace in the script" onKeyDown={onBarKey}>

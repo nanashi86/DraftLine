@@ -335,7 +335,7 @@ export default function Editor({
   onMeasure,
   onNotice,
   onFormatState,
-  locked = false, // View Only (lib/lock.js): read, select, copy and scroll — no changes
+  locked = false, // Viewing (lib/lock.js): read, select, copy and scroll — no changes
   onLockedEdit, // a change was tried while locked (the app says how to unlock)
 }) {
   const blocksRef = useRef(blocks);
@@ -716,7 +716,7 @@ export default function Editor({
     const { text } = b;
     const mod = e.ctrlKey || e.metaKey;
 
-    // View Only: only line-to-line movement and the margin note get past here.
+    // Viewing: only line-to-line movement and the margin note get past here.
     if (lockedRef.current) {
       const act = lockedKeyAction(e);
       if (act === 'native') return;

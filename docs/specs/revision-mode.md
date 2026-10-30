@@ -47,7 +47,7 @@ paste). DraftLine can **compute** them:
 
 - **Off by default.** Entered from ⋮ → **Revision Mode…** with a three-line first-run explanation. Writers who never
   use it never see it.
-- **One status-bar chip** beside the Edit / View Only badge: `● Blue Rev. ▾`. Its popover (same style as the
+- **One status-bar chip** beside the Editing / Viewing badge: `● Blue Rev. ▾`. Its popover (same style as the
   existing status steppers' menus):
   - "● Blue Revision · since Oct 25 — 14 lines changed on 6 pages"
   - Start Pink Revision… · Lock Scene Numbers ✓ · Lock Pages · Show marks ✓

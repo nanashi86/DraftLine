@@ -39,7 +39,7 @@ describe('User Guide covers the app', () => {
     ['Characters', /^Characters$/],
     ['Bios', /^Bios$/],
     ['Dialogue', /^Dialogue$/],
-    ['View Only lock', /View Only/],
+    ['Viewing mode', /Viewing/],
     ['Tab & Enter flow', /Tab & Enter/],
     ['Pacing', /Pacing/],
     ['Printing and PDF', /PDF/],

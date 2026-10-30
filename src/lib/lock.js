@@ -1,5 +1,5 @@
-// View Only lock: Ctrl+Alt+L (Cmd+Option+L on a Mac) or the status bar badge switches the script
-// between Edit and View Only. Locked, the page can be read, scrolled, selected and copied, and
+// Viewing mode: Ctrl+Alt+L (Cmd+Option+L on a Mac) or the status bar badge switches the script
+// between Editing and Viewing (stored as viewOnly). Locked, the page can be read, scrolled, selected and copied, and
 // character cues still show their bio cards, but nothing on it can be typed, deleted, formatted,
 // retyped (Element / Alt+1…8 / Tab) or undone. Margin notes stay available (they never change the
 // script). The lock is per session, not saved with the project.
@@ -14,8 +14,8 @@ export const LOCK_COMBO = 'Ctrl+Alt+L';
 /** The status bar badge: label, tooltip and style for each state. */
 export function lockBadge(locked) {
   return locked
-    ? { label: 'View Only', icon: 'locked', title: `Unlock Script (Edit Mode) — ${LOCK_COMBO}`, className: 'status-lock is-locked' }
-    : { label: 'Edit', icon: 'unlocked', title: `Lock Script (View Mode) — ${LOCK_COMBO}`, className: 'status-lock' };
+    ? { label: 'Viewing', icon: 'locked', title: `Switch to Editing — ${LOCK_COMBO}`, className: 'status-lock is-locked' }
+    : { label: 'Editing', icon: 'unlocked', title: `Switch to Viewing (read only) — ${LOCK_COMBO}`, className: 'status-lock' };
 }
 
 const MUTATING_KEYS = new Set(['Enter', 'Backspace', 'Delete', 'Tab']);

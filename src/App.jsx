@@ -261,7 +261,7 @@ function Workspace({ boot }) {
   // Plan workspace: per-scene asset lists (lib/productionEngine.js), saved with the project.
   const [production, setProduction] = useState(initialDoc.production); // toDoc normalized it
   // Project Lock (Projects → padlock) on the open script: saved on its record by setProjectLock, read here
-  // to guard imports and snapshot restores. Not the View Only lock (isLocked: this session's editing).
+  // to guard imports and snapshot restores. Not the Viewing mode (isLocked: this session's editing).
   const [projectLocked, setProjectLocked] = useState(initialDoc.isLocked === true);
   const [revisions, setRevisions] = useState(initialDoc.revisions); // Snapshots (lib/revisions.js)
   const [snapshotPrompt, setSnapshotPrompt] = useState(false);
@@ -520,15 +520,15 @@ function Workspace({ boot }) {
     if (msg) setTimeout(next, MILESTONE_TOAST_MS);
   }, []);
 
-  // ---- View Only lock (Ctrl+Alt+L or the status bar badge; lib/lock.js) ----
+  // ---- Viewing mode (Ctrl+Alt+L or the status bar badge; lib/lock.js) ----
   // Saved with the script (its record's `viewOnly`), so it survives reloads and travels to the synced
   // folder and backups; switching scripts takes each one's own setting (applyProject).
   const [isLocked, setIsLocked] = useState(initialDoc.viewOnly === true);
   const toggleLock = useCallback(() => {
     setIsLocked(!isLocked);
-    notify(isLocked ? 'Editing on' : `View Only — the script can’t be changed · ${LOCK_COMBO} to edit`);
+    notify(isLocked ? 'Editing' : `Viewing — the script can’t be changed · ${LOCK_COMBO} to edit`);
   }, [isLocked, notify]);
-  const notifyLocked = useCallback(() => notify(`View Only · ${LOCK_COMBO} or the View Only badge to edit`), [notify]);
+  const notifyLocked = useCallback(() => notify(`Viewing · ${LOCK_COMBO} or the Viewing badge to edit`), [notify]);
   useEffect(() => {
     if (!toast || toast !== bootMessage(boot)) return undefined;
     const t = setTimeout(() => setToast(null), boot.persistent ? 3200 : 8000);
@@ -898,7 +898,7 @@ function Workspace({ boot }) {
     setProjectLocked(doc.isLocked === true);
     setPlanFilter(EMPTY_PLAN_FILTER); // a scene filter belongs to the script it was set on
     setPlanFoldDue(true); // Breakdowns' fold is decided again for this script the next time Plan opens
-    setIsLocked(doc.viewOnly === true); // each script opens in its own saved View Only state
+    setIsLocked(doc.viewOnly === true); // each script opens in its own saved Viewing state
     noteSession.current = null;
     setNoteId(null);
     setRestoreId(null);
@@ -1692,7 +1692,7 @@ function Workspace({ boot }) {
   const currentPage = activeId ? layout.pageOfBlock[activeId] : null;
   const navVisible = navOpen && !focusMode && showEditor;
   const elementControlsEnabled = !!activeBlock && showEditor;
-  const editControlsEnabled = elementControlsEnabled && !isLocked; // View Only dims Element and B I U S
+  const editControlsEnabled = elementControlsEnabled && !isLocked; // Viewing dims Element and B I U S
 
   // Density: jump to skim risk `i` — scroll it to the middle and pulse it (Editor.pulseBlock).
   const densityLocations = useMemo(
@@ -1986,7 +1986,7 @@ function Workspace({ boot }) {
           else editorRef.current?.setType(activeId, e.target.value);
         }}
         aria-label="Element type"
-        title={isLocked ? `View Only — ${LOCK_COMBO} to edit` : 'Element type (Alt+1…8) · Dual Dialogue (Alt+D)'}
+        title={isLocked ? `Viewing — ${LOCK_COMBO} to edit` : 'Element type (Alt+1…8) · Dual Dialogue (Alt+D)'}
       >
         {!elementControlsEnabled && <option value="">Element</option>}
         {ELEMENT_MENU.map((s) => (s.action ? (

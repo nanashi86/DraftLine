@@ -23,7 +23,7 @@
 //                  linked scene
 //   • characters, storyNotes, storyDna — the Project Bible
 //   • revisions  — Snapshots: labelled checkpoints of the whole project (revisions.js)
-//   • isLocked   — the Project Lock (padlock); viewOnly — View Only (no editing). Both
+//   • isLocked   — the Project Lock (padlock); viewOnly — Viewing (no editing). Both
 //                  missing in older backups, which open unlocked and editable
 // Block ids are kept, so cards stay linked to their scenes after a restore.
 //
