@@ -20,7 +20,12 @@ const ROLE_DEFINITIONS = {
 
 describe('Glossary: screenplay roles', () => {
   it('has the standard definitions, word for word', () => {
-    for (const [id, def] of Object.entries(ROLE_DEFINITIONS)) assert.equal(dictionaryEntry(STRUCTURE_DICTIONARY, id)?.definition, def, id);
+    // Word for word as given; Catalyst adds one note after it, on Save the Cat's other use of the word.
+    for (const [id, def] of Object.entries(ROLE_DEFINITIONS)) {
+      const got = dictionaryEntry(STRUCTURE_DICTIONARY, id)?.definition;
+      if (id === 'catalyst') assert.ok(got.startsWith(`${def} (In Save the Cat`), id);
+      else assert.equal(got, def, id);
+    }
     assert.equal(dictionaryEntry(STRUCTURE_DICTIONARY, 'confidant').term, 'Confidant(e)');
   });
   it('every role term is listed under Character Roles and searchable', () => {
@@ -44,9 +49,9 @@ const ROLES = [
   'Shadow / Mirror', 'Skeptic / Voice of Reason', 'Threshold Guardian',
 ];
 const CRAFT = [
-  'Cliffhanger', 'Climax', 'Conflict / Debate', 'Deus ex machina', 'Falling Action', 'Flashback', 'Flaw', 'Foreshadowing',
-  'Goal / Desire', 'Inciting Incident', 'Love triangle', 'MacGuffin', 'Quest', 'Red herring', 'Rising Action',
-  'Text / Subtext / Context',
+  'B-Story', 'Cliffhanger', 'Climax', 'Conflict / Obstacle', 'Crisis (All Is Lost)', 'Deus ex machina', 'Flashback', 'Flaw', 'Foreshadowing',
+  'Goal / Desire', 'Inciting Incident', 'Love triangle', 'MacGuffin', 'Midpoint', 'Quest', 'Red herring', 'Resolution (Falling Action)',
+  'Rising Action (Complications)', 'Setup & Payoff', 'Stakes', 'Text / Subtext / Context', 'Ticking Clock', 'Want vs. Need',
 ];
 
 describe('Glossary: three sections — Character Roles, Narrative & Dramatic Craft, Screenplay Format', () => {
@@ -55,7 +60,7 @@ describe('Glossary: three sections — Character Roles, Narrative & Dramatic Cra
 
   it('lists the terms in exactly the order given, Protagonist first among the roles', () => {
     const [roles, craft, format] = glossarySections(mergeDictionary());
-    assert.deepEqual([roles.label, roles.total, craft.label, craft.total, format.label, format.total], ['Character Roles', 15, 'Narrative & Dramatic Craft', 16, 'Screenplay Format', 19]);
+    assert.deepEqual([roles.label, roles.total, craft.label, craft.total, format.label, format.total], ['Character Roles', 15, 'Narrative & Dramatic Craft', 23, 'Screenplay Format', 19]);
     assert.deepEqual(roles.entries.map((e) => e.term), ROLES);
     assert.deepEqual(craft.entries.map((e) => e.term), CRAFT);
   });
@@ -72,7 +77,7 @@ describe('Glossary: three sections — Character Roles, Narrative & Dramatic Cra
       assert.equal(dictionaryEntry(STRUCTURE_DICTIONARY, r.dict).term, r.label);
     }
   });
-  it('each section has a subheader with its term count — no 1–50 numbering on the rows', () => {
+  it('each section has a subheader with its term count — no 1–57 numbering on the rows', () => {
     assert.match(list, /<h3 id=\{`dict-sec-\$\{sec\.id\}`\} className="dict-section-head micro-label">\s*\{sec\.label\}/);
     assert.match(list, /<span className="dict-section-count">\{searching \? `\$\{sec\.entries\.length\} of \$\{sec\.total\}` : sec\.total\}<\/span>/);
     assert.ok(!/dict-n\b|indexOf\(e\) \+ 1/.test(list), 'rows have no number');

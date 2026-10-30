@@ -69,7 +69,7 @@ describe('Glossary', () => {
 describe('Plot Devices', () => {
   it('the picklist offers the eight devices, minus the ones already added', () => {
     assert.deepEqual(PLOT_DEVICES.map((d) => d.label), [
-      'Foreshadowing', 'Flashback', 'Deus ex machina', 'MacGuffin', 'Quest', 'Cliffhanger', 'Red herring', 'Love triangle',
+      'Foreshadowing', 'Flashback', 'Ticking Clock', 'MacGuffin', 'Quest', 'Cliffhanger', 'Red herring', 'Love triangle',
     ]);
     assert.equal(availableDevices(emptyStoryDna()).length, 6, 'Foreshadowing and Flashback are already there');
     let d = addDevice(emptyStoryDna(), 'macguffin');

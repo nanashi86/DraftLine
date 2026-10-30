@@ -152,8 +152,8 @@ describe('Character bios: Physical Description, Age / Timeline, Minor / Cameo, C
     const cat = SECONDARY_ROLES.find((r) => r.id === 'catalyst');
     assert.equal(cat.label, 'Catalyst');
     assert.equal(SECONDARY_ROLES.filter((r) => /catalyst/i.test(r.label)).length, 1, 'one Catalyst option');
-    assert.equal(dictionaryEntry(STRUCTURE_DICTIONARY, cat.dict).definition,
-      'A character whose action, death, or arrival triggers the central conflict or forces the protagonist out of the status quo.');
+    assert.ok(dictionaryEntry(STRUCTURE_DICTIONARY, cat.dict).definition.startsWith(
+      'A character whose action, death, or arrival triggers the central conflict or forces the protagonist out of the status quo.'));
     assert.equal(roleSummary({ primaryRole: 'tritagonist', secondaryRole: 'catalyst' }), 'Tritagonist (Catalyst)');
   });
 });

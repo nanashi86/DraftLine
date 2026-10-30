@@ -64,7 +64,7 @@ export const CONFLICT_TYPES = [
 export const PLOT_DEVICES = [
   { id: 'foreshadowing', label: 'Foreshadowing', dict: 'foreshadowing' },
   { id: 'flashback', label: 'Flashback', dict: 'flashback' },
-  { id: 'deusExMachina', label: 'Deus ex machina', dict: 'deusExMachina' },
+  { id: 'tickingClock', label: 'Ticking Clock', dict: 'tickingClock' },
   { id: 'macguffin', label: 'MacGuffin', dict: 'macguffin' },
   { id: 'quest', label: 'Quest', dict: 'quest' },
   { id: 'cliffhanger', label: 'Cliffhanger', dict: 'cliffhanger' },
@@ -73,7 +73,13 @@ export const PLOT_DEVICES = [
 ];
 /** The old free "Special Plot Technique" toggle: kept (with its notes) if a project used it. */
 const LEGACY_TECHNIQUE = { id: 'technique', label: 'Special Plot Technique', dict: null };
-const ALL_DEVICES = [...PLOT_DEVICES, LEGACY_TECHNIQUE];
+/**
+ * Deus ex machina left the picklist (it's a flaw to avoid, not a device to plan; Ticking Clock took
+ * its place). A script that already added it keeps the row, its Yes / No and its notes, and can
+ * still remove it; it just can't be added again.
+ */
+const LEGACY_DEUS = { id: 'deusExMachina', label: 'Deus ex machina', dict: 'deusExMachina' };
+const ALL_DEVICES = [...PLOT_DEVICES, LEGACY_TECHNIQUE, LEGACY_DEUS];
 
 /**
  * Every script starts with these two rows, set to No (collapsed — no notes box until Yes).
@@ -99,7 +105,8 @@ export const deviceInfo = (id) => ALL_DEVICES.find((d) => d.id === id) || null;
 export const availableDevices = (dna) => PLOT_DEVICES.filter((d) => !dna.devices.some((x) => x.id === d.id));
 
 export function addDevice(dna, id) {
-  if (!deviceInfo(id) || dna.devices.some((x) => x.id === id)) return dna;
+  // Only the picklist's devices can be added; retired ones (Special Plot Technique, Deus ex machina) are only kept.
+  if (!PLOT_DEVICES.some((d) => d.id === id) || dna.devices.some((x) => x.id === id)) return dna;
   return { ...dna, devices: [...dna.devices, { id, on: true, notes: '' }] };
 }
 export function setDevice(dna, id, patch) {
@@ -128,10 +135,13 @@ export const DNA_QUESTIONS = [
   { key: 'incitingIncident', label: 'Inciting Incident', question: 'What happens that starts the story?', dict: 'incitingIncident' },
   { key: 'goal', label: 'Goal / Desire', question: 'What do they want?', dict: 'goal' },
   { key: 'flaw', label: 'Flaw', question: 'What must they overcome to get it?', dict: 'flaw' },
-  { key: 'conflict', label: 'Conflict / Debate', question: 'Why can’t they get it?', dict: 'conflict', conflictType: true },
-  { key: 'risingAction', label: 'Rising Action', question: 'What did they do about it?', dict: 'risingAction' },
-  { key: 'climax', label: 'Climax', question: 'Why doesn’t that work?', dict: 'climax' },
-  { key: 'fallingAction', label: 'Falling Action', question: 'How does it end?', dict: 'fallingAction' },
+  { key: 'conflict', label: 'Conflict / Obstacle', question: 'Why can’t they get it?', dict: 'conflict', conflictType: true },
+  { key: 'risingAction', label: 'Rising Action (Complications)', question: 'What did they do about it?', dict: 'risingAction' },
+  // The last two kept their storage keys, so every saved answer stays under the same question:
+  // "Why doesn't that work?" (stored as `climax`) is the Crisis, and "How does it end?" (stored as
+  // `fallingAction`) is the Climax & Resolution. Only the labels and glossary links changed.
+  { key: 'climax', label: 'Crisis (All Is Lost)', question: 'Why doesn’t that work?', dict: 'crisis' },
+  { key: 'fallingAction', label: 'Climax & Resolution', question: 'How does it end?', dict: 'climax' },
 ];
 
 export function emptyStoryDna() {

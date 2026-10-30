@@ -223,16 +223,18 @@ Two tabs — **DNA** opens first unless you've picked Notes this session:
   - **Story Blueprint**: **Genre** as clickable pills (Drama, Thriller, Crime, Horror, Comedy, Action, Adventure,
     Romance, Fantasy, Science Fiction, Western, Noir, Other — with a text box for Other; projects that saved the old
     "Noire" spelling load as Noir); **Theme — revealed by the Climax**; **Central Dramatic Question** ("What core
-    question does the climax answer?"); **Plot Devices** — pick from Foreshadowing, Flashback, Deus ex machina,
-    MacGuffin, Quest, Cliffhanger, Red herring, Love triangle; each added device has Yes / No, a notes box ("How the
+    question does the climax answer?"); **Plot Devices** — pick from Foreshadowing, Flashback, Ticking Clock,
+    MacGuffin, Quest, Cliffhanger, Red herring, Love triangle (a Deus ex machina added before it left the list is kept); each added device has Yes / No, a notes box ("How the
     script uses …") and an **i** with its glossary definition (older projects' Foreshadowing / Flashback / Special
     Plot Technique notes carry over as devices); then the eight question cards — Protagonist, Inciting Incident, Goal /
-    Desire, Flaw, Conflict / Debate (with the six conflict types), Rising Action, Climax, Falling Action. Every **i**
+    Desire, Flaw, Conflict / Obstacle (with the six conflict types), Rising Action (Complications), Crisis (All Is Lost),
+    Climax & Resolution. Every **i**
     shows the definition in a tooltip that always fits inside the drawer (it flips above near the bottom and slides
     in from the edges); click it to open the entry. Saved with the project.
-  - **Story Glossary** (formerly Structure Dictionary): 17 terms — the eight above, Text / Subtext / Context, and the
-    plot devices (Foreshadowing, Flashback, Deus ex machina, MacGuffin, Quest, Cliffhanger, Red herring, Love
-    triangle) — searchable. They ship with DraftLine's *starter* definitions — **Edit** any entry to paste your own
+  - **Story Glossary** (formerly Structure Dictionary): 57 terms in three sections — Character Roles, Narrative &
+    Dramatic Craft (the Blueprint's terms, the plot devices, Crisis, Midpoint, Stakes, Want vs. Need, Setup & Payoff,
+    B-Story…) and Screenplay Format (the page's elements, V.O. / O.S., (MORE) / (CONT'D), Intercut, Pre-lap…) —
+    searchable. They ship with DraftLine's *starter* definitions — **Edit** any entry to paste your own
     reference's wording (kept for all projects, including wording you saved before the rename; **Reset** restores the
     starter).
 - **📝 Notes** — Markdown sections (**Logline**, **Tone**, **Timeline**, **Pitch**, **Scratchpad**, plus any you add

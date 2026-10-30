@@ -36,8 +36,8 @@ export const STRUCTURE_DICTIONARY = [
   },
   {
     id: 'conflict',
-    term: 'Conflict / Debate',
-    definition: 'The opposition that keeps the protagonist from the goal — why they can’t simply have it. Conflict is what makes a scene dramatic; it comes in six classic types:',
+    term: 'Conflict / Obstacle',
+    definition: 'The opposition that keeps the protagonist from the goal — why they can’t simply have it. Conflict is what makes a scene dramatic. Screenwriters often think of it on three levels, as Robert McKee puts it: inner (against yourself), personal (against the people closest to you) and the wider world (against society, nature or anything bigger). Classic story analysis splits it into six types:',
     items: [
       { term: 'Individual vs. Individual', definition: 'Against another person — an antagonist, rival or loved one.' },
       { term: 'Individual vs. Nature', definition: 'Against the natural world — storm, sea, wilderness, disease.' },
@@ -49,18 +49,18 @@ export const STRUCTURE_DICTIONARY = [
   },
   {
     id: 'risingAction',
-    term: 'Rising Action',
-    definition: 'What the protagonist does about the problem: the series of attempts, complications and rising stakes that builds from the inciting incident toward the climax.',
+    term: 'Rising Action (Complications)',
+    definition: 'What the protagonist does about the problem: a series of attempts, each met by a complication that raises the stakes, building from the inciting incident toward the crisis. Robert McKee calls these progressive complications; each one should make things harder than the last, never simply repeat it.',
   },
   {
     id: 'climax',
     term: 'Climax',
-    definition: 'The decisive confrontation and highest point of tension, where the central conflict comes to a head — and where it becomes clear why the earlier efforts were not enough. The theme is revealed here.',
+    definition: 'The final confrontation and the story’s highest point of tension, where the protagonist makes the decisive choice or action that settles the central conflict, for better or worse. It comes after the crisis, and the theme is revealed here.',
   },
   {
     id: 'fallingAction',
-    term: 'Falling Action',
-    definition: 'What follows the climax: consequences play out, loose ends are tied and the story settles into its ending — how it ends, and what has changed.',
+    term: 'Resolution (Falling Action)',
+    definition: 'What follows the climax: consequences play out, loose ends are tied and we see what has changed. On screen it is short, often a few minutes, which is why screenwriters call it the resolution rather than a whole falling action.',
   },
   {
     id: 'textSubtext',
@@ -81,7 +81,7 @@ export const STRUCTURE_DICTIONARY = [
   {
     id: 'deusExMachina',
     term: 'Deus ex machina',
-    definition: '“God from the machine”: a sudden, unforeshadowed rescue — a person, event or coincidence that solves the problem from outside the story’s logic. Usually a flaw, because the protagonist’s own choices stop mattering; used knowingly, it can be satire or irony.',
+    definition: '“God from the machine”: a sudden, unforeshadowed rescue, a person, event or coincidence that solves the problem from outside the story’s logic. Something to avoid rather than plan: the protagonist’s own choices stop mattering, and audiences feel cheated. Used knowingly, it can be satire or irony.',
   },
   {
     id: 'macguffin',
@@ -107,6 +107,41 @@ export const STRUCTURE_DICTIONARY = [
     id: 'loveTriangle',
     term: 'Love triangle',
     definition: 'Three characters bound by competing romantic loyalties — usually one person torn between two others — so every choice of the heart costs someone something.',
+  },
+  {
+    id: 'crisis',
+    term: 'Crisis (All Is Lost)',
+    definition: 'The low point where the protagonist’s plan fails and the goal looks impossible: the moment that shows why everything they tried was not enough. It forces the hardest choice of the story, which the climax then plays out. Save the Cat calls it All Is Lost.',
+  },
+  {
+    id: 'tickingClock',
+    term: 'Ticking Clock',
+    definition: 'A deadline the audience knows about: the bomb, the wedding on Saturday, the last ferry at midnight. It turns every delay into tension and gives the story a natural end point.',
+  },
+  {
+    id: 'wantNeed',
+    term: 'Want vs. Need',
+    definition: 'What the protagonist wants is the outer goal they chase; what they need is the inner change their flaw keeps them from. Strong stories pull the two apart, so getting the want means facing the need, or giving one up for the other.',
+  },
+  {
+    id: 'midpoint',
+    term: 'Midpoint',
+    definition: 'The turn in the middle of the script, around page 55 of 110: a false victory, a false defeat or a revelation that raises the stakes and changes the protagonist’s approach, from reacting to acting.',
+  },
+  {
+    id: 'stakes',
+    term: 'Stakes',
+    definition: 'What the protagonist stands to lose if they fail, and why the audience should care. Good stakes are personal as well as large, and they rise as the story goes on.',
+  },
+  {
+    id: 'setupPayoff',
+    term: 'Setup & Payoff',
+    definition: 'Planting something early, an object, a skill, a line, so it can matter later. A setup with no payoff feels like a loose end; a payoff with no setup feels like a cheat. Chekhov’s gun is the classic example: if it’s on the wall in act one, it goes off by act three.',
+  },
+  {
+    id: 'bStory',
+    term: 'B-Story',
+    definition: 'The second storyline running under the main plot, often a relationship, that carries the theme and helps the protagonist with their inner change. It usually starts once the main story is under way.',
   },
   // ---- Character Roles (Characters → Bios: Primary Role and Secondary Function) ----
   // Protagonist is the first entry above (it's also Story DNA's first question).
@@ -143,7 +178,7 @@ export const STRUCTURE_DICTIONARY = [
   {
     id: 'catalyst',
     term: 'Catalyst',
-    definition: 'A character whose action, death, or arrival triggers the central conflict or forces the protagonist out of the status quo.',
+    definition: 'A character whose action, death, or arrival triggers the central conflict or forces the protagonist out of the status quo. (In Save the Cat, “Catalyst” is also the name of the inciting event itself; here it means the person behind it.)',
   },
   {
     id: 'mentor',
@@ -323,8 +358,9 @@ export const GLOSSARY_SECTIONS = [
     id: 'craft',
     label: 'Narrative & Dramatic Craft',
     ids: [
-      'cliffhanger', 'climax', 'conflict', 'deusExMachina', 'fallingAction', 'flashback', 'flaw', 'foreshadowing', 'goal',
-      'incitingIncident', 'loveTriangle', 'macguffin', 'quest', 'redHerring', 'risingAction', 'textSubtext',
+      'bStory', 'cliffhanger', 'climax', 'conflict', 'crisis', 'deusExMachina', 'flashback', 'flaw', 'foreshadowing', 'goal',
+      'incitingIncident', 'loveTriangle', 'macguffin', 'midpoint', 'quest', 'redHerring', 'fallingAction', 'risingAction',
+      'setupPayoff', 'stakes', 'textSubtext', 'tickingClock', 'wantNeed',
     ],
   },
   {
