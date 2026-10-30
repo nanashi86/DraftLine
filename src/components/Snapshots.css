@@ -73,6 +73,15 @@
   line-height: 16px;
 }
 .sn-item-actions { display: flex; align-items: center; gap: 6px; }
+/* Restore · Compare · Delete fade in on hover or keyboard focus (opacity only, so nothing moves). Always
+   shown on the newest snapshot, on a card asking "Delete?", and on touch screens, which can't hover.
+   While hidden they take no clicks (pointer-events: none); Tab still reaches them, and focusing one
+   shows the whole row through :focus-within. */
+.sn-item .sn-item-actions { opacity: 0; pointer-events: none; transition: opacity 120ms ease; } /* no clicks while invisible */
+.sn-item:is(:hover, :focus-within, .is-latest, .is-confirming) .sn-item-actions,
+.sn-item .sn-item-actions:focus-within { opacity: 1; pointer-events: auto; }
+@media (hover: none) { .sn-item .sn-item-actions { opacity: 1; pointer-events: auto; } }
+@media (prefers-reduced-motion: reduce) { .sn-item .sn-item-actions { transition: none; } }
 .sn-item-actions .btn { padding: 4px 10px; font-size: 12.5px; }
 .sn-item-actions.is-confirm span { font-size: 12.5px; color: var(--muted); margin-right: 2px; }
 .sn-danger { color: #e8836b; border-color: color-mix(in srgb, #e8836b 45%, transparent); }

@@ -162,7 +162,7 @@ export function SnapshotsDrawer({
         ) : (
           <ol className="sn-list">
             {list.map((r, i) => (
-              <li key={r.id} className="sn-item" data-revision={r.id}>
+              <li key={r.id} className={`sn-item${i === 0 ? ' is-latest' : ''}${confirmId === r.id ? ' is-confirming' : ''}`} data-revision={r.id}>
                 <div className="sn-item-text">
                   <b title={r.label}>{r.label}</b>
                   <time dateTime={r.timestamp}>

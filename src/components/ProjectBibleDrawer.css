@@ -107,9 +107,16 @@
 .pb-char.is-open .pb-chev { transform: rotate(90deg); }
 .pb-char-name { flex: none; max-width: 55%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: 700 13.5px 'Courier Prime', 'Courier New', monospace; text-transform: uppercase; }
 .pb-char-meta { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; color: var(--muted); }
-.pb-move { display: flex; padding-right: 6px; opacity: 0.35; transition: opacity 120ms ease; }
-.pb-char:hover .pb-move,
-.pb-move:focus-within { opacity: 1; }
+.pb-move { display: flex; padding-right: 6px; }
+/* Rename and ↑ ↓ fade in on hover or keyboard focus (opacity only: they keep their space, so the name
+   and meta never shift, and they stay in the Tab order with their labels). Always shown on an open bio
+   and on touch screens, which can't hover. While hidden they take no clicks (pointer-events: none);
+   focusing one by keyboard shows the row through :focus-within, so its focus ring is visible. */
+.pb-char :is(.pb-char-rename, .pb-move) { opacity: 0; pointer-events: none; transition: opacity 120ms ease; } /* no clicks while invisible */
+.pb-char:is(:hover, :focus-within, .is-open) :is(.pb-char-rename, .pb-move),
+.pb-char :is(.pb-char-rename:focus, .pb-char-rename:focus-visible, .pb-move:focus-within) { opacity: 1; pointer-events: auto; }
+@media (hover: none) { .pb-char :is(.pb-char-rename, .pb-move) { opacity: 1; pointer-events: auto; } }
+@media (prefers-reduced-motion: reduce) { .pb-char :is(.pb-char-rename, .pb-move) { transition: none; } }
 .pb-move button { width: 22px; height: 22px; border: 0; border-radius: 4px; background: transparent; color: var(--text); cursor: pointer; }
 .pb-move button:hover { background: var(--hover-bg); }
 
