@@ -23,9 +23,18 @@ The status bar at the bottom shows the current element, where your work is saved
 - **File ▾** holds everything to do with files, in three parts. **Script**: New… ({{key:Ctrl+Alt+N}}), Open… ({{key:Ctrl+O}}), Import…, Sample… (adds *The Last Ferry* to your Projects) and Edit Title…. **Export Script**: PDF, Final Draft, Fountain and Print Script…. **Export Planning & Production**: Story Bible, Scene Breakdown (the same .csv as Plan's Export Breakdown), and the Scene Board as a Spreadsheet, Markdown or Fountain Outline. **Backup**: Backup Project and Snapshot History. Each export shows its file type on the right (.fountain, .fdx, .pdf, .csv, .md, .draftline).
 - Narrow windows move panels you can't see on the bar into the **⋮** menu.
 
-**Tips.** Three tools are easy to miss, so DraftLine points them out once, when they'd help: **Import Scenes** (once the script has 8 scenes or 10 pages and the Scene Board has no scene cards), **Analyze Value Shifts** (once the board has scene cards and none has a Value Shift) and **Populate Bio** (once three or more characters' introductions would fill an empty bio field). A small dot appears on **Split** or **Characters** (or the **Bios** tab, if Characters is already open on Dialogue); open it and a short card beside the tool explains it, with the tool's own button and **Got it**. Nothing runs until you click, and the card never takes your cursor: after the tool runs, you're back where you were typing.
+**Tips.** Some tools are easy to miss, so DraftLine points each one out once, when it would help:
 
-Tips only appear at a quiet moment: a few seconds after you stop typing, a minute after a script is opened or imported, never in Focus, Plan or Viewing, and never while another corner card is up. You'll see at most one new tip per session (Analyze Value Shifts may follow Import Scenes straight away), and each one shows once: using the tool, any way at all, or choosing Got it ends it for good. To see them again, open **⋮ → About DraftLine** and choose **Show tips again** on the **Tips** line.
+- **Import Scenes**, once the script has 8 scenes or 10 pages and the Scene Board has no scene cards.
+- **Analyze Value Shifts**, once the board has scene cards and none has a Value Shift.
+- **Populate Bio**, once three or more characters' introductions would fill an empty bio field.
+- **The Format stepper**, once it shows 5 or more findings.
+- **The Dialogue spotlight**, once the script has 3 or more speaking characters and 20 or more speeches.
+- **Plan**, once the script reaches 90 pages.
+
+When the tool is inside a panel, a small dot appears first, on **Split** or **Characters** (or on the **Bios** or **Dialogue** tab if Characters is already open on the other one). Open it, and a short card beside the tool explains it, with the tool's own button and **Got it**. Tools that are always on screen (the Format stepper, Plan) get the card straight away. Nothing runs until you click, and the card never takes your cursor: after Import Scenes or Populate Bio runs, you're back where you were typing. The card also never sits on top of anything else: when you open a menu or dropdown over it, open a dialog, or a drawer covers its tool, it steps aside and comes back when there's room. Once you click its button, it gets out of the way of whatever the tool opens.
+
+Tips only appear at a quiet moment: a few seconds after you stop typing, a minute after a script is opened or imported, never in Focus, Plan or Viewing, and never while another corner card is up. You'll see at most one new tip per session (Analyze Value Shifts may follow Import Scenes straight away), and each one shows once: using the tool, any way at all (even before its tip appeared), or choosing Got it ends it for good. To see them again, open **⋮ → About DraftLine** and choose **Show tips again** on the **Tips** line.
 
 ### Projects and browser storage
 

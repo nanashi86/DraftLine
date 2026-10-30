@@ -2,8 +2,9 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import {
-  HINTS, HINTS_KEY, HINT_IDLE_MS, HINT_IDS, HINT_MIN_BIOS, HINT_MIN_PAGES, HINT_MIN_SCENES, HINT_SESSION_KEY, HINT_SETTLE_MS,
-  hintCalm, hintWanted, markHint, pickHint, readHints, resetHints,
+  HINTS, HINTS_KEY, HINT_IDLE_MS, HINT_IDS, HINT_MIN_BIOS, HINT_MIN_FINDINGS, HINT_MIN_PAGES, HINT_MIN_SCENES, HINT_MIN_SPEAKERS,
+  HINT_MIN_SPEECHES, HINT_OVERLAYS, HINT_PLAN_PAGES, HINT_SESSION_KEY, HINT_SETTLE_MS,
+  hintCalm, hintRoomFor, hintWanted, markHint, pickHint, readHints, resetHints,
 } from '../src/lib/hints.js';
 
 const read = (p) => readFileSync(new URL(`../src/${p}`, import.meta.url), 'utf8');
@@ -30,6 +31,23 @@ describe('feature hints: when each one is wanted (by what the writer has done)',
     assert.equal(HINT_MIN_BIOS, 3);
     assert.equal(hintWanted('populateBio', { bioGains: 2 }), false);
     assert.equal(hintWanted('populateBio', { bioGains: 3 }), true);
+  });
+  it('Format Doctor: 5+ findings showing', () => {
+    assert.equal(HINT_MIN_FINDINGS, 5);
+    assert.equal(hintWanted('formatDoctor', { findings: 4 }), false);
+    assert.equal(hintWanted('formatDoctor', { findings: 5 }), true);
+  });
+  it('Dialogue: 3+ speaking characters and 20+ speeches', () => {
+    assert.equal(HINT_MIN_SPEAKERS, 3);
+    assert.equal(HINT_MIN_SPEECHES, 20);
+    assert.equal(hintWanted('dialogue', { speakers: 2, speeches: 80 }), false, 'a two-hander');
+    assert.equal(hintWanted('dialogue', { speakers: 4, speeches: 19 }), false);
+    assert.equal(hintWanted('dialogue', { speakers: 3, speeches: 20 }), true);
+  });
+  it('Plan: a feature-length draft (90+ pages)', () => {
+    assert.equal(HINT_PLAN_PAGES, 90);
+    assert.equal(hintWanted('plan', { pages: 89, scenes: 120 }), false);
+    assert.equal(hintWanted('plan', { pages: 90 }), true);
   });
 });
 
@@ -86,10 +104,21 @@ describe('feature hints: once each, one new one per session (Analyze may follow 
 });
 
 describe('feature hints: the wording is honest about running the tools again', () => {
-  it('three hints, each pointing at its tool’s real button', () => {
-    assert.deepEqual(HINT_IDS, ['importScenes', 'analyzeShifts', 'populateBio']);
-    assert.deepEqual(HINT_IDS.map((id) => HINTS[id].target), ['.board-import', '.board-analyze', '.pb-populate']);
-    assert.deepEqual(HINT_IDS.map((id) => HINTS[id].beacon), ['split', null, 'characters']);
+  it('six hints, each pointing at its tool’s real button', () => {
+    assert.deepEqual(HINT_IDS, ['importScenes', 'analyzeShifts', 'populateBio', 'formatDoctor', 'dialogue', 'plan']);
+    assert.deepEqual(HINT_IDS.map((id) => HINTS[id].target), [
+      '.board-import', '.board-analyze', '.pb-populate',
+      '.stepper[aria-label="Format Doctor findings"] .stepper-main', '.pb-characters .cast-chip', '.ws-btn[data-workspace="plan"]',
+    ]);
+    assert.deepEqual(HINT_IDS.map((id) => HINTS[id].beacon), ['split', null, 'characters', null, 'characters', null]);
+    assert.deepEqual(HINT_IDS.filter((id) => HINTS[id].caret), ['importScenes', 'populateBio'], 'only tools that edit the script in place hand the cursor back');
+    assert.match(read('App.jsx'), /data-workspace=\{id\}/);
+    assert.match(read('components/CharactersDrawer.jsx'), /data-tab=\{t\.id\}/);
+  });
+  it('the new three: honest about what they do', () => {
+    assert.match(HINTS.formatDoctor.text, /most fix in one click/);
+    assert.match(HINTS.dialogue.text, /every line that character speaks, in script order/);
+    assert.match(HINTS.plan.text, /The script stays exactly as it is, and Write is one click back/);
   });
   it('Import Scenes keeps your edits; Analyze is a second opinion; Populate Bio only fills empty fields', () => {
     assert.match(HINTS.importScenes.text, /your titles, synopses and tags stay/);
@@ -107,14 +136,14 @@ describe('feature hints: the app never interrupts, and nothing runs without a cl
     assert.match(app, /\$\{hintBeacon === 'characters' \? ' has-hint-beacon' : ''\}/);
     assert.match(css, /\.has-hint-beacon::after \{[^}]*border-radius: 50%;[^}]*pointer-events: none;/);
   });
-  it('Characters already open on Dialogue: the dot moves to the Bios tab (clicking Characters would close it)', () => {
-    assert.match(app, /activeHint === 'populateBio' && charactersOpen \? 'bios-tab' : HINTS\[activeHint\]\.beacon/);
-    assert.match(app, /tabBeacon=\{hintBeacon === 'bios-tab' \? 'bios' : null\}/);
+  it('Characters already open on the other tab: the dot moves to the tab (clicking Characters would close it)', () => {
+    assert.match(app, /activeHint === 'populateBio' && charactersOpen \? 'bios-tab'\s*: activeHint === 'dialogue' && charactersOpen \? 'dialogue-tab' : HINTS\[activeHint\]\.beacon/);
+    assert.match(app, /tabBeacon=\{\{ 'bios-tab': 'bios', 'dialogue-tab': 'dialogue' \}\[hintBeacon\] \?\? null\}/);
     assert.match(read('components/CharactersDrawer.jsx'), /\$\{tabBeacon === t\.id \? ' has-hint-beacon' : ''\}/);
   });
   it('the card only shows once the tool’s panel is open; hidden in Focus, Plan and Viewing', () => {
     assert.match(app, /const hintHidden = !activeHint \|\| hintHandedOff === activeHint \|\| focusMode \|\| inPlan \|\| isLocked;/);
-    assert.match(app, /const hintPanelOpen = activeHint === 'populateBio' \? charactersOpen && characterTab !== 'dialogue' : showBoard;/);
+    assert.match(app, /populateBio: charactersOpen && characterTab !== 'dialogue',\s*dialogue: charactersOpen && characterTab === 'dialogue',\s*formatDoctor: true,\s*plan: true,/);
     assert.match(app, /\{hintCardShown && \(\s*<HintCard id=\{activeHint\}/);
   });
   it('its button does exactly what the tool’s button does; focus then goes back to the script', () => {
@@ -124,6 +153,13 @@ describe('feature hints: the app never interrupts, and nothing runs without a cl
   });
   it('once its button is clicked, the card steps aside so it never sits under the tool’s own menu', () => {
     assert.match(app, /setHintHandedOff\(activeHint\); \/\/ the tool takes over/);
+  });
+  it('the Format stepper, a spotlight or Plan, used any way and any time, ends that hint (even before it showed)', () => {
+    assert.match(app, /const formatUsed = formatAt !== null \|\| doctorOpen;/);
+    assert.match(app, /const dialogueUsed = !!selectedChar;/);
+    assert.match(app, /\[formatUsed && 'formatDoctor', dialogueUsed && 'dialogue', inPlan && 'plan'\]/);
+    assert.equal(HINTS.formatDoctor.usedBy, '.stepper[aria-label="Format Doctor findings"]', 'opening its list counts');
+    assert.match(app, /if \(e\.target\?\.closest\?\.\(HINTS\[id\]\.usedBy\)\) hintToolUsed\(id\);/);
   });
   it('using a tool any way at all ends its hint', () => {
     assert.match(read('components/BeatBoard.jsx'), /onChange\(result\.beats\);\s*onToolUsed\?\.\('importScenes'\);/);
@@ -143,5 +179,50 @@ describe('feature hints: the app never interrupts, and nothing runs without a cl
   });
   it('reduced motion: no pulse, no slide', () => {
     assert.match(css, /@media \(prefers-reduced-motion: reduce\) \{\s*\.hint-card \{ animation: none; \}\s*\.has-hint-beacon::after \{ animation: none; \}/);
+  });
+});
+
+describe('feature hints: the card never overlaps anything, and never floats over a covered tool', () => {
+  // A tiny fake page: elements with rectangles, and what elementFromPoint finds.
+  const rect = (left, top, w, h) => ({ left, top, right: left + w, bottom: top + h, width: w, height: h });
+  const el = (r, opts = {}) => ({ getBoundingClientRect: () => r, offsetParent: opts.hidden ? null : {}, contains: (x) => x === opts.child, ...opts });
+  const page = ({ atCentre, overlays = [], dialogOpen = false }) => ({
+    elementFromPoint: () => atCentre,
+    querySelectorAll: (sel) => (sel === HINT_OVERLAYS ? overlays : []),
+    querySelector: (sel) => (sel === 'dialog[open]' && dialogOpen ? {} : null),
+    defaultView: { getComputedStyle: () => ({ position: 'absolute' }) },
+  });
+  const card = rect(100, 140, 300, 120);
+  const target = el(rect(200, 100, 120, 30));
+  it('shows when the tool is the topmost thing at its centre and nothing overlaps the card', () => {
+    assert.equal(hintRoomFor(target, card, page({ atCentre: target })), true);
+    const child = {};
+    const t2 = el(rect(200, 100, 120, 30), { child });
+    assert.equal(hintRoomFor(t2, card, page({ atCentre: child })), true, 'its icon or label counts as the tool');
+  });
+  it('hides when the tool is gone, hidden, covered by a drawer, or under a modal', () => {
+    assert.equal(hintRoomFor(null, card, page({ atCentre: null })), false);
+    assert.equal(hintRoomFor(el(rect(200, 100, 120, 30), { hidden: true }), card, page({ atCentre: target })), false);
+    assert.equal(hintRoomFor(target, card, page({ atCentre: { drawer: true } })), false, 'Story Bible slid over the board');
+    assert.equal(hintRoomFor(target, card, page({ atCentre: target, dialogOpen: true })), false, 'About, Export, Format Doctor…');
+  });
+  it('hides while a menu, dropdown, hover card or toast overlaps it (its own tool’s menu included)', () => {
+    const menu = el(rect(150, 120, 280, 200));
+    assert.equal(hintRoomFor(target, card, page({ atCentre: target, overlays: [menu] })), false);
+    const farMenu = el(rect(900, 500, 200, 100));
+    assert.equal(hintRoomFor(target, card, page({ atCentre: target, overlays: [farMenu] })), true, 'a menu elsewhere is fine');
+    for (const sel of ['.menu-pop', '.dl-select-list', '.cue-card', '.ac', '.bk-toast', '.milestone-toast', '.find-bar']) {
+      assert.ok(HINT_OVERLAYS.includes(sel), sel);
+    }
+    assert.ok(!HINT_OVERLAYS.includes('listbox'), 'the Dialogue cast list is a listbox but not a popup');
+  });
+  it('the card checks its room continuously while it’s up', () => {
+    const c = read('components/HintCard.jsx');
+    assert.match(c, /if \(!hintRoomFor\(target, \{ left, top, right: left \+ w, bottom: top \+ h \}\)\) \{\s*setPos\(null\);/);
+    assert.match(c, /const again = setInterval\(place, 250\);/);
+  });
+  it('flipped above its button (the status bar), the notch points down at it', () => {
+    assert.match(read('components/HintCard.jsx'), /\$\{pos\?\.above \? ' is-above' : ''\}/);
+    assert.match(read('components/HintCard.css'), /\.hint-card\.is-above::before \{[^}]*bottom: -6px;/);
   });
 });

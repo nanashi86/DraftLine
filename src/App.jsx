@@ -2050,6 +2050,9 @@ function Workspace({ boot }) {
   useEffect(() => {
     hintNow.current = {
       scenes: scenes.length, pages: layout.pageCount, sceneCards: sceneCardCount, shiftedCards: shiftedCardCount,
+      findings: showFormatStepper ? issues.filter((it) => !formatHidden.has(issueKey(it))).length : 0,
+      speakerCount: analysis.characterList.length,
+      speeches: analysis.characterList.reduce((n, c) => n + c.lines, 0),
       busy: hintBusy, characters, blocks, speakers,
     };
   });
@@ -2084,7 +2087,10 @@ function Workspace({ boot }) {
       try {
         sessionHint = globalThis.sessionStorage?.getItem(HINT_SESSION_KEY) || null;
       } catch { /* blocked storage: no session limit to read */ }
-      const ctx = { scenes: s.scenes, pages: s.pages, sceneCards: s.sceneCards, shiftedCards: s.shiftedCards, bioGains: 0 };
+      const ctx = {
+        scenes: s.scenes, pages: s.pages, sceneCards: s.sceneCards, shiftedCards: s.shiftedCards, bioGains: 0,
+        findings: s.findings, speakers: s.speakerCount, speeches: s.speeches,
+      };
       let id = pickHint(hintStates, sessionHint, ctx);
       if (!id && !hintStates.populateBio) {
         if (bio.blocks !== s.blocks || bio.characters !== s.characters) {
@@ -2110,6 +2116,16 @@ function Workspace({ boot }) {
       setActiveHint(null);
     }
   }, [activeHint, sceneCardCount, shiftedCardCount]);
+  // Using the Format stepper or Doctor, spotlighting a character, or opening Plan, any way and at
+  // any time (even before its hint ever showed), means that hint is never needed.
+  const formatUsed = formatAt !== null || doctorOpen;
+  const dialogueUsed = !!selectedChar;
+  useEffect(() => {
+    const used = [formatUsed && 'formatDoctor', dialogueUsed && 'dialogue', inPlan && 'plan'].filter(Boolean);
+    if (!used.some((id) => hintStates[id] !== 'done')) return;
+    setHintStates((st) => used.reduce((acc, id) => markHint(globalThis.localStorage, id, 'done', acc), st));
+    setActiveHint((a) => (used.includes(a) ? null : a));
+  }, [formatUsed, dialogueUsed, inPlan, hintStates]);
   /** A hinted tool was used (from the hint or not): that hint is done for good. */
   const hintToolUsed = useCallback((id) => {
     setHintStates((st) => markHint(globalThis.localStorage, id, 'done', st));
@@ -2118,7 +2134,9 @@ function Workspace({ boot }) {
     const c = hintClock.current;
     if (c.fromHint !== id) return;
     c.fromHint = null;
-    if (id === 'analyzeShifts') return; // its review window takes focus; closing it hands it back
+    // Only tools that change the script in place hand the cursor back; the others open a window, a
+    // list, a spotlight or the Plan workspace, which keep focus themselves.
+    if (!HINTS[id]?.caret) return;
     requestAnimationFrame(() => {
       const k = c.caret;
       if (!k?.el?.isConnected || k.el.offsetParent === null) return;
@@ -2128,6 +2146,17 @@ function Workspace({ boot }) {
       } catch { /* the line changed meanwhile: focus is enough */ }
     });
   }, []);
+  // Tools whose use is a click with no app state of its own (opening the Format stepper's list):
+  // a click inside them, from the hint or not, ends that hint.
+  useEffect(() => {
+    const watched = HINT_IDS.filter((id) => HINTS[id].usedBy && hintStates[id] !== 'done');
+    if (!watched.length) return undefined;
+    const onClick = (e) => {
+      for (const id of watched) if (e.target?.closest?.(HINTS[id].usedBy)) hintToolUsed(id);
+    };
+    document.addEventListener('click', onClick, true);
+    return () => document.removeEventListener('click', onClick, true);
+  }, [hintStates, hintToolUsed]);
   const runHint = () => {
     hintClock.current.fromHint = activeHint;
     setHintHandedOff(activeHint); // the tool takes over; closed without using it, the tip may come back another session
@@ -2145,11 +2174,21 @@ function Workspace({ boot }) {
   // Where the hint is now: a card beside the tool when its panel is open, else a dot on the button
   // that opens it (Analyze has no dot: it follows Import on the board). Hidden in Focus, Plan, Viewing.
   const hintHidden = !activeHint || hintHandedOff === activeHint || focusMode || inPlan || isLocked;
-  const hintPanelOpen = activeHint === 'populateBio' ? charactersOpen && characterTab !== 'dialogue' : showBoard;
+  // Is the tool's panel open (so the card can sit beside it)? The Format stepper and Plan are always on screen.
+  const hintPanelOpen = {
+    importScenes: showBoard,
+    analyzeShifts: showBoard,
+    populateBio: charactersOpen && characterTab !== 'dialogue',
+    dialogue: charactersOpen && characterTab === 'dialogue',
+    formatDoctor: true,
+    plan: true,
+  }[activeHint] ?? false;
   const hintCardShown = !hintHidden && hintPanelOpen;
-  // Characters already open on Dialogue: the dot goes on the Bios tab (clicking Characters would close it).
+  // Characters already open on the other tab: the dot goes on the tab (clicking Characters would close it).
   const hintBeacon = hintHidden || hintPanelOpen ? null
-    : activeHint === 'populateBio' && charactersOpen ? 'bios-tab' : HINTS[activeHint].beacon;
+    : activeHint === 'populateBio' && charactersOpen ? 'bios-tab'
+      : activeHint === 'dialogue' && charactersOpen ? 'dialogue-tab' : HINTS[activeHint].beacon;
+  const hintAction = activeHint === 'dialogue' && analysis.characterList[0] ? `Spotlight ${analysis.characterList[0].name}` : null;
   return (
     <>
       <div
@@ -2236,6 +2275,7 @@ function Workspace({ boot }) {
                   role="radio"
                   aria-checked={workspace === id}
                   className={`seg-btn ws-btn${workspace === id ? ' is-on' : ''}`}
+                  data-workspace={id}
                   onClick={() => switchWorkspace(id)}
                   title={title}
                   aria-label={label}
@@ -2575,7 +2615,7 @@ function Workspace({ boot }) {
             return r;
           }}
           onToolUsed={hintToolUsed}
-          tabBeacon={hintBeacon === 'bios-tab' ? 'bios' : null}
+          tabBeacon={{ 'bios-tab': 'bios', 'dialogue-tab': 'dialogue' }[hintBeacon] ?? null}
           dialogue={{
             analysis,
             pageOfBlock: layout.pageOfBlock,
@@ -2761,7 +2801,7 @@ function Workspace({ boot }) {
         )}
         {milestone && <div className="milestone-toast" role="status" key={milestone}>{milestone}</div>}
         {hintCardShown && (
-          <HintCard id={activeHint} placeKey={`${view}:${dock}:${characterTab}`} onAction={runHint} onDismiss={dismissHint} />
+          <HintCard id={activeHint} action={hintAction} onAction={runHint} onDismiss={dismissHint} />
         )}
         {backupTipShown && (
           <BackupToast

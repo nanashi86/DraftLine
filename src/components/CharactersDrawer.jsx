@@ -338,6 +338,7 @@ export default function CharactersDrawer({
               role="tab"
               aria-selected={tab === t.id}
               className={`pb-tab${tab === t.id ? ' is-on' : ''}${tabBeacon === t.id ? ' has-hint-beacon' : ''}`}
+              data-tab={t.id}
               onClick={() => onTabChange(t.id)}
               title={t.title}
             >

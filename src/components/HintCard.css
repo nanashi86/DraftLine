@@ -27,6 +27,13 @@
   background: var(--panel);
   transform: rotate(45deg);
 }
+.hint-card.is-above::before { /* flipped above its button (the status bar): the notch goes underneath */
+  top: auto;
+  bottom: -6px;
+  border: 0;
+  border-right: 1px solid var(--accent-border);
+  border-bottom: 1px solid var(--accent-border);
+}
 @keyframes hint-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
 
 .hint-head { display: flex; align-items: center; gap: 7px; }

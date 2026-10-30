@@ -1,7 +1,7 @@
 import { useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Lightbulb } from 'lucide-react';
-import { HINTS } from '../lib/hints.js';
+import { HINTS, hintRoomFor } from '../lib/hints.js';
 import './HintCard.css';
 
 const GAP = 8;
@@ -12,10 +12,12 @@ const MARGIN = 10;
  * tool's button and Got it. It never takes focus and never covers the script on its own: it only
  * appears once the panel holding the tool is open. Nothing runs until the writer clicks.
  *   id       — the hint; its target button is found by HINTS[id].target
- *   placeKey — changes when the panels move (view, dock, tab), so the card re-measures
+ *   action   — the button's words when they depend on the script (Spotlight MARIE); else HINTS[id].action
  *   onAction — click the tool (the same as clicking its button); onDismiss — Got it
+ * It checks its place a few times a second: if the tool moves it follows, and if the tool is covered
+ * or a menu or toast would overlap it, it hides until there's room again (hintRoomFor).
  */
-export default function HintCard({ id, placeKey, onAction, onDismiss }) {
+export default function HintCard({ id, action, onAction, onDismiss }) {
   const hint = HINTS[id];
   const cardRef = useRef(null);
   const [pos, setPos] = useState(null);
@@ -25,25 +27,27 @@ export default function HintCard({ id, placeKey, onAction, onDismiss }) {
     const place = () => {
       const target = document.querySelector(hint.target);
       const card = cardRef.current;
-      if (!target || !card || target.offsetParent === null) {
+      if (!target || !card) {
         setPos(null);
         return;
       }
       const t = target.getBoundingClientRect();
       const w = card.offsetWidth;
       const h = card.offsetHeight;
-      const left = Math.max(MARGIN, Math.min(t.right - w, window.innerWidth - MARGIN - w));
+      const want = hint.align === 'start' ? t.left : t.right - w;
+      const left = Math.max(MARGIN, Math.min(want, window.innerWidth - MARGIN - w));
       const below = t.bottom + GAP;
-      const top = below + h <= window.innerHeight - MARGIN ? below : Math.max(MARGIN, t.top - GAP - h);
-      setPos((p) => (p && p.left === left && p.top === top ? p : { left, top, arrow: Math.min(w - 18, Math.max(12, t.left + t.width / 2 - left)) }));
+      const above = below + h > window.innerHeight - MARGIN;
+      const top = above ? Math.max(MARGIN, t.top - GAP - h) : below;
+      if (!hintRoomFor(target, { left, top, right: left + w, bottom: top + h })) {
+        setPos(null);
+        return;
+      }
+      setPos((p) => (p && p.left === left && p.top === top ? p : { left, top, above, arrow: Math.min(w - 18, Math.max(12, t.left + t.width / 2 - left)) }));
     };
     place();
-    // Look again for a few seconds: a drawer slides in, and the Scene Board loads the first time it opens.
-    let tries = 0;
-    const again = setInterval(() => {
-      place();
-      if (++tries >= 20) clearInterval(again);
-    }, 250);
+    // Keep checking while it's up: a drawer slides in, the board loads, a menu opens, a toast arrives.
+    const again = setInterval(place, 250);
     window.addEventListener('resize', place);
     window.addEventListener('scroll', place, true);
     return () => {
@@ -51,13 +55,13 @@ export default function HintCard({ id, placeKey, onAction, onDismiss }) {
       window.removeEventListener('resize', place);
       window.removeEventListener('scroll', place, true);
     };
-  }, [hint, placeKey]);
+  }, [hint]);
 
   if (!hint) return null;
   return createPortal(
     <aside
       ref={cardRef}
-      className={`hint-card${pos ? '' : ' is-measuring'}`}
+      className={`hint-card${pos ? '' : ' is-measuring'}${pos?.above ? ' is-above' : ''}`}
       role="status"
       aria-live="polite"
       aria-labelledby={`hint-${id}`}
@@ -71,7 +75,7 @@ export default function HintCard({ id, placeKey, onAction, onDismiss }) {
       </div>
       <p className="hint-text">{hint.text}</p>
       <div className="hint-actions">
-        <button type="button" className="btn hint-go" onClick={onAction}>{hint.action}</button>
+        <button type="button" className="btn hint-go" onClick={onAction}>{action || hint.action}</button>
         <button type="button" className="btn hint-dismiss" onClick={onDismiss}>Got it</button>
       </div>
     </aside>,
