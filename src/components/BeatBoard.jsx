@@ -210,6 +210,7 @@ const MODES = [
 
 export default function BeatBoard({
   beats, onChange, onMoveCard, onExport, compact, actMode = 4, onActModeChange, scenes = [], pageCount = 1, onJump, hidden = false,
+  onToolUsed, // (tool) — Import Scenes or Analyze Value Shifts was used (its feature hint is then done)
   getBlocks, // () => the script's elements now: read when Analyze Value Shifts opens (not on every keystroke)
 }) {
   const [dragId, setDragId] = useState(null);
@@ -285,6 +286,7 @@ export default function BeatBoard({
     }
     const prev = beatsRef.current;
     onChange(result.beats);
+    onToolUsed?.('importScenes');
     const parts = [`${scenes.length} scene ${scenes.length === 1 ? 'card' : 'cards'} ${how}`];
     if (result.updated) parts.push(`${result.updated} kept your edits`);
     if (result.kept) parts.push(`${result.kept} of your own kept`);
@@ -471,7 +473,10 @@ export default function BeatBoard({
             <button
               type="button"
               className="btn btn-outline board-analyze"
-              onClick={() => setShiftScan(scanValueShifts(getBlocks()))}
+              onClick={() => {
+                setShiftScan(scanValueShifts(getBlocks()));
+                onToolUsed?.('analyzeShifts');
+              }}
               title="Read each scene’s opening and ending and suggest its Value Shift (+ / −, − / +, + / +, − / −)"
             >
               <Zap size={13} strokeWidth={1.75} aria-hidden /> Analyze Value Shifts

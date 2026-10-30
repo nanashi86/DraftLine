@@ -135,7 +135,7 @@ describe('Scene Board: Analyze Value Shifts', () => {
     assert.doesNotMatch(board + modal, /⚡/);
   });
   it('reads the script only when opened', () => {
-    assert.match(board, /onClick=\{\(\) => setShiftScan\(scanValueShifts\(getBlocks\(\)\)\)\}/);
+    assert.match(board, /onClick=\{\(\) => \{\s*setShiftScan\(scanValueShifts\(getBlocks\(\)\)\);/);
     assert.match(read('src/App.jsx'), /getBlocks=\{getBlocks\}/);
   });
   it('lists Scene # · Slugline · Suggested · Current, with ✓ per scene and Apply to All Cards', () => {

@@ -72,7 +72,7 @@ function fmtBytes(n) {
 }
 
 /** Keyboard Shortcuts or About DraftLine, from the ⋮ menu. */
-export default function HelpModal({ kind, storage, onClose }) {
+export default function HelpModal({ kind, storage, onClose, tipsFinished = 0, onResetTips }) {
   const dialogRef = useRef(null);
   const [lib, setLib] = useState({ count: null, persisted: null, usage: null });
   const [credits, setCredits] = useState(() => normalizeCredits(null));
@@ -224,6 +224,15 @@ export default function HelpModal({ kind, storage, onClose }) {
                   ? `DraftLine uploads nothing – if "${storage.sync.folderName}" is a Drive folder, your Drive app syncs it`
                   : 'your script never leaves this computer'}
               </dd></div>
+            {onResetTips && tipsFinished > 0 && (
+              <div>
+                <dt>Tips</dt>
+                <dd>
+                  <button type="button" className="hm-tips-reset" onClick={onResetTips}>Show tips again</button>
+                  <span className="hm-tips-note"> · Import Scenes, Analyze Value Shifts and Populate Bio</span>
+                </dd>
+              </div>
+            )}
           </dl>
           <section className="hm-privacy" aria-labelledby="hm-privacy-title">
             <h3 id="hm-privacy-title">Your Data</h3>

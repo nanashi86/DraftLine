@@ -1,11 +1,11 @@
 // DL 05 · Write — Story Bible and worldbuilding (~32 s, unhurried)
 // Starts on The Last Ferry (loaded off camera) with a logline, tone, synopsis and an empty Locations
 // card in the Story Bible. Opens the Story Bible on its overview (Notes: Logline, Tone, Synopsis),
-// writes the first location into the Locations card, shows the Glossary's categories (DNA tab),
+// writes the first location into the Locations card, shows the Glossary's categories (Glossary tab),
 // then closes back to the script.
 //
-// The Story Bible has two tabs, DNA and Notes; there are no separate Locations, Props or World tabs.
-// Locations is a Notes card here, and the categories shown are the Glossary's sections in DNA.
+// The Story Bible has three tabs, DNA, Notes and Glossary; there are no separate Locations, Props or
+// World tabs. Locations is a Notes card here, and the categories shown are the Glossary tab's sections.
 //
 //   node scripts/record-dl05.js
 //   → recordings/DL_05_Write_StoryBibleAndWorldbuilding/DL_05_Write_StoryBibleAndWorldbuilding.mp4
@@ -70,11 +70,9 @@ main(() => record({
     await typeHuman(FIRST_LOCATION);
     await hold(1500);
 
-    // 6. World categories: DNA → Glossary, its sections down the panel.
+    // 6. World categories: the Glossary tab, its sections down the panel.
     say('Worldbuilding: the Glossary categories');
-    await click(bible.getByRole('tab', { name: /^DNA/ }), 700);
-    const glossary = bible.getByRole('radio', { name: 'Glossary' });
-    if (await glossary.isVisible()) await click(glossary, 900);
+    await click(bible.getByRole('tab', { name: /^Glossary/ }), 900);
     await glide(bible.locator('.dict-section-head').first(), { dy: 10 });
     await wheel(160, 3, 450);
     await hold(3000);

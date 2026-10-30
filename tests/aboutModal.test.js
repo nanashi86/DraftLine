@@ -44,7 +44,8 @@ describe('About DraftLine', () => {
   it('the facts list leads with "Created by: Eric Lemaire Jr.", then the five storage rows, all one label width', () => {
     const facts = about.slice(about.indexOf('className="hm-facts"'), about.indexOf('</dl>'));
     const labels = [...facts.matchAll(/<dt>([^<]+)<\/dt>/g)].map((m) => m[1]);
-    assert.deepEqual(labels, ['Created by', 'Storage', 'Last saved', 'This script', 'Protected', 'Network']);
+    // …and last, once any feature hint has been seen or used, Tips with "Show tips again"
+    assert.deepEqual(labels, ['Created by', 'Storage', 'Last saved', 'This script', 'Protected', 'Network', 'Tips']);
     assert.match(facts, /<dt>Created by<\/dt><dd>Eric Lemaire Jr\.<\/dd>/);
     assert.match(css, /\.hm-facts dt \{ flex: none; width: 92px;/);
     assert.ok(about.indexOf('className="hm-facts"') > about.indexOf('className="hm-credits"'), 'below the credits');

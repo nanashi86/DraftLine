@@ -1,0 +1,66 @@
+/* A feature hint (HintCard.jsx): the corner-toast surface, small, beside the tool it points at,
+   with a notch toward the button. Over drawers and the board, under menus and dialogs. */
+.hint-card {
+  position: fixed;
+  z-index: 58;
+  box-sizing: border-box;
+  width: min(300px, calc(100vw - 20px));
+  padding: 11px 12px 12px;
+  border: 1px solid var(--accent-border);
+  border-radius: 10px;
+  background: var(--panel);
+  color: var(--text);
+  font: 13px/1.5 var(--ui-font);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+  animation: hint-in 200ms ease-out;
+}
+.hint-card.is-measuring { visibility: hidden; left: 0; top: 0; }
+.hint-card::before { /* the notch, above the card, under the button */
+  content: '';
+  position: absolute;
+  top: -6px;
+  left: calc(var(--hint-arrow, 24px) - 6px);
+  width: 10px;
+  height: 10px;
+  border-left: 1px solid var(--accent-border);
+  border-top: 1px solid var(--accent-border);
+  background: var(--panel);
+  transform: rotate(45deg);
+}
+@keyframes hint-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+
+.hint-head { display: flex; align-items: center; gap: 7px; }
+.hint-icon { flex: none; color: var(--accent); }
+.hint-head h2 { margin: 0; font-size: 13.5px; font-weight: 650; }
+.hint-text { margin: 5px 0 10px; color: var(--muted); font-size: 12.5px; }
+.hint-actions { display: flex; align-items: center; gap: 6px; }
+.hint-actions .btn { padding: 5px 10px; font-size: 12.5px; }
+.hint-actions .hint-go { border-color: transparent; background: var(--accent); color: var(--on-accent); }
+.hint-actions .hint-go:hover { background: color-mix(in srgb, var(--accent) 88%, #fff); }
+.hint-actions .hint-dismiss { margin-left: auto; color: var(--muted); }
+
+/* The beacon: a small accent dot on a top-bar button (Split, Characters) while a hint waits there. */
+.has-hint-beacon { position: relative; }
+.has-hint-beacon::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 60%, transparent);
+  animation: hint-beacon 2.4s ease-out infinite;
+  pointer-events: none;
+}
+@keyframes hint-beacon {
+  0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 55%, transparent); }
+  70%, 100% { box-shadow: 0 0 0 7px transparent; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hint-card { animation: none; }
+  .has-hint-beacon::after { animation: none; }
+}
+@media print { .hint-card { display: none; } .has-hint-beacon::after { display: none; } }

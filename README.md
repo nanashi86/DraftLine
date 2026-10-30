@@ -460,9 +460,9 @@ src/
   components/Menu.jsx      small dropdown menu (Export, ⋮)
   components/HelpModal.jsx Keyboard Shortcuts and About DraftLine
   components/ProjectsDrawer.jsx  the project library drawer
-  components/ProjectBibleDrawer.jsx  Story Bible drawer: DNA and Notes tabs
+  components/ProjectBibleDrawer.jsx  Story Bible drawer: DNA, Notes and Glossary tabs
   components/CharactersDrawer.jsx    Characters drawer: Bios and Dialogue tabs
-  components/StoryDna.jsx  Story Blueprint and Story Glossary
+  components/StoryDna.jsx  DNA (the story blueprint) and the Glossary tab (StoryGlossary)
   components/FormattedText.jsx  styled runs (editor overlay, print, title page)
   components/ImportModal.jsx  paste / drop import with live preview
   components/FormatDoctorModal.jsx  script audit list with Fix / Fix All

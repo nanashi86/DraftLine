@@ -264,7 +264,7 @@ function CharacterBios({ characters, onChange, speakers, onUndoable, onRename, r
  */
 export default function CharactersDrawer({
   open, onClose, tab = DEFAULT_CHARACTER_TAB, onTabChange, characters, onCharactersChange, speakers,
-  onRenameCharacter, revealBio = null, dialogue, dictionary = [], onOpenGlossary, onPopulateBios,
+  onRenameCharacter, revealBio = null, dialogue, dictionary = [], onOpenGlossary, onPopulateBios, onToolUsed, tabBeacon = null,
 }) {
   const [undo, setUndo] = useState(null); // { message, restore }
   const panelRef = useRef(null);
@@ -316,6 +316,7 @@ export default function CharactersDrawer({
                 const prev = characters;
                 const r = onPopulateBios();
                 setUndo({ message: populateSummary(r), restore: r.filled.length ? () => onCharactersChange(prev) : null });
+                onToolUsed?.('populateBio'); // its feature hint is done
               }}
               title="Fill empty Age / Timeline and Physical Description fields from how the script introduces each character, e.g. MARJORIE (30s)--warm-dark skin. Nothing you've typed is changed."
             >
@@ -336,7 +337,7 @@ export default function CharactersDrawer({
               type="button"
               role="tab"
               aria-selected={tab === t.id}
-              className={`pb-tab${tab === t.id ? ' is-on' : ''}`}
+              className={`pb-tab${tab === t.id ? ' is-on' : ''}${tabBeacon === t.id ? ' has-hint-beacon' : ''}`}
               onClick={() => onTabChange(t.id)}
               title={t.title}
             >

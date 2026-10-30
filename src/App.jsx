@@ -8,6 +8,10 @@ import Navigator from './components/Navigator.jsx';
 import TitlePageModal from './components/TitlePageModal.jsx';
 import ExportPdfModal from './components/ExportPdfModal.jsx';
 import Select from './components/Select.jsx';
+import HintCard from './components/HintCard.jsx';
+import {
+  HINTS, HINT_IDS, HINT_SESSION_KEY, hintCalm, markHint, pickHint, readHints, resetHints,
+} from './lib/hints.js';
 import ExportFdxModal from './components/ExportFdxModal.jsx';
 import DeleteProjectModal from './components/DeleteProjectModal.jsx';
 import DialogueStepper from './components/DialogueStepper.jsx';
@@ -361,6 +365,9 @@ function Workspace({ boot }) {
     return () => ro.disconnect();
   }, []);
   const charactersBtnRef = useRef(null);
+  // Feature hints (lib/hints.js): when you last typed, when this script was opened, where your caret
+  // was (to put it back after a hint's tool runs), and which hint's button was just clicked.
+  const hintClock = useRef({ lastKeyAt: 0, openedAt: 0, caret: null, fromHint: null });
   const bibleBtnRef = useRef(null);
   const focusBtnRef = useRef(null);
   const [toast, setToast] = useState(() => bootMessage(boot));
@@ -885,6 +892,7 @@ function Workspace({ boot }) {
   // ---- Projects ----
   /** Show a stored project: script, title page, beats, Bible; fresh undo history; nothing unsaved. */
   const applyProject = useCallback((rec) => {
+    hintClock.current.openedAt = Date.now(); // a script just opened or imported: hints wait a minute
     const doc = toDoc(rec);
     const m = { ...EMPTY_META, ...doc.meta };
     const bl = doc.blocks.length ? doc.blocks : [makeBlock('scene')];
@@ -2016,6 +2024,127 @@ function Workspace({ boot }) {
       </div>
     </>
   );
+
+  // ---- Feature hints (lib/hints.js): Import Scenes → Analyze Value Shifts, and Populate Bio ----
+  // A dot on Split / Characters, then a small card beside the tool once its panel is open. Shown
+  // once each, only when it's calm; nothing runs until the writer clicks.
+  const backupTipShown = shouldShowBackupToast({
+    pages: layout.pageCount,
+    words: analysis.words,
+    state: saveStatus.state,
+    supported: sync.supported,
+    dismissedForever: backupTipClosed.forever,
+    dismissedSession: backupTipClosed.session,
+    busy: !!(milestone || exportToast || focusMode), // the corner is taken, or you're in Focus: later
+    lastBackupAt: lastBackups[projectId] ?? null,
+    savedAt: saved.at ?? null,
+  });
+  const [hintStates, setHintStates] = useState(() => readHints(globalThis.localStorage));
+  const [activeHint, setActiveHint] = useState(null);
+  const hintNow = useRef({});
+  const sceneCardCount = beats.filter((b) => b.sceneId).length;
+  const shiftedCardCount = beats.filter((b) => b.sceneId && b.valueShift).length;
+  const hintBusy = !!(focusMode || isLocked || inPlan || milestone || exportToast || backupTipShown);
+  useEffect(() => {
+    hintNow.current = {
+      scenes: scenes.length, pages: layout.pageCount, sceneCards: sceneCardCount, shiftedCards: shiftedCardCount,
+      busy: hintBusy, characters, blocks, speakers,
+    };
+  });
+  useEffect(() => {
+    const c = hintClock.current;
+    if (!c.openedAt) c.openedAt = Date.now();
+    const onKey = () => {
+      c.lastKeyAt = Date.now();
+    };
+    // Where the caret was in the script, so it can go back there after a hint's tool runs.
+    const onOut = (e) => {
+      const t = e.target;
+      if (t?.classList?.contains('el-input')) c.caret = { el: t, start: t.selectionStart, end: t.selectionEnd };
+    };
+    const pane = scrollerRef.current;
+    window.addEventListener('keydown', onKey, true);
+    pane?.addEventListener('focusout', onOut);
+    return () => {
+      window.removeEventListener('keydown', onKey, true);
+      pane?.removeEventListener('focusout', onOut);
+    };
+  }, [scrollerRef]);
+  const allHintsFinished = HINT_IDS.every((id) => hintStates[id]);
+  useEffect(() => {
+    if (allHintsFinished || activeHint) return undefined;
+    let bio = { blocks: null, characters: null, gains: 0 }; // Populate Bio's dry run, redone only when the script or bios change
+    const tick = () => {
+      const s = hintNow.current;
+      const c = hintClock.current;
+      if (!hintCalm({ now: Date.now(), lastKeyAt: c.lastKeyAt, openedAt: c.openedAt, busy: s.busy })) return;
+      let sessionHint = null;
+      try {
+        sessionHint = globalThis.sessionStorage?.getItem(HINT_SESSION_KEY) || null;
+      } catch { /* blocked storage: no session limit to read */ }
+      const ctx = { scenes: s.scenes, pages: s.pages, sceneCards: s.sceneCards, shiftedCards: s.shiftedCards, bioGains: 0 };
+      let id = pickHint(hintStates, sessionHint, ctx);
+      if (!id && !hintStates.populateBio) {
+        if (bio.blocks !== s.blocks || bio.characters !== s.characters) {
+          const r = populateBiosFromIntros(s.characters, s.blocks, s.speakers);
+          bio = { blocks: s.blocks, characters: s.characters, gains: r.filled.length + r.created.length };
+        }
+        id = pickHint(hintStates, sessionHint, { ...ctx, bioGains: bio.gains });
+      }
+      if (!id) return;
+      try {
+        globalThis.sessionStorage?.setItem(HINT_SESSION_KEY, id);
+      } catch { /* blocked storage: the in-memory state still shows it once */ }
+      setActiveHint(id);
+    };
+    const timer = setInterval(tick, 2000);
+    return () => clearInterval(timer);
+  }, [allHintsFinished, activeHint, hintStates]);
+  // The writer got there another way (cards made by hand, a Value Shift set): the hint is done.
+  useEffect(() => {
+    const already = (activeHint === 'importScenes' && sceneCardCount > 0) || (activeHint === 'analyzeShifts' && shiftedCardCount > 0);
+    if (already) {
+      setHintStates((st) => markHint(globalThis.localStorage, activeHint, 'done', st));
+      setActiveHint(null);
+    }
+  }, [activeHint, sceneCardCount, shiftedCardCount]);
+  /** A hinted tool was used (from the hint or not): that hint is done for good. */
+  const hintToolUsed = useCallback((id) => {
+    setHintStates((st) => markHint(globalThis.localStorage, id, 'done', st));
+    setActiveHint((a) => (a === id ? null : a));
+    const c = hintClock.current;
+    if (c.fromHint !== id) return;
+    c.fromHint = null;
+    if (id === 'analyzeShifts') return; // its review window takes focus; closing it hands it back
+    requestAnimationFrame(() => {
+      const k = c.caret;
+      if (!k?.el?.isConnected || k.el.offsetParent === null) return;
+      k.el.focus({ preventScroll: true });
+      try {
+        k.el.setSelectionRange(k.start, k.end);
+      } catch { /* the line changed meanwhile: focus is enough */ }
+    });
+  }, []);
+  const runHint = () => {
+    hintClock.current.fromHint = activeHint;
+    document.querySelector(HINTS[activeHint].target)?.click(); // exactly what clicking the tool does
+  };
+  const dismissHint = () => {
+    setHintStates((st) => markHint(globalThis.localStorage, activeHint, 'dismissed', st));
+    setActiveHint(null);
+  };
+  const resetTips = () => {
+    setHintStates(resetHints(globalThis.localStorage, globalThis.sessionStorage));
+    setActiveHint(null);
+  };
+  // Where the hint is now: a card beside the tool when its panel is open, else a dot on the button
+  // that opens it (Analyze has no dot: it follows Import on the board). Hidden in Focus, Plan, Viewing.
+  const hintHidden = !activeHint || focusMode || inPlan || isLocked;
+  const hintPanelOpen = activeHint === 'populateBio' ? charactersOpen && characterTab !== 'dialogue' : showBoard;
+  const hintCardShown = !hintHidden && hintPanelOpen;
+  // Characters already open on Dialogue: the dot goes on the Bios tab (clicking Characters would close it).
+  const hintBeacon = hintHidden || hintPanelOpen ? null
+    : activeHint === 'populateBio' && charactersOpen ? 'bios-tab' : HINTS[activeHint].beacon;
   return (
     <>
       <div
@@ -2169,7 +2298,7 @@ function Workspace({ boot }) {
                 role="radio"
                 aria-checked={view === id}
                 aria-label={label}
-                className={`seg-btn${view === id ? ' is-on' : ''}`}
+                className={`seg-btn${view === id ? ' is-on' : ''}${id === 'split' && hintBeacon === 'split' ? ' has-hint-beacon' : ''}`}
                 onClick={() => setView(id)}
                 title={`${label}: ${title} · Alt+B cycles`}
               >
@@ -2221,7 +2350,7 @@ function Workspace({ boot }) {
             <button
               ref={charactersBtnRef}
               hidden={inPlan}
-              className={`btn btn-accent${charactersOpen ? ' is-on' : ''}`}
+              className={`btn btn-accent${charactersOpen ? ' is-on' : ''}${hintBeacon === 'characters' ? ' has-hint-beacon' : ''}`}
               onClick={() => setDock((d) => toggleDock(d, 'characters'))}
               title="Characters: Bios · Dialogue (Alt+C · Alt+T opens Dialogue)"
               aria-pressed={charactersOpen}
@@ -2392,6 +2521,7 @@ function Workspace({ boot }) {
               onJump={jumpTo}
               getBlocks={getBlocks}
               hidden={inPlan}
+              onToolUsed={hintToolUsed}
             />
             </Suspense>
           )}
@@ -2439,6 +2569,8 @@ function Workspace({ boot }) {
             if (r.filled.length) setCharacters(r.list);
             return r;
           }}
+          onToolUsed={hintToolUsed}
+          tabBeacon={hintBeacon === 'bios-tab' ? 'bios' : null}
           dialogue={{
             analysis,
             pageOfBlock: layout.pageOfBlock,
@@ -2623,17 +2755,10 @@ function Workspace({ boot }) {
           />
         )}
         {milestone && <div className="milestone-toast" role="status" key={milestone}>{milestone}</div>}
-        {shouldShowBackupToast({
-          pages: layout.pageCount,
-          words: analysis.words,
-          state: saveStatus.state,
-          supported: sync.supported,
-          dismissedForever: backupTipClosed.forever,
-          dismissedSession: backupTipClosed.session,
-          busy: !!(milestone || exportToast || focusMode), // the corner is taken, or you're in Focus: later
-          lastBackupAt: lastBackups[projectId] ?? null,
-          savedAt: saved.at ?? null,
-        }) && (
+        {hintCardShown && (
+          <HintCard id={activeHint} placeKey={`${view}:${dock}:${characterTab}`} onAction={runHint} onDismiss={dismissHint} />
+        )}
+        {backupTipShown && (
           <BackupToast
             copy={backupToastCopy({ supported: sync.supported, family: BROWSER_FAMILY, standalone: RUNNING_STANDALONE })}
             onAction={() => {
@@ -2778,6 +2903,8 @@ function Workspace({ boot }) {
             kind={helpKind}
             storage={{ ok: saved.ok, savedAt: saved.at, bytes: JSON.stringify({ meta, blocks, beats, characters, storyNotes, storyDna, production }).length, countProjects: () => projects.getAllProjects().then((l) => l.length), sync }}
             onClose={() => setHelpKind(null)}
+            tipsFinished={HINT_IDS.filter((id) => hintStates[id]).length}
+            onResetTips={resetTips}
           />
         )}
 
