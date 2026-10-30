@@ -400,6 +400,9 @@
 .dict-body { display: grid; gap: 8px; justify-items: start; padding: 0 14px 12px 32px; }
 .dict-def { margin: 0; font-size: 13.5px; line-height: 1.6; }
 .dict-items { margin: 0; padding-left: 18px; font-size: 13px; line-height: 1.55; }
+.dict-item-group { margin-top: 4px; }
+.dict-item-group > b { font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.dict-item-group > .dict-items { padding-left: 16px; }
 .dict-example {
   margin: 0;
   width: 100%;

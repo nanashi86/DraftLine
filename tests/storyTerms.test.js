@@ -1,7 +1,8 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import {
-  DNA_QUESTIONS, PLOT_DEVICES, addDevice, availableDevices, deviceInfo, normalizeStoryDna, plotDeviceLayout, removeDevice, storyDnaProgress,
+  CONFLICT_LEVELS, CONFLICT_TYPES, matchConflictType, DNA_QUESTIONS, PLOT_DEVICES, addDevice, availableDevices, deviceInfo, normalizeStoryDna, plotDeviceLayout, removeDevice, storyDnaProgress,
 } from '../src/lib/storyDna.js';
 import { STRUCTURE_DICTIONARY, dictionaryEntry, mergeDictionary } from '../src/lib/structureDictionary.js';
 
@@ -76,6 +77,39 @@ describe('Glossary: the new and reworded craft terms', () => {
   it('Deus ex machina reads as a warning; Catalyst explains its Save the Cat meaning; Conflict maps to McKee’s three levels', () => {
     assert.match(dictionaryEntry(STRUCTURE_DICTIONARY, 'deusExMachina').definition, /Something to avoid rather than plan/);
     assert.match(dictionaryEntry(STRUCTURE_DICTIONARY, 'catalyst').definition, /Save the Cat/);
-    assert.match(dictionaryEntry(STRUCTURE_DICTIONARY, 'conflict').definition, /inner .*personal .*wider world/);
+    assert.match(dictionaryEntry(STRUCTURE_DICTIONARY, 'conflict').definition, /Inner \(against yourself\), Personal .*the Wider World/);
+  });
+});
+
+describe('Conflict types grouped under McKee’s three levels', () => {
+  const ui = readFileSync(new URL('../src/components/StoryDna.jsx', import.meta.url), 'utf8');
+  it('Inner, Personal and Wider World hold the six types, each exactly once', () => {
+    assert.deepEqual(CONFLICT_LEVELS.map((l) => [l.group, l.types]), [
+      ['Inner Conflict', ['Individual vs. Self']],
+      ['Personal Conflict', ['Individual vs. Individual']],
+      ['Wider World Conflict', ['Individual vs. Society', 'Individual vs. Nature', 'Individual vs. Technology', 'Individual vs. Supernatural']],
+    ]);
+    const all = CONFLICT_LEVELS.flatMap((l) => l.types);
+    assert.equal(new Set(all).size, 6);
+    assert.deepEqual([...all].sort(), [...CONFLICT_TYPES].sort());
+  });
+  it('stored values are unchanged: older scripts and loose spellings still load to the same type', () => {
+    assert.deepEqual(CONFLICT_TYPES, [
+      'Individual vs. Individual', 'Individual vs. Nature', 'Individual vs. Society', 'Individual vs. Technology', 'Individual vs. Supernatural', 'Individual vs. Self',
+    ]);
+    assert.equal(normalizeStoryDna({ conflictType: 'Individual vs. Technology' }).conflictType, 'Individual vs. Technology');
+    assert.equal(matchConflictType('man vs. nature'), 'Individual vs. Nature');
+    assert.equal(matchConflictType('vs self'), 'Individual vs. Self');
+  });
+  it('the picker wraps its options in one <optgroup> per level; each option’s value is the type itself', () => {
+    assert.match(ui, /<option value="">Type of conflict…<\/option>\s*\{CONFLICT_LEVELS\.map\(\(lv\) => \(\s*<optgroup key=\{lv\.id\} label=\{lv\.group\}>\s*\{lv\.types\.map\(\(t\) => <option key=\{t\} value=\{t\}>\{t\}<\/option>\)\}\s*<\/optgroup>/);
+  });
+  it('the Glossary nests the six types under Inner, Personal and Wider World, matching the picker', () => {
+    const items = dictionaryEntry(STRUCTURE_DICTIONARY, 'conflict').items;
+    const byLevel = CONFLICT_LEVELS.map((l) => [l.level, items.filter((it) => it.level === l.level).map((it) => it.term)]);
+    assert.deepEqual(byLevel, CONFLICT_LEVELS.map((l) => [l.level, l.types]));
+    assert.equal(items.length, 6);
+    assert.match(ui, /<li key=\{level\} className="dict-item-group">\s*<b>\{level\}<\/b>\s*<ul className="dict-items">/);
+    assert.match(ui, /return level \? `\$\{level\}: \$\{terms\}` : terms;/, 'the ⓘ tooltip groups them too');
   });
 });

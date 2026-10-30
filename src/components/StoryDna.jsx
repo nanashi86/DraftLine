@@ -2,7 +2,7 @@ import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import AutoTextarea from './AutoTextarea.jsx';
 import {
-  CONFLICT_TYPES, DNA_QUESTIONS, GENRES, addDevice, plotDeviceLayout, removeDevice, setAnswer, setDevice,
+  CONFLICT_LEVELS, DNA_QUESTIONS, GENRES, addDevice, plotDeviceLayout, removeDevice, setAnswer, setDevice,
   setField, storyDnaProgress, toggleGenre,
 } from '../lib/storyDna.js';
 import { dictionaryEntry, glossarySections } from '../lib/structureDictionary.js';
@@ -71,7 +71,12 @@ export function InfoTip({ entry, onOpen }) {
           <b>{entry.term}</b>
           <span className="dna-tip-def">{entry.definition}</span>
           {entry.items && (
-            <span className="dna-tip-items">{entry.items.map((it) => it.term).join(' · ')}</span>
+            <span className="dna-tip-items">
+              {itemGroups(entry.items).map(({ level, items }) => {
+                const terms = items.map((it) => it.term).join(level ? ', ' : ' · ');
+                return level ? `${level}: ${terms}` : terms;
+              }).join(' · ')}
+            </span>
           )}
           <span className="dna-tip-more">Click for the Glossary</span>
         </span>,
@@ -228,7 +233,11 @@ function Blueprint({ dna, onChange, dictionary, onOpenTerm }) {
                 aria-label="Type of conflict"
               >
                 <option value="">Type of conflict…</option>
-                {CONFLICT_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
+                {CONFLICT_LEVELS.map((lv) => (
+                  <optgroup key={lv.id} label={lv.group}>
+                    {lv.types.map((t) => <option key={t} value={t}>{t}</option>)}
+                  </optgroup>
+                ))}
               </select>
             )}
             <AutoTextarea
@@ -274,6 +283,17 @@ function EntryEditor({ entry, onSave, onCancel, onReset }) {
       </div>
     </div>
   );
+}
+
+/** A term's sub-items in runs by `level` (Conflict's three levels); items without one stay as they are. */
+function itemGroups(items) {
+  const runs = [];
+  for (const it of items) {
+    const last = runs[runs.length - 1];
+    if (last && last.level === (it.level || null)) last.items.push(it);
+    else runs.push({ level: it.level || null, items: [it] });
+  }
+  return runs;
 }
 
 function Dictionary({ dictionary, openId, setOpenId, onEdit }) {
@@ -345,7 +365,15 @@ function Dictionary({ dictionary, openId, setOpenId, onEdit }) {
                           <p className="dict-def">{e.definition}</p>
                           {e.items && (
                             <ul className="dict-items">
-                              {e.items.map((it) => <li key={it.term}><b>{it.term}</b> — {it.definition}</li>)}
+                              {itemGroups(e.items).map(({ level, items }) => (level ? (
+                                // Conflict: the six types nested under Inner / Personal / Wider World
+                                <li key={level} className="dict-item-group">
+                                  <b>{level}</b>
+                                  <ul className="dict-items">
+                                    {items.map((it) => <li key={it.term}><b>{it.term}</b> — {it.definition}</li>)}
+                                  </ul>
+                                </li>
+                              ) : items.map((it) => <li key={it.term}><b>{it.term}</b> — {it.definition}</li>)))}
                             </ul>
                           )}
                           {e.example && <pre className="dict-example">{e.example}</pre>}

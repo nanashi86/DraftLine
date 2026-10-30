@@ -57,6 +57,22 @@ export const CONFLICT_TYPES = [
 ];
 
 /**
+ * The six types grouped under Robert McKee's three levels of conflict, for the Conflict picker's
+ * <optgroup>s and the Glossary. Display only: the stored value is still the type's own label
+ * (CONFLICT_TYPES), so saved scripts and the loose matching in matchConflictType are unchanged.
+ */
+export const CONFLICT_LEVELS = [
+  { id: 'inner', level: 'Inner', group: 'Inner Conflict', types: ['Individual vs. Self'] },
+  { id: 'personal', level: 'Personal', group: 'Personal Conflict', types: ['Individual vs. Individual'] },
+  {
+    id: 'world',
+    level: 'Wider World',
+    group: 'Wider World Conflict',
+    types: ['Individual vs. Society', 'Individual vs. Nature', 'Individual vs. Technology', 'Individual vs. Supernatural'],
+  },
+];
+
+/**
  * Plot Devices the writer can add to the blueprint, each with Yes / No and notes. `dict` is the
  * Glossary entry its (i) shows. Stored as `devices: [{ id, on, notes }]`: Foreshadowing and
  * Flashback first (always there — see DEFAULT_DEVICES), then the others in the order added.

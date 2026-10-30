@@ -36,6 +36,7 @@ All notable changes to DraftLine are recorded here. The format follows [Keep a C
 
 ### Changed
 
+- Story DNA's Conflict picker groups the six conflict types under Robert McKee's three levels, as `<optgroup>`s: **Inner Conflict** (Individual vs. Self), **Personal Conflict** (Individual vs. Individual) and **Wider World Conflict** (vs. Society, Nature, Technology, Supernatural). The Glossary's Conflict / Obstacle entry nests the same six under **Inner**, **Personal** and **Wider World**, and its ⓘ tooltip groups them the same way. The stored values are unchanged, so saved scripts and loose spellings ("vs self", "Man vs. Nature") load exactly as before.
 - Story DNA and the Glossary use screenwriting terms. Every saved answer, plot device and custom definition stays where it was.
   - **Blueprint questions:** "Why doesn't that work?" is now **Crisis (All Is Lost)** (it was labelled Climax, but it's the low point before the climax). "How does it end?" is now **Climax & Resolution**. Conflict / Debate is **Conflict / Obstacle** ("Debate" is a different Save the Cat beat), and Rising Action is **Rising Action (Complications)**. Each question keeps its storage key and wording, so existing answers stay under the same question; only the labels and their ⓘ links changed.
   - **Plot Devices:** **Ticking Clock** replaces Deus ex machina in the picklist. A script that already added Deus ex machina keeps its row, Yes / No and notes, and can still remove it.

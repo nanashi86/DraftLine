@@ -159,7 +159,8 @@ describe('Story Glossary', () => {
     for (const t of ['Catalyst', 'Mentor / Guide', 'Shadow / Mirror', 'Protagonist', 'Love triangle']) assert.ok(terms.includes(t), t);
     for (const e of STRUCTURE_DICTIONARY) assert.ok(e.definition.length > 40, `${e.term} has a real definition`);
     assert.equal(new Set(STRUCTURE_DICTIONARY.map((e) => e.id)).size, 57);
-    assert.deepEqual(dictionaryEntry(STRUCTURE_DICTIONARY, 'conflict').items.map((i) => i.term), CONFLICT_TYPES);
+    // The same six types as the picker, listed by McKee level (Inner, Personal, Wider World)
+    assert.deepEqual(dictionaryEntry(STRUCTURE_DICTIONARY, 'conflict').items.map((i) => i.term).sort(), [...CONFLICT_TYPES].sort());
     assert.match(dictionaryEntry(STRUCTURE_DICTIONARY, 'textSubtext').example, /gun/);
     assert.match(dictionaryEntry(STRUCTURE_DICTIONARY, 'textSubtext').example, /drink/);
   });

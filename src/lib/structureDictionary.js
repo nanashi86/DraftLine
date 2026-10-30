@@ -37,14 +37,16 @@ export const STRUCTURE_DICTIONARY = [
   {
     id: 'conflict',
     term: 'Conflict / Obstacle',
-    definition: 'The opposition that keeps the protagonist from the goal — why they can’t simply have it. Conflict is what makes a scene dramatic. Screenwriters often think of it on three levels, as Robert McKee puts it: inner (against yourself), personal (against the people closest to you) and the wider world (against society, nature or anything bigger). Classic story analysis splits it into six types:',
+    definition: 'The opposition that keeps the protagonist from the goal — why they can’t simply have it. Conflict is what makes a scene dramatic. Robert McKee describes three levels of it, and the six classic types of story analysis fall under them: Inner (against yourself), Personal (against the people closest to you) and the Wider World (against society, nature or anything bigger).',
+    // Grouped by `level` (Inner · Personal · Wider World), the same groups as the Conflict picker
+    // (CONFLICT_LEVELS in storyDna.js); the terms are the picker's stored values.
     items: [
-      { term: 'Individual vs. Individual', definition: 'Against another person — an antagonist, rival or loved one.' },
-      { term: 'Individual vs. Nature', definition: 'Against the natural world — storm, sea, wilderness, disease.' },
-      { term: 'Individual vs. Society', definition: 'Against laws, institutions, customs or the community.' },
-      { term: 'Individual vs. Technology', definition: 'Against machines, systems or science gone wrong.' },
-      { term: 'Individual vs. Supernatural', definition: 'Against forces beyond the natural — gods, ghosts, fate, the spirit world.' },
-      { term: 'Individual vs. Self', definition: 'Against their own doubts, fears, addictions or divided loyalties.' },
+      { level: 'Inner', term: 'Individual vs. Self', definition: 'Against their own doubts, fears, addictions or divided loyalties.' },
+      { level: 'Personal', term: 'Individual vs. Individual', definition: 'Against another person — an antagonist, rival or loved one.' },
+      { level: 'Wider World', term: 'Individual vs. Society', definition: 'Against laws, institutions, customs or the community.' },
+      { level: 'Wider World', term: 'Individual vs. Nature', definition: 'Against the natural world — storm, sea, wilderness, disease.' },
+      { level: 'Wider World', term: 'Individual vs. Technology', definition: 'Against machines, systems or science gone wrong.' },
+      { level: 'Wider World', term: 'Individual vs. Supernatural', definition: 'Against forces beyond the natural — gods, ghosts, fate, the spirit world.' },
     ],
   },
   {
