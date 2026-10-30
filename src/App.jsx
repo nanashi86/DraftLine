@@ -80,6 +80,7 @@ import { parseFDX, toFDX } from './lib/fdx.js';
 import { beatsToFountain, beatsToMarkdown, sampleBeats } from './lib/beats.js';
 import { populateBiosFromIntros } from './lib/characterIntros.js';
 import { SAMPLE_SCRIPT } from './lib/sampleScript.js';
+import { pageTitle } from './lib/pageTitle.js';
 import { effectiveZoomFor } from './lib/zoom.js';
 import { actionDensity, riskLocations, stepRisk } from './lib/pacing.js';
 import DensityStepper from './components/DensityStepper.jsx';
@@ -671,7 +672,7 @@ function Workspace({ boot }) {
   }, [saveNow]);
 
   useEffect(() => {
-    document.title = `${meta.title.trim() || 'Untitled'} — DraftLine`;
+    document.title = pageTitle(meta.title); // the demo keeps the SEO title (lib/pageTitle.js)
   }, [meta.title]);
 
   useEffect(() => {
