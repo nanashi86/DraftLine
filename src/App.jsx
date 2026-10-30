@@ -87,6 +87,7 @@ import { MILESTONES, MILESTONE_TOAST_MS, finishedSentence, milestonesReached } f
 import BackupToast from './components/BackupToast.jsx';
 import { watchStatusFit } from './lib/statusFit.js';
 import PlanFilter from './components/planning/PlanFilter.jsx';
+import { initialPlanFold } from './lib/planFold.js';
 import { EMPTY_PLAN_FILTER } from './lib/planFilter.js';
 import {
   BACKUP_TOAST_DISMISSED_KEY, BACKUP_TOAST_SESSION_KEY, backupToastCopy, browserFamily, readFlag, readLastBackups, recordBackup,
@@ -397,7 +398,10 @@ function Workspace({ boot }) {
   const [planCount, setPlanCount] = useState(null);
   // Breakdown cards' open / folded state (Plan): all open or all folded, except the ones toggled by hand.
   // Kept here because Collapse All is on the header; a card is open when closed !== except.has(id).
-  const [planFold, setPlanFold] = useState(() => ({ closed: false, except: new Set() }));
+  // The starting state is decided when Plan first opens for a script (lib/planFold.js): folded when it
+  // has more than 10 scenes, open otherwise. planFoldDue marks "not decided yet" (set again on open).
+  const [planFold, setPlanFold] = useState(() => initialPlanFold(0));
+  const [planFoldDue, setPlanFoldDue] = useState(true);
   const planAllFolded = planFold.closed && planFold.except.size === 0;
   const foldAllPlan = () => setPlanFold({ closed: !planAllFolded, except: new Set() });
   const togglePlanCard = useCallback((id) => setPlanFold((f) => {
@@ -458,6 +462,13 @@ function Workspace({ boot }) {
       };
     });
   }, [items, layout, analysis]);
+  // Plan opened for this script for the first time: long scripts start with every breakdown folded.
+  // A layout effect, so a long script never paints open for a frame before folding.
+  useLayoutEffect(() => {
+    if (!inPlan || !planFoldDue) return;
+    setPlanFoldDue(false);
+    setPlanFold(initialPlanFold(scenes.length));
+  }, [inPlan, planFoldDue, scenes.length]);
 
   // Speakers in the script (for the Bible's "add from script" chips), most lines first.
   const speakers = useMemo(() => analysis.characterList.map((c) => c.name), [analysis]);
@@ -880,6 +891,7 @@ function Workspace({ boot }) {
     setRevisions(doc.revisions);
     setProjectLocked(doc.isLocked === true);
     setPlanFilter(EMPTY_PLAN_FILTER); // a scene filter belongs to the script it was set on
+    setPlanFoldDue(true); // Breakdowns' fold is decided again for this script the next time Plan opens
     setIsLocked(doc.viewOnly === true); // each script opens in its own saved View Only state
     noteSession.current = null;
     setNoteId(null);
