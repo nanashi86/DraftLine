@@ -45,7 +45,7 @@ describe('Scene Board (formerly Beat Board)', () => {
 
 describe('Status bar', () => {
   const app = read('App.jsx');
-  const status = app.slice(app.indexOf('<footer className={`status'), app.indexOf('</footer>', app.indexOf('<footer className={`status')));
+  const status = app.slice(app.indexOf('<footer className={statusClass}'), app.indexOf('</footer>', app.indexOf('<footer className={statusClass}')));
   it('no "beats" count any more', () => {
     assert.ok(status.length > 200, 'found the status bar');
     assert.ok(!/beats/i.test(status), 'no beats item');
@@ -59,12 +59,12 @@ describe('Status bar', () => {
     const left = status.slice(at('<div className="status-left">'), at('<span className="status-spacer" />'));
     assert.ok(!/Stepper/.test(left), 'no tool steppers on the left');
   });
-  it('nothing squashes: the left gives way (clips), the right never shrinks; both steppers on hide the key hints', () => {
+  it('nothing squashes: helpers step aside (statusFit.test.js), the right never shrinks; any stepper hides the key hints', () => {
     const css = read('App.css');
     assert.match(css, /\.status-left \{[^}]*flex: 0 1 auto; min-width: 0; overflow: hidden; \}/);
     assert.match(css, /\.status-right \{[^}]*flex: none; \}/);
     assert.match(css, /\.status-spacer \{ flex: 1 1 0; min-width: 8px; \}/);
     assert.match(css, /\.status\.has-tools \.status-hints \{ display: none; \}/);
-    assert.match(read('App.jsx'), /<footer className=\{`status\$\{filter && densityMode && density\.dense \? ' has-tools' : ''\}`\}>/);
+    assert.match(read('App.jsx'), /const statusClass = `status\$\{statusTools \? ` has-tools tools-\$\{Math\.min\(statusTools, 3\)\}` : ''\}`;/);
   });
 });

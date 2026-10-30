@@ -85,6 +85,7 @@ import { EXPORT_TIP, FORMAT_DOCTOR_TIP, claimTip, muteTip } from './lib/supportT
 import BrandMark from './components/BrandMark.jsx';
 import { MILESTONES, MILESTONE_TOAST_MS, finishedSentence, milestonesReached } from './lib/milestones.js';
 import BackupToast from './components/BackupToast.jsx';
+import { watchStatusFit } from './lib/statusFit.js';
 import PlanFilter from './components/planning/PlanFilter.jsx';
 import { EMPTY_PLAN_FILTER } from './lib/planFilter.js';
 import {
@@ -340,6 +341,9 @@ function Workspace({ boot }) {
   };
   const themeNext = canvasThemeInfo(nextCanvasTheme(canvasTheme));
   const barRef = useRef(null);
+  // The status bar steps its helpers aside when it's short of room (lib/statusFit.js).
+  const statusRef = useRef(null);
+  useLayoutEffect(() => watchStatusFit(statusRef.current), []);
   // The author field gives way to the toolbar; with only a sliver left it hides (staying in the
   // layout, invisible, so it can tell when there's room again).
   const authorRef = useRef(null);
@@ -1840,6 +1844,10 @@ function Workspace({ boot }) {
   const [findFocus, setFindFocus] = useState(0);
   const findOrigin = useRef({ id: null, pos: 0 }); // where the cursor was when Find opened
   const findOn = !!find.query && showEditor && !inPlan;
+  // Status bar: how many steppers are showing, so the helpers (key hints, counts, Paper's label, undo / redo,
+  // zoom − +) can step aside for them in a set order and the status itself never gets cut off (App.css).
+  const statusTools = inPlan ? 0 : [filter, findOn && !find.open, showFormatStepper, density.dense > 0].filter(Boolean).length;
+  const statusClass = `status${statusTools ? ` has-tools tools-${Math.min(statusTools, 3)}` : ''}`;
   const findList = useMemo(
     () => (findOn ? findMatches(blocks, find.query, find) : []),
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -2408,7 +2416,7 @@ function Workspace({ boot }) {
           }}
         />
 
-        <footer className={`status${filter && densityMode && density.dense ? ' has-tools' : ''}`}>
+        <footer className={statusClass} ref={statusRef} data-fit="0">
           {/* Left: what you're typing, then telemetry — saved / synced, Edit lock, scenes, notes, words.
               Format Doctor isn't here: its stepper (right) is its control, and ⋮ → Format Doctor opens it any time. */}
           <div className="status-left">
@@ -2426,12 +2434,15 @@ function Workspace({ boot }) {
               type="button"
               className={`status-save is-${saveStatus.tone}${saveStatus.busy ? ' is-busy' : ''}`}
               onClick={onSaveStatusClick}
+              aria-label={saveStatus.label}
               title={[saveStatus.title, saveStatus.busy ? 'Saving…' : saved.at ? `Last saved ${timeLabel(saved.at)}` : ''].filter(Boolean).join(' · ')}
             >
               <span className="save-dot" aria-hidden="true" />
-              {saveStatus.label}
+              <span className="status-save-label">{saveStatus.label}</span>
             </button>
             <LockBadge locked={isLocked} onToggle={toggleLock} />
+            {/* Counts: the first thing to give way when the bar is short of room (also in Scenes and Reports). */}
+            <span className="status-counts">
             <span>{analysis.sceneCount} scenes</span>
             {noteCount > 0 && (
               <button
@@ -2450,6 +2461,7 @@ function Workspace({ boot }) {
               </button>
             )}
             <span>{analysis.words.toLocaleString()} words</span>
+            </span>
           </div>
           <span className="status-spacer" />
           {/* Right: active tool steppers [Dialogue] [Density], then the view — page, paper, undo, zoom. */}
@@ -2526,7 +2538,7 @@ function Workspace({ boot }) {
               aria-label={`Page colour: ${canvasThemeInfo(canvasTheme).label}. Switch to ${themeNext.label}`}
             >
               <span className="canvas-swatch" aria-hidden="true" />
-              {canvasThemeInfo(canvasTheme).label}
+              <span className="canvas-label">{canvasThemeInfo(canvasTheme).label}</span>
             </button>
             <span className="status-history">
               <button className="mini" onClick={undo} disabled={!canUndo || isLocked} title="Undo script edit (Ctrl+Z)">↶</button>

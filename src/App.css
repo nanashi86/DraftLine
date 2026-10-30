@@ -492,7 +492,7 @@
   overflow: hidden;
   z-index: 30;
 }
-.status-type { color: var(--text); font-weight: 600; min-width: 92px; }
+.status-type { flex: none; color: var(--text); font-weight: 600; min-width: 92px; }
 .status-hints { display: flex; align-items: center; gap: 6px; }
 .status-hints kbd {
   padding: 1px 5px;
@@ -504,14 +504,36 @@
   margin-left: 6px;
 }
 .status-spacer { flex: 1 1 0; min-width: 8px; } /* the open middle */
-/* Left: telemetry (gives way first — it clips rather than squashing the tools). Right: tools + view. */
+/* Left: the element, its key hints, then status (saved / synced, Edit / View Only) and the counts.
+   Right: the steppers, then the view (page, Paper, undo / redo, zoom). */
 .status-left { display: flex; align-items: center; gap: 16px; flex: 0 1 auto; min-width: 0; overflow: hidden; }
+.status-left > .status-save,
+.status-left > .status-lock { flex: none; }
+/* The counts are the safety net: if the bar is still short of room after the steps below, they're
+   what gets cut off, never the status beside them. */
+.status-counts { display: flex; align-items: center; gap: 16px; flex: 0 1 auto; min-width: 0; overflow: hidden; }
 .status-right { display: flex; align-items: center; gap: 16px; flex: none; }
 .status-tools { display: flex; align-items: center; gap: 8px; }
 .status-tools:empty,
 .status-tools[hidden] { display: none; }
-/* Both steppers on: the key hints step aside for them. */
+/* The step-aside order (lib/statusFit.js sets data-fit to the fewest steps that fit). Key hints also
+   leave whenever a stepper is showing, and on any window under 1400px: they're for learning the keys. */
 .status.has-tools .status-hints { display: none; }
+@media (max-width: 1399.98px) { .status-hints { display: none; } }
+.status:is([data-fit='1'], [data-fit='2'], [data-fit='3'], [data-fit='4'], [data-fit='5'], [data-fit='6'], [data-fit='7']) .status-hints { display: none; }
+.status:is([data-fit='2'], [data-fit='3'], [data-fit='4'], [data-fit='5'], [data-fit='6'], [data-fit='7']) .status-counts { display: none; }
+.status:is([data-fit='3'], [data-fit='4'], [data-fit='5'], [data-fit='6'], [data-fit='7']) .canvas-label { display: none; }
+.status:is([data-fit='4'], [data-fit='5'], [data-fit='6'], [data-fit='7']) .status-history { display: none; }
+.status:is([data-fit='5'], [data-fit='6'], [data-fit='7']) .status-zoom > .mini:not(.zoom-val) { display: none; }
+.status:is([data-fit='6'], [data-fit='7']) :is(.stepper-label, .stepper-dot) { display: none; }
+.status[data-fit='7'] :is(.status-save-label, .status-lock-label) { display: none; }
+.status[data-fit='7'],
+.status[data-fit='7'] :is(.status-left, .status-right, .status-counts) { gap: 10px; }
+.status[data-fit='7'] .status-type { min-width: 0; }
+.status[data-fit='7'] .status-tools { gap: 4px; }
+.status[data-fit='7'] .stepper-capsule { padding-left: 6px; }
+.status[data-fit='7'] .stepper:not(.is-stepping) .stepper-capsule { padding-right: 6px; }
+.status[data-fit='7'] .stepper-icon { margin-right: 4px; }
 .status-save {
   display: inline-flex;
   align-items: center;

@@ -56,7 +56,7 @@ describe('View Only lock: wiring', () => {
     assert.match(app, /if \(isLockShortcut\(e\)\) \{\s*e\.preventDefault\(\);\s*toggleLock\(\);/);
     assert.match(app, /<LockBadge locked=\{isLocked\} onToggle=\{toggleLock\} \/>/);
     // right after the save indicator
-    assert.match(app, /\{saveStatus\.label\}\s*<\/button>\s*<LockBadge/);
+    assert.match(app, /\{saveStatus\.label\}<\/span>\s*<\/button>\s*<LockBadge/);
   });
   it('locking makes every script line read-only and marks the page', () => {
     assert.match(app, /locked=\{isLocked\}\s*onLockedEdit=\{notifyLocked\}/);
