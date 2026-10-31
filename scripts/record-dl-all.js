@@ -1,4 +1,4 @@
-// Records the walkthroughs in order (scripts/record-dl01.js … record-dl14.js), one after another.
+// Records the walkthroughs in order (scripts/record-dl01.js … record-dl16.js), one after another.
 //   node scripts/record-dl-all.js          # all of them
 //   node scripts/record-dl-all.js 3 7      # just DL 03 and DL 07
 //   DEMO_CHECK=1 node scripts/record-dl-all.js   # rehearse every step quickly, record nothing
@@ -9,7 +9,7 @@ import { fileURLToPath } from 'node:url';
 import process from 'node:process';
 import { SKIPPED_EXIT } from './lib/demoKit.js';
 
-const LAST = 14;
+const LAST = 16;
 const here = dirname(fileURLToPath(import.meta.url));
 const pad = (n) => String(n).padStart(2, '0');
 const picked = process.argv.slice(2).map(Number).filter((n) => Number.isInteger(n) && n >= 1 && n <= LAST);

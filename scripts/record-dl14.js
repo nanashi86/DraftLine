@@ -1,82 +1,69 @@
-// DL 14 · General — Offline PWA and storage check (~40 s)
-// Links a synced folder (a stand-in: Playwright can't drive the OS folder picker), then About DraftLine:
-// Storage "Synced folder · Dual-saved locally", Protected, Network "Online". The network is cut, a line
-// is written offline, About now says "Offline", and the page is reloaded while still offline: the script
-// comes straight back with the new line, with no server involved. Back online at the end.
-//
-// The reload offline needs the service worker to be in control (it is, on a production build: `npm run
-// build && npm run preview`). On the dev server there's no service worker, so the script reconnects
-// before reloading and says so.
+// DL 14 · Plan — Workspace & Production Suite (Video 2.0, ~60 s)
+// Write | Plan → Plan. Breakdowns: a card per scene with its INT/EXT, DAY/NIGHT, length in eighths and
+// speaking cast worked out from the script; a prop is added to a scene's list. Stripboard: one strip
+// per scene in the standard four colours (INT DAY white, EXT DAY yellow, INT NIGHT blue, EXT NIGHT
+// green). The scene filter: INT, then NIGHT, then a search; it only hides scenes.
 //
 //   node scripts/record-dl14.js
-//   → recordings/DL_14_General_OfflinePwaAndStorageVerification/DL_14_General_OfflinePwaAndStorageVerification.mp4 (+ .webm)
-import { main, record } from './lib/demoKit.js';
+//   → recordings/DL_14_Plan_WorkspaceAndProductionSuite/DL_14_Plan_WorkspaceAndProductionSuite.mp4
+import { fixtureProject, main, record } from './lib/demoKit.js';
+import { AUTHOR, BLOCKS, STORY_NOTES, TITLE } from './lib/videoFixtures.js';
 
-const OFFLINE_LINE = 'Somewhere past the breakwater, the phones lose signal. Nobody notices.';
+const fixture = fixtureProject({ title: TITLE, author: AUTHOR, blocks: BLOCKS, storyNotes: STORY_NOTES });
 
 main(() => record({
-  folder: 'DL_14_General_OfflinePwaAndStorageVerification',
-  syncFolder: 'DraftLine Scripts',
-  maxSeconds: 48,
-  async run({ page, click, glide, typeHuman, press, hold, say }) {
-    const context = page.context();
-    const openAbout = async () => {
-      await click(page.getByRole('button', { name: 'More' }), 500);
-      await click(page.getByRole('menuitem', { name: 'About DraftLine' }), 1000);
-      const facts = page.locator('.hm-facts');
-      await facts.scrollIntoViewIfNeeded();
-      return facts;
-    };
-    const closeAbout = () => press('Escape', 800);
+  folder: 'DL_14_Plan_WorkspaceAndProductionSuite',
+  fixture,
+  clean: true,
+  maxSeconds: 75,
+  async run({ page, click, glide, press, typeHuman, hold, say, wheel }) {
+    await hold(2000); // pre-roll
 
-    await glide([960, 520]);
-    await hold(1500);
-
-    say('Link a folder: every save goes to the folder and to this browser');
-    await click(page.getByRole('button', { name: 'Switch Project' }), 900);
-    await click(page.getByRole('button', { name: 'Link Folder…' }), 1500);
-    await click(page.getByRole('button', { name: 'Close projects' }), 800);
-
-    say('About → storage: dual-saved, protected, online');
-    let facts = await openAbout();
-    for (const term of ['Storage', 'Protected', 'Network']) {
-      const row = facts.locator('div').filter({ has: page.locator('dt', { hasText: term }) });
-      if (await row.count()) { await glide(row.first()); await hold(1700); }
-    }
-    await closeAbout();
-
-    say('Offline: keep writing');
-    const swReady = await page.evaluate(() => !!navigator.serviceWorker?.controller);
-    await context.setOffline(true);
-    await hold(800);
-    const lastAction = page.locator('.el-action .el-input, .el-input').filter({ hasText: /^Theo looks at her a long moment/ }).first();
-    await lastAction.scrollIntoViewIfNeeded();
-    await click(lastAction, 200);
-    await lastAction.evaluate((el) => el.setSelectionRange(el.value.length, el.value.length));
-    await press('Enter', 300);
-    await typeHuman(OFFLINE_LINE);
-    await hold(1500);
-
-    facts = await openAbout();
-    await glide(facts.locator('div').filter({ has: page.locator('dt', { hasText: 'Network' }) }).first());
-    await hold(2500);
-    await closeAbout();
-
-    say(swReady ? 'Reload while offline' : 'No service worker (dev server): reconnecting before the reload');
-    if (!swReady) await context.setOffline(false);
-    await hold(1200); // let the autosave land
-    await page.reload();
-    await page.locator('.el-input').first().waitFor();
+    say('Write | Plan: the production view of the same script');
+    await glide([900, 480]);
     await hold(1200);
-
-    say('Everything is still there');
-    const kept = page.locator('.el-input').filter({ hasText: OFFLINE_LINE.slice(0, 30) }).first();
-    await kept.scrollIntoViewIfNeeded();
-    await glide(kept);
-    await hold(3000);
-
-    await context.setOffline(false);
-    await glide([960, 520]);
+    await click(page.locator('.ws-btn[data-workspace="plan"]'), 1400);
     await hold(1500);
+
+    say('Breakdowns: cast, INT/EXT, DAY/NIGHT and eighths, from the script');
+    // Scripts over 10 scenes open folded: a list of scenes to pick from.
+    const firstCard = page.locator('.plan-breakdowns article.plan-card').first();
+    await glide(page.locator('.plan-breakdowns'), { dy: -200 });
+    await hold(1500);
+    const expand = firstCard.getByRole('button', { name: 'Expand' });
+    if (await expand.count()) await click(expand, 1000);
+    await glide(firstCard.locator('.plan-cast-list'));
+    await hold(2200);
+
+    say('Add a prop to the scene');
+    await click(firstCard.getByRole('button', { name: 'Add to Props & Set Dressing' }), 500);
+    await click(firstCard.locator('input.plan-add-input'), 300);
+    await typeHuman('Marie\'s suitcase (bad wheel)');
+    await press('Enter', 900);
+    await hold(1600);
+
+    say('Stripboard: one colour-coded strip per scene');
+    await click(page.getByRole('radio', { name: 'Stripboard' }), 1200);
+    await glide(page.locator('[aria-label="Stripboard, in script order"]'));
+    await hold(1600);
+    await wheel(200, 2, 500);
+    await hold(1400);
+
+    say('The scene filter: interiors, then nights, then a search');
+    const filter = page.locator('.plan-filter:visible').first();
+    await click(filter.getByRole('button', { name: 'INT', exact: true }), 1200);
+    await hold(1400);
+    await click(filter.getByRole('button', { name: 'NIGHT', exact: true }), 1200);
+    await hold(1600);
+    await click(filter.getByRole('searchbox', { name: /Find scenes/ }), 400);
+    await typeHuman('engine');
+    await hold(1800);
+    await click(page.locator('.pf-clear:visible').first(), 1000);
+    await hold(1500);
+
+    say('Back to Write');
+    await click(page.locator('.ws-btn[data-workspace="write"]'), 1000);
+    await glide([900, 480]);
+    await hold(2000);
   },
 }));

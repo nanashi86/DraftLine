@@ -1,4 +1,4 @@
-// Shared kit for the DraftLine walkthrough recordings (scripts/record-dl01.js … record-dl09.js).
+// Shared kit for the DraftLine walkthrough recordings (scripts/record-dl01.js … record-dl16.js).
 //
 // Each walkthrough is 1920×1080 at 60 fps, in a clean browser profile, with a visible pointer and
 // click ripples, saved to recordings/<folder>/<folder>.webm (and <folder>.mp4). Anything a video needs to start from (a
@@ -61,6 +61,26 @@ const CURSOR = `
   });`;
 
 /**
+ * Video 2.0: the feature tips (lib/hints.js) and the backup tip (lib/backupToast.js) are marked as
+ * already seen, so neither pops up in the middle of a take.
+ */
+const QUIET_TIPS = `
+  try {
+    localStorage.setItem('draftline_hints', JSON.stringify({ importScenes: 'done', analyzeShifts: 'done', populateBio: 'done', formatDoctor: 'done', dialogue: 'done', plan: 'done' }));
+    localStorage.setItem('draftline_backup_toast_dismissed', 'true');
+  } catch { /* storage blocked: nothing to quiet */ }`;
+
+/** Video 2.0 baseline: close every right-dock drawer and the Scenes sidebar before the walkthrough starts. */
+async function cleanBaseline(page) {
+  for (const name of ['Close Characters', 'Close the Story Bible', 'Close Snapshots', 'Close Margin Notes']) {
+    const b = page.getByRole('button', { name, exact: true });
+    if (await b.isVisible()) await b.click();
+  }
+  const scenes = page.getByRole('button', { name: 'Toggle scene list' });
+  if ((await scenes.getAttribute('aria-pressed')) === 'true') await scenes.click();
+}
+
+/**
  * A stand-in for the operating system's folder picker: an in-memory folder (tests/helpers/fakeDirectory.js).
  * Playwright can't drive the real picker; DraftLine syncs to this exactly as to a real folder, and
  * nothing is written to your disk.
@@ -74,9 +94,11 @@ function fakeFolderScript(name) {
  * A project to start a video from, as .draftline text.
  *   blocks: [[type, text, extra?], …]   characters: Story Bible bios
  *   storyNotes: { sections: [{ title, body }], synopsis?: { act1, act2, act2b, act3 } }
- *   snapshots: [{ label, minutesAgo }] — Snapshots of the project exactly as given, oldest first
+ *   storyDna: Story Bible → DNA, as lib/storyDna.js stores it (genres, theme, answers…; normalized on load)
+ *   snapshots: [{ label, minutesAgo, blocks? }] — Snapshots, oldest first: of the project as given, or of an
+ *              earlier draft when `blocks` is set (so Compare has real differences to show)
  */
-export function fixtureProject({ title, author = 'Eric Lemaire Jr.', blocks, beats = [], characters = [], storyNotes, snapshots = [] }) {
+export function fixtureProject({ title, author = 'Eric Lemaire Jr.', blocks, beats = [], characters = [], storyNotes, storyDna, snapshots = [] }) {
   const t = Date.now();
   let n = 0;
   const id = (p) => `${p}${(n += 1)}${t.toString(36)}`;
@@ -88,12 +110,16 @@ export function fixtureProject({ title, author = 'Eric Lemaire Jr.', blocks, bea
     beats,
     characters: characters.map((c) => ({ id: id('ch'), secondaryRole: 'none', relationship: '', age: '', description: '', traits: '', backstory: '', ...c })),
     ...(storyNotes ? { storyNotes: { version: 4, ...storyNotes, sections: (storyNotes.sections || []).map((s) => ({ id: id('sn'), ...s })) } } : {}),
+    ...(storyDna ? { storyDna } : {}),
     createdAt: t,
     updatedAt: t,
   };
   if (snapshots.length) {
     const doc = { meta: { title, author }, blocks: record.script, beats, characters: record.characters, storyNotes: record.storyNotes };
-    record.revisions = snapshots.map(({ label, minutesAgo = 60 }) => createRevision(doc, { label, now: t - minutesAgo * 60_000 }));
+    record.revisions = snapshots.map(({ label, minutesAgo = 60, blocks: earlier }) => createRevision(
+      earlier ? { ...doc, blocks: earlier.map(([type, text, extra]) => makeBlock(type, text, extra)) } : doc,
+      { label, now: t - minutesAgo * 60_000 },
+    ));
   }
   return { title, text: serializeBackup(record, { appVersion: 'demo' }) };
 }
@@ -104,9 +130,12 @@ export function fixtureProject({ title, author = 'Eric Lemaire Jr.', blocks, bea
  *   fixture  — fixtureProject(…) to open before recording starts (optional)
  *   syncFolder — name for the stand-in synced folder (optional; enables the folder picker)
  *   mp4      — also save <folder>.mp4 (H.264) next to it, via ffmpeg on PATH or FFMPEG_PATH (default on)
+ *   prepare(page) — off camera, after the fixture opens: set up state the video starts from (scene cards…)
+ *   clean    — Video 2.0 baseline: no drawer (Story Bible, Characters, Snapshots, Margin Notes) or Scenes
+ *              sidebar open when run() starts, and no feature tip or backup tip can pop up mid-take
  *   run(demo) — the walkthrough; demo has page, click, glide, drag, typeHuman, press, hold, wheel, say
  */
-export async function record({ folder, fixture = null, syncFolder = null, maxSeconds = 35, mp4 = true, run }) {
+export async function record({ folder, fixture = null, prepare = null, syncFolder = null, maxSeconds = 35, mp4 = true, clean = false, run }) {
   const out = join(ROOT, 'recordings', folder, `${folder}.webm`);
   try {
     const res = await fetch(URL_);
@@ -132,6 +161,10 @@ export async function record({ folder, fixture = null, syncFolder = null, maxSec
       name: `${fixture.title}.draftline`, mimeType: 'application/json', buffer: Buffer.from(fixture.text),
     });
     await p.waitForFunction((t) => document.querySelector('input.doc-title')?.value === t, fixture.title, { timeout: 10_000 });
+    if (prepare) {
+      await prepare(p);
+      await p.waitForTimeout(1500); // a real wait, even in DEMO_CHECK: the prepared state must be saved
+    }
     await sleep(1200); // let the autosave settle
     storageState = await prep.storageState({ indexedDB: true });
     await prep.close();
@@ -147,6 +180,7 @@ export async function record({ folder, fixture = null, syncFolder = null, maxSec
     ...(CHECK ? {} : { recordVideo: { dir: rawDir, size: SIZE, fps: FPS } }),
   });
   await context.addInitScript(CURSOR);
+  if (clean) await context.addInitScript(QUIET_TIPS);
   if (syncFolder) await context.addInitScript(fakeFolderScript(syncFolder));
   const page = await context.newPage();
   const started = Date.now();
@@ -202,6 +236,7 @@ export async function record({ folder, fixture = null, syncFolder = null, maxSec
   // The Characters panel opens by default on a first visit: start every video on a clean page.
   const closeChars = page.getByRole('button', { name: 'Close Characters' });
   if (await closeChars.isVisible()) await closeChars.click();
+  if (clean) await cleanBaseline(page);
   await sleep(700);
 
   await run(demo);

@@ -1,47 +1,71 @@
-// DL 09 · Plan — Stripboard and Reports (~36 s)
-// Plan → Stripboard: one strip per scene, coloured by interior/exterior and day/night, with lengths in
-// eighths and cast numbers. Then Reports: Locations (scenes grouped by place) and Scenes, held as the
-// production report, with its .csv export.
-//
-// DraftLine's Stripboard is in script order: strips can't be dragged into a shooting order yet, there
-// are no day-break strips, and the reports export as .csv rather than through a print dialog. The video
-// shows what's there: the colour coding, the strips, and the reports.
+// DL 09 · Write — Interactive Glossary (Video 2.0, ~55 s)
+// Story Bible → Glossary: search "Midpoint", Edit its definition in your own words and Save (the
+// badge turns from "starter" to "yours", kept for every project), then Reset it to DraftLine's
+// starter text. Last, the inline ⓘ: from a DNA question, its definition pops up on hover, and a
+// click opens that term in the Glossary.
 //
 //   node scripts/record-dl09.js
-//   → recordings/DL_09_Plan_ReportsAndStripboards/DL_09_Plan_ReportsAndStripboards.mp4 (+ .webm)
-import { main, record } from './lib/demoKit.js';
+//   → recordings/DL_09_Write_InteractiveGlossary/DL_09_Write_InteractiveGlossary.mp4
+import { fixtureProject, main, record } from './lib/demoKit.js';
+import { AUTHOR, BLOCKS, STORY_NOTES, TITLE } from './lib/videoFixtures.js';
+
+const fixture = fixtureProject({ title: TITLE, author: AUTHOR, blocks: BLOCKS, storyNotes: STORY_NOTES });
 
 main(() => record({
-  folder: 'DL_09_Plan_ReportsAndStripboards',
-  maxSeconds: 42,
-  async run({ page, click, glide, hold, say }) {
-    await glide([960, 520]);
+  folder: 'DL_09_Write_InteractiveGlossary',
+  fixture,
+  clean: true,
+  maxSeconds: 70,
+  async run({ page, click, glide, press, typeHuman, hold, say }) {
+    await hold(2000); // pre-roll
+
+    say('Story Bible → Glossary');
+    await glide([900, 480]);
+    await hold(1200);
+    await press('Alt+i', 900);
+    const bible = page.getByRole('complementary', { name: 'Story Bible' });
+    await click(bible.getByRole('tab', { name: /^Glossary/ }), 900);
+    await hold(1800); // three sections: Character Roles · Craft · Screenplay Format
+
+    say('Search: Midpoint');
+    await click(bible.getByRole('searchbox', { name: 'Search the Glossary' }), 400);
+    await typeHuman('Midpoint');
     await hold(2000);
 
-    say('Plan → Stripboard');
-    await click(page.getByRole('radio', { name: 'Plan', exact: true }), 1200);
-    await click(page.getByRole('radio', { name: /^Stripboard/ }), 1500);
-
-    say('Day / night colour coding');
-    await glide(page.locator('.strip-legend'));
-    await hold(2500);
-    const strips = page.locator('.strip[role="row"]:not(.strip-head)');
-    for (let i = 0; i < Math.min(4, await strips.count()); i++) {
-      await glide(strips.nth(i));
-      await hold(1100);
-    }
-    await glide(page.locator('.plan-stripboard').getByText(/NIGHT/).first());
-    await hold(2000);
-
-    say('Reports → Locations');
-    await click(page.getByRole('radio', { name: /^Reports/ }), 1200);
-    await click(page.getByRole('tab', { name: 'Locations' }), 2500);
-
-    say('Reports → Scenes: the production report');
-    await click(page.getByRole('tab', { name: 'Scenes' }), 1200);
-    await glide(page.locator('.rp-csv'));
-    await hold(3000);
-    await glide([960, 560]);
+    say('Edit it in your own words');
+    const entry = bible.locator('li.dict-entry', { has: page.locator('.dict-head b', { hasText: /^Midpoint$/ }) });
+    await click(entry.getByRole('button', { name: 'Edit', exact: true }), 700);
+    const definition = entry.locator('.dict-edit textarea').first();
+    await click(definition, 300);
+    await press('Control+a', 200);
+    await typeHuman('The turn at the centre of Act 2: the story flips from chasing the goal to paying for it.', { fast: true });
     await hold(1500);
+    await click(entry.getByRole('button', { name: 'Save', exact: true }), 900);
+
+    say('Now it\'s yours — kept for all your projects');
+    await glide(entry.locator('.dict-badge'));
+    await hold(2200);
+
+    say('Reset brings back DraftLine\'s starter text');
+    await click(entry.getByRole('button', { name: 'Edit', exact: true }), 700);
+    await glide(entry.getByRole('button', { name: 'Reset to starter text' }));
+    await hold(1400);
+    await click(entry.getByRole('button', { name: 'Reset to starter text' }), 900);
+    await glide(entry.locator('.dict-badge'));
+    await hold(1800);
+
+    say('The inline ⓘ: hover for the definition, click to open the term');
+    await click(bible.getByRole('tab', { name: /^DNA/ }), 900);
+    const info = bible.getByRole('button', { name: 'Inciting Incident: definition' });
+    await info.scrollIntoViewIfNeeded();
+    await glide(info);
+    await hold(2400); // the definition card pops up beside it
+    await click(info, 1000);
+    await hold(2200); // Glossary, open at Inciting Incident
+
+    say('Close, back to the script');
+    await click(page.getByRole('button', { name: 'Close the Story Bible' }), 700);
+    await glide([900, 480]);
+    await hold(2000);
   },
 }));

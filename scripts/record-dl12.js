@@ -1,75 +1,68 @@
-// DL 12 · General — Fountain and Final Draft import and export (~38 s)
-// File → New starts a blank script; File → Import… takes pasted Fountain markup and shows it sorted into
-// screenplay elements (scene headings, action, characters, dialogue…) before loading it. Then the
-// File menu's export options: PDF (its scene-number choice is shown, then cancelled), Final Draft
-// (.fdx) and Fountain. Nothing is downloaded.
+// DL 12 · Write — Scene Board & Pacing (Video 2.0, ~60 s)
+// Alt+B opens Split: the script beside the Scene Board. Import Scenes → Auto-Distribute (% Targets)
+// makes a card per scene and places each in its act by the page it starts on; the menu shows the
+// actual page ranges. Each act's header gets a pacing badge (pages · share). A scene card is dragged
+// to a new place, which moves that scene in the script too. Then 4 Acts ↔ 3 Acts: no card moves,
+// the Midpoint divider shows where 2A ends.
 //
 //   node scripts/record-dl12.js
-//   → recordings/DL_12_General_FountainAndFdxImportExport/DL_12_General_FountainAndFdxImportExport.mp4 (+ .webm)
-import { main, record } from './lib/demoKit.js';
+//   → recordings/DL_12_Write_SceneBoardAndPacing/DL_12_Write_SceneBoardAndPacing.mp4
+import { fixtureProject, main, record } from './lib/demoKit.js';
+import { AUTHOR, BLOCKS, STORY_NOTES, TITLE } from './lib/videoFixtures.js';
 
-const FOUNTAIN = `Title: Night Crossing
-Author: Eric Lemaire Jr.
-
-EXT. HARBOR - NIGHT
-
-Fog rolls off the black water. A single lamp swings above the ticket booth.
-
-MARIE
-(under her breath)
-Last ferry. Last chance.
-
-THEO (O.S.)
-Marie! Wait!
-
-She doesn't turn around.
-
-CUT TO:
-
-INT. FERRY - PASSENGER DECK - CONTINUOUS
-
-Empty benches. A radio crackles in two languages.
-`;
+const fixture = fixtureProject({ title: TITLE, author: AUTHOR, blocks: BLOCKS, storyNotes: STORY_NOTES });
 
 main(() => record({
-  folder: 'DL_12_General_FountainAndFdxImportExport',
-  maxSeconds: 46,
-  async run({ page, click, glide, hold, say }) {
-    await glide([960, 520]);
-    await hold(1500);
+  folder: 'DL_12_Write_SceneBoardAndPacing',
+  fixture,
+  clean: true,
+  maxSeconds: 75,
+  async run({ page, click, glide, drag, press, hold, say }) {
+    await hold(2000); // pre-roll
 
-    say('File → New: a blank script');
-    await click(page.getByRole('button', { name: 'File' }), 700);
-    await click(page.getByRole('menuitem', { name: /^New…/ }), 1800);
-
-    say('File → Import…: paste Fountain');
-    await click(page.getByRole('button', { name: 'File' }), 700);
-    await click(page.getByRole('menuitem', { name: /^Import…/ }), 1000);
-    const box = page.locator('textarea.im-text');
-    await click(box, 400);
-    await box.fill(FOUNTAIN); // a paste: all at once
+    say('Alt+B: Split view, the script beside the Scene Board');
+    await glide([700, 480]);
     await hold(1200);
+    await press('Alt+b', 1200);
+    const board = page.getByRole('region', { name: 'Scene Board' }).or(page.locator('.board')).first();
+    await board.waitFor();
+    await hold(1600);
 
-    say('Every element recognised before it loads');
-    await glide(page.locator('.im-chips'));
-    await hold(2200);
-    await glide(page.locator('.im-list'));
-    await hold(2500);
-    await click(page.getByRole('button', { name: /^(Load into Editor|Load as New Script)$/ }), 1500);
-    await glide([960, 480]);
-    await hold(2500);
+    say('Import Scenes → Auto-Distribute (% Targets)');
+    await click(board.getByRole('button', { name: /Import Scenes/ }), 900);
+    await glide(page.getByRole('menuitem', { name: /Auto-Distribute/ }));
+    await hold(2200); // the targets and this script's actual page ranges
+    await click(page.getByRole('menuitem', { name: /Auto-Distribute/ }), 1400);
+    await hold(1600);
 
-    say('Export: PDF, Final Draft, Fountain');
-    await click(page.getByRole('button', { name: 'File' }), 900);
-    for (const name of [/^PDF/, /^Final Draft/, /^Fountain\b/]) {
-      await glide(page.getByRole('menuitem', { name }).first());
-      await hold(1300);
+    say('Pacing: pages and share for each act');
+    const badges = board.locator('.col-pace');
+    for (let i = 0; i < 4; i++) {
+      if (await badges.nth(i).isVisible()) {
+        await glide(badges.nth(i));
+        await hold(1200);
+      }
     }
-    await click(page.getByRole('menuitem', { name: /^PDF/ }).first(), 1200);
-    await glide(page.locator('.xp-title'));
-    await hold(2500);
-    await click(page.getByRole('button', { name: 'Cancel' }), 800);
-    await glide([960, 520]);
-    await hold(1500);
+
+    say('Drag a scene card: the scene moves in the script too');
+    const grip = board.locator('.card-grip').nth(1);
+    const target = board.locator('.board-col, .col').nth(1).locator('.col-list');
+    await glide(grip);
+    await hold(1200);
+    await drag(grip, target, { dy: 40 });
+    await hold(2200);
+
+    say('3 Acts or 4 Acts: no card moves');
+    const structure = board.getByRole('radiogroup', { name: 'Act structure' }).or(board.getByRole('group', { name: 'Act structure' })).first();
+    await click(structure.getByRole('radio', { name: '3 Acts' }).or(structure.getByRole('button', { name: '3 Acts' })).first(), 1200);
+    await glide(board.locator('.midpoint').first());
+    await hold(2400); // Act 2: 2A cards, the Midpoint divider, 2B cards
+    await click(structure.getByRole('radio', { name: '4 Acts' }).or(structure.getByRole('button', { name: '4 Acts' })).first(), 1200);
+    await hold(2000);
+
+    say('Back to the page');
+    await click(page.getByRole('radio', { name: 'Page' }), 900);
+    await glide([900, 480]);
+    await hold(2000);
   },
 }));
