@@ -7,7 +7,7 @@
 //   1. A new script typed at human speed with the Tab / Enter flow: clean Courier Prime pages.
 //   2. Format Doctor: two everyday slips (a scene heading typed as Action, THE END left-aligned),
 //      the issue list, then Fix All.
-//   3. Dialogue spotlight on the sample script: pick MARIE, everything else dims, scroll her pass.
+//   3. Dialogue spotlight on the sample script (File → Sample…): pick MARIE, everything else dims, scroll her pass.
 //   4. The Scene Board (Write → Board) in 4 Acts and 3 Acts, then Plan → Breakdowns and Stripboard,
 //      where every scene's length is worked out in eighths of a page.
 //   5. Back to the page, link a folder, and the status bar's "Linked Folder Synced" badge.
@@ -106,6 +106,11 @@ async function main() {
     recordVideo: { dir: videoDir, size: SIZE, fps: FPS },
   });
   await context.addInitScript(CURSOR);
+  // The two first-visit tips (the sample, Focus) would greet this clean profile as a brand-new writer.
+  await context.addInitScript(`try {
+    localStorage.setItem('draftline_hints', JSON.stringify({ sample: 'done', focus: 'done' }));
+    localStorage.setItem('draftline_onboarding', 'existing');
+  } catch {}`);
   if (WITH_FOLDER) {
     // The in-memory folder from the test helpers, answering the browser's folder picker.
     const fake = readFileSync(join(ROOT, 'tests/helpers/fakeDirectory.js'), 'utf8').replace(/^export function/m, 'function');
@@ -188,8 +193,8 @@ async function main() {
 
   // ---- 3. Dialogue spotlight on the sample script ---------------------------------------------
   caption('Dialogue spotlight: MARIE');
-  await click(page.getByRole('button', { name: 'Switch Project' }), 700);
-  await click(page.locator('.pd-card', { hasText: 'The Last Ferry' }), 1200);
+  await click(page.getByRole('button', { name: /^File/ }), 500);
+  await click(page.getByRole('menuitem', { name: /^Sample/ }), 1200); // a first visit opens on a blank page
   await click(page.getByRole('button', { name: 'Characters', exact: true }), 600);
   await click(page.getByRole('tab', { name: /^Dialogue/ }).or(page.getByRole('button', { name: /^Dialogue/ })).first(), 600);
   await click(page.locator('button', { hasText: /^MARIE/ }).first(), 1600);

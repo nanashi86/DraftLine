@@ -299,7 +299,7 @@ describe('App wiring: [ Write | Plan ]', () => {
     const header = app.slice(app.indexOf('<header className="bar"'), app.indexOf('</header>'));
     const left = header.slice(header.indexOf('zone-left'), header.indexOf('<div className="bar-zone zone-middle">'));
     const at = (k) => left.indexOf(k);
-    const order = [at('className={`brand'), at('doc-title'), at('className="seg ws-switch"'), at('<Menu label="File" items={fileItems}')];
+    const order = [at('className={`brand'), at('doc-title'), at('className="seg ws-switch"'), at('<Menu label="File" className="btn btn-file" items={fileItems}')];
     assert.ok(order.every((v, i) => v > 0 && (i === 0 || v > order[i - 1])), `D · title · Write|Plan · File: ${JSON.stringify(order)}`);
     const right = header.slice(header.indexOf('bar-zone zone-right'));
     assert.match(right, /\{inPlan \? \(\s*<div className="seg plan-seg" role="radiogroup" aria-label="Plan view"/);

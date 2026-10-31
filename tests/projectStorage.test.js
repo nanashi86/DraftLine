@@ -1,5 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import { createFakeIndexedDB, createFakeStorage } from './helpers/fakeIndexedDB.js';
 import {
   DB_NAME, JOURNAL_KEY, STORE, bootLibrary, createProjectStore, projectStats, toDoc, writeJournal,
@@ -158,6 +159,7 @@ describe('project library: first run', () => {
     const storage = createFakeStorage({ 'draftline:script:v2': JSON.stringify(old) });
     const boot = await bootLibrary({ store, storage, makeFirstDoc: () => doc('Sample') });
     assert.equal(boot.migrated, true);
+    assert.equal(boot.fresh, false, 'a writer with a script to migrate is not new');
     assert.equal(boot.project.title, 'What Happened to Haiti?');
     assert.deepEqual(boot.project.script[1].marks, { u: [[0, 5]] }); // older underline format upgraded
     assert.equal(await store.getActiveProjectId(), boot.project.id);
@@ -168,11 +170,22 @@ describe('project library: first run', () => {
     assert.equal((await store.getAllProjects()).length, 1);
   });
 
-  it('with nothing to migrate, starts with the sample', async () => {
+  it('with nothing to migrate, starts with the first doc it’s given (the app’s: a blank Untitled) and says the writer is new', async () => {
     const { store } = setup();
-    const boot = await bootLibrary({ store, storage: createFakeStorage(), makeFirstDoc: () => doc('The Last Ferry') });
+    const storage = createFakeStorage();
+    const boot = await bootLibrary({ store, storage, makeFirstDoc: () => doc('Untitled') });
     assert.equal(boot.migrated, false);
-    assert.equal(boot.project.title, 'The Last Ferry');
+    assert.equal(boot.fresh, true);
+    assert.equal(boot.project.title, 'Untitled');
+    const again = await bootLibrary({ store, storage, makeFirstDoc: () => doc('x') });
+    assert.equal(again.fresh, false, 'a returning visit: the library already has a script');
+  });
+  it('the app’s first doc is a blank page, not the sample', () => {
+    const app = readFileSync(new URL('../src/App.jsx', import.meta.url), 'utf8');
+    assert.match(app, /bootLibrary\(\{ store: projects, storage: LOCAL, makeFirstDoc: \(\) => blankDoc\(\) \}\)/);
+    assert.match(app, /function blankDoc\(title = 'Untitled'\) \{\s*return \{ meta: \{ \.\.\.EMPTY_META, \.\.\.newProjectMeta\(\{ title, draftVersion: NEW_DRAFT_VERSION \}\) \}, blocks: \[makeBlock\('scene'\)\], beats: \[\] \};/);
+    assert.match(app, /const NEW_DRAFT_VERSION = 'First Draft';/);
+    assert.match(app, /await openAsNewProject\(blankDoc\(title\), `New script/, 'File → New makes the same blank page');
   });
 
   it('recovers unsaved work from the crash journal when it is newer than the stored project', async () => {

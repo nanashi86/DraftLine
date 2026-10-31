@@ -1,7 +1,7 @@
 // The title page's Author and Contact for new scripts.
 //
 // A new script starts with both empty. The Title Page form and the on-screen cover then show
-// Chilli Palmer (a Get Shorty homage, with a 555 number) as faint placeholder text — never stored,
+// Chili Palmer (a Get Shorty homage, with a 555 number) as faint placeholder text — never stored,
 // never printed. Saving the Title Page remembers its Author and Contact (localStorage) and the next
 // new script starts with those instead. A script that already has an author or contact (typed,
 // imported or opened from a file) is never touched.
@@ -9,7 +9,7 @@
 // The contact block follows the author, so personal details never land on someone else's script.
 // Every change replaces the whole block — it is never spliced, merged line by line or appended to:
 //   • author "Eric Lemaire" / "Eric Lemaire Jr." (exactly, any case) → ERIC_CONTACT;
-//   • author cleared                                                 → '' (Chilli's placeholder shows);
+//   • author cleared                                                 → '' (Chili's placeholder shows);
 //   • the writer's own remembered author                             → their remembered contact;
 //   • any other author: a contact the form filled in itself is cleared; one the writer typed stays.
 
@@ -17,9 +17,9 @@ export const AUTHOR_KEY = 'draftline_user_author';
 export const CONTACT_KEY = 'draftline_user_contact';
 
 /** Placeholder text only (form fields and the on-screen cover): never stored in a script, never printed. */
-export const AUTHOR_PLACEHOLDER = 'Chilli Palmer';
-export const CHILLI_CONTACT = `Chilli Palmer\n555-012-3456\ngetshorty@palmerfilms.com`;
-export const CONTACT_PLACEHOLDER = CHILLI_CONTACT;
+export const AUTHOR_PLACEHOLDER = 'Chili Palmer';
+export const CHILI_CONTACT = `Chili Palmer\n555-012-3456\ngetshorty@palmerfilms.com`;
+export const CONTACT_PLACEHOLDER = CHILI_CONTACT;
 export const ERIC_CONTACT = `Eric Lemaire\n339-545-0929 (Mobile)\n617-549-5955 (WhatsApp)\nelemaire86@gmail.com`;
 
 const ERIC_NAMES = ['eric lemaire', 'eric lemaire jr.'];

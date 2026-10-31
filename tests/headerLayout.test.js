@@ -117,7 +117,7 @@ describe('Top bar: narrow windows collapse in steps', () => {
   it('one "File ▾" menu at every width; no loose New / Open / Import / Title Page / Export buttons', () => {
     assert.match(rule('.file-menu'), /display: inline-flex;/);
     assert.ok(!/\.file-inline|max-width: 1319\.98px/.test(css));
-    assert.match(header, /<Menu label="File" items=\{fileItems\}/);
+    assert.match(header, /<Menu label="File" className="btn btn-file" items=\{fileItems\}/);
     assert.ok(!/label="Export"|FILE_ACTIONS|runFileAction/.test(app));
     for (const b of ['New', 'Open', 'Import', 'Title Page', 'Export']) assert.ok(!new RegExp(`>${b}</button>`).test(header), b);
   });

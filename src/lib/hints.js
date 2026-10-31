@@ -1,6 +1,6 @@
-// Feature hints: a quiet nudge toward six tools writers rarely find on their own (Import Scenes,
-// Analyze Value Shifts, Populate Bio, the Format Doctor, the Dialogue spotlight, Plan). Never a
-// tour, never a modal, never focus.
+// Feature hints: a quiet nudge toward eight things writers rarely find on their own (Import Scenes,
+// Analyze Value Shifts, Populate Bio, the Format Doctor, the Dialogue spotlight, Plan, and for a
+// brand-new writer, the sample script and Focus). Never a tour, never a modal, never focus.
 //
 //   beacon — a small accent dot on a top-bar button (Split, Characters): "something here"
 //   card   — a small card beside the tool itself, only once its panel is open: two sentences,
@@ -13,8 +13,15 @@
 //   formatDoctor  — 5+ Format Doctor findings showing, and the Format stepper never used
 //   dialogue      — 3+ speaking characters and 20+ speeches, and no character spotlit yet
 //   plan          — 90+ pages (a feature-length draft), and Plan never opened
+//   sample        — the script is blank (nothing written yet): the writer may want to look around first
+//   focus         — a script that was blank when it opened now has writing in it: they've started
 // …and only when it's calm: a few seconds after the last keystroke, a minute after the script was
-// opened or imported, never in Focus or Viewing, never while another corner card is up.
+// opened or imported (ten seconds for sample and focus: a first visit is short), never in Focus or
+// Viewing, never while another corner card is up.
+//
+// Sample and focus are for a brand-new writer only. The first time this version opens in a browser,
+// it notes whether the library was empty (draftline_onboarding): if it wasn't, the writer already
+// knows DraftLine, and both are marked done without ever showing. Show tips again brings them back.
 //
 // "Never used" is the hint's own state: using the tool any way at all marks it done.
 //
@@ -22,11 +29,15 @@
 // the hint or not) and never comes back in this browser, unless the writer picks Show tips again.
 // At most one new hint per session, except Analyze right after Import (the natural next step).
 
-export const HINT_IDS = ['importScenes', 'analyzeShifts', 'populateBio', 'formatDoctor', 'dialogue', 'plan'];
+export const HINT_IDS = ['importScenes', 'analyzeShifts', 'populateBio', 'formatDoctor', 'dialogue', 'plan', 'sample', 'focus'];
+/** The two for a brand-new writer (see onboardHints). */
+export const ONBOARDING_HINTS = ['sample', 'focus'];
 /** localStorage: { [hintId]: 'done' | 'dismissed' }. */
 export const HINTS_KEY = 'draftline_hints';
 /** sessionStorage: the hint already shown this session. */
 export const HINT_SESSION_KEY = 'draftline_hint_session';
+/** localStorage: 'new' | 'existing', written once, the first time this version opens (onboardHints). */
+export const ONBOARDING_KEY = 'draftline_onboarding';
 
 export const HINT_MIN_SCENES = 8;
 export const HINT_MIN_PAGES = 10;
@@ -39,6 +50,8 @@ export const HINT_PLAN_PAGES = 90;
 export const HINT_IDLE_MS = 3000;
 /** Time after a script is opened or imported before a hint may appear. */
 export const HINT_SETTLE_MS = 60000;
+/** The same for the sample and focus hints, which come in a writer's first minutes. */
+export const HINT_ONBOARD_SETTLE_MS = 10000;
 
 /**
  * Wording, and where each hint points:
@@ -49,6 +62,9 @@ export const HINT_SETTLE_MS = 60000;
  *             change the script in place; not ones that open a list, a workspace or a spotlight)
  *   usedBy  — a click anywhere in this element counts as using the tool (for tools whose use isn't an
  *             app state of its own, like opening the Format stepper's list)
+ *   settle  — how long after a script opens before it may show (default HINT_SETTLE_MS)
+ *   run     — its button does something of its own instead of clicking the target (the sample: File
+ *             holds it in a menu, so the card's button opens it directly)
  */
 export const HINTS = {
   importScenes: {
@@ -102,6 +118,25 @@ export const HINTS = {
     align: 'start',
     beacon: null, // the Plan button is always in the top bar
   },
+  sample: {
+    title: 'See DraftLine in action.',
+    text: 'The Last Ferry is a sample script with scenes, characters and Scene Board cards to explore. It opens as its own project, so your work stays right where you left it.',
+    action: 'Open the sample',
+    target: '.btn-file', // File ▾, where Sample… lives
+    align: 'start',
+    beacon: null, // File is always in the top bar
+    settle: HINT_ONBOARD_SETTLE_MS,
+    run: true,
+  },
+  focus: {
+    title: 'Your scene. Your space.',
+    text: 'Focus mode clears the screen of everything but your script. No toolbar, no panels, no distractions. Press Esc to bring everything back, right where you left it.',
+    action: 'Focus',
+    target: '.btn-focus',
+    align: 'end',
+    beacon: null, // the Focus button is in the top bar
+    settle: HINT_ONBOARD_SETTLE_MS,
+  },
 };
 
 /** Saved hint states; unreadable or blocked storage reads as none shown. */
@@ -124,6 +159,22 @@ export function markHint(storage, id, state, current = readHints(storage)) {
   return next;
 }
 
+/**
+ * Once per browser, the first time this version opens: was the library empty (a brand-new writer)?
+ * If not, the writer already knows DraftLine: the sample and focus hints are marked done, unseen.
+ * Never changes after that (a returning writer who deletes every script is still a returning
+ * writer). Returns the hint states.
+ */
+export function onboardHints(storage, isNew, current = readHints(storage)) {
+  let seen = null;
+  try {
+    seen = storage?.getItem(ONBOARDING_KEY) ?? null;
+    if (seen === null) storage?.setItem(ONBOARDING_KEY, isNew ? 'new' : 'existing');
+  } catch { /* blocked storage: nothing kept, so nothing to decide */ }
+  if (seen !== null || isNew) return current;
+  return ONBOARDING_HINTS.reduce((acc, id) => markHint(storage, id, 'done', acc), current);
+}
+
 /** Show tips again: forget every hint's state. */
 export function resetHints(storage, session) {
   try {
@@ -137,23 +188,35 @@ export function resetHints(storage, session) {
  * Has the writer reached the point where a hint helps?
  *   ctx: { scenes, pages, sceneCards (cards linked to a scene), shiftedCards (cards with a Value
  *          Shift), bioGains (characters Populate Bio would add to), findings (Format Doctor findings
- *          showing), speakers (speaking characters), speeches (their speeches, all together) }
+ *          showing), speakers (speaking characters), speeches (their speeches, all together),
+ *          blank (nothing written in the script), openedBlank (it was blank when it opened) }
  */
 export function hintWanted(id, ctx = {}) {
-  const { scenes = 0, pages = 0, sceneCards = 0, shiftedCards = 0, bioGains = 0, findings = 0, speakers = 0, speeches = 0 } = ctx;
+  const {
+    scenes = 0, pages = 0, sceneCards = 0, shiftedCards = 0, bioGains = 0, findings = 0, speakers = 0, speeches = 0,
+    blank = false, openedBlank = false,
+  } = ctx;
   if (id === 'importScenes') return (scenes >= HINT_MIN_SCENES || pages >= HINT_MIN_PAGES) && sceneCards === 0;
   if (id === 'analyzeShifts') return sceneCards > 0 && shiftedCards === 0;
   if (id === 'populateBio') return bioGains >= HINT_MIN_BIOS;
   if (id === 'formatDoctor') return findings >= HINT_MIN_FINDINGS;
   if (id === 'dialogue') return speakers >= HINT_MIN_SPEAKERS && speeches >= HINT_MIN_SPEECHES;
   if (id === 'plan') return pages >= HINT_PLAN_PAGES;
+  if (id === 'sample') return blank;
+  if (id === 'focus') return openedBlank && !blank;
   return false;
 }
 
-/** Is now a calm moment? now, lastKeyAt, openedAt in ms; busy: Focus, Viewing, a corner card, Plan. */
-export function hintCalm({ now = 0, lastKeyAt = 0, openedAt = 0, busy = false } = {}) {
-  return !busy && now - lastKeyAt >= HINT_IDLE_MS && now - openedAt >= HINT_SETTLE_MS;
+/**
+ * Is now a calm moment? now, lastKeyAt, openedAt in ms; busy: Focus, Viewing, a corner card, Plan;
+ * settle: how long after opening (a hint's own `settle`, else HINT_SETTLE_MS).
+ */
+export function hintCalm({ now = 0, lastKeyAt = 0, openedAt = 0, busy = false, settle = HINT_SETTLE_MS } = {}) {
+  return !busy && now - lastKeyAt >= HINT_IDLE_MS && now - openedAt >= settle;
 }
+
+/** How long after a script opens before hint `id` may show. */
+export const hintSettle = (id) => HINTS[id]?.settle ?? HINT_SETTLE_MS;
 
 /**
  * The hint to show now, or null. states — readHints(); sessionHint — the one shown this session

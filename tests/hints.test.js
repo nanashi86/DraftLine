@@ -3,8 +3,8 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import {
   HINTS, HINTS_KEY, HINT_IDLE_MS, HINT_IDS, HINT_MIN_BIOS, HINT_MIN_FINDINGS, HINT_MIN_PAGES, HINT_MIN_SCENES, HINT_MIN_SPEAKERS,
-  HINT_MIN_SPEECHES, HINT_OVERLAYS, HINT_PLAN_PAGES, HINT_SESSION_KEY, HINT_SETTLE_MS,
-  hintCalm, hintRoomFor, hintWanted, markHint, pickHint, readHints, resetHints,
+  HINT_MIN_SPEECHES, HINT_ONBOARD_SETTLE_MS, HINT_OVERLAYS, HINT_PLAN_PAGES, HINT_SESSION_KEY, HINT_SETTLE_MS, ONBOARDING_HINTS,
+  ONBOARDING_KEY, hintCalm, hintRoomFor, hintSettle, hintWanted, markHint, onboardHints, pickHint, readHints, resetHints,
 } from '../src/lib/hints.js';
 
 const read = (p) => readFileSync(new URL(`../src/${p}`, import.meta.url), 'utf8');
@@ -104,13 +104,17 @@ describe('feature hints: once each, one new one per session (Analyze may follow 
 });
 
 describe('feature hints: the wording is honest about running the tools again', () => {
-  it('six hints, each pointing at its tool’s real button', () => {
-    assert.deepEqual(HINT_IDS, ['importScenes', 'analyzeShifts', 'populateBio', 'formatDoctor', 'dialogue', 'plan']);
+  it('eight hints, each pointing at its tool’s real button', () => {
+    assert.deepEqual(HINT_IDS, ['importScenes', 'analyzeShifts', 'populateBio', 'formatDoctor', 'dialogue', 'plan', 'sample', 'focus']);
     assert.deepEqual(HINT_IDS.map((id) => HINTS[id].target), [
       '.board-import', '.board-analyze', '.pb-populate',
       '.stepper[aria-label="Format Doctor findings"] .stepper-main', '.pb-characters .cast-chip', '.ws-btn[data-workspace="plan"]',
+      '.btn-file', '.btn-focus',
     ]);
-    assert.deepEqual(HINT_IDS.map((id) => HINTS[id].beacon), ['split', null, 'characters', null, 'characters', null]);
+    assert.deepEqual(HINT_IDS.map((id) => HINTS[id].beacon), ['split', null, 'characters', null, 'characters', null, null, null],
+      'a dot only where the tool is hidden in a panel; File and Focus are always in the top bar');
+    assert.match(read('App.jsx'), /<Menu label="File" className="btn btn-file"/);
+    assert.match(read('App.jsx'), /className="btn btn-focus"/);
     assert.deepEqual(HINT_IDS.filter((id) => HINTS[id].caret), ['importScenes', 'populateBio'], 'only tools that edit the script in place hand the cursor back');
     assert.match(read('App.jsx'), /data-workspace=\{id\}/);
     assert.match(read('components/CharactersDrawer.jsx'), /data-tab=\{t\.id\}/);
@@ -157,7 +161,7 @@ describe('feature hints: the app never interrupts, and nothing runs without a cl
   it('the Format stepper, a spotlight or Plan, used any way and any time, ends that hint (even before it showed)', () => {
     assert.match(app, /const formatUsed = formatAt !== null \|\| doctorOpen;/);
     assert.match(app, /const dialogueUsed = !!selectedChar;/);
-    assert.match(app, /const now = \{ formatDoctor: formatUsed, dialogue: dialogueUsed, plan: inPlan \};/);
+    assert.match(app, /const now = \{ formatDoctor: formatUsed, dialogue: dialogueUsed, plan: inPlan, focus: focusMode \};/);
     assert.match(app, /now\[id\] && !usedBefore\.current\[id\]/, 'counted at the moment of use (off → on), so Show tips again sticks even with a spotlight still on');
     assert.doesNotMatch(app, /\}, \[formatUsed, dialogueUsed, inPlan, hintStates\]\);/, 'not re-run when the states are cleared');
     assert.equal(HINTS.formatDoctor.usedBy, '.stepper[aria-label="Format Doctor findings"]', 'opening its list counts');
@@ -231,5 +235,65 @@ describe('feature hints: the card never overlaps anything, and never floats over
   it('flipped above its button (the status bar), the notch points down at it', () => {
     assert.match(read('components/HintCard.jsx'), /\$\{pos\?\.above \? ' is-above' : ''\}/);
     assert.match(read('components/HintCard.css'), /\.hint-card\.is-above::before \{[^}]*bottom: -6px;/);
+  });
+});
+
+describe('feature hints: the two for a brand-new writer (the sample, Focus)', () => {
+  it('the wording', () => {
+    assert.equal(HINTS.sample.title, 'See DraftLine in action.');
+    assert.equal(HINTS.sample.text, 'The Last Ferry is a sample script with scenes, characters and Scene Board cards to explore. It opens as its own project, so your work stays right where you left it.');
+    assert.equal(HINTS.sample.action, 'Open the sample');
+    assert.equal(HINTS.focus.title, 'Your scene. Your space.');
+    assert.equal(HINTS.focus.text, 'Focus mode clears the screen of everything but your script. No toolbar, no panels, no distractions. Press Esc to bring everything back, right where you left it.');
+    assert.equal(HINTS.focus.action, 'Focus');
+  });
+  it('the sample while the page is blank; Focus once writing starts on a page that opened blank', () => {
+    assert.equal(hintWanted('sample', { blank: true }), true);
+    assert.equal(hintWanted('sample', { blank: false, openedBlank: true }), false, 'they’re writing: no detour');
+    assert.equal(hintWanted('focus', { blank: true, openedBlank: true }), false, 'nothing written yet');
+    assert.equal(hintWanted('focus', { blank: false, openedBlank: true }), true);
+    assert.equal(hintWanted('focus', { blank: false, openedBlank: false }), false, 'an existing script: not a fresh start');
+    assert.equal(pickHint({}, null, { blank: true }), 'sample');
+    assert.equal(pickHint({}, null, { blank: false, openedBlank: true }), 'focus');
+  });
+  it('never both in one session: whichever showed, the other waits', () => {
+    assert.equal(pickHint({ sample: 'dismissed' }, 'sample', { blank: false, openedBlank: true }), null);
+    assert.equal(pickHint({ focus: 'dismissed' }, 'focus', { blank: true }), null);
+  });
+  it('none of the other six can show on a blank page, so nothing competes with them', () => {
+    const blankPage = { scenes: 0, pages: 1, sceneCards: 0, shiftedCards: 0, bioGains: 0, findings: 0, speakers: 0, speeches: 0, blank: true, openedBlank: true };
+    for (const id of HINT_IDS.filter((x) => !ONBOARDING_HINTS.includes(x))) assert.equal(hintWanted(id, blankPage), false, id);
+  });
+  it('ten seconds after opening, not a minute: a first visit is short', () => {
+    assert.equal(HINT_ONBOARD_SETTLE_MS, 10000);
+    assert.equal(hintSettle('sample'), 10000);
+    assert.equal(hintSettle('focus'), 10000);
+    assert.equal(hintSettle('plan'), HINT_SETTLE_MS);
+    const at = { now: 50000, lastKeyAt: 0, openedAt: 50000 - 12000, busy: false };
+    assert.equal(hintCalm({ ...at, settle: hintSettle('sample') }), true);
+    assert.equal(hintCalm({ ...at, settle: hintSettle('plan') }), false);
+  });
+  it('a brand-new writer gets them; anyone who already had scripts has them done, unseen; decided once', () => {
+    const fresh = mem();
+    assert.deepEqual(onboardHints(fresh, true), {});
+    assert.equal(fresh.getItem(ONBOARDING_KEY), 'new');
+    const returning = mem();
+    assert.deepEqual(onboardHints(returning, false), { sample: 'done', focus: 'done' });
+    assert.equal(returning.getItem(ONBOARDING_KEY), 'existing');
+    assert.deepEqual(onboardHints(fresh, false), {}, 'a new writer stays new on later visits');
+    resetHints(returning, mem());
+    assert.deepEqual(onboardHints(returning, false), {}, 'Show tips again brings them back for good');
+    const blocked = { getItem() { throw new Error('blocked'); }, setItem() { throw new Error('blocked'); }, removeItem() {} };
+    assert.doesNotThrow(() => onboardHints(blocked, false));
+  });
+  it('the sample card opens the sample itself (Sample… is inside a menu); Focus clicks the Focus button', () => {
+    const app = read('App.jsx');
+    assert.equal(HINTS.sample.run, true);
+    assert.match(app, /if \(HINTS\[activeHint\]\.run && activeHint === 'sample'\) \{\s*loadSample\(\);/);
+    assert.match(app, /hintToolUsed\('sample'\);/, 'opening the sample any way ends its hint');
+    assert.match(app, /sample: true,\s*focus: true,\s*\}\[activeHint\]/);
+    assert.match(app, /useState\(\(\) => onboardHints\(globalThis\.localStorage, boot\.fresh === true\)\)/);
+    assert.match(app, /blank: s\.blank, openedBlank: c\.openedBlank/);
+    assert.match(app, /if \(!id \|\| !calm\(hintSettle\(id\)\)\) return;/);
   });
 });

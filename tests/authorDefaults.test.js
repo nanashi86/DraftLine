@@ -6,12 +6,12 @@ import {
 } from '../src/lib/authorDefaults.js';
 import { EMPTY_META, createProjectStore, toDoc } from '../src/lib/projectStorage.js';
 
-const CONTACT = 'Chilli Palmer\n555-012-3456\ngetshorty@palmerfilms.com';
+const CONTACT = 'Chili Palmer\n555-012-3456\ngetshorty@palmerfilms.com';
 const CREATOR = 'Eric Lemaire\n339-545-0929 (Mobile)\n617-549-5955 (WhatsApp)\nelemaire86@gmail.com';
 
 describe('author & contact defaults', () => {
-  it('Chilli Palmer (Get Shorty) and his 555 block are placeholders only; the creator’s block is kept for the easter egg', () => {
-    assert.equal(AUTHOR_PLACEHOLDER, 'Chilli Palmer');
+  it('Chili Palmer (Get Shorty) and his 555 block are placeholders only; the creator’s block is kept for the easter egg', () => {
+    assert.equal(AUTHOR_PLACEHOLDER, 'Chili Palmer');
     assert.equal(CONTACT_PLACEHOLDER, CONTACT);
     assert.equal(ERIC_CONTACT, CREATOR);
     assert.equal(AUTHOR_KEY, 'draftline_user_author');
@@ -55,7 +55,7 @@ describe('author & contact defaults', () => {
     const store = createProjectStore({ indexedDB: createFakeIndexedDB(), now: () => 1 });
     const storage = createFakeStorage();
     const rec = await store.createProject({ title: 'New One', storage });
-    assert.equal(rec.author, '', 'empty — Chilli Palmer is only a placeholder');
+    assert.equal(rec.author, '', 'empty — Chili Palmer is only a placeholder');
     assert.equal(rec.contact, '');
     rememberAuthorDefaults({ author: 'Saved Name', contact: 'saved@example.com' }, storage);
     const next = toDoc(await store.createProject({ title: 'Next', storage }));

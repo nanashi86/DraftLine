@@ -16,7 +16,7 @@ export { SPEC_STAMP_TEXT };
 
 /**
  * `placeholders` (the on-screen cover and the Title Page preview, never print): an empty author or
- * contact shows Chilli Palmer's, faint — placeholder text, not part of the script.
+ * contact shows Chili Palmer's, faint — placeholder text, not part of the script.
  */
 export default function TitlePageSheet({ meta, className = '', specStamp = false, placeholders = false }) {
   const { size } = titleTypography(meta);

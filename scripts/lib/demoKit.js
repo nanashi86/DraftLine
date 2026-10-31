@@ -61,12 +61,24 @@ const CURSOR = `
   });`;
 
 /**
+ * Every take: the two first-visit tips (the sample, Focus) are marked as already seen. A recording
+ * starts on a fresh browser, which DraftLine would otherwise greet as a brand-new writer.
+ */
+const ONBOARDED = `
+  try {
+    const seen = JSON.parse(localStorage.getItem('draftline_hints') || '{}');
+    localStorage.setItem('draftline_hints', JSON.stringify({ ...seen, sample: 'done', focus: 'done' }));
+    localStorage.setItem('draftline_onboarding', 'existing');
+  } catch { /* storage blocked: nothing to quiet */ }`;
+
+/**
  * Video 2.0: the feature tips (lib/hints.js) and the backup tip (lib/backupToast.js) are marked as
  * already seen, so neither pops up in the middle of a take.
  */
 const QUIET_TIPS = `
   try {
-    localStorage.setItem('draftline_hints', JSON.stringify({ importScenes: 'done', analyzeShifts: 'done', populateBio: 'done', formatDoctor: 'done', dialogue: 'done', plan: 'done' }));
+    localStorage.setItem('draftline_hints', JSON.stringify({ importScenes: 'done', analyzeShifts: 'done', populateBio: 'done', formatDoctor: 'done', dialogue: 'done', plan: 'done', sample: 'done', focus: 'done' }));
+    localStorage.setItem('draftline_onboarding', 'existing');
     localStorage.setItem('draftline_backup_toast_dismissed', 'true');
   } catch { /* storage blocked: nothing to quiet */ }`;
 
@@ -128,6 +140,8 @@ export function fixtureProject({ title, author = 'Eric Lemaire Jr.', blocks, bea
  * Record one walkthrough.
  *   folder   — subfolder of recordings/; the files inside are named after it: <folder>.webm, <folder>.mp4
  *   fixture  — fixtureProject(…) to open before recording starts (optional)
+ *   sample   — open the sample script (File ▾ → Sample…) before recording starts, instead of a fixture:
+ *              a fresh browser opens on a blank page, and the sample takes that page's place
  *   syncFolder — name for the stand-in synced folder (optional; enables the folder picker)
  *   mp4      — also save <folder>.mp4 (H.264) next to it, via ffmpeg on PATH or FFMPEG_PATH (default on)
  *   prepare(page) — off camera, after the fixture opens: set up state the video starts from (scene cards…)
@@ -135,7 +149,7 @@ export function fixtureProject({ title, author = 'Eric Lemaire Jr.', blocks, bea
  *              sidebar open when run() starts, and no feature tip or backup tip can pop up mid-take
  *   run(demo) — the walkthrough; demo has page, click, glide, drag, typeHuman, press, hold, wheel, say
  */
-export async function record({ folder, fixture = null, prepare = null, syncFolder = null, maxSeconds = 35, mp4 = true, clean = false, run }) {
+export async function record({ folder, fixture = null, sample = false, prepare = null, syncFolder = null, maxSeconds = 35, mp4 = true, clean = false, run }) {
   const out = join(ROOT, 'recordings', folder, `${folder}.webm`);
   try {
     const res = await fetch(URL_);
@@ -150,17 +164,25 @@ export async function record({ folder, fixture = null, prepare = null, syncFolde
     ...(process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH } : {}),
   });
 
-  // Off camera: open the fixture through File → Open (a .draftline restore) and keep the library.
+  // Off camera: open the fixture through File → Open (a .draftline restore), or the sample through
+  // File → Sample…, and keep the library.
   let storageState;
-  if (fixture) {
+  if (fixture || sample) {
     const prep = await browser.newContext({ viewport: SIZE });
+    await prep.addInitScript(ONBOARDED);
     const p = await prep.newPage();
     await p.goto(URL_);
     await p.locator('.el-input').first().waitFor();
-    await p.locator('input[type="file"][accept*=".draftline"]').first().setInputFiles({
-      name: `${fixture.title}.draftline`, mimeType: 'application/json', buffer: Buffer.from(fixture.text),
-    });
-    await p.waitForFunction((t) => document.querySelector('input.doc-title')?.value === t, fixture.title, { timeout: 10_000 });
+    if (fixture) {
+      await p.locator('input[type="file"][accept*=".draftline"]').first().setInputFiles({
+        name: `${fixture.title}.draftline`, mimeType: 'application/json', buffer: Buffer.from(fixture.text),
+      });
+    } else {
+      await p.getByRole('button', { name: /^File/ }).first().click();
+      await p.getByRole('menuitem', { name: /^Sample/ }).click();
+    }
+    const title = fixture ? fixture.title : 'The Last Ferry';
+    await p.waitForFunction((t) => document.querySelector('input.doc-title')?.value === t, title, { timeout: 10_000 });
     if (prepare) {
       await prepare(p);
       await p.waitForTimeout(1500); // a real wait, even in DEMO_CHECK: the prepared state must be saved
@@ -180,6 +202,7 @@ export async function record({ folder, fixture = null, prepare = null, syncFolde
     ...(CHECK ? {} : { recordVideo: { dir: rawDir, size: SIZE, fps: FPS } }),
   });
   await context.addInitScript(CURSOR);
+  await context.addInitScript(ONBOARDED);
   if (clean) await context.addInitScript(QUIET_TIPS);
   if (syncFolder) await context.addInitScript(fakeFolderScript(syncFolder));
   const page = await context.newPage();

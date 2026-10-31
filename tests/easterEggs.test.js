@@ -37,7 +37,7 @@ describe('Title page contact: no phone auto-linking', () => {
   });
 });
 
-describe('Title page placeholders: Chilli Palmer, faint, on screen only', () => {
+describe('Title page placeholders: Chili Palmer, faint, on screen only', () => {
   it('an empty author / contact shows the placeholder, marked is-placeholder; typed text replaces it', () => {
     const sheet = read('components/TitlePageSheet.jsx');
     assert.match(sheet, /const author = typedAuthor \|\| \(placeholders \? AUTHOR_PLACEHOLDER : ''\);/);

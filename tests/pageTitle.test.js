@@ -11,7 +11,7 @@ describe('page title: what the tab shows, and what search engines index', () => 
     assert.equal(SEO_TITLE, 'DraftLine — Fast, Distraction-Free Screenwriting Software (PWA)');
     assert.match(read('index.html'), /<title>DraftLine — Fast, Distraction-Free Screenwriting Software \(PWA\)<\/title>/);
   });
-  it('the demo (first visit, every crawler, File → Sample…) keeps the SEO title', () => {
+  it('the demo (File → Sample…) keeps the SEO title', () => {
     assert.equal(SAMPLE_SCRIPT.meta.title, 'The Last Ferry');
     assert.equal(pageTitle('The Last Ferry'), SEO_TITLE);
     assert.equal(pageTitle('  The Last Ferry '), SEO_TITLE);
@@ -22,9 +22,17 @@ describe('page title: what the tab shows, and what search engines index', () => 
     assert.equal(pageTitle(''), 'Untitled — DraftLine');
     assert.equal(pageTitle(undefined), 'Untitled — DraftLine');
   });
+  it('a first visit (and every crawler) opens on a blank untitled page: it keeps the SEO title until you write or name it', () => {
+    assert.equal(pageTitle('Untitled', { blank: true }), SEO_TITLE);
+    assert.equal(pageTitle('', { blank: true }), SEO_TITLE);
+    assert.equal(pageTitle('Untitled', { blank: false }), 'Untitled — DraftLine', 'one word written: it’s your script');
+    assert.equal(pageTitle('Night Crossing', { blank: true }), 'Night Crossing — DraftLine', 'named: it’s your script');
+  });
   it('the app sets the tab title only through pageTitle', () => {
     const app = read('src/App.jsx');
-    assert.match(app, /document\.title = pageTitle\(meta\.title\);/);
+    assert.match(app, /const scriptBlank = scriptIsBlank\(blocks\);/);
+    assert.match(app, /document\.title = pageTitle\(meta\.title, \{ blank: scriptBlank \}\);/);
+    assert.match(app, /\}, \[meta\.title, scriptBlank\]\);/);
     assert.equal((app.match(/document\.title =/g) || []).length, 1);
   });
   it('one title and description everywhere: tab, search result, link previews', () => {

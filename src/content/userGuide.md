@@ -20,7 +20,7 @@ The status bar at the bottom shows the current element, where your work is saved
 - **Write | Plan** switches between writing the script and planning the shoot (see Production & Planning). Write is where you start.
 - The status bar's steppers (**Format · 1 of 7**, **Density · 1 of 9**, a character's **MARIE · 1 of 8**) all work the same way: before your first step they show just how many there are (**Format · 7**), then ‹ › step through, clicking the name lists every one, and ✕ closes it.
 - On a narrower window the status bar makes room by giving up the least important things first, one at a time: the keyboard hints (shown only on wide windows with no stepper open), then the scene and word counts, then the page colour's name (its icon stays), then undo / redo, then zoom's − and + (the percentage stays). If it's still tight, steppers drop their names down to ‹ ›, the count and ✕, and the save status and **Editing / Viewing** badge show just their icons (hover for the words). The current element, the save status, **Editing / Viewing**, the page count and every open stepper never disappear.
-- **File ▾** holds everything to do with files, in three parts. **Script**: New… ({{key:Ctrl+Alt+N}}), Open… ({{key:Ctrl+O}}), Import…, Sample… (adds *The Last Ferry* to your Projects) and Edit Title…. **Export Script**: PDF, Final Draft, Fountain and Print Script…. **Export Planning & Production**: Story Bible, Scene Breakdown (the same .csv as Plan's Export Breakdown), and the Scene Board as a Spreadsheet, Markdown or Fountain Outline. **Backup**: Backup Project and View Snapshots. Each export shows its file type on the right (.fountain, .fdx, .pdf, .csv, .md, .draftline).
+- **File ▾** holds everything to do with files, in three parts. **Script**: New… ({{key:Ctrl+Alt+N}}), Open… ({{key:Ctrl+O}}), Import…, Sample… (adds *The Last Ferry*, with its Scene Board cards, Story Bible and an earlier draft in Snapshots, to your Projects; a blank, untitled script you haven't written in is replaced rather than left behind) and Edit Title…. A new script starts with **First Draft** as its Draft Version on the title page; change it there any time. **Export Script**: PDF, Final Draft, Fountain and Print Script…. **Export Planning & Production**: Story Bible, Scene Breakdown (the same .csv as Plan's Export Breakdown), and the Scene Board as a Spreadsheet, Markdown or Fountain Outline. **Backup**: Backup Project and View Snapshots. Each export shows its file type on the right (.fountain, .fdx, .pdf, .csv, .md, .draftline).
 - Narrow windows move panels you can't see on the bar into the **⋮** menu.
 
 **Tips.** Some tools are easy to miss, so DraftLine points each one out once, when it would help:
@@ -32,9 +32,16 @@ The status bar at the bottom shows the current element, where your work is saved
 - **The Dialogue spotlight**, once the script has 3 or more speaking characters and 20 or more speeches.
 - **Plan**, once the script reaches 90 pages.
 
-When the tool is inside a panel, a small dot appears first, on **Split** or **Characters** (or on the **Bios** or **Dialogue** tab if Characters is already open on the other one). Open it, and a short card beside the tool explains it, with the tool's own button and **Got it**. Tools that are always on screen (the Format stepper, Plan) get the card straight away. Nothing runs until you click, and the card never takes your cursor: after Import Scenes or Populate Bio runs, you're back where you were typing. The card also never sits on top of anything else: when you open a menu or dropdown over it, open a dialog, or a drawer covers its tool, it steps aside and comes back when there's room. Once you click its button, it gets out of the way of whatever the tool opens.
+And two for your first visit, when DraftLine opens on a blank page:
 
-Tips only appear at a quiet moment: a few seconds after you stop typing, a minute after a script is opened or imported, never in Focus, Plan or Viewing, and never while another corner card is up. You'll see at most one new tip per session (Analyze Value Shifts may follow Import Scenes straight away), and each one shows once: using the tool, any way at all (even before its tip appeared), or choosing Got it ends it for good. **⋮ → About DraftLine** has a **Tips** line showing how many you've seen; choose **Show tips again** there to start over.
+- **The sample script**, while the page is still blank: *The Last Ferry*, to look around in before you write. Its button opens it as its own project.
+- **Focus**, once you've started writing on that blank page.
+
+These two are only for someone new to DraftLine: if you already had scripts here when this version arrived, you won't see them (Show tips again brings them back).
+
+When the tool is inside a panel, a small dot appears first, on **Split** or **Characters** (or on the **Bios** or **Dialogue** tab if Characters is already open on the other one). Open it, and a short card beside the tool explains it, with the tool's own button and **Got it**. Tools that are always on screen (the Format stepper, Plan, File, Focus) get the card straight away. Nothing runs until you click, and the card never takes your cursor: after Import Scenes or Populate Bio runs, you're back where you were typing. The card also never sits on top of anything else: when you open a menu or dropdown over it, open a dialog, or a drawer covers its tool, it steps aside and comes back when there's room. Once you click its button, it gets out of the way of whatever the tool opens.
+
+Tips only appear at a quiet moment: a few seconds after you stop typing, a minute after a script is opened or imported (ten seconds for the two first-visit tips), never in Focus, Plan or Viewing, and never while another corner card is up. You'll see at most one new tip per session (Analyze Value Shifts may follow Import Scenes straight away), and each one shows once: using the tool, any way at all (even before its tip appeared), or choosing Got it ends it for good. **⋮ → About DraftLine** has a **Tips** line showing how many you've seen; choose **Show tips again** there to start over.
 
 ### Projects and browser storage
 
@@ -423,7 +430,7 @@ A few small surprises DraftLine keeps up its sleeve. None of them changes your s
 
 Tick **Spec stamp** in the Title Page dialog for a faded crimson stamp across the title page, tilted {{curiosities.stampAngle}}: {{curiosities.stampText}} It shows on screen only, and DraftLine remembers whether it's on.
 
-### Chilli Palmer
+### Chili Palmer
 
 A brand-new script's title page starts blank, with **{{curiosities.defaultAuthor}}**, a 555 number and a Palmer Films address showing faintly as placeholders, in homage to *Get Shorty*. They're never saved or printed. Save the Title Page with your own name and contact once, and every new script starts with yours instead.
 

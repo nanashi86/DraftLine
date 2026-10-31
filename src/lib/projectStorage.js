@@ -458,6 +458,7 @@ export function clearJournal(storage) {
  */
 export async function bootLibrary({ store, storage, makeFirstDoc }) {
   let migrated = false;
+  let fresh = false; // nothing here and nothing to migrate: a brand-new writer (lib/hints.js onboardHints)
   let all = await store.getAllProjects();
   if (!all.length) {
     const legacy = readLegacyDoc(storage);
@@ -465,6 +466,7 @@ export async function bootLibrary({ store, storage, makeFirstDoc }) {
     const rec = await store.saveActiveProject(doc);
     await store.setActiveProjectId(rec.id);
     migrated = !!legacy;
+    fresh = !legacy;
     all = [rec];
   }
 
@@ -483,7 +485,7 @@ export async function bootLibrary({ store, storage, makeFirstDoc }) {
   const project = (activeId && (await store.getProject(activeId))) || (await store.getAllProjects())[0];
   if (project.id !== activeId) await store.setActiveProjectId(project.id);
   const dictionary = (await store.getSetting(DICTIONARY_KEY)) || {};
-  return { project, migrated, recovered, dictionary, persistent: await store.isPersistent() };
+  return { project, migrated, fresh, recovered, dictionary, persistent: await store.isPersistent() };
 }
 
 /** "Last edited" wording for the library cards. */

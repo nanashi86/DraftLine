@@ -5,6 +5,7 @@ import { main, record } from './lib/demoKit.js';
 
 main(() => record({
   folder: 'DL_04_Write_CharactersAndDialogueSpotlight',
+  sample: true, // a fresh browser opens on a blank page: open The Last Ferry first, off camera
   async run({ page, click, glide, wheel, hold, say }) {
     await hold(1000);
 

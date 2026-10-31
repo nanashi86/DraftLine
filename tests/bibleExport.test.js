@@ -25,7 +25,7 @@ function project() {
     { id: 'n2', title: 'Director’s notes', body: 'Handheld.' },
   );
   return {
-    meta: { title: 'The Last Ferry', author: 'Chilli Palmer' },
+    meta: { title: 'The Last Ferry', author: 'Chili Palmer' },
     storyDna: {
       genres: ['Drama', 'Other'], genreOther: 'Political', theme: 'Home is a choice', conflictType: 'Individual vs. Nature',
       answers: { protagonist: 'Marie Cineus', climax: 'She turns the ferry around.' },
@@ -76,13 +76,13 @@ describe('Story Bible export: what each section holds', () => {
   const p = bibleExportPayload(project());
   const [dna, notes, chars] = p.sections;
   it('cover: title, author, the dossier label; file title "<Title> - Story Bible"', () => {
-    assert.deepEqual([p.title, p.author, p.label], ['The Last Ferry', 'Chilli Palmer', 'STORY BIBLE & PROJECT DOSSIER']);
+    assert.deepEqual([p.title, p.author, p.label], ['The Last Ferry', 'Chili Palmer', 'STORY BIBLE & PROJECT DOSSIER']);
     assert.equal(DOSSIER_LABEL, 'STORY BIBLE & PROJECT DOSSIER');
     assert.equal(p.docTitle, 'The Last Ferry - Story Bible');
     assert.equal(bibleFileTitle(''), 'Untitled - Story Bible');
     const html = bibleHtml(p);
     assert.match(html, /<title>The Last Ferry - Story Bible<\/title>/);
-    assert.match(html, /<div class="cover-label">STORY BIBLE &amp; PROJECT DOSSIER<\/div>\s*<h1>The Last Ferry<\/h1>\s*<div class="byline">by Chilli Palmer<\/div>/);
+    assert.match(html, /<div class="cover-label">STORY BIBLE &amp; PROJECT DOSSIER<\/div>\s*<h1>The Last Ferry<\/h1>\s*<div class="byline">by Chili Palmer<\/div>/);
   });
   it('DNA: genres (with Other spelled out), theme, conflict, devices in use, then beats 1–8', () => {
     assert.deepEqual(dna.meta, [

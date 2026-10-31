@@ -1,4 +1,7 @@
-// Preloaded on first launch so the editor and Dialogue Tuner have something to chew on.
+// The Last Ferry: the sample script (File ▾ → Sample…, or the sample hint on a first visit). A
+// short two-hander that shows the editor at work: dual dialogue, a V.O., parentheticals, a transition.
+// It comes with a Story Bible (logline, tone, synopsis), Scene Board cards (lib/beats.js
+// sampleBeats) and one earlier draft in Snapshots to compare against.
 // [type, text, extra?] tuples — converted to blocks with ids at load time.
 
 export const SAMPLE_SCRIPT = {
@@ -7,7 +10,7 @@ export const SAMPLE_SCRIPT = {
     credit: 'Written by',
     author: 'DraftLine Sample',
     basedOn: '',
-    draftVersion: '',
+    draftVersion: 'First Draft',
     draftDate: '',
     contact: '',
     titleFont: 'courier-prime',
@@ -88,3 +91,40 @@ export const SAMPLE_SCRIPT = {
     ['transition', 'CUT TO BLACK.'],
   ],
 };
+
+/** The sample's Story Bible notes: written for this script, so the Bible has something to show. */
+export const SAMPLE_STORY_NOTES = {
+  sections: [
+    { title: 'Logline', body: 'Before a storm, a woman slips onto the last ferry off her island, and the brother she left a one-line goodbye for gets on board too.' },
+    { title: 'Tone', body: 'Quiet, salt-worn, funny in the gaps.' },
+    { title: 'Pitch', body: '' },
+    { title: 'Timeline', body: '' },
+    { title: 'Scratchpad', body: '' },
+  ],
+  synopsis: {
+    act1: 'Marie slips away before dawn with one suitcase and a letter for Manman. Theo catches her at the pier, barefoot, and Captain Augustin forces the choice: tickets or goodbyes.',
+    act2: 'On the crossing, Augustin sees their father in Marie. Theo reads the letter: one line, "Don\'t come after me."',
+    act2b: 'The storm hits. In the wheelhouse, Augustin tells Theo what Marie is running toward: nothing she has to be.',
+    act3: 'Marie asks Augustin to turn the ferry around. Theo laughs, and it\'s their father\'s laugh.',
+  },
+};
+
+/** The earlier draft kept in the sample's Snapshots: no loudspeaker V.O. yet, and a flatter ending. */
+export const SAMPLE_EARLIER_LABEL = 'First pass';
+export function sampleEarlierDraft() {
+  const out = [];
+  const blocks = SAMPLE_SCRIPT.blocks;
+  for (let i = 0; i < blocks.length; i += 1) {
+    const [type, text] = blocks[i];
+    if (type === 'character' && text === 'AUGUSTIN (V.O.)') {
+      i += 2; // the loudspeaker line and its parenthetical came later
+      continue;
+    }
+    if (text === "Theo looks at her a long moment. Then he laughs — and it's their father's laugh.") {
+      out.push(['action', 'Theo says nothing. Outside, the ferry begins to turn.']);
+      continue;
+    }
+    out.push(blocks[i]);
+  }
+  return out;
+}

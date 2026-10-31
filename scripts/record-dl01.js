@@ -5,6 +5,7 @@ import { main, record } from './lib/demoKit.js';
 
 main(() => record({
   folder: 'DL_01_General_ProjectsAndWorkspaces',
+  sample: true, // a fresh browser opens on a blank page: open The Last Ferry first, off camera
   syncFolder: 'DraftLine Scripts', // stand-in folder: Playwright can't drive the OS folder picker
   async run({ page, click, glide, hold, say }) {
     await hold(1200);

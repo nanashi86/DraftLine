@@ -10,8 +10,10 @@ import ExportPdfModal from './components/ExportPdfModal.jsx';
 import Select from './components/Select.jsx';
 import HintCard from './components/HintCard.jsx';
 import {
-  HINTS, HINT_IDS, HINT_SESSION_KEY, hintCalm, markHint, pickHint, readHints, resetHints,
+  HINTS, HINT_IDS, HINT_ONBOARD_SETTLE_MS, HINT_SESSION_KEY, hintCalm, hintSettle, markHint, onboardHints, pickHint,
+  resetHints,
 } from './lib/hints.js';
+import { projectUntouched, scriptIsBlank } from './lib/blankScript.js';
 import ExportFdxModal from './components/ExportFdxModal.jsx';
 import DeleteProjectModal from './components/DeleteProjectModal.jsx';
 import DialogueStepper from './components/DialogueStepper.jsx';
@@ -53,7 +55,7 @@ import { dialogueFilter, dialogueKeyAction, dialogueStops } from './lib/dialogue
 import { canvasThemeInfo, nextCanvasTheme, readCanvasTheme, writeCanvasTheme } from './lib/canvasTheme.js';
 import { mergeDictionary } from './lib/structureDictionary.js';
 import { characterTabFromPrefs, closeDock, dockFromPrefs, openDock, toggleDock } from './lib/dock.js';
-import { ACT_STRUCTURES, DEFAULT_ACT_STRUCTURE, DEFAULT_BIBLE_TAB, convertNotesActs, realignActs } from './lib/bible.js';
+import { ACT_STRUCTURES, DEFAULT_ACT_STRUCTURE, DEFAULT_BIBLE_TAB, convertNotesActs, defaultStoryNotes, realignActs } from './lib/bible.js';
 import {
   DICTIONARY_KEY, EMPTY_META, bootLibrary, clearJournal, projects, revisionToDoc, toDoc, toRecord, writeJournal,
 } from './lib/projectStorage.js';
@@ -79,7 +81,7 @@ import { parseFountain, toFountain } from './lib/fountain.js';
 import { parseFDX, toFDX } from './lib/fdx.js';
 import { beatsToFountain, beatsToMarkdown, sampleBeats } from './lib/beats.js';
 import { populateBiosFromIntros } from './lib/characterIntros.js';
-import { SAMPLE_SCRIPT } from './lib/sampleScript.js';
+import { SAMPLE_EARLIER_LABEL, SAMPLE_SCRIPT, SAMPLE_STORY_NOTES, sampleEarlierDraft } from './lib/sampleScript.js';
 import { pageTitle } from './lib/pageTitle.js';
 import { effectiveZoomFor } from './lib/zoom.js';
 import { actionDensity, riskLocations, stepRisk } from './lib/pacing.js';
@@ -148,12 +150,39 @@ const VIEWS = [
   { id: 'board', label: 'Board', title: 'Scene Board only', Icon: SquareKanban },
 ];
 
-function sampleDoc() {
+/** Every new script starts as a first draft (Title Page → Draft Version; the writer can change it). */
+const NEW_DRAFT_VERSION = 'First Draft';
+
+/** The sample's Story Bible: the standard sections, with its logline, tone and synopsis filled in. */
+function sampleStoryNotes() {
+  const d = defaultStoryNotes();
+  const body = Object.fromEntries(SAMPLE_STORY_NOTES.sections.map((x) => [x.title, x.body]));
   return {
-    meta: { ...EMPTY_META, ...SAMPLE_SCRIPT.meta },
-    blocks: SAMPLE_SCRIPT.blocks.map(([type, text, extra]) => makeBlock(type, text, extra)),
-    beats: sampleBeats(),
+    ...d,
+    sections: d.sections.map((x) => ({ ...x, body: body[x.title] ?? x.body })),
+    synopsis: { ...d.synopsis, ...SAMPLE_STORY_NOTES.synopsis },
   };
+}
+
+/** The Last Ferry, as File ▾ → Sample… (or the sample hint) opens it: script, cards, Bible, one snapshot. */
+function sampleDoc(now = Date.now()) {
+  const meta = { ...EMPTY_META, ...SAMPLE_SCRIPT.meta };
+  const toBlocks = (list) => list.map(([type, text, extra]) => makeBlock(type, text, extra));
+  const beats = sampleBeats();
+  const storyNotes = sampleStoryNotes();
+  const earlier = { meta, blocks: toBlocks(sampleEarlierDraft()), beats, storyNotes };
+  return {
+    meta,
+    blocks: toBlocks(SAMPLE_SCRIPT.blocks),
+    beats,
+    storyNotes,
+    revisions: [createRevision(earlier, { label: SAMPLE_EARLIER_LABEL, now: now - 3 * 24 * 60 * 60 * 1000 })],
+  };
+}
+
+/** A new, empty script: what File → New makes, and what a first visit opens on. */
+function blankDoc(title = 'Untitled') {
+  return { meta: { ...EMPTY_META, ...newProjectMeta({ title, draftVersion: NEW_DRAFT_VERSION }) }, blocks: [makeBlock('scene')], beats: [] };
 }
 
 /** localStorage, or null where it's blocked (only prefs and the crash journal use it). */
@@ -218,7 +247,7 @@ function blockExtras(b) {
 let bootPromise = null;
 /** Once per page load (StrictMode runs effects twice; migration must not). */
 function bootOnce() {
-  bootPromise ??= bootLibrary({ store: projects, storage: LOCAL, makeFirstDoc: sampleDoc });
+  bootPromise ??= bootLibrary({ store: projects, storage: LOCAL, makeFirstDoc: () => blankDoc() });
   return bootPromise;
 }
 
@@ -368,7 +397,8 @@ function Workspace({ boot }) {
   const charactersBtnRef = useRef(null);
   // Feature hints (lib/hints.js): when you last typed, when this script was opened, where your caret
   // was (to put it back after a hint's tool runs), and which hint's button was just clicked.
-  const hintClock = useRef({ lastKeyAt: 0, openedAt: 0, caret: null, fromHint: null });
+  // openedBlank: the script had nothing written in it when it opened (the Focus hint's cue).
+  const hintClock = useRef({ lastKeyAt: 0, openedAt: 0, openedBlank: scriptIsBlank(initialDoc.blocks), caret: null, fromHint: null });
   const bibleBtnRef = useRef(null);
   const focusBtnRef = useRef(null);
   const [toast, setToast] = useState(() => bootMessage(boot));
@@ -671,9 +701,10 @@ function Workspace({ boot }) {
     };
   }, [saveNow]);
 
+  const scriptBlank = scriptIsBlank(blocks);
   useEffect(() => {
-    document.title = pageTitle(meta.title); // the demo keeps the SEO title (lib/pageTitle.js)
-  }, [meta.title]);
+    document.title = pageTitle(meta.title, { blank: scriptBlank }); // the demo and a blank first page keep the SEO title (lib/pageTitle.js)
+  }, [meta.title, scriptBlank]);
 
   useEffect(() => {
     writeJSON(PREFS_KEY, { zoom, dock, characterTab, navOpen, view, actMode, coverVisible, specStamp });
@@ -895,6 +926,7 @@ function Workspace({ boot }) {
   const applyProject = useCallback((rec) => {
     hintClock.current.openedAt = Date.now(); // a script just opened or imported: hints wait a minute
     const doc = toDoc(rec);
+    hintClock.current.openedBlank = scriptIsBlank(doc.blocks);
     const m = { ...EMPTY_META, ...doc.meta };
     const bl = doc.blocks.length ? doc.blocks : [makeBlock('scene')];
     setMeta(m);
@@ -968,12 +1000,23 @@ function Workspace({ boot }) {
   }, [applyProject, flushSave, notify]);
 
   const newScript = async (title = 'Untitled') => {
-    await openAsNewProject({ meta: { ...EMPTY_META, ...newProjectMeta({ title }) }, blocks: [makeBlock('scene')], beats: [] }, `New script “${title}” · your other scripts are in Projects`);
+    await openAsNewProject(blankDoc(title), `New script “${title}” · your other scripts are in Projects`);
     if (view === 'board') setView('page');
     requestAnimationFrame(() => document.querySelector('.sheet .el-input')?.focus());
   };
 
-  const loadSample = () => openAsNewProject(sampleDoc(), 'Sample script added to your Projects');
+  // The sample opens as its own project. If the script that was open holds nothing the writer made
+  // (a first visit's blank Untitled, say), the sample takes its place instead of leaving it empty in Projects.
+  const loadSample = async () => {
+    const s = latest.current;
+    const replace = !projectLocked && projectUntouched(s);
+    await openAsNewProject(sampleDoc(), replace ? 'Opened the sample script, The Last Ferry' : 'Sample script added to your Projects');
+    hintToolUsed('sample');
+    if (!replace) return;
+    await projects.deleteProject(s.projectId).catch(() => null);
+    await folderSync.removeProject(s.projectId).catch(() => null); // a linked folder's copy would bring it back
+    setLibraryRev((n) => n + 1);
+  };
 
   // ---- Scene Board → script: moving a scene card moves its scene (one undo step) ----
   const moveCard = (id, act, index) => {
@@ -2040,7 +2083,8 @@ function Workspace({ boot }) {
     lastBackupAt: lastBackups[projectId] ?? null,
     savedAt: saved.at ?? null,
   });
-  const [hintStates, setHintStates] = useState(() => readHints(globalThis.localStorage));
+  // A brand-new writer (the library was empty) gets the sample and Focus hints; anyone else has them done.
+  const [hintStates, setHintStates] = useState(() => onboardHints(globalThis.localStorage, boot.fresh === true));
   const [activeHint, setActiveHint] = useState(null);
   // The hint whose button was clicked: its card steps aside for the tool's own menu or window.
   const [hintHandedOff, setHintHandedOff] = useState(null);
@@ -2054,7 +2098,7 @@ function Workspace({ boot }) {
       findings: showFormatStepper ? issues.filter((it) => !formatHidden.has(issueKey(it))).length : 0,
       speakerCount: analysis.characterList.length,
       speeches: analysis.characterList.reduce((n, c) => n + c.lines, 0),
-      busy: hintBusy, characters, blocks, speakers,
+      busy: hintBusy, characters, blocks, speakers, blank: scriptIsBlank(blocks),
     };
   });
   useEffect(() => {
@@ -2083,14 +2127,15 @@ function Workspace({ boot }) {
     const tick = () => {
       const s = hintNow.current;
       const c = hintClock.current;
-      if (!hintCalm({ now: Date.now(), lastKeyAt: c.lastKeyAt, openedAt: c.openedAt, busy: s.busy })) return;
+      const calm = (settle) => hintCalm({ now: Date.now(), lastKeyAt: c.lastKeyAt, openedAt: c.openedAt, busy: s.busy, settle });
+      if (!calm(HINT_ONBOARD_SETTLE_MS)) return; // the shortest wait; each hint's own is checked once it's picked
       let sessionHint = null;
       try {
         sessionHint = globalThis.sessionStorage?.getItem(HINT_SESSION_KEY) || null;
       } catch { /* blocked storage: no session limit to read */ }
       const ctx = {
         scenes: s.scenes, pages: s.pages, sceneCards: s.sceneCards, shiftedCards: s.shiftedCards, bioGains: 0,
-        findings: s.findings, speakers: s.speakerCount, speeches: s.speeches,
+        findings: s.findings, speakers: s.speakerCount, speeches: s.speeches, blank: s.blank, openedBlank: c.openedBlank,
       };
       let id = pickHint(hintStates, sessionHint, ctx);
       if (!id && !hintStates.populateBio) {
@@ -2100,7 +2145,7 @@ function Workspace({ boot }) {
         }
         id = pickHint(hintStates, sessionHint, { ...ctx, bioGains: bio.gains });
       }
-      if (!id) return;
+      if (!id || !calm(hintSettle(id))) return;
       try {
         globalThis.sessionStorage?.setItem(HINT_SESSION_KEY, id);
       } catch { /* blocked storage: the in-memory state still shows it once */ }
@@ -2123,15 +2168,15 @@ function Workspace({ boot }) {
   // spotlit, would be undone at once.
   const formatUsed = formatAt !== null || doctorOpen;
   const dialogueUsed = !!selectedChar;
-  const usedBefore = useRef({ formatDoctor: false, dialogue: false, plan: false });
+  const usedBefore = useRef({ formatDoctor: false, dialogue: false, plan: false, focus: false });
   useEffect(() => {
-    const now = { formatDoctor: formatUsed, dialogue: dialogueUsed, plan: inPlan };
+    const now = { formatDoctor: formatUsed, dialogue: dialogueUsed, plan: inPlan, focus: focusMode };
     const used = Object.keys(now).filter((id) => now[id] && !usedBefore.current[id]);
     usedBefore.current = now;
     if (!used.length) return;
     setHintStates((st) => used.reduce((acc, id) => markHint(globalThis.localStorage, id, 'done', acc), st));
     setActiveHint((a) => (used.includes(a) ? null : a));
-  }, [formatUsed, dialogueUsed, inPlan]);
+  }, [formatUsed, dialogueUsed, inPlan, focusMode]);
   /** A hinted tool was used (from the hint or not): that hint is done for good. */
   const hintToolUsed = useCallback((id) => {
     setHintStates((st) => markHint(globalThis.localStorage, id, 'done', st));
@@ -2164,6 +2209,10 @@ function Workspace({ boot }) {
     return () => document.removeEventListener('click', onClick, true);
   }, [hintStates, hintToolUsed]);
   const runHint = () => {
+    if (HINTS[activeHint].run && activeHint === 'sample') {
+      loadSample(); // Sample… is inside the File menu: the card's button opens it directly
+      return;
+    }
     hintClock.current.fromHint = activeHint;
     setHintHandedOff(activeHint); // the tool takes over; closed without using it, the tip may come back another session
     document.querySelector(HINTS[activeHint].target)?.click(); // exactly what clicking the tool does
@@ -2188,6 +2237,8 @@ function Workspace({ boot }) {
     dialogue: charactersOpen && characterTab === 'dialogue',
     formatDoctor: true,
     plan: true,
+    sample: true,
+    focus: true,
   }[activeHint] ?? false;
   const hintCardShown = !hintHidden && hintPanelOpen;
   // Characters already open on the other tab: the dot goes on the tab (clicking Characters would close it).
@@ -2295,7 +2346,7 @@ function Workspace({ boot }) {
             {/* File ▾ (New · Open · Import · Title Page · exports · backup): with the identity, so it never
                 shrinks away; outside any clipping box, so its list can drop down. */}
             <span className="file-menu">
-              <Menu label="File" items={fileItems} title="New, Open, Import, Title Page · Export · Backup" />
+              <Menu label="File" className="btn btn-file" items={fileItems} title="New, Open, Import, Title Page · Export · Backup" />
             </span>
             <input ref={fileInputRef} type="file" accept=".fountain,.spmd,.txt,.fdx,.docx,.draftline" hidden onChange={openFile} />
           </div>
