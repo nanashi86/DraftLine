@@ -139,7 +139,7 @@ describe('right dock (Story Bible / Characters)', () => {
     assert.equal(closeDock('bible', 'bible'), null);
   });
   it('reads every older pref: the Dialogue drawer ("tuner", tunerOpen) now opens Characters → Dialogue', () => {
-    assert.equal(dockFromPrefs({}), 'characters');
+    assert.equal(dockFromPrefs({}), null, 'a first visit: Characters starts closed');
     assert.equal(dockFromPrefs({ tunerOpen: false }), null);
     assert.equal(dockFromPrefs({ dock: 'tuner' }), 'characters');
     assert.equal(dockFromPrefs({ dock: 'bible', tunerOpen: false }), 'bible');

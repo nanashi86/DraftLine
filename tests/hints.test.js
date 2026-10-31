@@ -256,9 +256,26 @@ describe('feature hints: the two for a brand-new writer (the sample, Focus)', ()
     assert.equal(pickHint({}, null, { blank: true }), 'sample');
     assert.equal(pickHint({}, null, { blank: false, openedBlank: true }), 'focus');
   });
-  it('never both in one session: whichever showed, the other waits', () => {
-    assert.equal(pickHint({ sample: 'dismissed' }, 'sample', { blank: false, openedBlank: true }), null);
+  it('Focus may follow the sample in one session (passed on it, started typing); never the other way', () => {
+    assert.equal(pickHint({ sample: 'dismissed' }, 'sample', { blank: false, openedBlank: true }), 'focus');
+    assert.equal(pickHint({}, 'sample', { blank: false, openedBlank: true }), 'focus', 'the sample card stepped aside, unanswered');
     assert.equal(pickHint({ focus: 'dismissed' }, 'focus', { blank: true }), null);
+    assert.equal(pickHint({}, 'sample', { scenes: 20, pages: 25 }), null, 'nothing else follows the sample');
+  });
+  it('on a phone, where Focus is in ⋮, the Focus tip never comes up (it would have no button to point at)', () => {
+    assert.equal(hintWanted('focus', { blank: false, openedBlank: true, focusOnBar: false }), false);
+    assert.equal(hintWanted('focus', { blank: false, openedBlank: true, focusOnBar: true }), true);
+    const app = read('App.jsx');
+    assert.match(app, /focusOnBar: isOnBar\(focusBtnRef\.current, barRef\.current\), \/\/ on a phone Focus is in ⋮/);
+    assert.match(app, /focusOnBar: s\.focusOnBar,/);
+  });
+  it('a tap on a card’s words reaches the script under it; only its buttons take clicks', () => {
+    const css = read('components/HintCard.css');
+    assert.match(css, /\.hint-card \{[^}]*pointer-events: none;/);
+    assert.match(css, /\.hint-card \.btn \{ pointer-events: auto; \}/);
+  });
+  it('once writing starts on the blank page, the sample card steps aside (undecided, so it may return)', () => {
+    assert.match(read('App.jsx'), /if \(activeHint === 'sample' && !scriptBlank\) setActiveHint\(null\);/);
   });
   it('none of the other six can show on a blank page, so nothing competes with them', () => {
     const blankPage = { scenes: 0, pages: 1, sceneCards: 0, shiftedCards: 0, bioGains: 0, findings: 0, speakers: 0, speeches: 0, blank: true, openedBlank: true };

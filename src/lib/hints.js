@@ -15,6 +15,7 @@
 //   plan          — 90+ pages (a feature-length draft), and Plan never opened
 //   sample        — the script is blank (nothing written yet): the writer may want to look around first
 //   focus         — a script that was blank when it opened now has writing in it: they've started
+//                   (and the Focus button is on the top bar: on a phone it's in ⋮, with nothing to point at)
 // …and only when it's calm: a few seconds after the last keystroke, a minute after the script was
 // opened or imported (ten seconds for sample and focus: a first visit is short), never in Focus or
 // Viewing, never while another corner card is up.
@@ -27,7 +28,8 @@
 //
 // How often: once. Each hint ends as 'dismissed' (Got it, ✕) or 'done' (the tool was used, through
 // the hint or not) and never comes back in this browser, unless the writer picks Show tips again.
-// At most one new hint per session, except Analyze right after Import (the natural next step).
+// At most one new hint per session, except Analyze right after Import and Focus after the sample (a
+// writer who passed on the sample and started typing): each the natural next step.
 
 export const HINT_IDS = ['importScenes', 'analyzeShifts', 'populateBio', 'formatDoctor', 'dialogue', 'plan', 'sample', 'focus'];
 /** The two for a brand-new writer (see onboardHints). */
@@ -189,12 +191,13 @@ export function resetHints(storage, session) {
  *   ctx: { scenes, pages, sceneCards (cards linked to a scene), shiftedCards (cards with a Value
  *          Shift), bioGains (characters Populate Bio would add to), findings (Format Doctor findings
  *          showing), speakers (speaking characters), speeches (their speeches, all together),
- *          blank (nothing written in the script), openedBlank (it was blank when it opened) }
+ *          blank (nothing written in the script), openedBlank (it was blank when it opened),
+ *          focusOnBar (the Focus button is showing on the top bar; assumed so when not given) }
  */
 export function hintWanted(id, ctx = {}) {
   const {
     scenes = 0, pages = 0, sceneCards = 0, shiftedCards = 0, bioGains = 0, findings = 0, speakers = 0, speeches = 0,
-    blank = false, openedBlank = false,
+    blank = false, openedBlank = false, focusOnBar = true,
   } = ctx;
   if (id === 'importScenes') return (scenes >= HINT_MIN_SCENES || pages >= HINT_MIN_PAGES) && sceneCards === 0;
   if (id === 'analyzeShifts') return sceneCards > 0 && shiftedCards === 0;
@@ -203,7 +206,7 @@ export function hintWanted(id, ctx = {}) {
   if (id === 'dialogue') return speakers >= HINT_MIN_SPEAKERS && speeches >= HINT_MIN_SPEECHES;
   if (id === 'plan') return pages >= HINT_PLAN_PAGES;
   if (id === 'sample') return blank;
-  if (id === 'focus') return openedBlank && !blank;
+  if (id === 'focus') return openedBlank && !blank && focusOnBar;
   return false;
 }
 
@@ -220,12 +223,13 @@ export const hintSettle = (id) => HINTS[id]?.settle ?? HINT_SETTLE_MS;
 
 /**
  * The hint to show now, or null. states — readHints(); sessionHint — the one shown this session
- * (only it, or Analyze straight after Import, may show); ctx — hintWanted's.
+ * (only it, Analyze straight after Import, or Focus after the sample may show); ctx — hintWanted's.
  */
 export function pickHint(states, sessionHint, ctx) {
   for (const id of HINT_IDS) {
     if (states[id]) continue;
-    const allowed = !sessionHint || sessionHint === id || (id === 'analyzeShifts' && sessionHint === 'importScenes');
+    const allowed = !sessionHint || sessionHint === id || (id === 'analyzeShifts' && sessionHint === 'importScenes')
+      || (id === 'focus' && sessionHint === 'sample');
     if (allowed && hintWanted(id, ctx)) return id;
   }
   return null;

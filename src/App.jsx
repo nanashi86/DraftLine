@@ -54,7 +54,7 @@ import { moveCardStep, relinkSceneCards } from './lib/sceneSync.js';
 import { dialogueFilter, dialogueKeyAction, dialogueStops } from './lib/dialogueFilter.js';
 import { canvasThemeInfo, nextCanvasTheme, readCanvasTheme, writeCanvasTheme } from './lib/canvasTheme.js';
 import { mergeDictionary } from './lib/structureDictionary.js';
-import { characterTabFromPrefs, closeDock, dockFromPrefs, openDock, toggleDock } from './lib/dock.js';
+import { characterTabFromPrefs, closeDock, openDock, startingPanels, toggleDock } from './lib/dock.js';
 import { ACT_STRUCTURES, DEFAULT_ACT_STRUCTURE, DEFAULT_BIBLE_TAB, convertNotesActs, defaultStoryNotes, realignActs } from './lib/bible.js';
 import {
   DICTIONARY_KEY, EMPTY_META, bootLibrary, clearJournal, projects, revisionToDoc, toDoc, toRecord, writeJournal,
@@ -316,7 +316,9 @@ function Workspace({ boot }) {
   const [activeId, setActiveId] = useState(null);
   const [view, setView] = useState(VIEWS.some((v) => v.id === initialPrefs.view) ? initialPrefs.view : 'page');
   // Right dock: the Story Bible (DNA · Notes) or Characters (Bios · Dialogue) — one at a time (lib/dock.js).
-  const [dock, setDock] = useState(() => dockFromPrefs(initialPrefs));
+  // What's open on load: nothing over the page on a phone or narrow window (lib/dock.js startingPanels).
+  const [startPanels] = useState(() => startingPanels(initialPrefs, globalThis.innerWidth ?? Infinity));
+  const [dock, setDock] = useState(startPanels.dock);
   const charactersOpen = dock === 'characters';
   const bibleOpen = dock === 'bible';
   const snapshotsOpen = dock === 'snapshots';
@@ -336,7 +338,7 @@ function Workspace({ boot }) {
     setDock(dock === 'characters' && characterTab === 'dialogue' ? null : 'characters');
     setCharacterTab('dialogue');
   }, [dock, characterTab]);
-  const [navOpen, setNavOpen] = useState(initialPrefs.navOpen ?? true);
+  const [navOpen, setNavOpen] = useState(startPanels.navOpen);
   const [selectedChar, setSelectedChar] = useState(null);
   const [hoverId, setHoverId] = useState(null);
   const [zoom, setZoom] = useState(initialPrefs.zoom ?? 1);
@@ -401,6 +403,7 @@ function Workspace({ boot }) {
   const hintClock = useRef({ lastKeyAt: 0, openedAt: 0, openedBlank: scriptIsBlank(initialDoc.blocks), caret: null, fromHint: null });
   const bibleBtnRef = useRef(null);
   const focusBtnRef = useRef(null);
+  const scenesBtnRef = useRef(null); // the Scenes button (hidden on phones: ⋮ → Scenes)
   const [toast, setToast] = useState(() => bootMessage(boot));
   const [saved, setSaved] = useState(() => ({
     blocks: initialDoc.blocks,
@@ -2099,6 +2102,7 @@ function Workspace({ boot }) {
       speakerCount: analysis.characterList.length,
       speeches: analysis.characterList.reduce((n, c) => n + c.lines, 0),
       busy: hintBusy, characters, blocks, speakers, blank: scriptIsBlank(blocks),
+      focusOnBar: isOnBar(focusBtnRef.current, barRef.current), // on a phone Focus is in ⋮: no button to point at
     };
   });
   useEffect(() => {
@@ -2136,6 +2140,7 @@ function Workspace({ boot }) {
       const ctx = {
         scenes: s.scenes, pages: s.pages, sceneCards: s.sceneCards, shiftedCards: s.shiftedCards, bioGains: 0,
         findings: s.findings, speakers: s.speakerCount, speeches: s.speeches, blank: s.blank, openedBlank: c.openedBlank,
+        focusOnBar: s.focusOnBar,
       };
       let id = pickHint(hintStates, sessionHint, ctx);
       if (!id && !hintStates.populateBio) {
@@ -2154,6 +2159,11 @@ function Workspace({ boot }) {
     const timer = setInterval(tick, 2000);
     return () => clearInterval(timer);
   }, [allHintsFinished, activeHint, hintStates]);
+  // Writing has started on the blank page: the sample card steps aside (not done: it can come back on
+  // another blank page), and the Focus tip may follow at the next pause.
+  useEffect(() => {
+    if (activeHint === 'sample' && !scriptBlank) setActiveHint(null);
+  }, [activeHint, scriptBlank]);
   // The writer got there another way (cards made by hand, a Value Shift set): the hint is done.
   useEffect(() => {
     const already = (activeHint === 'importScenes' && sceneCardCount > 0) || (activeHint === 'analyzeShifts' && shiftedCardCount > 0);
@@ -2265,6 +2275,7 @@ function Workspace({ boot }) {
           {/* 1 · Left zone: identity */}
           <div className="bar-zone zone-left g-identity">
             <button
+              ref={scenesBtnRef}
               className={`btn btn-icon${navVisible ? ' is-on-subtle' : ''}`}
               onClick={() => setNavOpen((o) => !o)}
               disabled={!showEditor}
@@ -2503,6 +2514,9 @@ function Workspace({ boot }) {
                 onGuide: () => setGuideOpen(true),
                 focusOnBar: inPlan || isOnBar(focusBtnRef.current, barRef.current),
                 onFocus: () => setFocusMode(true),
+                // Phones hide the Scenes button (App.css): the list is here instead.
+                scenesOnBar: inPlan || !showEditor || isOnBar(scenesBtnRef.current, barRef.current),
+                onScenes: () => setNavOpen((o) => !o),
                 writeViews: inPlan ? null : {
                   onBar: isOnBar(viewSegRef.current, barRef.current),
                   views: VIEWS.map((v) => ({ label: v.label, on: view === v.id, onSelect: () => setView(v.id) })),

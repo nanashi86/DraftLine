@@ -13,7 +13,9 @@
   font: 13px/1.5 var(--ui-font);
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
   animation: hint-in 200ms ease-out;
+  pointer-events: none; /* a tap on its words reaches the script underneath (on a phone it can sit over the first line) */
 }
+.hint-card .btn { pointer-events: auto; } /* only its two buttons take clicks */
 .hint-card.is-measuring { visibility: hidden; left: 0; top: 0; }
 .hint-card::before { /* the notch, above the card, under the button */
   content: '';

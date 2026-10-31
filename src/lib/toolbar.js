@@ -14,15 +14,16 @@ export function isOnBar(el, bar) {
 
 /**
  * The ⋮ menu, top to bottom: View Snapshots · Margin Notes · Format Doctor — Keyboard Shortcuts —
- * User Guide · About DraftLine (Sample… is in File ▾), plus Focus, Story Bible and/or Characters first (toolbar order), but only while
+ * User Guide · About DraftLine (Sample… is in File ▾), plus Scenes, Focus, Story Bible and/or Characters first (toolbar order), but only while
  * the toolbar can't show them itself (narrow windows). Snapshots and Notes show their counts.
  */
 export function moreMenuItems({
   bibleOnBar, charactersOnBar, onBible, onCharacters, onSnapshots, snapshotCount = 0, onNotes, noteCount = 0,
   onShortcuts, onAbout, focusOnBar = true, onFocus, onGuide, onFormatDoctor, issueCount = 0, planTools = null, onReports = null,
-  onFeedback = null, writeViews = null,
+  onFeedback = null, writeViews = null, scenesOnBar = true, onScenes = null,
 }) {
   const panels = [
+    !scenesOnBar && onScenes && { label: 'Scenes', hint: 'Alt+S', onSelect: onScenes },
     !focusOnBar && onFocus && { label: 'Focus', hint: 'Esc exits', onSelect: onFocus },
     !bibleOnBar && { label: 'Story Bible', hint: 'Alt+I', onSelect: onBible },
     !charactersOnBar && { label: 'Characters', hint: 'Alt+C', onSelect: onCharacters },

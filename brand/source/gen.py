@@ -5,6 +5,9 @@ Run from anywhere (needs Python with fonttools, uharfbuzz and brotli, and Node w
     node brand/source/render.mjs     # renders every PNG straight into brand/<platform>/ under its final name
 Each asset names its own output files (see add()), so a rerun refreshes the whole kit in place,
 including brand/X/. Fonts are bundled in brand/source/fonts/ (both SIL Open Font License).
+
+This script makes the logos, the avatars and the minimal banners. The full banners (tagline, pills, one
+script page), the Patreon tier cards and post are made by site.mjs, in the website's link-preview style.
 """
 import json, os, re, sys
 import uharfbuzz as hb
@@ -24,8 +27,6 @@ TEXT = '#e9e7e2'
 MUTED = '#9a9890'
 PAPER = '#fdfcf8'
 INK = '#141414'
-TEAL = '#8fd0d6'
-AMBER = '#f59e0b'
 
 FONTS = {
     'cp-bold': os.path.join(HERE, 'fonts/CourierPrime-Bold.ttf'),
@@ -97,8 +98,6 @@ def circle_icon(size):
     g = size * 1.2  # the D's box; its own padding keeps it centred inside the circle
     off = (size - g) / 2
     return (f'<rect width="{size}" height="{size}" fill="{ACCENT}"/>'
-            f'<radialGradient id="cg" cx="35%" cy="25%" r="85%"><stop offset="0" stop-color="#d86a51"/><stop offset="1" stop-color="#b44a34"/></radialGradient>'
-            f'<rect width="{size}" height="{size}" fill="url(#cg)"/>'
             + glyph_only(off, off, g, '#fff'))
 
 def wordmark(x, baseline, size, fill=TEXT, caret=ACCENT, anchor='start'):
@@ -123,43 +122,6 @@ def lockup(x, cy, h, fill=TEXT, caret=ACCENT, anchor='start'):
     wm, _ = wordmark(x + h + gap, cy + ch / 2, size, fill, caret)
     return mark(x, cy - h / 2, h) + wm, total
 
-# ---- screenplay page fragment (an original scene, set in the app's own page font) ----
-SCENE = [
-    ('trans', 'FADE IN:'),
-    ('slug', "INT. WRITERS' ROOM - NIGHT"),
-    ('action', 'A blank page. A blinking cursor.'),
-    ('action', 'Somewhere, a story is waiting.'),
-    ('char', 'WRITER'),
-    ('dlg', "Okay. Let's begin."),
-]
-
-def page(x, y, w, rot=0, scale_text=1.0, lines=SCENE, caret_last=True, opacity=1.0, h=None):
-    """A sliver of screenplay page. w is page width; type is 12pt-equivalent for an 8.5in page."""
-    fs = w / 8.5 * (12 / 72) * 1.0 * scale_text      # 12pt at page scale
-    lh = fs * 1.0 * 1.18                               # line height (Courier ~6 lines/inch)
-    left = w * (1.5 / 8.5)
-    h = h or w * 0.62
-    parts = [f'<rect width="{w}" height="{h}" rx="{w*0.006}" fill="{PAPER}"/>']
-    yy = w * 0.11
-    for kind, s in lines:
-        if kind == 'trans':
-            p, _ = text('cp', s, fs, left, yy, INK); yy += lh * 2
-        elif kind == 'slug':
-            p, _ = text('cp-bold', s, fs, left, yy, INK); yy += lh * 2
-        elif kind == 'action':
-            p, _ = text('cp', s, fs, left, yy, INK); yy += lh
-            if s.endswith('waiting.'): yy += lh
-        elif kind == 'char':
-            p, _ = text('cp', s, fs, left + w * (2.2 / 8.5), yy, INK); yy += lh
-        elif kind == 'dlg':
-            p, tw = text('cp', s, fs, left + w * (1.0 / 8.5), yy, INK)
-            if caret_last:
-                p += f'<rect x="{left + w*(1.0/8.5) + tw + fs*0.15:.2f}" y="{yy - fs*0.78:.2f}" width="{fs*0.12:.2f}" height="{fs*1.0:.2f}" fill="{ACCENT}"/>'
-            yy += lh
-        parts.append(p)
-    tr = f'translate({x} {y}) rotate({rot})'
-    return f'<g transform="{tr}" opacity="{opacity}" filter="url(#shadow)">' + ''.join(parts) + '</g>'
-
 def defs():
     return ('<defs>'
             '<filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">'
@@ -174,14 +136,6 @@ def svg(w, h, body, bg=INK_BG):
     bgr = f'<rect width="{w}" height="{h}" fill="{bg}"/>' if bg else ''
     return (f'<svg xmlns="http://www.w3.org/2000/svg" width="{w}" height="{h}" viewBox="0 0 {w} {h}">'
             + defs() + bgr + body + '</svg>')
-
-def backdrop(w, h, glow_cx=None, glow_cy=None, glow_r=None):
-    gx = w / 2 if glow_cx is None else glow_cx; gy = h / 2 if glow_cy is None else glow_cy
-    r = glow_r or max(w, h) * 0.45
-    # faint ruled "page lines" texture
-    lines = ''.join(f'<rect x="0" y="{y}" width="{w}" height="{max(1, h/400):.2f}" fill="#ffffff" opacity="0.025"/>'
-                    for y in range(0, int(h), max(8, int(h / 22))))
-    return lines + f'<ellipse cx="{gx}" cy="{gy}" rx="{r}" ry="{r*0.7}" fill="url(#glow)"/>'
 
 ASSETS = {}
 
@@ -225,182 +179,15 @@ W = int(lw + 60); H = 260
 lk, _ = lockup(30, 130, 200, TEXT); add('logo/draftline-lockup-for-dark-bg', W, H, lk, transparent=True, scales=(1, 2), publish_svg='logo/draftline-lockup-for-dark-bg')
 lk, _ = lockup(30, 130, 200, INK); add('logo/draftline-lockup-for-light-bg', W, H, lk, transparent=True, scales=(1, 2), publish_svg='logo/draftline-lockup-for-light-bg')
 
-# =================== shared banner composition ===================
-def hero(w, h, tagline, sub=None, lock_h=None, cy=None, pages=True, url=None, sub2=None):
-    lock_h = lock_h or h * 0.26
-    cy = h * 0.42 if cy is None else cy
-    body = backdrop(w, h, w / 2, cy, max(w, h) * 0.42)
-    if pages:
-        pw = min(h * 1.25, w * 0.28)
-        body += page(-pw * 0.16, h * 0.16, pw, rot=-6, opacity=0.92)
-        body += page(w - pw * 0.66, h * 0.30, pw, rot=5, opacity=0.92)
-    lk, _ = lockup(w / 2, cy, lock_h, anchor='middle'); body += lk
-    ty = cy + lock_h * 0.5 + lock_h * 0.48
-    ts = lock_h * 0.215
-    t, _ = text('inter-semi', tagline, ts, w / 2, ty, TEXT, anchor='middle'); body += t
-    if sub:
-        t, _ = text('inter', sub, ts * 0.72, w / 2, ty + ts * 1.55, MUTED, anchor='middle', tracking=0.02); body += t
-    if url:
-        t, _ = text('inter-semi', url, ts * 0.72, w / 2, ty + ts * (3.0 if sub else 1.55), ACCENT_HI, anchor='middle'); body += t
-    return body
-
-TAG = 'Fast, distraction-free screenwriting.'
-SUB = 'Local-First  ·  Works Offline  ·  Fountain & Final Draft'
-URL = 'nanashi86.github.io/DraftLine'
-
-# =================== PATREON ===================
-# Hero/cover 1600x400 (4:1). Everything that matters sits in the centre third, so wide and narrow crops both hold.
-add('patreon/patreon-cover-1600x400', 1600, 400, hero(1600, 400, TAG, SUB, lock_h=96, cy=150), scales=(1, 2))
+# =================== AVATARS AND ICONS ===================
+# One picture everywhere: the app icon's tile, edge to edge, flat (no gradient or glow), with the D kept
+# well inside the circle the platforms crop it to.
 add('patreon/patreon-avatar-1024', 1024, 1024, circle_icon(1024))
-
-def tier(name, color, line):
-    w, h = 460, 200
-    b = backdrop(w, h, w * 0.85, h * 0.2, 240)
-    b += f'<rect x="0" y="0" width="{w}" height="6" fill="{color}"/>'
-    b += mark(26, 30, 40)
-    t, _ = text('inter-semi', "DRAFTLINE WRITERS' ROOM", 11.5, 78, 55, MUTED, tracking=0.12); b += t
-    t, tw = text('cp-bold', name, 46, 26, 128, TEXT); b += t
-    b += f'<rect x="{26 + tw + 6}" y="{128 - 34}" width="4" height="40" fill="{color}"/>'
-    t, _ = text('inter', line, 14, 26, 166, MUTED); b += t
-    return b
-
-add('patreon/patreon-tier-writer-460x200', 460, 200, tier('Writer', ACCENT_HI, 'Back the free screenwriting app.'), scales=(1, 2))
-add('patreon/patreon-tier-beta-tester-460x200', 460, 200, tier('Beta Tester', TEAL, 'Try new features before release.'), scales=(1, 2))
-add('patreon/patreon-tier-patron-460x200', 460, 200, tier('Patron', AMBER, 'Help shape what DraftLine becomes.'), scales=(1, 2))
-
-# Post image 16:9 for announcements
-def post(w=1920, h=1080, title='Now on Patreon', kicker='DRAFTLINE'):
-    b = backdrop(w, h, w * 0.3, h * 0.5, 900)
-    b += page(w * 0.56, h * 0.14, h * 1.15, rot=5)
-    b += mark(150, 330, 150)
-    t, _ = text('inter-semi', kicker, 30, 150, 560, ACCENT_HI, tracking=0.18); b += t
-    t, _ = text('cp-bold', title, 96, 150, 670, TEXT); b += t
-    t, _ = text('inter', TAG, 38, 150, 750, MUTED); b += t
-    return b
-add('patreon/patreon-post-1920x1080', 1920, 1080, post())
-
-# =================== DISCORD ===================
 add('discord/discord-server-icon-1024', 1024, 1024, circle_icon(1024), scales=(0.5, 1))
-
-def discord_banner(w=1920, h=1080):
-    # Shown ~240px wide above the channel list with the server name over the top ~20%: big, stacked, low-centre.
-    b = backdrop(w, h, w / 2, h * 0.6, 1000)
-    b += page(-300, 430, 760, rot=-8, opacity=0.9)
-    b += page(w - 470, 560, 760, rot=7, opacity=0.9)
-    b += mark(w / 2 - 125, 300, 250)
-    wm, _ = wordmark(w / 2, 770, 150, anchor='middle'); b += wm
-    t, _ = text('inter-semi', "WRITERS' ROOM", 52, w / 2, 870, MUTED, anchor='middle', tracking=0.3); b += t
-    return b
-add('discord/discord-server-banner-1920x1080', 1920, 1080, discord_banner())
-
-def invite_splash(w=1920, h=1080):
-    # The invite card covers the middle, so the brand lives in the top-left and the pages in the other corners.
-    b = backdrop(w, h, w / 2, h / 2, 1200)
-    b += page(-160, 560, 900, rot=-8)
-    b += page(w - 700, -40, 900, rot=7)
-    lk, _ = lockup(90, 120, 96); b += lk
-    t, _ = text('inter-semi', TAG, 32, 90, 230, MUTED); b += t
-    return b
-add('discord/discord-invite-splash-1920x1080', 1920, 1080, invite_splash())
-
-def profile_banner(w=680, h=240):
-    # The avatar overlaps the bottom-left, so the lockup sits right of centre.
-    b = backdrop(w, h, w * 0.65, h * 0.45, 360)
-    b += page(-120, 40, 330, rot=-8, opacity=0.9)
-    lk, _ = lockup(w * 0.64, h * 0.42, 62, anchor='middle'); b += lk
-    t, _ = text('inter', 'Free screenwriting in your browser', 16, w * 0.64, h * 0.42 + 64, MUTED, anchor='middle'); b += t
-    return b
-add('discord/discord-profile-banner-680x240', 680, 240, profile_banner(), scales=(1, 2))
-
-# =================== KO-FI ===================
-add('ko-fi/kofi-cover-1200x400', 1200, 400, hero(1200, 400, TAG, SUB, lock_h=92, cy=148), scales=(1, 2))
 add('ko-fi/kofi-avatar-1024', 1024, 1024, circle_icon(1024))
+add('X/x-avatar-800', 800, 800, circle_icon(800), files=[(1, 'X/x-avatar-800')])
 
-# =================== GITHUB ===================
-add('github/github-social-preview-1280x640', 1280, 640, hero(1280, 640, TAG, SUB, lock_h=140, cy=250, url=URL))
-add('github/readme-banner-1280x320', 1280, 320, hero(1280, 320, TAG, SUB, lock_h=78, cy=118), scales=(1, 2))
-
-# =================== X (TWITTER) ===================
-# Profile photo: 400x400 shown as a circle (2 MB max); made at 800 for sharp retina display.
-# Header: 1500x500 (3:1). The avatar covers roughly the bottom-left 400x200, and phones crop the top and
-# bottom, so everything that matters sits in x >= 440 and y 110..400.
-LUCIDE = {  # Lucide line icons (24 px grid, 2 px stroke), the app's icon set: no emoji anywhere.
-    'coffee': ['M10 2v2', 'M14 2v2', 'M16 8a1 1 0 0 1 1 1v8a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V9a1 1 0 0 1 1-1h14a4 4 0 1 1 0 8h-1', 'M6 2v2'],
-    'heart': ['M2 9.5a5.5 5.5 0 0 1 9.591-3.676.56.56 0 0 0 .818 0A5.49 5.49 0 0 1 22 9.5c0 2.29-1.5 4-3 5.5l-5.492 5.313a2 2 0 0 1-3 .019L5 15c-1.5-1.5-3-3.2-3-5.5'],
-    'message-circle': ['M2.992 16.342a2 2 0 0 1 .094 1.167l-1.065 3.29a1 1 0 0 0 1.236 1.168l3.413-.998a2 2 0 0 1 1.099.092 10 10 0 1 0-4.777-4.719'],
-    'code-xml': ['m18 16 4-4-4-4', 'm6 8-4 4 4 4', 'm14.5 4-5 16'],
-}
-
-def icon(name, x, y, size, color):
-    paths = ''.join(f'<path d="{d}"/>' for d in LUCIDE[name])
-    return (f'<g transform="translate({x:.2f} {y:.2f}) scale({size / 24:.4f})" fill="none" stroke="{color}" '
-            f'stroke-width="2" stroke-linecap="round" stroke-linejoin="round">{paths}</g>')
-
-def noir_defs(w, h):
-    """The app's Film Noir look: Venetian-blind slats at -28 deg (lib/noir.js), a vignette and 35 mm grain."""
-    return (
-        '<defs>'
-        # light through the blinds, on the backdrop
-        '<pattern id="shafts" patternUnits="userSpaceOnUse" width="52" height="52" patternTransform="rotate(-28)">'
-        '<rect width="52" height="30" fill="#fff" opacity="0.045"/></pattern>'
-        '<linearGradient id="shaftfade" x1="1" y1="0" x2="0.2" y2="1">'
-        '<stop offset="0" stop-color="#fff" stop-opacity="1"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>'
-        '<mask id="shaftmask"><rect width="100%" height="100%" fill="url(#shaftfade)"/></mask>'
-        # the blind's shadow, across the page
-        '<pattern id="slats" patternUnits="userSpaceOnUse" width="52" height="52" patternTransform="rotate(-34)">'
-        '<rect y="34" width="52" height="18" fill="#000" opacity="0.13"/></pattern>'
-        '<radialGradient id="vignette" cx="50%" cy="50%" r="75%">'
-        '<stop offset="0.55" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity="0.55"/></radialGradient>'
-        '<filter id="grain" x="0" y="0" width="100%" height="100%">'
-        '<feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" stitchTiles="stitch"/>'
-        '<feColorMatrix type="saturate" values="0"/></filter>'
-        '</defs>')
-
-def noir_page(x, y, w, rot):
-    """A screenplay page lying in the blinds' light: the page() fragment with slat shadows across it."""
-    g = page(x, y, w, rot=rot)
-    h = w * 0.62
-    return g[:-len('</g>')] + f'<rect width="{w}" height="{h:.2f}" fill="url(#slats)"/></g>'
-
-def pill(x, y, name, label, size=15):
-    """A community badge: line icon + label in a dark capsule. Returns svg, width."""
-    lw = measure('inter-semi', label, size)
-    w = 16 + 18 + 9 + lw + 18
-    b = (f'<rect x="{x:.2f}" y="{y}" width="{w:.2f}" height="40" rx="20" fill="#222327" stroke="#3a3b42"/>'
-         + icon(name, x + 16, y + 11, 18, ACCENT_HI))
-    t, _ = text('inter-semi', label, size, x + 16 + 18 + 9, y + 25.5, TEXT)
-    return b + t, w
-
-def x_banner(w=1500, h=500):
-    cx = 700                                              # content column, left of centre to balance the page
-    b = noir_defs(w, h)
-    b += f'<rect width="{w}" height="{h}" fill="url(#shafts)" mask="url(#shaftmask)"/>'
-    b += f'<ellipse cx="{cx}" cy="210" rx="560" ry="300" fill="url(#glow)" opacity="0.8"/>'
-    b += noir_page(w - 430, 64, 560, rot=6)
-    lk, _ = lockup(cx, 168, 92, anchor='middle'); b += lk
-    t, _ = text('inter-semi', 'Fast, distraction-free screenwriting.', 30, cx, 268, TEXT, anchor='middle'); b += t
-    t, _ = text('inter', '100% local, open-source.', 22, cx, 304, MUTED, anchor='middle', tracking=0.01); b += t
-    pills = [('coffee', 'Ko-fi'), ('heart', 'Patreon'), ('message-circle', 'Discord'), ('code-xml', 'GitHub')]
-    widths = [pill(0, 0, n, l)[1] for n, l in pills]
-    gap = 12
-    x = cx - (sum(widths) + gap * (len(pills) - 1)) / 2
-    for (n, l), pw in zip(pills, widths):
-        p, _ = pill(x, 348, n, l); b += p; x += pw + gap
-    b += f'<rect width="{w}" height="{h}" fill="url(#vignette)"/>'
-    b += f'<rect width="{w}" height="{h}" filter="url(#grain)" opacity="0.05"/>'
-    return b
-
-def x_avatar(size=800):
-    """The app icon, centred on the dark ground with room to spare inside X's circular crop."""
-    tile = size * 0.6
-    b = f'<ellipse cx="{size / 2}" cy="{size / 2}" rx="{size * 0.5}" ry="{size * 0.5}" fill="url(#glow)" opacity="0.7"/>'
-    return b + mark((size - tile) / 2, (size - tile) / 2, tile)
-
-add('X/x-avatar', 800, 800, x_avatar(800), files=[(1, 'X/x-avatar')])
-add('X/x-banner', 1500, 500, x_banner(), files=[(1, 'X/x-banner')])
-# The same tagline header as Patreon, Ko-fi and GitHub, sized for X: everything sits in x 501..999 and y 130..315,
-# clear of the avatar (bottom-left, x < 440) and inside the phone crop (60 px top and bottom).
-add('X/x-banner-tagline', 1500, 500, hero(1500, 500, TAG, SUB, lock_h=100, cy=180), files=[(1, 'X/x-banner-tagline')])
+# =================== X: THE LOGO WITH ITS NAME ===================
 
 lk, lw = lockup(0, 0, 200)
 W = int(lw + 60); H = 260
@@ -417,24 +204,23 @@ adaptive = (f'<svg xmlns="http://www.w3.org/2000/svg" width="{W}" height="{H}" v
 add('X/draftline-x-full-logo', W, H, None, raw=adaptive, files=[], publish_svg='X/draftline-x-full-logo')
 
 # =================== MINIMAL BANNERS ===================
-# The logo with the name (light lettering, as in logo/draftline-lockup-for-dark-bg) alone on solid black,
-# at each platform's banner size. Each one keeps clear of what that platform lays over its banner.
-BLACK = '#000000'
+# The logo with the name (light lettering, as in logo/draftline-lockup-for-dark-bg) alone on the ink
+# background (#18181b, the same as the full banners), at each platform's size. Each keeps clear of what
+# that platform lays over it. The full banners (tagline, pills, script page) are made by site.mjs.
+# No Discord server banner here: Discord asks for no logos or text in it (site.mjs makes a text-free one).
 
 def minimal(w, h, lock_h, cx=None, cy=None):
     lk, _ = lockup(w / 2 if cx is None else cx, h / 2 if cy is None else cy, lock_h, TEXT, anchor='middle')
     return lk
 
 # X: the avatar covers the bottom-left and phones crop 60 px top and bottom, so the logo sits a touch high.
-add('X/x-banner-minimal', 1500, 500, minimal(1500, 500, 120, cy=235), bg=BLACK, files=[(1, 'X/x-banner-minimal')])
-add('patreon/patreon-cover-minimal-1600x400', 1600, 400, minimal(1600, 400, 110), bg=BLACK, scales=(1, 2))
-# Discord server banner: shown small under the server name, which covers the top ~20%.
-add('discord/discord-server-banner-minimal-1920x1080', 1920, 1080, minimal(1920, 1080, 200, cy=600), bg=BLACK)
+add('X/x-header-minimal-1500x500', 1500, 500, minimal(1500, 500, 120, cy=235))
+add('patreon/patreon-cover-minimal-1600x400', 1600, 400, minimal(1600, 400, 110), scales=(1, 2))
 # Discord profile banner: the avatar overlaps the bottom-left.
-add('discord/discord-profile-banner-minimal-680x240', 680, 240, minimal(680, 240, 56, cx=422, cy=105), bg=BLACK, scales=(1, 2))
-add('ko-fi/kofi-cover-minimal-1200x400', 1200, 400, minimal(1200, 400, 96, cy=190), bg=BLACK, scales=(1, 2))
-add('github/github-social-preview-minimal-1280x640', 1280, 640, minimal(1280, 640, 150), bg=BLACK)
-add('github/readme-banner-minimal-1280x320', 1280, 320, minimal(1280, 320, 86), bg=BLACK, scales=(1, 2))
+add('discord/discord-profile-banner-minimal-680x240', 680, 240, minimal(680, 240, 56, cx=422, cy=105), scales=(1, 2))
+add('ko-fi/kofi-cover-minimal-1200x400', 1200, 400, minimal(1200, 400, 96, cy=190), scales=(1, 2))
+add('github/github-social-preview-minimal-1280x640', 1280, 640, minimal(1280, 640, 150))
+add('github/readme-banner-minimal-1280x320', 1280, 320, minimal(1280, 320, 86), scales=(1, 2))
 
 # =================== write the sources ===================
 for path, a in ASSETS.items():

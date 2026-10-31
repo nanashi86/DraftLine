@@ -123,22 +123,6 @@
   ],
   "publish_svg": "logo/draftline-lockup-for-light-bg.svg"
  },
- "patreon/patreon-cover-1600x400": {
-  "w": 1600,
-  "h": 400,
-  "transparent": false,
-  "files": [
-   [
-    1,
-    "patreon/patreon-cover-1600x400.png"
-   ],
-   [
-    2,
-    "patreon/patreon-cover-3200x800.png"
-   ]
-  ],
-  "publish_svg": null
- },
  "patreon/patreon-avatar-1024": {
   "w": 1024,
   "h": 1024,
@@ -147,66 +131,6 @@
    [
     1,
     "patreon/patreon-avatar-1024.png"
-   ]
-  ],
-  "publish_svg": null
- },
- "patreon/patreon-tier-writer-460x200": {
-  "w": 460,
-  "h": 200,
-  "transparent": false,
-  "files": [
-   [
-    1,
-    "patreon/patreon-tier-writer-460x200.png"
-   ],
-   [
-    2,
-    "patreon/patreon-tier-writer-920x400.png"
-   ]
-  ],
-  "publish_svg": null
- },
- "patreon/patreon-tier-beta-tester-460x200": {
-  "w": 460,
-  "h": 200,
-  "transparent": false,
-  "files": [
-   [
-    1,
-    "patreon/patreon-tier-beta-tester-460x200.png"
-   ],
-   [
-    2,
-    "patreon/patreon-tier-beta-tester-920x400.png"
-   ]
-  ],
-  "publish_svg": null
- },
- "patreon/patreon-tier-patron-460x200": {
-  "w": 460,
-  "h": 200,
-  "transparent": false,
-  "files": [
-   [
-    1,
-    "patreon/patreon-tier-patron-460x200.png"
-   ],
-   [
-    2,
-    "patreon/patreon-tier-patron-920x400.png"
-   ]
-  ],
-  "publish_svg": null
- },
- "patreon/patreon-post-1920x1080": {
-  "w": 1920,
-  "h": 1080,
-  "transparent": false,
-  "files": [
-   [
-    1,
-    "patreon/patreon-post-1920x1080.png"
    ]
   ],
   "publish_svg": null
@@ -227,62 +151,6 @@
   ],
   "publish_svg": null
  },
- "discord/discord-server-banner-1920x1080": {
-  "w": 1920,
-  "h": 1080,
-  "transparent": false,
-  "files": [
-   [
-    1,
-    "discord/discord-server-banner-1920x1080.png"
-   ]
-  ],
-  "publish_svg": null
- },
- "discord/discord-invite-splash-1920x1080": {
-  "w": 1920,
-  "h": 1080,
-  "transparent": false,
-  "files": [
-   [
-    1,
-    "discord/discord-invite-splash-1920x1080.png"
-   ]
-  ],
-  "publish_svg": null
- },
- "discord/discord-profile-banner-680x240": {
-  "w": 680,
-  "h": 240,
-  "transparent": false,
-  "files": [
-   [
-    1,
-    "discord/discord-profile-banner-680x240.png"
-   ],
-   [
-    2,
-    "discord/discord-profile-banner-1360x480.png"
-   ]
-  ],
-  "publish_svg": null
- },
- "ko-fi/kofi-cover-1200x400": {
-  "w": 1200,
-  "h": 400,
-  "transparent": false,
-  "files": [
-   [
-    1,
-    "ko-fi/kofi-cover-1200x400.png"
-   ],
-   [
-    2,
-    "ko-fi/kofi-cover-2400x800.png"
-   ]
-  ],
-  "publish_svg": null
- },
  "ko-fi/kofi-avatar-1024": {
   "w": 1024,
   "h": 1024,
@@ -295,66 +163,14 @@
   ],
   "publish_svg": null
  },
- "github/github-social-preview-1280x640": {
-  "w": 1280,
-  "h": 640,
-  "transparent": false,
-  "files": [
-   [
-    1,
-    "github/github-social-preview-1280x640.png"
-   ]
-  ],
-  "publish_svg": null
- },
- "github/readme-banner-1280x320": {
-  "w": 1280,
-  "h": 320,
-  "transparent": false,
-  "files": [
-   [
-    1,
-    "github/readme-banner-1280x320.png"
-   ],
-   [
-    2,
-    "github/readme-banner-2560x640.png"
-   ]
-  ],
-  "publish_svg": null
- },
- "X/x-avatar": {
+ "X/x-avatar-800": {
   "w": 800,
   "h": 800,
   "transparent": false,
   "files": [
    [
     1,
-    "X/x-avatar.png"
-   ]
-  ],
-  "publish_svg": null
- },
- "X/x-banner": {
-  "w": 1500,
-  "h": 500,
-  "transparent": false,
-  "files": [
-   [
-    1,
-    "X/x-banner.png"
-   ]
-  ],
-  "publish_svg": null
- },
- "X/x-banner-tagline": {
-  "w": 1500,
-  "h": 500,
-  "transparent": false,
-  "files": [
-   [
-    1,
-    "X/x-banner-tagline.png"
+    "X/x-avatar-800.png"
    ]
   ],
   "publish_svg": null
@@ -390,14 +206,14 @@
   "files": [],
   "publish_svg": "X/draftline-x-full-logo.svg"
  },
- "X/x-banner-minimal": {
+ "X/x-header-minimal-1500x500": {
   "w": 1500,
   "h": 500,
   "transparent": false,
   "files": [
    [
     1,
-    "X/x-banner-minimal.png"
+    "X/x-header-minimal-1500x500.png"
    ]
   ],
   "publish_svg": null
@@ -414,18 +230,6 @@
    [
     2,
     "patreon/patreon-cover-minimal-3200x800.png"
-   ]
-  ],
-  "publish_svg": null
- },
- "discord/discord-server-banner-minimal-1920x1080": {
-  "w": 1920,
-  "h": 1080,
-  "transparent": false,
-  "files": [
-   [
-    1,
-    "discord/discord-server-banner-minimal-1920x1080.png"
    ]
   ],
   "publish_svg": null
