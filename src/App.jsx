@@ -10,10 +10,13 @@ import ExportPdfModal from './components/ExportPdfModal.jsx';
 import Select from './components/Select.jsx';
 import HintCard from './components/HintCard.jsx';
 import {
-  HINTS, HINT_IDS, HINT_ONBOARD_SETTLE_MS, HINT_SESSION_KEY, hintCalm, hintSettle, hintTarget, markHint, onboardHints, pickHint,
+  FEEDBACK_HINT, HINTS, HINT_IDS, HINT_ONBOARD_SETTLE_MS, HINT_SESSION_KEY, hintCalm, hintSettle, hintTarget, markHint, onboardHints, pickHint,
   resetHints,
 } from './lib/hints.js';
 import { projectUntouched, scriptIsBlank } from './lib/blankScript.js';
+import {
+  countWritingSession, feedbackPause, feedbackPromptFinished, feedbackWanted, finishFeedbackPrompt, sessionCounted, writingSessions,
+} from './lib/feedbackPrompt.js';
 import ExportFdxModal from './components/ExportFdxModal.jsx';
 import DeleteProjectModal from './components/DeleteProjectModal.jsx';
 import DialogueStepper from './components/DialogueStepper.jsx';
@@ -191,6 +194,15 @@ function blankDoc(title = 'Untitled') {
 const LOCAL = (() => {
   try {
     return window.localStorage;
+  } catch {
+    return null;
+  }
+})();
+
+/** sessionStorage, or null where it's blocked (the feedback card's session count). */
+const SESSION = (() => {
+  try {
+    return window.sessionStorage;
   } catch {
     return null;
   }
@@ -402,7 +414,10 @@ function Workspace({ boot }) {
   // Feature hints (lib/hints.js): when you last typed, when this script was opened, where your caret
   // was (to put it back after a hint's tool runs), and which hint's button was just clicked.
   // openedBlank: the script had nothing written in it when it opened (the Focus hint's cue).
-  const hintClock = useRef({ lastKeyAt: 0, openedAt: 0, openedBlank: scriptIsBlank(initialDoc.blocks), caret: null, fromHint: null });
+  // sessionStart and breakAt (a panel, dialog or Projects just closed, or Write ⇄ Plan) time the feedback card.
+  const hintClock = useRef({
+    lastKeyAt: 0, openedAt: 0, openedBlank: scriptIsBlank(initialDoc.blocks), caret: null, fromHint: null, sessionStart: Date.now(), breakAt: 0,
+  });
   const bibleBtnRef = useRef(null);
   const focusBtnRef = useRef(null);
   const scenesBtnRef = useRef(null); // the Scenes button (hidden on phones: ⋮ → Scenes)
@@ -557,6 +572,7 @@ function Workspace({ boot }) {
   const lastEdit = useRef({ at: 0, sentence: false });
   const milestonesFired = useRef(new Set());
   const writingSession = useRef(null); // { projectId, startWords, words, pages, blocks }
+  const sessionTyped = useRef(0); // words added by the writer's own edits this session, all scripts (the feedback card's count)
   const milestoneQueue = useRef([]);
   const milestoneShowing = useRef(false);
   const [milestone, setMilestone] = useState(null); // the id showing (lib/milestones.js MILESTONES)
@@ -1635,6 +1651,10 @@ function Workspace({ boot }) {
         fired: milestonesFired.current,
       });
       lastEdit.current.sentence = false;
+      if (now.words > s.words) {
+        sessionTyped.current += now.words - s.words;
+        countWritingSession(LOCAL, SESSION, sessionTyped.current); // 150+ words: a writing session
+      }
       if (ids.length) {
         ids.forEach((id) => milestonesFired.current.add(id));
         const idle = milestoneQueue.current.length === 0 && !milestoneShowing.current;
@@ -2095,6 +2115,8 @@ function Workspace({ boot }) {
   // A brand-new writer (the library was empty) gets the sample and Focus hints; anyone else has them done.
   const [hintStates, setHintStates] = useState(() => onboardHints(globalThis.localStorage, boot.fresh === true));
   const [activeHint, setActiveHint] = useState(null);
+  const [feedbackDone, setFeedbackDone] = useState(() => feedbackPromptFinished(LOCAL)); // lib/feedbackPrompt.js
+  const breakSig = useRef(null);
   // The hint whose button was clicked: its card steps aside for the tool's own menu or window.
   const [hintHandedOff, setHintHandedOff] = useState(null);
   const hintNow = useRef({});
@@ -2110,6 +2132,13 @@ function Workspace({ boot }) {
       busy: hintBusy, characters, blocks, speakers, blank: scriptIsBlank(blocks),
       focusOnBar: focusShowing(), // on a phone Focus is in ⋮: no button to point at
     };
+    // A natural break, for the feedback card: a panel, a dialog or Projects just closed, or Write ⇄ Plan.
+    const sig = { dock, projects: drawerOpen, workspace, dialogs: document.querySelectorAll('dialog[open]').length };
+    const was = breakSig.current;
+    if (was && ((was.dock && !sig.dock) || (was.projects && !sig.projects) || was.workspace !== sig.workspace || was.dialogs > sig.dialogs)) {
+      hintClock.current.breakAt = Date.now();
+    }
+    breakSig.current = sig;
   });
   useEffect(() => {
     const c = hintClock.current;
@@ -2130,7 +2159,7 @@ function Workspace({ boot }) {
       pane?.removeEventListener('focusout', onOut);
     };
   }, [scrollerRef]);
-  const allHintsFinished = HINT_IDS.every((id) => hintStates[id]);
+  const allHintsFinished = HINT_IDS.every((id) => hintStates[id]) && feedbackDone;
   useEffect(() => {
     if (allHintsFinished || activeHint) return undefined;
     let bio = { blocks: null, characters: null, gains: 0 }; // Populate Bio's dry run, redone only when the script or bios change
@@ -2156,7 +2185,14 @@ function Workspace({ boot }) {
         }
         id = pickHint(hintStates, sessionHint, { ...ctx, bioGains: bio.gains });
       }
-      if (!id || !calm(hintSettle(id))) return;
+      if (id && !calm(hintSettle(id))) return;
+      // Nothing else to show, and no card yet this session: the feedback card, at a natural pause.
+      if (!id && !sessionHint && !feedbackDone && feedbackWanted({
+        sessions: writingSessions(LOCAL), counted: sessionCounted(SESSION), online: globalThis.navigator?.onLine !== false,
+      }) && feedbackPause({ now: Date.now(), sessionStart: c.sessionStart, lastKeyAt: c.lastKeyAt, breakAt: c.breakAt, busy: s.busy })) {
+        id = FEEDBACK_HINT;
+      }
+      if (!id) return;
       try {
         globalThis.sessionStorage?.setItem(HINT_SESSION_KEY, id);
       } catch { /* blocked storage: the in-memory state still shows it once */ }
@@ -2164,7 +2200,14 @@ function Workspace({ boot }) {
     };
     const timer = setInterval(tick, 2000);
     return () => clearInterval(timer);
-  }, [allHintsFinished, activeHint, hintStates]);
+  }, [allHintsFinished, activeHint, hintStates, feedbackDone]);
+  // ⋮ → Send Feedback… opened any way (from the card or not): the feedback card is done for good.
+  useEffect(() => {
+    if (!feedbackOpen) return;
+    finishFeedbackPrompt(LOCAL, 'done');
+    setFeedbackDone(true);
+    setActiveHint((a) => (a === FEEDBACK_HINT ? null : a));
+  }, [feedbackOpen]);
   // Writing has started on the blank page: the sample card steps aside (not done: it can come back on
   // another blank page), and the Focus tip may follow at the next pause.
   useEffect(() => {
@@ -2225,6 +2268,10 @@ function Workspace({ boot }) {
     return () => document.removeEventListener('click', onClick, true);
   }, [hintStates, hintToolUsed]);
   const runHint = () => {
+    if (activeHint === FEEDBACK_HINT) {
+      setFeedbackOpen(true); // ⋮ → Send Feedback…, opened directly (that ends the card: see below)
+      return;
+    }
     if (HINTS[activeHint].run && activeHint === 'sample') {
       loadSample(); // Sample… is inside the File menu: the card's button opens it directly
       return;
@@ -2234,6 +2281,12 @@ function Workspace({ boot }) {
     hintTarget(HINTS[activeHint].target)?.click(); // exactly what clicking the tool does (its copy that's showing)
   };
   const dismissHint = () => {
+    if (activeHint === FEEDBACK_HINT) {
+      finishFeedbackPrompt(LOCAL, 'dismissed'); // Not now: never asked again
+      setFeedbackDone(true);
+      setActiveHint(null);
+      return;
+    }
     setHintStates((st) => markHint(globalThis.localStorage, activeHint, 'dismissed', st));
     setActiveHint(null);
   };
@@ -2255,6 +2308,7 @@ function Workspace({ boot }) {
     plan: true,
     sample: true,
     focus: true,
+    feedback: true, // ⋮ is in the top bar at every width
   }[activeHint] ?? false;
   const hintCardShown = !hintHidden && hintPanelOpen;
   // Characters already open on the other tab: the dot goes on the tab (clicking Characters would close it).

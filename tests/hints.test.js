@@ -309,9 +309,9 @@ describe('feature hints: the two for a brand-new writer (the sample, Focus)', ()
     assert.equal(HINTS.sample.run, true);
     assert.match(app, /if \(HINTS\[activeHint\]\.run && activeHint === 'sample'\) \{\s*loadSample\(\);/);
     assert.match(app, /hintToolUsed\('sample'\);/, 'opening the sample any way ends its hint');
-    assert.match(app, /sample: true,\s*focus: true,\s*\}\[activeHint\]/);
+    assert.match(app, /sample: true,\s*focus: true,\s*feedback: true, \/\/ ⋮ is in the top bar at every width\s*\}\[activeHint\]/);
     assert.match(app, /useState\(\(\) => onboardHints\(globalThis\.localStorage, boot\.fresh === true\)\)/);
     assert.match(app, /blank: s\.blank, openedBlank: c\.openedBlank/);
-    assert.match(app, /if \(!id \|\| !calm\(hintSettle\(id\)\)\) return;/);
+    assert.match(app, /if \(id && !calm\(hintSettle\(id\)\)\) return;/, 'each hint waits its own settle time');
   });
 });

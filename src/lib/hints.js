@@ -66,6 +66,7 @@ export const HINT_ONBOARD_SETTLE_MS = 10000;
  *             app state of its own, like opening the Format stepper's list)
  *   settle  — how long after a script opens before it may show (default HINT_SETTLE_MS)
  *   touchText — its wording on a touch screen, where it differs (Focus: no Esc key)
+ *   dismiss / icon — the second button's words (default Got it) and the icon (default the lightbulb)
  *   run     — its button does something of its own instead of clicking the target (the sample: File
  *             holds it in a menu, so the card's button opens it directly)
  */
@@ -142,7 +143,22 @@ export const HINTS = {
     beacon: null, // the Focus button is in the top bar
     settle: HINT_ONBOARD_SETTLE_MS,
   },
+  // Not a tip: asked once, from a writer's third writing session (lib/feedbackPrompt.js has when).
+  // Not in HINT_IDS, so it's never counted in About → Tips or brought back by Show tips again.
+  feedback: {
+    title: 'Have thoughts about DraftLine?',
+    text: 'Found a bug, have an idea, or just want to say what you think? It’s anonymous, takes a minute, and helps make DraftLine better.',
+    action: 'Share feedback', // opens ⋮ → Send Feedback… directly
+    dismiss: 'Not now',
+    icon: 'message', // a speech bubble, not the tips' lightbulb: it asks rather than teaches
+    target: '.btn-kebab', // ⋮, in the top bar at every width, where Send Feedback… lives
+    align: 'end',
+    beacon: null,
+    run: true,
+  },
 };
+/** The feedback card's id (in HINTS, not in HINT_IDS). */
+export const FEEDBACK_HINT = 'feedback';
 
 /** Saved hint states; unreadable or blocked storage reads as none shown. */
 export function readHints(storage) {

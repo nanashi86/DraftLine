@@ -79,7 +79,7 @@ export default function FeedbackModal({ onClose, onSent, onFailed, send = sendFe
           </div>
 
           <label className="afb-field">
-            <span className="afb-label">What missing feature is keeping you from using DraftLine daily?</span>
+            <span className="afb-label">What’s on your mind?</span>
             <input
               ref={featureRef}
               className="afb-input"
@@ -88,12 +88,12 @@ export default function FeedbackModal({ onClose, onSent, onFailed, send = sendFe
               maxLength={FEATURE_MAX}
               required
               aria-required="true"
-              placeholder="e.g. Revision colours, an iPad app…"
+              placeholder="A bug, an idea, a missing feature, or just what you think…"
             />
           </label>
 
           <label className="afb-field">
-            <span className="afb-label">Additional details or bug notes <span className="afb-optional">(optional)</span></span>
+            <span className="afb-label">More details <span className="afb-optional">(optional)</span></span>
             <textarea
               className="afb-input afb-details"
               value={details}

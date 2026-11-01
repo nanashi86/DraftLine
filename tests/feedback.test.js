@@ -108,9 +108,10 @@ describe('Anonymous feedback: menu and modal', () => {
     const css = read('src/components/FeedbackModal.css');
     assert.match(css, /\.afb-pills \{ display: grid; grid-template-columns: repeat\(3, max-content\); gap: 6px; \}/, 'software choices in an even grid');
     assert.match(css, /\.afb-pill\.is-none \{ grid-column: 1 \/ -1; justify-self: start;/, 'None on its own row beneath them');
-    assert.match(modal, />What missing feature is keeping you from using DraftLine daily\?</);
+    assert.match(modal, />What’s on your mind\?</, 'a bug, an idea or a thank-you fits, not only a missing feature');
+    assert.match(modal, /placeholder="A bug, an idea, a missing feature, or just what you think…"/);
     assert.match(modal, /<input[\s\S]*?required\s*aria-required="true"/);
-    assert.match(modal, /Additional details or bug notes <span className="afb-optional">\(optional\)<\/span>[\s\S]*?<textarea/);
+    assert.match(modal, /More details <span className="afb-optional">\(optional\)<\/span>[\s\S]*?<textarea/);
     assert.match(modal, /No cookies, accounts, or IP addresses collected\./);
     assert.match(modal, />Cancel<\/button>/);
     assert.match(modal, /disabled=\{!canSend\}>\{busy \? 'Sending…' : 'Send Feedback'\}/);
