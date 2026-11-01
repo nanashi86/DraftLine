@@ -1,4 +1,4 @@
-import{i as e,t}from"./react-DgawKyfb.js";import{A as n,At as r,Gt as i,Kt as a,Lt as o,M as s,Mt as c,N as l,Nt as u,Ot as d,P as ee,Xt as te,_t as f,bt as p,c as m,ht as h,jt as g,k as _,kt as v,l as y,lt as b,m as x,mt as S,n as C,p as ne,pt as w,qt as T,r as re,u as ie,ut as ae,vt as oe,wt as E,xt as D,yt as O}from"./index-BDKniSvl.js";import{r as k,t as A}from"./printTitle-C1qWomuv.js";/* empty css                  */var j=e(),M=`# DraftLine User Guide
+import{i as e,t}from"./react-DgawKyfb.js";import{A as n,At as r,Gt as i,Kt as a,Lt as o,M as s,Mt as c,N as l,Nt as u,Ot as d,P as ee,Xt as te,_t as f,bt as p,c as m,ht as h,jt as g,k as _,kt as v,l as y,lt as b,m as x,mt as S,n as C,p as ne,pt as w,qt as T,r as re,u as ie,ut as ae,vt as oe,wt as E,xt as D,yt as O}from"./index-DStIqEP7.js";import{r as k,t as A}from"./printTitle-C1qWomuv.js";/* empty css                  */var j=e(),M=`# DraftLine User Guide
 
 DraftLine is a distraction-free screenwriting app that runs in your browser. It writes in Courier Prime at 12 pt with standard screenplay margins, saves as you type, and works offline. This guide covers everything from your first scene heading to the final PDF.
 
@@ -425,7 +425,7 @@ Each script export (.fountain, .fdx, .draftline, and the print dialog) is confir
 
 **Scene numbers.** **File → PDF** first opens **Export PDF** with one choice: **Include Scene Numbers (Production Draft)**. Leave it unchecked for a spec script, contests and anyone you're sending it to read: the sluglines go out clean, with no number in either margin. Check it for a production draft, and each scene heading gets its number in both margins. Then **Download PDF**. The choice is saved with each script, and **Print Script…** ({{key:Ctrl+P}}) follows it without asking. The editor always shows scene numbers while you write.
 
-## Editor Curiosities & Secrets
+## Editor Secrets
 
 A few small surprises DraftLine keeps up its sleeve. None of them changes your script, and none of them ever prints.
 
