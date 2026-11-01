@@ -43,9 +43,9 @@ describe('blank scripts: a first visit’s empty page', () => {
 });
 
 describe('the sample: The Last Ferry', () => {
-  it('a first draft, by "DraftLine Sample", with no contact filled in (Chili Palmer stays a faint placeholder)', () => {
+  it('a first draft, author and contact left empty: Chili Palmer shows faintly, never stored or remembered', () => {
     assert.equal(SAMPLE_SCRIPT.meta.draftVersion, 'First Draft');
-    assert.equal(SAMPLE_SCRIPT.meta.author, 'DraftLine Sample');
+    assert.equal(SAMPLE_SCRIPT.meta.author, '');
     assert.equal(SAMPLE_SCRIPT.meta.contact, '');
   });
   it('a Story Bible written for it: logline, tone and a synopsis for every act', () => {

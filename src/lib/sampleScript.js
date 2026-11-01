@@ -8,7 +8,7 @@ export const SAMPLE_SCRIPT = {
   meta: {
     title: 'The Last Ferry',
     credit: 'Written by',
-    author: 'DraftLine Sample',
+    author: '', // empty on purpose: Chili Palmer shows faintly as the placeholder, and nothing is ever remembered
     basedOn: '',
     draftVersion: 'First Draft',
     draftDate: '',
