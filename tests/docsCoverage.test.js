@@ -123,3 +123,10 @@ describe('User Guide: rendering, search and print', () => {
     assert.ok(!/<script>|<img|<b>/.test(evil));
   });
 });
+
+describe('User Guide: Elements lists Dual Dialogue', () => {
+  it('a bullet of its own after Dialogue, with its shortcut, as in the Element picker', () => {
+    const md = readFileSync(new URL('../src/content/userGuide.md', import.meta.url), 'utf8');
+    assert.match(md, /- \{\{element\.dialogue\}\}: what the character says\.\n- \{\{element\.dual\}\}: two characters speaking at once, side by side\./);
+  });
+});

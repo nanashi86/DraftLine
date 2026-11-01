@@ -111,10 +111,11 @@ A screenplay is made of elements, each with its own margins:
 - {{element.character}}: the name above a speech.
 - {{element.parenthetical}}: (beat), (whispering), and so on.
 - {{element.dialogue}}: what the character says.
+- {{element.dual}}: two characters speaking at once, side by side. It isn't an element of its own: it pairs the speech your cursor is in with the one before it. Use it again inside the pair to undo it.
 - {{element.transition}}: CUT TO:, DISSOLVE TO:.
 - {{element.centered}}: centred text such as THE END.
 
-The Element picker in the top bar shows the current element and changes it. {{element.dual}} makes a speech **dual dialogue**, side by side with the one before it.
+The Element picker in the top bar shows the current element and changes it. Dual Dialogue is in it too, right after Dialogue, the same order as the keyboard shortcuts list.
 
 ### The Tab & Enter flow
 

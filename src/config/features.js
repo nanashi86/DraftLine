@@ -115,7 +115,7 @@ export function guideValues(f = FEATURES) {
   v['snapshots.autoKeep'] = String(AUTO_SNAPSHOT_KEEP);
   v['themes'] = f.canvasThemes.map((t) => `${bold(t.label)} (${t.hint.charAt(0).toLowerCase()}${t.hint.slice(1)})`).join(' or ');
   for (const e of f.elements) v[`element.${e.type}`] = `${bold(e.label)} (\`${e.combo}\`)`;
-  v['element.dual'] = `\`${DUAL_SHORTCUT.combo}\``;
+  v['element.dual'] = `${bold(DUAL_SHORTCUT.label)} (\`${DUAL_SHORTCUT.combo}\`)`; // in the Element picker, after Dialogue
   const cur = f.curiosities;
   v['curiosities.stampText'] = `“${cur.stamp.text}”`;
   v['curiosities.stampAngle'] = `${cur.stamp.angle}°`;
