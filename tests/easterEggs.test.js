@@ -97,12 +97,14 @@ describe('Milestone toasts', () => {
     assert.deepEqual(milestonesReached({ prev: { sessionWords: 503, pages: 3 }, next: { sessionWords: 510, pages: 3 }, fired: none }), []);
     assert.deepEqual(milestonesReached({ prev: { sessionWords: 498, pages: 3 }, next: { sessionWords: 503, pages: 3 }, fired: new Set(['words500']) }), []);
   });
-  it('after midnight (00:00–03:59), on finishing a sentence', () => {
+  it('after 2:00 AM (02:00–04:59), on finishing a sentence: the toast says so, so it’s always true', () => {
     const p = { sessionWords: 10, pages: 3 };
-    assert.deepEqual(milestonesReached({ prev: p, next: p, sentence: true, now: at(1, 15) }), ['lateNight']);
-    assert.deepEqual(milestonesReached({ prev: p, next: p, sentence: true, now: at(4, 0) }), []);
+    assert.deepEqual(milestonesReached({ prev: p, next: p, sentence: true, now: at(2, 15) }), ['lateNight']);
+    assert.deepEqual(milestonesReached({ prev: p, next: p, sentence: true, now: at(1, 15) }), [], '1 AM is not after 2:00 AM');
+    assert.deepEqual(milestonesReached({ prev: p, next: p, sentence: true, now: at(4, 59) }), ['lateNight']);
+    assert.deepEqual(milestonesReached({ prev: p, next: p, sentence: true, now: at(5, 0) }), []);
     assert.deepEqual(milestonesReached({ prev: p, next: p, sentence: false, now: at(2) }), []);
-    assert.deepEqual([isLateNight(at(0)), isLateNight(at(3, 59)), isLateNight(at(23, 59))], [true, true, false]);
+    assert.deepEqual([isLateNight(at(0)), isLateNight(at(1, 59)), isLateNight(at(2)), isLateNight(at(4, 59)), isLateNight(at(23, 59))], [false, false, true, true, false]);
     assert.equal(finishedSentence('She runs', 'She runs.'), true);
     assert.equal(finishedSentence('“Go', '“Go!”'), true);
     assert.equal(finishedSentence('She runs.', 'She runs. '), false);
@@ -120,6 +122,15 @@ describe('Milestone toasts', () => {
     const css = read('App.css');
     const rule = /\.milestone-toast \{([^}]*)\}/.exec(css)[1];
     for (const d of ['position: fixed', 'right: 18px', 'pointer-events: none', 'milestone-out 300ms ease-in 3.2s']) assert.ok(rule.includes(d), d);
+  });
+  it('each toast has its own Lucide icon, in the accent, like the tips’ lightbulb (none of them the Write pen)', () => {
+    const app = read('App.jsx');
+    assert.match(app, /const MILESTONE_ICONS = \{ words500: Flame, lateNight: Moon, page90: Clapperboard, page120: Scissors \};/);
+    assert.match(app, /<Icon size=\{15\} strokeWidth=\{1\.75\} aria-hidden className="milestone-icon" \/>/);
+    assert.match(app, /<span>\{MILESTONES\[milestone\]\}<\/span>/);
+    assert.match(app, /milestoneQueue\.current\.push\(\.\.\.ids\);/);
+    assert.match(read('App.css'), /\.milestone-icon \{ flex: none; margin-top: 3px; color: var\(--accent\); \}/);
+    assert.deepEqual(Object.keys(MILESTONES), ['words500', 'lateNight', 'page90', 'page120']);
   });
 });
 

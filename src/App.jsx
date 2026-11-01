@@ -17,7 +17,7 @@ import { projectUntouched, scriptIsBlank } from './lib/blankScript.js';
 import ExportFdxModal from './components/ExportFdxModal.jsx';
 import DeleteProjectModal from './components/DeleteProjectModal.jsx';
 import DialogueStepper from './components/DialogueStepper.jsx';
-import { ChartColumn, Clapperboard, Columns2, FileText, LayoutList, PenLine, Rows3, SquareKanban } from 'lucide-react';
+import { ChartColumn, Clapperboard, Columns2, FileText, Flame, LayoutList, Moon, PenLine, Rows3, Scissors, SquareKanban } from 'lucide-react';
 import { addAsset, removeAsset, setSceneNotes } from './lib/productionData.js';
 import { csvOutlineFileName, outlineCsv } from './lib/exportCsvOutline.js';
 import FormatStepper from './components/FormatStepper.jsx';
@@ -133,6 +133,8 @@ async function localCopy(id) {
   const there = await folderSync.readProject(id).catch(() => null);
   return there ? projects.importRecord(there) : null;
 }
+/** Each milestone toast's icon (in the accent, like the tips' lightbulb): gasoline, the small hours, the film, the producer's cuts. */
+const MILESTONE_ICONS = { words500: Flame, lateNight: Moon, page90: Clapperboard, page120: Scissors };
 const ZOOM_STEPS = [0.75, 0.9, 1, 1.1, 1.25, 1.5, 1.75, 2];
 /** The top-level switch: writing the script, or planning its production (derived from the script). */
 const WORKSPACES = [
@@ -557,13 +559,13 @@ function Workspace({ boot }) {
   const writingSession = useRef(null); // { projectId, startWords, words, pages, blocks }
   const milestoneQueue = useRef([]);
   const milestoneShowing = useRef(false);
-  const [milestone, setMilestone] = useState(null);
+  const [milestone, setMilestone] = useState(null); // the id showing (lib/milestones.js MILESTONES)
   // Show queued milestones one after another, 3.5 s each.
   const showNextMilestone = useCallback(function next() {
-    const msg = milestoneQueue.current.shift() || null;
-    milestoneShowing.current = !!msg;
-    setMilestone(msg);
-    if (msg) setTimeout(next, MILESTONE_TOAST_MS);
+    const id = milestoneQueue.current.shift() || null;
+    milestoneShowing.current = !!id;
+    setMilestone(id);
+    if (id) setTimeout(next, MILESTONE_TOAST_MS);
   }, []);
 
   // ---- Viewing mode (Ctrl+Alt+L or the status bar badge; lib/lock.js) ----
@@ -1636,7 +1638,7 @@ function Workspace({ boot }) {
       if (ids.length) {
         ids.forEach((id) => milestonesFired.current.add(id));
         const idle = milestoneQueue.current.length === 0 && !milestoneShowing.current;
-        milestoneQueue.current.push(...ids.map((id) => MILESTONES[id]));
+        milestoneQueue.current.push(...ids);
         if (idle) setTimeout(showNextMilestone, 0);
       }
     }
@@ -2877,7 +2879,15 @@ function Workspace({ boot }) {
             onClose={closeExportToast}
           />
         )}
-        {milestone && <div className="milestone-toast" role="status" key={milestone}>{milestone}</div>}
+        {milestone && (
+          <div className="milestone-toast" role="status" key={milestone}>
+            {(() => {
+              const Icon = MILESTONE_ICONS[milestone];
+              return Icon ? <Icon size={15} strokeWidth={1.75} aria-hidden className="milestone-icon" /> : null;
+            })()}
+            <span>{MILESTONES[milestone]}</span>
+          </div>
+        )}
         {hintCardShown && (
           <HintCard id={activeHint} action={hintAction} onAction={runHint} onDismiss={dismissHint} />
         )}

@@ -13,7 +13,8 @@ export const MILESTONES = {
 };
 export const MILESTONE_TOAST_MS = 3500;
 export const SESSION_WORD_GOAL = 500;
-export const LATE_NIGHT_HOURS = [0, 4]; // 00:00 up to (not including) 04:00, local time
+// 02:00 up to (not including) 05:00, local time: the toast says "after 2:00 AM", so it's always true when it shows.
+export const LATE_NIGHT_HOURS = [2, 5];
 export const PAGE_MILESTONES = [['page90', 90], ['page120', 120]];
 
 export const isLateNight = (date) => {
