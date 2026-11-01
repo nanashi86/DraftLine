@@ -3,6 +3,9 @@
 
 export const PAGE_WIDTH_LINES = 51; // 8.5 in × 6 lines per inch
 export const MIN_FIT_ZOOM = 0.5;
+/** On a phone (portrait, under 560 px) the page may shrink further, to the 6 px line floor, so the whole page fits. */
+export const PHONE_MAX_WIDTH = 560;
+export const MIN_FIT_ZOOM_PHONE = 0.375;
 
 /** Pixel height of one script line at `zoom` (16 px at 100 %). */
 export function linePxFor(zoom) {
@@ -20,9 +23,11 @@ export function fitZoomFor(width) {
 /**
  * The zoom the page is drawn at. On the Page and Split views the page shrinks to fit the space
  * left beside the Scenes list and the right dock (Story Bible, Characters, Snapshots, Notes) —
- * so it never scrolls sideways — but never zooms in past the writer's own zoom, nor below 50 %.
+ * so it never scrolls sideways — but never zooms in past the writer's own zoom, nor below 50 %
+ * (37.5 % on a phone, `viewport` under PHONE_MAX_WIDTH, where 50 % is wider than the screen).
  */
-export function effectiveZoomFor({ view, zoom, width }) {
+export function effectiveZoomFor({ view, zoom, width, viewport = Infinity }) {
   if (view === 'board' || !width) return zoom;
-  return Math.max(MIN_FIT_ZOOM, Math.min(zoom, fitZoomFor(width)));
+  const floor = viewport < PHONE_MAX_WIDTH ? MIN_FIT_ZOOM_PHONE : MIN_FIT_ZOOM;
+  return Math.max(floor, Math.min(zoom, fitZoomFor(width)));
 }

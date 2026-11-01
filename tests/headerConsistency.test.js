@@ -28,7 +28,7 @@ describe('Write: Element ▾ and B I U S move, like Plan’s scene filter', () =
     assert.match(header, /<div className="bar-group g-format" hidden=\{!formatBarShown\}>\s*\{formatTools\}/);
   });
   it('the pane row sits above the script (not inside the scrolling page), hidden in Focus and outside Page / Split', () => {
-    assert.match(app, /<div className="write-pane" hidden=\{!showEditor\}>\s*<div className="write-tools" role="toolbar" aria-label="Element and formatting" hidden=\{focusMode\}>\s*\{formatTools\}\s*<\/div>\s*<main className="scroller" ref=\{scrollerRef\} hidden=\{!showEditor\}>/);
+    assert.match(app, /<div className="write-pane" hidden=\{!showEditor\}>\s*<div className="write-tools" ref=\{writeToolsRef\} role="toolbar" aria-label="Element and formatting" hidden=\{focusMode\}>\s*\{formatTools\}[\s\S]{0,400}?<\/div>\s*<main className="scroller" ref=\{scrollerRef\} hidden=\{!showEditor\}>/);
     assert.match(plain, /\.write-pane \{ flex: 1 1 0; min-width: 0; min-height: 0; display: flex; flex-direction: column; \}/);
     assert.match(plain, /\.write-pane > \.scroller \{ flex: 1 1 0; min-height: 0; \}/);
   });

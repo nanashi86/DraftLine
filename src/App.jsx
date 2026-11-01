@@ -10,7 +10,7 @@ import ExportPdfModal from './components/ExportPdfModal.jsx';
 import Select from './components/Select.jsx';
 import HintCard from './components/HintCard.jsx';
 import {
-  HINTS, HINT_IDS, HINT_ONBOARD_SETTLE_MS, HINT_SESSION_KEY, hintCalm, hintSettle, markHint, onboardHints, pickHint,
+  HINTS, HINT_IDS, HINT_ONBOARD_SETTLE_MS, HINT_SESSION_KEY, hintCalm, hintSettle, hintTarget, markHint, onboardHints, pickHint,
   resetHints,
 } from './lib/hints.js';
 import { projectUntouched, scriptIsBlank } from './lib/blankScript.js';
@@ -404,6 +404,10 @@ function Workspace({ boot }) {
   const bibleBtnRef = useRef(null);
   const focusBtnRef = useRef(null);
   const scenesBtnRef = useRef(null); // the Scenes button (hidden on phones: ⋮ → Scenes)
+  // Focus, drawn twice like Element and B I U S: the top bar's, and under 1100px the writing row's.
+  const focusRowBtnRef = useRef(null);
+  const writeToolsRef = useRef(null);
+  const focusShowing = () => isOnBar(focusBtnRef.current, barRef.current) || isOnBar(focusRowBtnRef.current, writeToolsRef.current);
   const [toast, setToast] = useState(() => bootMessage(boot));
   const [saved, setSaved] = useState(() => ({
     blocks: initialDoc.blocks,
@@ -464,7 +468,7 @@ function Workspace({ boot }) {
 
   // Page and Split: the page shrinks to fit beside the open drawers — never sideways scrolling,
   // never zoomed in past the writer's own zoom (lib/zoom.js).
-  const effectiveZoom = effectiveZoomFor({ view: focusMode ? 'page' : view, zoom, width: scrollerWidth });
+  const effectiveZoom = effectiveZoomFor({ view: focusMode ? 'page' : view, zoom, width: scrollerWidth, viewport: globalThis.innerWidth ?? Infinity });
   const zoomPct = (z) => Math.round((Math.max(6, Math.round(16 * z)) / 16) * 100); // matches the editor's whole-pixel lines
   const isFitted = zoomPct(effectiveZoom) !== zoomPct(zoom);
 
@@ -2102,7 +2106,7 @@ function Workspace({ boot }) {
       speakerCount: analysis.characterList.length,
       speeches: analysis.characterList.reduce((n, c) => n + c.lines, 0),
       busy: hintBusy, characters, blocks, speakers, blank: scriptIsBlank(blocks),
-      focusOnBar: isOnBar(focusBtnRef.current, barRef.current), // on a phone Focus is in ⋮: no button to point at
+      focusOnBar: focusShowing(), // on a phone Focus is in ⋮: no button to point at
     };
   });
   useEffect(() => {
@@ -2225,7 +2229,7 @@ function Workspace({ boot }) {
     }
     hintClock.current.fromHint = activeHint;
     setHintHandedOff(activeHint); // the tool takes over; closed without using it, the tip may come back another session
-    document.querySelector(HINTS[activeHint].target)?.click(); // exactly what clicking the tool does
+    hintTarget(HINTS[activeHint].target)?.click(); // exactly what clicking the tool does (its copy that's showing)
   };
   const dismissHint = () => {
     setHintStates((st) => markHint(globalThis.localStorage, activeHint, 'dismissed', st));
@@ -2512,7 +2516,7 @@ function Workspace({ boot }) {
                 onAbout: () => setHelpKind('about'),
                 onFeedback: () => setFeedbackOpen(true),
                 onGuide: () => setGuideOpen(true),
-                focusOnBar: inPlan || isOnBar(focusBtnRef.current, barRef.current),
+                focusOnBar: inPlan || focusShowing(),
                 onFocus: () => setFocusMode(true),
                 // Phones hide the Scenes button (App.css): the list is here instead.
                 scenesOnBar: inPlan || !showEditor || isOnBar(scenesBtnRef.current, barRef.current),
@@ -2551,8 +2555,10 @@ function Workspace({ boot }) {
         <div className="workspace">
           {/* The writing pane: under 1200px, Element and B I U S move here from the top bar (formatTools). */}
           <div className="write-pane" hidden={!showEditor}>
-          <div className="write-tools" role="toolbar" aria-label="Element and formatting" hidden={focusMode}>
+          <div className="write-tools" ref={writeToolsRef} role="toolbar" aria-label="Element and formatting" hidden={focusMode}>
             {formatTools}
+            {/* Under 1100px Focus leaves the top bar for here (App.css); on phones it's in ⋮. Never greyed out by Viewing: it only hides things. */}
+            <button ref={focusRowBtnRef} className="btn btn-focus" onClick={() => setFocusMode(true)} title="Hide everything but the page (Esc to exit)">Focus</button>
           </div>
           <main className="scroller" ref={scrollerRef} hidden={!showEditor}>
             {find.open && showEditor && (
@@ -2846,7 +2852,7 @@ function Workspace({ boot }) {
             <button type="button" className="focus-exit" onClick={toggleCanvasTheme} title={`Switch to ${themeNext.label}`}>
               {themeNext.label}
             </button>
-            <button type="button" className="focus-exit" onClick={() => setFocusMode(false)}>Exit focus · Esc</button>
+            <button type="button" className="focus-exit" onClick={() => setFocusMode(false)}>Exit focus<span className="focus-exit-key"> · Esc</span></button>
           </div>
         )}
         {feedbackOpen && (

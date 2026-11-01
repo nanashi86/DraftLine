@@ -1,7 +1,7 @@
 import { useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Lightbulb } from 'lucide-react';
-import { HINTS, hintRoomFor } from '../lib/hints.js';
+import { HINTS, hintRoomFor, hintTarget, isTouchScreen } from '../lib/hints.js';
 import './HintCard.css';
 
 const GAP = 8;
@@ -25,7 +25,7 @@ export default function HintCard({ id, action, onAction, onDismiss }) {
   useLayoutEffect(() => {
     if (!hint) return undefined;
     const place = () => {
-      const target = document.querySelector(hint.target);
+      const target = hintTarget(hint.target);
       const card = cardRef.current;
       if (!target || !card) {
         setPos(null);
@@ -73,7 +73,7 @@ export default function HintCard({ id, action, onAction, onDismiss }) {
         <Lightbulb size={14} strokeWidth={1.75} aria-hidden className="hint-icon" />
         <h2 id={`hint-${id}`}>{hint.title}</h2>
       </div>
-      <p className="hint-text">{hint.text}</p>
+      <p className="hint-text">{hint.touchText && isTouchScreen() ? hint.touchText : hint.text}</p>
       <div className="hint-actions">
         <button type="button" className="btn hint-go" onClick={onAction}>{action || hint.action}</button>
         <button type="button" className="btn hint-dismiss" onClick={onDismiss}>Got it</button>

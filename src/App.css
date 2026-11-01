@@ -445,6 +445,7 @@
 .write-pane[hidden] { display: none; }
 .write-pane > .scroller { flex: 1 1 0; min-height: 0; }
 .write-tools { display: none; } /* on the bar until 1200px (see Narrow windows) */
+.write-tools > .btn-focus { display: none; margin-left: auto; } /* shown 560–1099px (see Narrow windows) */
 .scroller > .sheet { margin-bottom: 0; }
 .workspace > .board { flex: 1 1 0; }
 .view-split .workspace > .board { border-left: 1px solid var(--line-soft); }
@@ -758,6 +759,11 @@
   cursor: pointer;
 }
 .focus-exit:hover { opacity: 1; }
+/* A touch screen has no hover to bring it up, and usually no Esc key: keep the way out plain to see. */
+@media (hover: none) {
+  .focus-exit { opacity: 0.85; }
+  .focus-exit-key { display: none; }
+}
 
 /* ---------- Toast ---------- */
 .toast {
@@ -844,7 +850,8 @@
   .write-tools .type-select { width: 170px; }
 }
 @media (max-width: 1099.98px) {
-  .bar-right > .btn-focus { display: none; }       /* → ⋮ */
+  .bar-right > .btn-focus { display: none; }       /* → the writing row, beside B I U S (phones: ⋮) */
+  .write-tools > .btn-focus { display: inline-flex; }
 }
 @media (max-width: 1023.98px) {
   .bar-right > .btn-accent { display: none; }      /* Characters → ⋮ (still Alt+C) */
@@ -874,6 +881,9 @@
   .doc-title-wrap { min-width: 6ch; max-width: 110px; }
 }
 @media (max-width: 559.98px) {
+  .write-tools > .btn-focus { display: none; }    /* phones: Focus stays in ⋮ (no room beside B I U S) */
+  .scroller { padding-left: 8px; padding-right: 8px; } /* a little more page: with 37.5 % fit (lib/zoom.js) it fits the screen */
+  .workspace .write-tools:not([hidden]) { padding-left: 8px; padding-right: 8px; }
   .zone-left > .btn-icon { display: none; }        /* the scene list stays on Alt+S */
   .plan-seg .seg-btn { padding: 4px 6px; }
   .ws-switch { margin-left: 4px; }

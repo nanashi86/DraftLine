@@ -65,6 +65,7 @@ export const HINT_ONBOARD_SETTLE_MS = 10000;
  *   usedBy  — a click anywhere in this element counts as using the tool (for tools whose use isn't an
  *             app state of its own, like opening the Format stepper's list)
  *   settle  — how long after a script opens before it may show (default HINT_SETTLE_MS)
+ *   touchText — its wording on a touch screen, where it differs (Focus: no Esc key)
  *   run     — its button does something of its own instead of clicking the target (the sample: File
  *             holds it in a menu, so the card's button opens it directly)
  */
@@ -133,8 +134,10 @@ export const HINTS = {
   focus: {
     title: 'Your scene. Your space.',
     text: 'Focus mode clears the screen of everything but your script. No toolbar, no panels, no distractions. Press Esc to bring everything back, right where you left it.',
+    // A touch screen (no hover, usually no keyboard) has no Esc: the on-screen button, top right.
+    touchText: 'Focus mode clears the screen of everything but your script. No toolbar, no panels, no distractions. Tap Exit focus, top right, to bring everything back, right where you left it.',
     action: 'Focus',
-    target: '.btn-focus',
+    target: '.btn-focus', // two copies: the top bar's, and under 1100px the writing row's (hintTarget picks the one showing)
     align: 'end',
     beacon: null, // the Focus button is in the top bar
     settle: HINT_ONBOARD_SETTLE_MS,
@@ -233,6 +236,23 @@ export function pickHint(states, sessionHint, ctx) {
     if (allowed && hintWanted(id, ctx)) return id;
   }
   return null;
+}
+
+/**
+ * The element a hint points at: the first match that's showing. Some tools are drawn twice, one copy
+ * per screen width (Focus: the top bar, or the writing row under 1100px), with CSS hiding the other.
+ */
+export function hintTarget(selector, doc = document) {
+  return [...doc.querySelectorAll(selector)].find((el) => el.offsetParent !== null) || null;
+}
+
+/** Is this a touch screen with no hover (a phone or an iPad without a trackpad)? */
+export function isTouchScreen(win = globalThis) {
+  try {
+    return !!win.matchMedia?.('(hover: none)').matches;
+  } catch {
+    return false;
+  }
 }
 
 /** Every popup a card could collide with: menus, dropdowns, hover cards, autocomplete, corner toasts. */

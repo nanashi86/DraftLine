@@ -151,7 +151,7 @@ describe('feature hints: the app never interrupts, and nothing runs without a cl
     assert.match(app, /\{hintCardShown && \(\s*<HintCard id=\{activeHint\}/);
   });
   it('its button does exactly what the tool’s button does; focus then goes back to the script', () => {
-    assert.match(app, /document\.querySelector\(HINTS\[activeHint\]\.target\)\?\.click\(\); \/\/ exactly what clicking the tool does/);
+    assert.match(app, /hintTarget\(HINTS\[activeHint\]\.target\)\?\.click\(\); \/\/ exactly what clicking the tool does/);
     assert.match(app, /k\.el\.focus\(\{ preventScroll: true \}\);\s*try \{\s*k\.el\.setSelectionRange\(k\.start, k\.end\);/);
     assert.match(card, /onMouseDown=\{\(e\) => e\.preventDefault\(\)\} \/\/ never pull focus/);
   });
@@ -266,7 +266,8 @@ describe('feature hints: the two for a brand-new writer (the sample, Focus)', ()
     assert.equal(hintWanted('focus', { blank: false, openedBlank: true, focusOnBar: false }), false);
     assert.equal(hintWanted('focus', { blank: false, openedBlank: true, focusOnBar: true }), true);
     const app = read('App.jsx');
-    assert.match(app, /focusOnBar: isOnBar\(focusBtnRef\.current, barRef\.current\), \/\/ on a phone Focus is in ⋮/);
+    assert.match(app, /focusOnBar: focusShowing\(\), \/\/ on a phone Focus is in ⋮/);
+    assert.match(app, /const focusShowing = \(\) => isOnBar\(focusBtnRef\.current, barRef\.current\) \|\| isOnBar\(focusRowBtnRef\.current, writeToolsRef\.current\);/);
     assert.match(app, /focusOnBar: s\.focusOnBar,/);
   });
   it('a tap on a card’s words reaches the script under it; only its buttons take clicks', () => {

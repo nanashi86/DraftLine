@@ -194,7 +194,7 @@ describe('Top bar: narrow windows collapse in steps', () => {
     assert.deepEqual(items.slice(0, 3).map((i) => i.label), ['Focus', 'Story Bible', 'Characters']);
     const wide = moreMenuItems({ bibleOnBar: true, charactersOnBar: true, focusOnBar: true, onFocus() {} });
     assert.equal(wide[0].label, 'View Snapshots');
-    assert.match(header, /focusOnBar: inPlan \|\| isOnBar\(focusBtnRef\.current, barRef\.current\),\s*onFocus: \(\) => setFocusMode\(true\),/);
+    assert.match(header, /focusOnBar: inPlan \|\| focusShowing\(\),\s*onFocus: \(\) => setFocusMode\(true\),/, 'either Focus button counts: the bar’s or the writing row’s');
   });
   it('the D opens About at every width — no breakpoint ever hides it', () => {
     assert.ok(!/\.brand(-mark)?\s*\{[^}]*display: none/.test(css));
