@@ -1,4 +1,4 @@
-import{i as e,t}from"./react-DgawKyfb.js";import{A as n,At as r,Gt as i,Kt as a,Lt as o,M as s,Mt as c,N as l,Nt as u,Ot as d,P as ee,Xt as te,_t as f,bt as p,c as m,ht as h,jt as g,k as _,kt as v,l as y,lt as b,m as x,mt as S,n as C,p as ne,pt as w,qt as T,r as re,u as ie,ut as ae,vt as oe,wt as E,xt as D,yt as O}from"./index-BL7BUQXt.js";import{r as k,t as A}from"./printTitle-C1qWomuv.js";/* empty css                  */var j=e(),M=`# DraftLine User Guide
+import{i as e,t}from"./react-DgawKyfb.js";import{A as n,At as r,Gt as i,Kt as a,Lt as o,M as s,Mt as c,N as l,Nt as u,Ot as d,P as ee,Xt as te,_t as f,bt as p,c as m,ht as h,jt as g,k as _,kt as v,l as y,lt as b,m as x,mt as S,n as C,p as ne,pt as w,qt as T,r as re,u as ie,ut as ae,vt as oe,wt as E,xt as D,yt as O}from"./index-CkVXhm_8.js";import{r as k,t as A}from"./printTitle-C1qWomuv.js";/* empty css                  */var j=e(),M=`# DraftLine User Guide
 
 DraftLine is a distraction-free screenwriting app that runs in your browser. It writes in Courier Prime at 12 pt with standard screenplay margins, saves as you type, and works offline. This guide covers everything from your first scene heading to the final PDF.
 
@@ -15,7 +15,7 @@ On a smaller screen the top bar makes room the same way in Write and Plan. A wor
 The status bar at the bottom shows the current element, where your work is saved, scene and word counts, page count, page colour, undo / redo and zoom.
 
 - **Page** shows the script. **Split** shows the script beside the Scene Board. **Board** shows the Scene Board alone. {{key:Alt+B}} cycles through them.
-- **Focus** hides everything but the page. Press {{key:Esc}} to come back.
+- **Focus** hides everything but the page. Press {{key:Esc}} to come back, or **Exit focus** at the top right (on a touch screen it stays in plain view). On a tablet or a narrower window, Focus sits at the right end of the row above the script, beside B / I / U / S; on a phone it's in the **⋮** menu.
 - The **Scenes** sidebar ({{key:Alt+S}}) lists every scene with its length in eighths of a page. Click one to jump to it, or type to find a scene.
 - **Write | Plan** switches between writing the script and planning the shoot (see Production & Planning). Write is where you start.
 - The status bar's steppers (**Format · 1 of 7**, **Density · 1 of 9**, a character's **MARIE · 1 of 8**) all work the same way: before your first step they show just how many there are (**Format · 7**), then ‹ › step through, clicking the name lists every one, and ✕ closes it.
@@ -36,7 +36,7 @@ The status bar at the bottom shows the current element, where your work is saved
 And two for your first visit, when DraftLine opens on a blank page:
 
 - **The sample script**, while the page is still blank: *The Last Ferry*, to look around in before you write. Its button opens it as its own project.
-- **Focus**, once you've started writing on that blank page (on a phone, where Focus is in the **⋮** menu, this one doesn't appear). If the sample tip is up when you start typing, it steps aside and Focus can follow it.
+- **Focus**, once you've started writing on that blank page (on a phone, where Focus is in the **⋮** menu, this one doesn't appear; on a touch screen it says to tap **Exit focus** rather than press Esc). If the sample tip is up when you start typing, it steps aside and Focus can follow it.
 
 These two are only for someone new to DraftLine: if you already had scripts here when this version arrived, you won't see them (Show tips again brings them back).
 
