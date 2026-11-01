@@ -3,8 +3,8 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import {
   FEEDBACK_BREAK_MS, FEEDBACK_IDLE_MS, FEEDBACK_MIN_SESSION_MS, FEEDBACK_PROMPT_KEY, FEEDBACK_SESSIONS, FEEDBACK_SESSION_WORDS,
-  WRITING_SESSIONS_KEY, countWritingSession, feedbackPause, feedbackPromptFinished, feedbackWanted, finishFeedbackPrompt,
-  sessionCounted, writingSessions,
+  FEEDBACK_SEEDED_KEY, RETURNING_WRITER_WORDS, WRITING_SESSIONS_KEY, countWritingSession, feedbackPause, feedbackPromptFinished,
+  feedbackWanted, finishFeedbackPrompt, seedReturningWriter, sessionCounted, writingSessions,
 } from '../src/lib/feedbackPrompt.js';
 import { FEEDBACK_HINT, HINTS, HINT_IDS } from '../src/lib/hints.js';
 
@@ -93,5 +93,36 @@ describe('feedback card: once, and not a tip', () => {
     assert.match(app, /finishFeedbackPrompt\(LOCAL, 'dismissed'\); \/\/ Not now: never asked again/);
     assert.match(app, /countWritingSession\(LOCAL, SESSION, sessionTyped\.current\);/);
     assert.match(app, /was\.dock && !sig\.dock\) \|\| \(was\.projects && !sig\.projects\) \|\| was\.workspace !== sig\.workspace \|\| was\.dialogs > sig\.dialogs/);
+  });
+});
+
+describe('feedback card: writers already writing before this update', () => {
+  const script = (words) => [{ type: 'action', text: Array.from({ length: words }, (_, i) => `w${i}`).join(' ') }];
+  it('a script of their own with 500+ words: they start at 2, so their next writing session is the third', () => {
+    assert.equal(RETURNING_WRITER_WORDS, 500);
+    const local = mem();
+    assert.equal(seedReturningWriter(local, [{ title: 'Run!', script: script(800) }]), true);
+    assert.equal(writingSessions(local), 2);
+    assert.equal(countWritingSession(local, mem(), 150), 3, 'one real session after the update, and it’s due');
+  });
+  it('only the sample, a little writing, or nothing: they start at 0 like anyone new', () => {
+    for (const list of [[{ title: 'The Last Ferry', script: script(900) }], [{ title: 'Untitled', script: script(120) }], []]) {
+      const local = mem();
+      assert.equal(seedReturningWriter(local, list), false);
+      assert.equal(writingSessions(local), 0);
+    }
+  });
+  it('decided once per browser, and never lowers a count', () => {
+    const local = mem();
+    assert.equal(seedReturningWriter(local, []), false);
+    assert.equal(local.getItem(FEEDBACK_SEEDED_KEY), '1');
+    assert.equal(seedReturningWriter(local, [{ title: 'Run!', script: script(800) }]), false, 'already decided');
+    const ahead = mem();
+    ahead.setItem(WRITING_SESSIONS_KEY, '4');
+    assert.equal(seedReturningWriter(ahead, [{ title: 'Run!', script: script(800) }]), false);
+    assert.equal(writingSessions(ahead), 4);
+  });
+  it('the app runs it once on load, over the whole library', () => {
+    assert.match(read('App.jsx'), /projects\.getAllProjects\(\)\.then\(\(list\) => seedReturningWriter\(LOCAL, list\), \(\) => \{\}\);/);
   });
 });

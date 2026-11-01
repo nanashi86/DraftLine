@@ -13,6 +13,11 @@
 //   • online only (the form can't send without a connection), and never in Focus, Viewing or Plan,
 //     nor while another card or corner toast is up (lib/hints.js hintCalm's busy)
 // How often: once. Share feedback, Not now, opening ⋮ → Send Feedback… or sending feedback ends it.
+//
+// Writers who were already writing before sessions were counted (a script of their own with 500+
+// words, not the sample) start at 2, decided once: their next writing session is their third.
+import { SAMPLE_SCRIPT } from './sampleScript.js';
+import { wordCount } from './screenplay.js';
 
 /** localStorage: how many writing sessions this browser has had (a number). */
 export const WRITING_SESSIONS_KEY = 'draftline_writing_sessions';
@@ -27,6 +32,10 @@ export const FEEDBACK_MIN_SESSION_MS = 2 * 60 * 1000;
 export const FEEDBACK_IDLE_MS = 45 * 1000;
 /** A break counts as the pause for this long after it happens. */
 export const FEEDBACK_BREAK_MS = 6 * 1000;
+/** localStorage: the returning-writer check has run (once per browser). */
+export const FEEDBACK_SEEDED_KEY = 'draftline_feedback_seeded';
+/** Words in a script of their own that make someone a returning writer. */
+export const RETURNING_WRITER_WORDS = 500;
 
 const get = (s, k) => {
   try {
@@ -84,4 +93,22 @@ export function feedbackWanted({ sessions = 0, counted = false, finished = false
 export function feedbackPause({ now = 0, sessionStart = 0, lastKeyAt = 0, breakAt = 0, busy = false } = {}) {
   if (busy || now - sessionStart < FEEDBACK_MIN_SESSION_MS || now - lastKeyAt < 3000) return false;
   return now - lastKeyAt >= FEEDBACK_IDLE_MS || (breakAt > 0 && now - breakAt <= FEEDBACK_BREAK_MS);
+}
+
+/** A stored project's words (its script's text). */
+const projectWords = (p) => (Array.isArray(p?.script) ? p.script : []).reduce((n, b) => n + wordCount(b?.text || ''), 0);
+
+/**
+ * Once per browser: was this writer already writing before sessions were counted? Yes when any
+ * project other than the sample (The Last Ferry, which every first visit used to add) holds 500+
+ * words. Then their count starts at 2. Returns true if it did. A one-time visitor, or a writer
+ * who only has the sample, starts at 0 like anyone new.
+ */
+export function seedReturningWriter(local, projects = []) {
+  if (get(local, FEEDBACK_SEEDED_KEY)) return false;
+  if (!set(local, FEEDBACK_SEEDED_KEY, '1')) return false;
+  const writing = projects.some((p) => (p?.title || '').trim() !== SAMPLE_SCRIPT.meta.title && projectWords(p) >= RETURNING_WRITER_WORDS);
+  if (!writing || writingSessions(local) >= FEEDBACK_SESSIONS - 1) return false;
+  set(local, WRITING_SESSIONS_KEY, String(FEEDBACK_SESSIONS - 1));
+  return true;
 }

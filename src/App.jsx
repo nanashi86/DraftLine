@@ -15,7 +15,8 @@ import {
 } from './lib/hints.js';
 import { projectUntouched, scriptIsBlank } from './lib/blankScript.js';
 import {
-  countWritingSession, feedbackPause, feedbackPromptFinished, feedbackWanted, finishFeedbackPrompt, sessionCounted, writingSessions,
+  countWritingSession, feedbackPause, feedbackPromptFinished, feedbackWanted, finishFeedbackPrompt, seedReturningWriter, sessionCounted,
+  writingSessions,
 } from './lib/feedbackPrompt.js';
 import ExportFdxModal from './components/ExportFdxModal.jsx';
 import DeleteProjectModal from './components/DeleteProjectModal.jsx';
@@ -2201,6 +2202,10 @@ function Workspace({ boot }) {
     const timer = setInterval(tick, 2000);
     return () => clearInterval(timer);
   }, [allHintsFinished, activeHint, hintStates, feedbackDone]);
+  // Once per browser: a writer already writing before sessions were counted starts at 2 (lib/feedbackPrompt.js).
+  useEffect(() => {
+    projects.getAllProjects().then((list) => seedReturningWriter(LOCAL, list), () => {});
+  }, []);
   // ⋮ → Send Feedback… opened any way (from the card or not): the feedback card is done for good.
   useEffect(() => {
     if (!feedbackOpen) return;
