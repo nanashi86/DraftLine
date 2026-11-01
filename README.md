@@ -304,8 +304,11 @@ into a folder on your computer, including locally synced Google Drive, Dropbox o
 - **+ New Script** asks for a title and opens a blank script. A card's **⋮** menu renames, duplicates
   ("[Title] (Copy)"), exports (.fdx / .fountain — no need to open it first) or deletes it (after a confirmation;
   you can't delete your only script).
-- **New**, **Open** and **⋮ → Load Sample** each add a new project instead of replacing the one you're in.
+- **New**, **Open** and **⋮ → Load Sample** each add a new project instead of replacing the one you're in. The one
+  exception: the sample replaces a blank, untitled script that holds nothing you made (a first visit's empty page).
   **Import** still works on the open script (Ctrl+Z undoes it).
+- A first visit opens on a blank, untitled script, ready to type. The sample (*The Last Ferry*, with Scene Board
+  cards, a Story Bible and an earlier draft in Snapshots) is one click away in **File ▾ → Sample…**.
 - On first run the script DraftLine kept in localStorage moves into the library as your first project; the old copy
   is left in place untouched.
 
@@ -424,7 +427,7 @@ end with a similar line at most every 30 days. Both are throttled and muted per 
   author, "based on", **Draft Version** (suggests First / Second / Revised / Final / Shooting Draft), draft date and
   contact/copyright, plus the title's typography: **Title Font** (38 Google Fonts — classic, serif, sans, display, script and handwritten; they load in the background and are used only on the title page),
   **Title Size** (18–48pt) and **Bold**. The script itself always stays Courier Prime 12pt.
-  A **new** script starts with an empty author and contact; Chilli Palmer (a *Get Shorty* homage, with a 555 number)
+  A **new** script starts with **First Draft** as its Draft Version, and an empty author and contact; Chili Palmer (a *Get Shorty* homage, with a 555 number)
   shows faintly as placeholder text on screen only, never saved or printed. Saving the Title Page remembers its Author and Contact (localStorage `draftline_user_author` /
   `draftline_user_contact`) for the next new script. Both stay ordinary fields — edit or clear them per script. An
   existing script's title page is never changed: imported, opened and saved scripts keep theirs, and only a script

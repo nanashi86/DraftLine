@@ -21,12 +21,12 @@ const headings = guide.chapters.flatMap((c) => [c.title, ...c.topics.map((t) => 
 const hasHeading = (re) => headings.some((h) => re.test(h));
 
 describe('User Guide covers the app', () => {
-  it('has the eight chapters, the curiosities last', () => {
+  it('has the eight chapters, Editor Secrets last', () => {
     assert.equal(guide.title, 'DraftLine User Guide');
     assert.deepEqual(guide.chapters.map((c) => c.title), [
       'Workspace & Storage', 'Screenplay Editor', 'Story Bible', 'Characters', 'Scene Board & Pacing', 'Production & Planning',
       'Export & Deliverables',
-      'Editor Curiosities & Secrets',
+      'Editor Secrets',
     ]);
   });
   for (const [feature, re] of [

@@ -425,7 +425,7 @@ Each script export (.fountain, .fdx, .draftline, and the print dialog) is confir
 
 **Scene numbers.** **File → PDF** first opens **Export PDF** with one choice: **Include Scene Numbers (Production Draft)**. Leave it unchecked for a spec script, contests and anyone you're sending it to read: the sluglines go out clean, with no number in either margin. Check it for a production draft, and each scene heading gets its number in both margins. Then **Download PDF**. The choice is saved with each script, and **Print Script…** ({{key:Ctrl+P}}) follows it without asking. The editor always shows scene numbers while you write.
 
-## Editor Curiosities & Secrets
+## Editor Secrets
 
 A few small surprises DraftLine keeps up its sleeve. None of them changes your script, and none of them ever prints.
 

@@ -56,7 +56,7 @@ export const FEATURES = {
   lock: { combo: LOCK_COMBO },
   sync: { snapshotDir: SNAPSHOT_DIR },
   colors: COLOR_TOKENS,
-  // Editor Curiosities & Secrets (the guide's last chapter)
+  // Editor Secrets (the guide's last chapter)
   curiosities: {
     stamp: { text: SPEC_STAMP_TEXT, angle: SPEC_STAMP_ANGLE },
     defaultAuthor: AUTHOR_PLACEHOLDER,
