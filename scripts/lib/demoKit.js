@@ -197,12 +197,13 @@ export function fixtureProject({ title, author = 'Eric Lemaire Jr.', blocks, bea
  *   run(demo) — the walkthrough; demo has page, context, click, glide, drag, typeHuman, press, hold, wheel, reload, say
  *   seconds  — [min, max] for this video, intro included (default VIDEO_SECONDS)
  *   tips     — hint ids (lib/hints.js) left unsilenced, for a video that shows one on purpose
+ *   brisk    — quicker pointer moves (about half the steps), for the fast-paced overview
  * say(text, vo): a step; with vo (the narration for it), the next step waits until the line has had
  * time to be read (VO_WORDS_PER_SECOND), and videos/<folder>/<folder>_voiceover.md is written: the
  * narration, timed to the finished video, with the actions under each line.
  * Returns { out, seconds, timeline }. Exits 4 (after saving) when the video is outside its range.
  */
-export async function record({ folder, fixture = null, sample = false, prepare = null, syncFolder = null, clean = true, setup = null, seconds: range = VIDEO_SECONDS, tips = [], run }) {
+export async function record({ folder, fixture = null, sample = false, prepare = null, syncFolder = null, clean = true, setup = null, seconds: range = VIDEO_SECONDS, tips = [], brisk = false, run }) {
   const dir = join(ROOT, 'videos', folder);
   const out = join(dir, `${folder}.mp4`);
   if (!existsSync(INTRO)) {
@@ -277,7 +278,9 @@ export async function record({ folder, fixture = null, sample = false, prepare =
     }
     const dist = Math.hypot(x - mouse.x, y - mouse.y);
     // Smooth, and never a drift: even across the whole screen a move takes at most ~0.75 s.
-    await page.mouse.move(x, y, { steps: Math.min(45, Math.max(10, Math.round(dist / 16))) });
+    // brisk (the fast-paced overview): about half the steps, still eased, never a jump.
+    const steps = brisk ? Math.min(24, Math.max(8, Math.round(dist / 30))) : Math.min(45, Math.max(10, Math.round(dist / 16)));
+    await page.mouse.move(x, y, { steps });
     mouse.x = x; mouse.y = y;
   };
   const demo = {
