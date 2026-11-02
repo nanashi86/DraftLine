@@ -188,9 +188,10 @@ export function fixtureProject({ title, author = 'Eric Lemaire Jr.', blocks, bea
  *              open when the take starts
  *   setup(page, demo) — off camera, in the recorded browser, just before the take: trimmed from the video
  *   run(demo) — the walkthrough; demo has page, context, click, glide, drag, typeHuman, press, hold, wheel, reload, say
- * Returns { out, seconds, timeline }. Exits 4 (after saving) when the video is outside VIDEO_SECONDS.
+ *   seconds  — [min, max] for this video, intro included (default VIDEO_SECONDS)
+ * Returns { out, seconds, timeline }. Exits 4 (after saving) when the video is outside its range.
  */
-export async function record({ folder, fixture = null, sample = false, prepare = null, syncFolder = null, clean = true, setup = null, run }) {
+export async function record({ folder, fixture = null, sample = false, prepare = null, syncFolder = null, clean = true, setup = null, seconds: range = VIDEO_SECONDS, run }) {
   const dir = join(ROOT, 'videos', folder);
   const out = join(dir, `${folder}.mp4`);
   if (!existsSync(INTRO)) {
@@ -372,8 +373,8 @@ export async function record({ folder, fixture = null, sample = false, prepare =
   rmSync(rawDir, { recursive: true, force: true });
   const final = probeSeconds(out) ?? seconds;
   console.log(`Saved ${out} (${SIZE.width}×${SIZE.height}, ${FPS} fps, ${final.toFixed(2)} s)`);
-  if (final < VIDEO_SECONDS[0] || final > VIDEO_SECONDS[1]) {
-    console.warn(`  Outside ${VIDEO_SECONDS[0]}–${VIDEO_SECONDS[1]} s: adjust the holds in the script.`);
+  if (final < range[0] || final > range[1]) {
+    console.warn(`  Outside ${range[0]}–${range[1]} s: adjust the holds in the script.`);
     process.exitCode = 4;
   }
   const log = { folder, seconds: final, introSeconds: INTRO_SECONDS, steps: timeline, actions };
