@@ -35,6 +35,7 @@ import { serializeBackup } from '../../src/lib/backup.js';
 import { HINT_IDS, HINTS_KEY, HINT_SESSION_KEY, ONBOARDING_KEY } from '../../src/lib/hints.js';
 import { FEEDBACK_PROMPT_KEY, FEEDBACK_SEEDED_KEY } from '../../src/lib/feedbackPrompt.js';
 import { BACKUP_TOAST_DISMISSED_KEY } from '../../src/lib/backupToast.js';
+import { EXPORT_TIP, FORMAT_DOCTOR_TIP } from '../../src/lib/supportTips.js';
 import { makeBlock } from '../../src/lib/screenplay.js';
 import { createRevision } from '../../src/lib/revisions.js';
 
@@ -62,8 +63,9 @@ const CURSOR = `
   addEventListener('DOMContentLoaded', () => {
     const c = document.createElement('div');
     c.innerHTML = '<svg width="26" height="26" viewBox="0 0 24 24"><path d="M4 2l15 11-6.5 1.2L16 21l-3 1.4-3.4-6.8L4 20z" fill="#fff" stroke="#111" stroke-width="1.4" stroke-linejoin="round"/></svg>';
-    Object.assign(c.style, { position: 'fixed', left: '-40px', top: '-40px', zIndex: 2147483647, pointerEvents: 'none', transition: 'transform 60ms', filter: 'drop-shadow(0 2px 3px rgba(0,0,0,.45))',
-      inset: 'auto', margin: '0', padding: '0', border: '0', background: 'transparent', overflow: 'visible', width: '26px', height: '26px' });
+    // inset first: it's a shorthand, and set after left / top it would reset them (the pointer at 0, 0).
+    Object.assign(c.style, { inset: 'auto', position: 'fixed', left: '-40px', top: '-40px', zIndex: 2147483647, pointerEvents: 'none', transition: 'transform 60ms', filter: 'drop-shadow(0 2px 3px rgba(0,0,0,.45))',
+      margin: '0', padding: '0', border: '0', background: 'transparent', overflow: 'visible', width: '26px', height: '26px' });
     document.documentElement.appendChild(c);
     // A modal dialog sits in the top layer, above any z-index: the pointer goes there too (as a popover),
     // and is raised again whenever a dialog opens after it, so it's never hidden behind About or Export.
@@ -95,8 +97,8 @@ const CURSOR = `
 
 /**
  * Every take, before the app loads: every tip and first-visit card (all of HINT_IDS, read from
- * lib/hints.js, so a tip added later is silenced too), the feedback card, and the backup reminder
- * are marked as seen, and the writer counts as returning (no onboarding). Fresh scripts stay clean
+ * lib/hints.js, so a tip added later is silenced too), the feedback card, the backup reminder and the
+ * support lines on export toasts and Format Doctor reports are marked as seen, and the writer counts as returning (no onboarding). Fresh scripts stay clean
  * canvases: nothing can pop up while typing.
  */
 const SILENCE = `
@@ -106,6 +108,9 @@ const SILENCE = `
     localStorage.setItem(${JSON.stringify(FEEDBACK_PROMPT_KEY)}, 'done');
     localStorage.setItem(${JSON.stringify(FEEDBACK_SEEDED_KEY)}, '1');
     localStorage.setItem(${JSON.stringify(BACKUP_TOAST_DISMISSED_KEY)}, 'true');
+    // The Ko-fi / Patreon line on an export toast and under a clean Format Doctor report: just shown, so not again.
+    localStorage.setItem(${JSON.stringify(EXPORT_TIP.lastKey)}, String(Date.now()));
+    localStorage.setItem(${JSON.stringify(FORMAT_DOCTOR_TIP.lastKey)}, String(Date.now()));
     sessionStorage.setItem(${JSON.stringify(HINT_SESSION_KEY)}, 'none');
   } catch { /* storage blocked: nothing to quiet */ }`;
 
@@ -182,7 +187,7 @@ export function fixtureProject({ title, author = 'Eric Lemaire Jr.', blocks, bea
  *   clean    — (default on) no drawer (Story Bible, Characters, Snapshots, Margin Notes) or Scenes sidebar
  *              open when the take starts
  *   setup(page, demo) — off camera, in the recorded browser, just before the take: trimmed from the video
- *   run(demo) — the walkthrough; demo has page, context, click, glide, drag, typeHuman, press, hold, wheel, say
+ *   run(demo) — the walkthrough; demo has page, context, click, glide, drag, typeHuman, press, hold, wheel, reload, say
  * Returns { out, seconds, timeline }. Exits 4 (after saving) when the video is outside VIDEO_SECONDS.
  */
 export async function record({ folder, fixture = null, sample = false, prepare = null, syncFolder = null, clean = true, setup = null, run }) {
@@ -291,6 +296,13 @@ export async function record({ folder, fixture = null, sample = false, prepare =
     async press(key, pause = 220) { await page.keyboard.press(key); await sleep(pause); },
     async wheel(dy, times, gap = 300) { for (let i = 0; i < times; i++) { await page.mouse.wheel(0, dy); await sleep(gap); } },
     hold: sleep,
+    /** Reload the tab on camera (persistence, offline): the app back and settled, the pointer where it was. */
+    async reload() {
+      await page.reload();
+      await page.locator('.el-input').first().waitFor();
+      await page.mouse.move(mouse.x + 1, mouse.y);
+      await page.mouse.move(mouse.x, mouse.y);
+    },
     /** Mark a step: logged with its time in the finished video (intro included). */
     say(text) {
       const t = runStart ? INTRO_SECONDS + (Date.now() - runStart) / 1000 : INTRO_SECONDS;
@@ -311,6 +323,7 @@ export async function record({ folder, fixture = null, sample = false, prepare =
     ['typeHuman', (text) => `Type "${text}"`],
     ['press', (key) => `Press ${key}`],
     ['wheel', (dy, times) => `Scroll ${dy > 0 ? 'down' : 'up'} ×${times}`],
+    ['reload', () => 'Reload the tab'],
   ]) {
     const fn = demo[name];
     demo[name] = async (...args) => {
