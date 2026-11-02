@@ -1,10 +1,22 @@
-// Shared kit for the DraftLine walkthrough recordings (scripts/record-dl01.js … record-dl16.js).
+// Shared kit for the DraftLine walkthrough recordings (scripts/videos/NN_*.js, and the older record-dlNN.js).
 //
 // Each walkthrough is 1920×1080 at 60 fps, in a clean browser profile, with a visible pointer and
-// click ripples, saved to recordings/<folder>/<folder>.webm (and <folder>.mp4). Anything a video needs to start from (a
-// messy script for Format Doctor, character bios for the Story Bible…) is loaded off camera first,
-// through DraftLine's own .draftline restore, and carried into the recorded browser, so every video
-// opens straight on its subject.
+// click ripples. The deliverable is one file per video:
+//
+//   videos/<folder>/<folder>.mp4   = the intro card (recordings/_shared_assets/DraftLine_Intro_1080p.png),
+//                                    a still frame for exactly 2.00 s, then the take
+//
+// The take starts on the app already settled: the page load, the first paint and any panel closing all
+// happen before the cut point and are trimmed away, so there's no white flash and no UI opening or
+// closing on camera. Anything a video needs to start from (a messy script for Format Doctor, character
+// bios for the Story Bible…) is loaded off camera first, through DraftLine's own .draftline restore, and
+// carried into the recorded browser, so every video opens straight on its subject.
+//
+// Nothing pops up mid-take: every feature tip and first-visit card (lib/hints.js), the feedback card
+// (lib/feedbackPrompt.js) and the backup reminder are marked as seen before the app loads, and the
+// browser's clock is set to midday so the late-night milestone can't fire.
+//
+// The run prints a timeline (seconds in the final video) of every step it calls out with say().
 //
 // Needs `npm run dev` running (DraftLine at http://localhost:5173/DraftLine/) and Playwright:
 //   npm i -D playwright@1.64.1 && npx playwright install chromium ffmpeg
@@ -13,13 +25,16 @@
 // CHROMIUM_PATH (a Chromium to use instead of Playwright's own).
 
 import { chromium } from 'playwright';
-import { existsSync, mkdirSync, readFileSync, rmSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { Buffer } from 'node:buffer';
 import process from 'node:process';
 import { serializeBackup } from '../../src/lib/backup.js';
+import { HINT_IDS, HINTS_KEY, HINT_SESSION_KEY, ONBOARDING_KEY } from '../../src/lib/hints.js';
+import { FEEDBACK_PROMPT_KEY, FEEDBACK_SEEDED_KEY } from '../../src/lib/feedbackPrompt.js';
+import { BACKUP_TOAST_DISMISSED_KEY } from '../../src/lib/backupToast.js';
 import { makeBlock } from '../../src/lib/screenplay.js';
 import { createRevision } from '../../src/lib/revisions.js';
 
@@ -27,6 +42,11 @@ export const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 export const URL_ = process.env.DEMO_URL || 'http://localhost:5173/DraftLine/';
 const FPS = Number(process.env.DEMO_FPS) || 60;
 const SIZE = { width: 1920, height: 1080 };
+/** The title card every video opens on, and for how long. */
+export const INTRO = join(ROOT, 'recordings', '_shared_assets', 'DraftLine_Intro_1080p.png');
+export const INTRO_SECONDS = 2;
+/** Every finished video's length, intro included: [shortest, longest] in seconds. */
+export const VIDEO_SECONDS = [35, 55];
 
 // DEMO_CHECK=1: a quick rehearsal — every step runs against the app, but nothing is recorded and the
 // pauses are cut to a twentieth, so a broken selector shows up in seconds rather than after a take.
@@ -42,9 +62,22 @@ const CURSOR = `
   addEventListener('DOMContentLoaded', () => {
     const c = document.createElement('div');
     c.innerHTML = '<svg width="26" height="26" viewBox="0 0 24 24"><path d="M4 2l15 11-6.5 1.2L16 21l-3 1.4-3.4-6.8L4 20z" fill="#fff" stroke="#111" stroke-width="1.4" stroke-linejoin="round"/></svg>';
-    Object.assign(c.style, { position: 'fixed', left: '-40px', top: '-40px', zIndex: 2147483647, pointerEvents: 'none', transition: 'transform 60ms', filter: 'drop-shadow(0 2px 3px rgba(0,0,0,.45))' });
+    Object.assign(c.style, { position: 'fixed', left: '-40px', top: '-40px', zIndex: 2147483647, pointerEvents: 'none', transition: 'transform 60ms', filter: 'drop-shadow(0 2px 3px rgba(0,0,0,.45))',
+      inset: 'auto', margin: '0', padding: '0', border: '0', background: 'transparent', overflow: 'visible', width: '26px', height: '26px' });
     document.documentElement.appendChild(c);
-    const move = (e) => { c.style.left = e.clientX - 3 + 'px'; c.style.top = e.clientY - 2 + 'px'; };
+    // A modal dialog sits in the top layer, above any z-index: the pointer goes there too (as a popover),
+    // and is raised again whenever a dialog opens after it, so it's never hidden behind About or Export.
+    c.popover = 'manual';
+    let dialogs = 0;
+    const raise = () => {
+      const n = document.querySelectorAll('dialog[open]').length;
+      if (n === dialogs && c.matches(':popover-open')) return;
+      dialogs = n;
+      try { c.hidePopover(); } catch { /* not shown yet */ }
+      try { c.showPopover(); } catch { /* no popover support: z-index only */ }
+    };
+    raise();
+    const move = (e) => { raise(); c.style.left = e.clientX - 3 + 'px'; c.style.top = e.clientY - 2 + 'px'; };
     addEventListener('mousemove', move, true);
     addEventListener('dragover', move, true); // a native drag (Scene Board cards) sends dragover, not mousemove
     addEventListener('mousedown', (e) => {
@@ -61,26 +94,28 @@ const CURSOR = `
   });`;
 
 /**
- * Every take: the two first-visit tips (the sample, Focus) are marked as already seen. A recording
- * starts on a fresh browser, which DraftLine would otherwise greet as a brand-new writer.
+ * Every take, before the app loads: every tip and first-visit card (all of HINT_IDS, read from
+ * lib/hints.js, so a tip added later is silenced too), the feedback card, and the backup reminder
+ * are marked as seen, and the writer counts as returning (no onboarding). Fresh scripts stay clean
+ * canvases: nothing can pop up while typing.
  */
-const ONBOARDED = `
+const SILENCE = `
   try {
-    const seen = JSON.parse(localStorage.getItem('draftline_hints') || '{}');
-    localStorage.setItem('draftline_hints', JSON.stringify({ ...seen, sample: 'done', focus: 'done' }));
-    localStorage.setItem('draftline_onboarding', 'existing');
+    localStorage.setItem(${JSON.stringify(HINTS_KEY)}, ${JSON.stringify(JSON.stringify(Object.fromEntries(HINT_IDS.map((id) => [id, 'done']))))});
+    localStorage.setItem(${JSON.stringify(ONBOARDING_KEY)}, 'existing');
+    localStorage.setItem(${JSON.stringify(FEEDBACK_PROMPT_KEY)}, 'done');
+    localStorage.setItem(${JSON.stringify(FEEDBACK_SEEDED_KEY)}, '1');
+    localStorage.setItem(${JSON.stringify(BACKUP_TOAST_DISMISSED_KEY)}, 'true');
+    sessionStorage.setItem(${JSON.stringify(HINT_SESSION_KEY)}, 'none');
   } catch { /* storage blocked: nothing to quiet */ }`;
 
-/**
- * Video 2.0: the feature tips (lib/hints.js) and the backup tip (lib/backupToast.js) are marked as
- * already seen, so neither pops up in the middle of a take.
- */
-const QUIET_TIPS = `
-  try {
-    localStorage.setItem('draftline_hints', JSON.stringify({ importScenes: 'done', analyzeShifts: 'done', populateBio: 'done', formatDoctor: 'done', dialogue: 'done', plan: 'done', sample: 'done', focus: 'done' }));
-    localStorage.setItem('draftline_onboarding', 'existing');
-    localStorage.setItem('draftline_backup_toast_dismissed', 'true');
-  } catch { /* storage blocked: nothing to quiet */ }`;
+/** A browser time zone where it's about midday now (Etc/GMT-N is UTC+N), so the 2–5 AM milestone never fires. */
+function middayTimezone(now = new Date()) {
+  let offset = 12 - now.getUTCHours();
+  if (offset > 14) offset -= 24;
+  if (offset < -12) offset += 24;
+  return offset === 0 ? 'Etc/GMT' : `Etc/GMT${offset > 0 ? '-' : '+'}${Math.abs(offset)}`;
+}
 
 /** Video 2.0 baseline: close every right-dock drawer and the Scenes sidebar before the walkthrough starts. */
 async function cleanBaseline(page) {
@@ -137,20 +172,26 @@ export function fixtureProject({ title, author = 'Eric Lemaire Jr.', blocks, bea
 }
 
 /**
- * Record one walkthrough.
- *   folder   — subfolder of recordings/; the files inside are named after it: <folder>.webm, <folder>.mp4
+ * Record one walkthrough, to videos/<folder>/<folder>.mp4 (intro card, then the take).
+ *   folder   — the video's slug: its folder under videos/ and its file name (e.g. 01_General_GettingStarted)
  *   fixture  — fixtureProject(…) to open before recording starts (optional)
  *   sample   — open the sample script (File ▾ → Sample…) before recording starts, instead of a fixture:
  *              a fresh browser opens on a blank page, and the sample takes that page's place
  *   syncFolder — name for the stand-in synced folder (optional; enables the folder picker)
- *   mp4      — also save <folder>.mp4 (H.264) next to it, via ffmpeg on PATH or FFMPEG_PATH (default on)
- *   prepare(page) — off camera, after the fixture opens: set up state the video starts from (scene cards…)
- *   clean    — Video 2.0 baseline: no drawer (Story Bible, Characters, Snapshots, Margin Notes) or Scenes
- *              sidebar open when run() starts, and no feature tip or backup tip can pop up mid-take
- *   run(demo) — the walkthrough; demo has page, click, glide, drag, typeHuman, press, hold, wheel, say
+ *   prepare(page) — off camera, in a separate browser, after the fixture opens: state to save and carry over
+ *   clean    — (default on) no drawer (Story Bible, Characters, Snapshots, Margin Notes) or Scenes sidebar
+ *              open when the take starts
+ *   setup(page, demo) — off camera, in the recorded browser, just before the take: trimmed from the video
+ *   run(demo) — the walkthrough; demo has page, context, click, glide, drag, typeHuman, press, hold, wheel, say
+ * Returns { out, seconds, timeline }. Exits 4 (after saving) when the video is outside VIDEO_SECONDS.
  */
-export async function record({ folder, fixture = null, sample = false, prepare = null, syncFolder = null, maxSeconds = 35, mp4 = true, clean = false, run }) {
-  const out = join(ROOT, 'recordings', folder, `${folder}.webm`);
+export async function record({ folder, fixture = null, sample = false, prepare = null, syncFolder = null, clean = true, setup = null, run }) {
+  const dir = join(ROOT, 'videos', folder);
+  const out = join(dir, `${folder}.mp4`);
+  if (!existsSync(INTRO)) {
+    console.error(`The intro card is missing: ${INTRO}`);
+    process.exit(1);
+  }
   try {
     const res = await fetch(URL_);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -168,8 +209,8 @@ export async function record({ folder, fixture = null, sample = false, prepare =
   // File → Sample…, and keep the library.
   let storageState;
   if (fixture || sample) {
-    const prep = await browser.newContext({ viewport: SIZE });
-    await prep.addInitScript(ONBOARDED);
+    const prep = await browser.newContext({ viewport: SIZE, timezoneId: middayTimezone() });
+    await prep.addInitScript(SILENCE);
     const p = await prep.newPage();
     await p.goto(URL_);
     await p.locator('.el-input').first().waitFor();
@@ -192,18 +233,18 @@ export async function record({ folder, fixture = null, sample = false, prepare =
     await prep.close();
   }
 
-  const rawDir = join(ROOT, 'recordings', folder, '.raw');
+  const rawDir = join(dir, '.raw');
   rmSync(rawDir, { recursive: true, force: true });
   if (!CHECK) mkdirSync(rawDir, { recursive: true });
   const context = await browser.newContext({
     viewport: SIZE,
     deviceScaleFactor: 1,
+    timezoneId: middayTimezone(),
     ...(storageState ? { storageState } : {}),
     ...(CHECK ? {} : { recordVideo: { dir: rawDir, size: SIZE, fps: FPS } }),
   });
   await context.addInitScript(CURSOR);
-  await context.addInitScript(ONBOARDED);
-  if (clean) await context.addInitScript(QUIET_TIPS);
+  await context.addInitScript(SILENCE);
   if (syncFolder) await context.addInitScript(fakeFolderScript(syncFolder));
   const page = await context.newPage();
   const started = Date.now();
@@ -218,7 +259,8 @@ export async function record({ folder, fixture = null, sample = false, prepare =
       x = box.x + box.width / 2 + dx; y = box.y + box.height / 2 + dy;
     }
     const dist = Math.hypot(x - mouse.x, y - mouse.y);
-    await page.mouse.move(x, y, { steps: Math.max(10, Math.round(dist / 16)) });
+    // Smooth, and never a drift: even across the whole screen a move takes at most ~0.75 s.
+    await page.mouse.move(x, y, { steps: Math.min(45, Math.max(10, Math.round(dist / 16))) });
     mouse.x = x; mouse.y = y;
   };
   const demo = {
@@ -249,22 +291,53 @@ export async function record({ folder, fixture = null, sample = false, prepare =
     async press(key, pause = 220) { await page.keyboard.press(key); await sleep(pause); },
     async wheel(dy, times, gap = 300) { for (let i = 0; i < times; i++) { await page.mouse.wheel(0, dy); await sleep(gap); } },
     hold: sleep,
-    say: (text) => console.log(`  ${text}`),
+    /** Mark a step: logged with its time in the finished video (intro included). */
+    say(text) {
+      const t = runStart ? INTRO_SECONDS + (Date.now() - runStart) / 1000 : INTRO_SECONDS;
+      timeline.push({ t, text });
+      console.log(`  ${fmtTime(t)}  ${text}`);
+    },
+    context,
   };
+  const timeline = [];
+  const actions = []; // every step, timed in the finished video: the action log
+  let runStart = 0;
+  const at = () => (runStart ? INTRO_SECONDS + (Date.now() - runStart) / 1000 : INTRO_SECONDS);
+  const what = (target) => (Array.isArray(target) ? `[${target.join(', ')}]` : String(target));
+  for (const [name, describe] of [
+    ['click', (l) => `Click ${what(l)}`],
+    ['glide', (l) => `Move to ${what(l)}`],
+    ['drag', (a, b) => `Drag ${what(a)} → ${what(b)}`],
+    ['typeHuman', (text) => `Type "${text}"`],
+    ['press', (key) => `Press ${key}`],
+    ['wheel', (dy, times) => `Scroll ${dy > 0 ? 'down' : 'up'} ×${times}`],
+  ]) {
+    const fn = demo[name];
+    demo[name] = async (...args) => {
+      const t = at();
+      await fn(...args);
+      if (runStart) actions.push({ t, end: at(), text: describe(...args) });
+    };
+  }
 
   console.log(`Recording ${folder}`);
   await page.goto(URL_);
   await page.locator('.el-input').first().waitFor();
   await page.mouse.move(mouse.x, mouse.y);
-  // The Characters panel opens by default on a first visit: start every video on a clean page.
-  const closeChars = page.getByRole('button', { name: 'Close Characters' });
-  if (await closeChars.isVisible()) await closeChars.click();
+  // Off camera (trimmed away): every drawer closed, then whatever this video starts from, then a
+  // moment for fonts, layout and the autosave to settle. The take starts after this.
   if (clean) await cleanBaseline(page);
-  await sleep(700);
+  if (setup) await setup(page, demo);
+  await page.evaluate(() => document.fonts.ready);
+  await page.waitForTimeout(1200);
+  await page.mouse.move(mouse.x, mouse.y);
+  const trimStart = (Date.now() - started) / 1000;
+  runStart = Date.now();
 
   await run(demo);
 
-  const seconds = (Date.now() - started) / 1000;
+  const runEnd = Date.now();
+  const seconds = INTRO_SECONDS + (runEnd - runStart) / 1000;
   if (CHECK) {
     if (process.env.DEMO_CHECK_SHOT) await page.screenshot({ path: process.env.DEMO_CHECK_SHOT });
     await context.close();
@@ -275,24 +348,61 @@ export async function record({ folder, fixture = null, sample = false, prepare =
   }
   const video = page.video();
   await context.close();
-  await video.saveAs(out);
+  const webm = join(rawDir, 'take.webm');
+  await video.saveAs(webm);
   await browser.close();
+  const ok = exportVideo({ webm, out, trimStart, take: (runEnd - runStart) / 1000 });
+  if (!ok) {
+    console.warn(`  The raw take is kept at ${webm}`);
+    process.exit(1);
+  }
   rmSync(rawDir, { recursive: true, force: true });
-  console.log(`Saved ${out} (${SIZE.width}×${SIZE.height}, ${FPS} fps, ~${seconds.toFixed(1)} s)`);
-  if (seconds > maxSeconds) console.warn(`  Note: longer than ${maxSeconds} s — shorten a hold in the script if you need it under.`);
-  if (mp4) toMp4(out, join(ROOT, 'recordings', folder, `${folder}.mp4`));
+  const final = probeSeconds(out) ?? seconds;
+  console.log(`Saved ${out} (${SIZE.width}×${SIZE.height}, ${FPS} fps, ${final.toFixed(2)} s)`);
+  if (final < VIDEO_SECONDS[0] || final > VIDEO_SECONDS[1]) {
+    console.warn(`  Outside ${VIDEO_SECONDS[0]}–${VIDEO_SECONDS[1]} s: adjust the holds in the script.`);
+    process.exitCode = 4;
+  }
+  const log = { folder, seconds: final, introSeconds: INTRO_SECONDS, steps: timeline, actions };
+  if (process.env.DEMO_LOG) {
+    mkdirSync(dirname(process.env.DEMO_LOG), { recursive: true });
+    writeFileSync(process.env.DEMO_LOG, JSON.stringify(log, null, 2));
+    console.log(`Action log: ${process.env.DEMO_LOG}`);
+  }
+  return { out, seconds: final, timeline, actions };
 }
 
-/** webm → H.264 mp4 (yuv420p plays everywhere). Keeps the webm; if ffmpeg isn't found, says so and stops there. */
-function toMp4(webm, mp4) {
+const fmtTime = (t) => `${String(Math.floor(t / 60)).padStart(2, '0')}:${(t % 60).toFixed(1).padStart(4, '0')}`;
+
+/**
+ * The deliverable: the intro card as a still for exactly INTRO_SECONDS, then the take from trimStart for
+ * `take` seconds (the settled app on, so nothing loads or flashes on camera), as H.264 at FPS (yuv420p,
+ * plays everywhere, +faststart for the web). Returns true on success.
+ */
+function exportVideo({ webm, out, trimStart, take }) {
   const ffmpeg = process.env.FFMPEG_PATH || 'ffmpeg';
-  const r = spawnSync(ffmpeg, ['-y', '-loglevel', 'error', '-i', webm, '-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-crf', '18', '-preset', 'slow', '-movflags', '+faststart', mp4], { stdio: 'inherit' });
-  if (r.error || r.status !== 0 || !existsSync(mp4)) {
-    console.warn(`  Couldn't make the mp4 (${r.error ? 'ffmpeg not found' : `ffmpeg exited ${r.status}`}). Install ffmpeg or set FFMPEG_PATH, then:`);
-    console.warn(`    ffmpeg -i "${webm}" -c:v libx264 -pix_fmt yuv420p -crf 18 "${mp4}"`);
-    return;
+  const v = `scale=${SIZE.width}:${SIZE.height},setsar=1,fps=${FPS},format=yuv420p`;
+  const r = spawnSync(ffmpeg, [
+    '-y', '-loglevel', 'error',
+    '-loop', '1', '-framerate', String(FPS), '-t', String(INTRO_SECONDS), '-i', INTRO,
+    '-ss', trimStart.toFixed(3), '-t', take.toFixed(3), '-i', webm,
+    '-filter_complex', `[0:v]${v}[intro];[1:v]${v}[take];[intro][take]concat=n=2:v=1:a=0[v]`,
+    '-map', '[v]', '-c:v', 'libx264', '-preset', 'slow', '-crf', '18', '-r', String(FPS), '-pix_fmt', 'yuv420p', '-movflags', '+faststart',
+    out,
+  ], { stdio: 'inherit' });
+  if (r.error || r.status !== 0 || !existsSync(out)) {
+    console.warn(`  Couldn't make the mp4 (${r.error ? 'ffmpeg not found: install it or set FFMPEG_PATH' : `ffmpeg exited ${r.status}`}).`);
+    return false;
   }
-  console.log(`Saved ${mp4}`);
+  return true;
+}
+
+/** The finished file's length in seconds (ffprobe), or null. */
+function probeSeconds(file) {
+  const ffprobe = process.env.FFPROBE_PATH || 'ffprobe';
+  const r = spawnSync(ffprobe, ['-v', 'error', '-show_entries', 'format=duration', '-of', 'default=nw=1:nk=1', file], { encoding: 'utf8' });
+  const n = parseFloat(r.stdout);
+  return Number.isFinite(n) ? n : null;
 }
 
 /** Run `fn` and exit non-zero on failure (each record-dlNN.js ends with this). */
