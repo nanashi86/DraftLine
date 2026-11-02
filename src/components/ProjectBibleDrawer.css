@@ -76,7 +76,7 @@
 }
 .pb-search:focus { border-color: var(--accent); }
 .pb-sort { border-color: var(--line-soft); }
-.pb-tools.is-end { justify-content: flex-end; } /* Notes: Import from Notes sits at the right */
+.pb-tools.is-end { justify-content: flex-end; flex-wrap: wrap; } /* Notes: Import from Notes sits at the right; wraps, so 3 Acts never clips off the left edge */
 
 .pb-suggest { display: grid; gap: 6px; margin-bottom: 12px; }
 .pb-suggest-pills { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }

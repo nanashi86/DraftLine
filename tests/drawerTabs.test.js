@@ -44,6 +44,9 @@ describe('Story Bible → Notes toolbar', () => {
   });
   it('Copy as Markdown and Import from Notes sit at the right, above the notes — no hint text; the 3 / 4 Acts switch at the left', () => {
     assert.match(src, /<div className="pb-tools is-end">\s*\{onActModeChange && \([\s\S]*?<span className="pb-tools-spacer" \/>\s*<button[\s\S]*?Copy as Markdown[\s\S]*?Import from Notes\s*<\/button>\s*<\/div>/);
-    assert.match(read('components/ProjectBibleDrawer.css'), /\.pb-tools\.is-end \{ justify-content: flex-end; \}/);
+    assert.match(read('components/ProjectBibleDrawer.css'), /\.pb-tools\.is-end \{ justify-content: flex-end; flex-wrap: wrap; \}/);
+  });
+  it('the toolbar wraps in a narrow drawer, so 3 Acts never clips off the left edge (4 Acts adds Auto-Align Acts)', () => {
+    assert.match(read('components/ProjectBibleDrawer.css'), /\.pb-tools\.is-end \{[^}]*flex-wrap: wrap/);
   });
 });
