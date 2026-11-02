@@ -101,18 +101,25 @@ const CURSOR = `
  * support lines on export toasts and Format Doctor reports are marked as seen, and the writer counts as returning (no onboarding). Fresh scripts stay clean
  * canvases: nothing can pop up while typing.
  */
-const SILENCE = `
+const silence = (tips = []) => `
   try {
-    localStorage.setItem(${JSON.stringify(HINTS_KEY)}, ${JSON.stringify(JSON.stringify(Object.fromEntries(HINT_IDS.map((id) => [id, 'done']))))});
-    localStorage.setItem(${JSON.stringify(ONBOARDING_KEY)}, 'existing');
+    localStorage.setItem(${JSON.stringify(HINTS_KEY)}, ${JSON.stringify(JSON.stringify(Object.fromEntries(HINT_IDS.filter((id) => !tips.includes(id)).map((id) => [id, 'done']))))});
+    localStorage.setItem(${JSON.stringify(ONBOARDING_KEY)}, ${JSON.stringify(tips.some((id) => ['sample', 'focus'].includes(id)) ? 'new' : 'existing')});
     localStorage.setItem(${JSON.stringify(FEEDBACK_PROMPT_KEY)}, 'done');
     localStorage.setItem(${JSON.stringify(FEEDBACK_SEEDED_KEY)}, '1');
     localStorage.setItem(${JSON.stringify(BACKUP_TOAST_DISMISSED_KEY)}, 'true');
     // The Ko-fi / Patreon line on an export toast and under a clean Format Doctor report: just shown, so not again.
     localStorage.setItem(${JSON.stringify(EXPORT_TIP.lastKey)}, String(Date.now()));
     localStorage.setItem(${JSON.stringify(FORMAT_DOCTOR_TIP.lastKey)}, String(Date.now()));
-    sessionStorage.setItem(${JSON.stringify(HINT_SESSION_KEY)}, 'none');
+    ${tips.length ? `sessionStorage.removeItem(${JSON.stringify(HINT_SESSION_KEY)});` : `sessionStorage.setItem(${JSON.stringify(HINT_SESSION_KEY)}, 'none');`}
   } catch { /* storage blocked: nothing to quiet */ }`;
+const SILENCE = silence();
+
+/** Narration pace for say(text, vo): words a second, and the breath after each line. */
+export const VO_WORDS_PER_SECOND = 2.5;
+export const VO_BREATH = 0.4;
+/** How long a voiceover line takes to read aloud, in seconds. */
+export const voSeconds = (vo) => (vo ? vo.trim().split(/\s+/).length / VO_WORDS_PER_SECOND + VO_BREATH : 0);
 
 /** A browser time zone where it's about midday now (Etc/GMT-N is UTC+N), so the 2–5 AM milestone never fires. */
 function middayTimezone(now = new Date()) {
@@ -189,9 +196,13 @@ export function fixtureProject({ title, author = 'Eric Lemaire Jr.', blocks, bea
  *   setup(page, demo) — off camera, in the recorded browser, just before the take: trimmed from the video
  *   run(demo) — the walkthrough; demo has page, context, click, glide, drag, typeHuman, press, hold, wheel, reload, say
  *   seconds  — [min, max] for this video, intro included (default VIDEO_SECONDS)
+ *   tips     — hint ids (lib/hints.js) left unsilenced, for a video that shows one on purpose
+ * say(text, vo): a step; with vo (the narration for it), the next step waits until the line has had
+ * time to be read (VO_WORDS_PER_SECOND), and videos/<folder>/<folder>_voiceover.md is written: the
+ * narration, timed to the finished video, with the actions under each line.
  * Returns { out, seconds, timeline }. Exits 4 (after saving) when the video is outside its range.
  */
-export async function record({ folder, fixture = null, sample = false, prepare = null, syncFolder = null, clean = true, setup = null, seconds: range = VIDEO_SECONDS, run }) {
+export async function record({ folder, fixture = null, sample = false, prepare = null, syncFolder = null, clean = true, setup = null, seconds: range = VIDEO_SECONDS, tips = [], run }) {
   const dir = join(ROOT, 'videos', folder);
   const out = join(dir, `${folder}.mp4`);
   if (!existsSync(INTRO)) {
@@ -250,7 +261,7 @@ export async function record({ folder, fixture = null, sample = false, prepare =
     ...(CHECK ? {} : { recordVideo: { dir: rawDir, size: SIZE, fps: FPS } }),
   });
   await context.addInitScript(CURSOR);
-  await context.addInitScript(SILENCE);
+  await context.addInitScript(tips.length ? silence(tips) : SILENCE);
   if (syncFolder) await context.addInitScript(fakeFolderScript(syncFolder));
   const page = await context.newPage();
   const started = Date.now();
@@ -305,14 +316,26 @@ export async function record({ folder, fixture = null, sample = false, prepare =
       await page.mouse.move(mouse.x, mouse.y);
     },
     /** Mark a step: logged with its time in the finished video (intro included). */
-    say(text) {
-      const t = runStart ? INTRO_SECONDS + (Date.now() - runStart) / 1000 : INTRO_SECONDS;
-      timeline.push({ t, text });
-      console.log(`  ${fmtTime(t)}  ${text}`);
+    say(text, vo = null) {
+      const mark = () => {
+        const t = runStart ? INTRO_SECONDS + (Date.now() - runStart) / 1000 : INTRO_SECONDS;
+        timeline.push(vo ? { t, text, vo } : { t, text });
+        console.log(`  ${fmtTime(t)}  ${text}`);
+      };
+      // Without narration still being read, the step is marked at once (older scripts don't await say).
+      if (!timeline[timeline.length - 1]?.vo) return mark();
+      return waitForVo().then(mark);
     },
     context,
   };
   const timeline = [];
+  // The narration line still being read: the next say() (or the end of the run) waits for it.
+  const waitForVo = async () => {
+    const last = timeline[timeline.length - 1];
+    if (!last?.vo || !runStart) return;
+    const due = last.t + voSeconds(last.vo) - at();
+    if (due > 0.05) { last.pad = due; await sleep(due * 1000); }
+  };
   const actions = []; // every step, timed in the finished video: the action log
   let runStart = 0;
   const at = () => (runStart ? INTRO_SECONDS + (Date.now() - runStart) / 1000 : INTRO_SECONDS);
@@ -349,6 +372,7 @@ export async function record({ folder, fixture = null, sample = false, prepare =
   runStart = Date.now();
 
   await run(demo);
+  await waitForVo();
 
   const runEnd = Date.now();
   const seconds = INTRO_SECONDS + (runEnd - runStart) / 1000;
@@ -378,12 +402,95 @@ export async function record({ folder, fixture = null, sample = false, prepare =
     process.exitCode = 4;
   }
   const log = { folder, seconds: final, introSeconds: INTRO_SECONDS, steps: timeline, actions };
+  if (timeline.some((s) => s.vo)) {
+    const sheet = join(dir, `${folder}_voiceover.md`);
+    writeFileSync(sheet, voiceoverSheet(log));
+    console.log(`Voiceover: ${sheet}`);
+  }
   if (process.env.DEMO_LOG) {
     mkdirSync(dirname(process.env.DEMO_LOG), { recursive: true });
     writeFileSync(process.env.DEMO_LOG, JSON.stringify(log, null, 2));
     console.log(`Action log: ${process.env.DEMO_LOG}`);
   }
   return { out, seconds: final, timeline, actions };
+}
+
+/** Plain names for the selectors the walkthroughs point at, for the action log. */
+const PLAIN = {
+  '.btn-kebab': 'the ⋮ menu', '.btn-focus': 'Focus', '.status-lock': 'the Editing / Viewing badge',
+  '.status-save-label': 'the save status', '.status-counts': 'the scene and word counts',
+  '.status-hints': 'the Enter / Tab hints', '.status-right': 'the right of the status bar',
+  '.status-density': 'Density', '.type-select': 'the Element picker', '.fmt-seg': 'B / I / U / S',
+  '.hint-card .hint-text': 'the tip', '.hint-card .hint-go': 'the tip’s button', '.hint-card .hint-dismiss': 'Got it',
+  '.tp-cover-btn': 'View Full Cover', '.tp-specimen': 'the title specimen', 'input.doc-title': 'the script title',
+  '.ws-btn[data-workspace="write"]': 'Write', '.ws-btn[data-workspace="plan"]': 'Plan',
+  '.el-scene .el-input': 'the scene heading', '.el-action .el-input': 'an Action line', 'dialog[open]': 'the dialog',
+  '.pb-synopsis': 'the Synopsis', '.tuner-stats': 'the dialogue totals', '.stepper': 'the status-bar stepper',
+  '.strip-legend': 'the stripboard legend', '.plan-card-head': 'the scene’s breakdown header',
+  '.plan-cast-list': 'the speaking cast', '.plan-card-body': 'the scene’s breakdown', 'input.plan-add-input': 'the new item',
+  '.rp-csv': 'the .csv download', '.vs-btn': 'a Value Shift badge', '.card-grip': 'a card’s grip', '.card-title': 'a card',
+  '.vsm-row': 'a suggested turn', '.vsm-foot .btn-primary': 'Apply', 'li.sn-item': 'a snapshot',
+  'tr.rp-row': 'a report row', '.rp-scene': 'a scene', '.pb-char-toggle': 'a bio', '.cast-chip': 'a character',
+  'label.tuner-toggle': 'Cue context', '.dict-badge': 'the badge', 'li.dict-entry': 'a Glossary term',
+  '.eb-cancel': 'Cancel', '.eb-options': 'the sections to include', '.pf-clear': '✕ (clear the filter)',
+  '.card': 'a card', 'article.card': 'a card', 'table': 'the report', '.plan-filter': 'the scene filter',
+  '[aria-label="Stripboard, in script order"]': 'the strips', '.board': 'the Scene Board',
+};
+
+/** An action log line in plain words: "Click File", not the Playwright locator behind it. */
+function plainAction(text) {
+  const t = text.replace(/\s+/g, ' ');
+  const [verb] = t.split(' ');
+  if (/^(Type|Press|Scroll|Reload)/.test(verb)) return t;
+  const target = (part) => {
+    const last = (re) => [...part.matchAll(re)].pop();
+    const latest = (...found) => found.filter(Boolean).sort((x, y) => y.index - x.index)[0];
+    const named = latest(last(/name: '([^']+)'/g), last(/name: \/\^?((?:\\\/|[^/])+?)\$?\//g));
+    const texted = latest(last(/hasText: '([^']+)'/g), last(/hasText: \/\^?((?:\\\/|[^/])+?)\$?\//g));
+    // A regex name reads as words: \/ is a slash, (Edit|Done) is "Edit / Done".
+    for (const m of [named, texted]) if (m) m[1] = m[1].replace(/\\\//g, '/').replace(/^\((.*)\)$/, '$1').replace(/\|/g, ' / ');
+    const css = last(/locator\('([^']+)'\)/g);
+    const sel = css && css[1].replace(/:visible$/, '');
+    const coords = part.match(/\[(\d+), (\d+)\]/);
+    // The innermost step decides: a name or text given after the last locator() is what's pointed at.
+    if (named && (!css || named.index > css.index)) return `“${named[1]}”`;
+    if (sel && PLAIN[sel]) return texted ? `${PLAIN[sel]} (“${texted[1]}”)` : PLAIN[sel];
+    if (texted) return `“${texted[1]}”`;
+    if (named) return `“${named[1]}”`;
+    if (sel) return sel;
+    if (coords) return `the page (${coords[1]}, ${coords[2]})`;
+    return part;
+  };
+  if (verb === 'Drag') {
+    const [from, to] = t.slice(5).split(' → ');
+    return `Drag ${target(from)} onto ${target(to)}`.slice(0, 140);
+  }
+  const rest = t.slice(verb.length + 1).replace(/^to /, '');
+  return `${verb === 'Move' ? 'Point at' : verb} ${target(rest)}`.slice(0, 140);
+}
+
+/** The narration, timed to the finished video, with the actions under each line (Markdown). */
+export function voiceoverSheet({ folder, seconds, steps, actions }) {
+  const ts = (t) => `${String(Math.floor(t / 60)).padStart(2, '0')}:${String(Math.floor(t % 60)).padStart(2, '0')}`;
+  const words = steps.reduce((n, s) => n + (s.vo ? s.vo.trim().split(/\s+/).length : 0), 0);
+  const out = [
+    `# ${folder}: voiceover and action log`,
+    '',
+    `Length ${ts(seconds)} (${seconds.toFixed(2)} s), intro card included · ${words} words of narration, ` +
+      `paced at ${VO_WORDS_PER_SECOND} words a second (about ${Math.round(VO_WORDS_PER_SECOND * 60)} a minute).`,
+    '',
+    `**00:00–${ts(INTRO_SECONDS)}** · Title card (DraftLine_Intro_1080p.png). No narration.`,
+    '',
+  ];
+  steps.forEach((s, i) => {
+    const end = i + 1 < steps.length ? steps[i + 1].t : seconds;
+    out.push(`**${ts(s.t)}–${ts(end)}** · ${s.text}`, '');
+    if (s.vo) out.push(`> ${s.vo}`, '');
+    const acts = actions.filter((a) => a.t >= s.t - 0.01 && a.t < end - 0.01);
+    for (const a of acts) out.push(`- ${ts(a.t)} ${plainAction(a.text)}`);
+    out.push('');
+  });
+  return `${out.join('\n').trim()}\n`;
 }
 
 const fmtTime = (t) => `${String(Math.floor(t / 60)).padStart(2, '0')}:${(t % 60).toFixed(1).padStart(4, '0')}`;
