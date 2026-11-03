@@ -1,4 +1,4 @@
-import{i as e,t}from"./react-DgawKyfb.js";import{A as n,At as r,F as i,Jt as a,Kt as o,Mt as s,N as c,Nt as l,P as u,Pt as d,Rt as ee,St as f,Tt as p,Zt as m,bt as h,c as g,dt as _,gt as v,h as y,ht as b,j as x,jt as S,kt as te,l as ne,mt as C,n as re,p as ie,qt as ae,r as oe,u as w,ut as T,vt as E,xt as D,yt as O}from"./index-DTe-0IkT.js";import{r as k,t as A}from"./printTitle-C1qWomuv.js";/* empty css                  */var j=e(),M=`# DraftLine User Guide
+import{i as e,t}from"./react-DgawKyfb.js";import{A as n,At as r,F as i,Jt as a,Kt as o,Mt as s,N as c,Nt as l,P as u,Pt as d,Rt as ee,St as f,Tt as p,Zt as m,bt as h,c as g,dt as _,gt as v,h as y,ht as b,j as x,jt as S,kt as te,l as ne,mt as C,n as re,p as ie,qt as ae,r as oe,u as w,ut as T,vt as E,xt as D,yt as O}from"./index-C2lZmKdr.js";import{r as k,t as A}from"./printTitle-C1qWomuv.js";/* empty css                  */var j=e(),M=`# DraftLine User Guide
 
 DraftLine is a distraction-free screenwriting app that runs in your browser. It writes in Courier Prime at 12 pt with standard screenplay margins, saves as you type, and works offline. This guide covers everything from your first scene heading to the final PDF.
 
@@ -227,7 +227,7 @@ Keeping them apart pays off later: Plan reads the hyphenated parts as the locati
 
 **⋮ → Settings…** ({{key:Ctrl+,}}) holds everything about how DraftLine looks and saves:
 
-- **Appearance:** the interface theme, **Espresso Noir** (the default: deep roast and cinematic) or **Editorial Light** (warm linen and ink), and the page colour, **Paper** or **Midnight**. The two are separate, so a light workspace can have a Midnight page. Printing and PDFs are always black on white.
+- **Appearance:** the interface theme, **Espresso Noir** (the default: deep roast and cinematic) or **Editorial Light** (warm linen & editorial), and the page colour, **Paper** or **Midnight**. The two are separate, so a light workspace can have a Midnight page. Printing and PDFs are always black on white.
 - **Storage & Backup:** where scripts are kept (see Folder Sync above). Clicking the save status in the status bar opens Settings right here.
 - **Drafting:** show or hide the scene and word counts in the status bar, and **Show tips again**.
 
