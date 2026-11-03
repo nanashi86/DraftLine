@@ -227,7 +227,7 @@ Keeping them apart pays off later: Plan reads the hyphenated parts as the locati
 
 **⋮ → Settings…** ({{key:Ctrl+,}}) holds everything about how DraftLine looks and saves:
 
-- **Appearance:** the interface theme, **Espresso Noir** (the default: deep roast and cinematic) or **Editorial Light** (warm linen and ink), and the page colour, **Paper** or **Midnight**. The two are separate, so a light workspace can have a Midnight page. Printing and PDFs are always black on white.
+- **Appearance:** the interface theme, **Espresso Noir** (the default: deep roast and cinematic) or **Editorial Light** (warm linen & editorial), and the page colour, **Paper** or **Midnight**. The two are separate, so a light workspace can have a Midnight page. Printing and PDFs are always black on white.
 - **Storage & Backup:** where scripts are kept (see Folder Sync above). Clicking the save status in the status bar opens Settings right here.
 - **Drafting:** show or hide the scene and word counts in the status bar, and **Show tips again**.
 

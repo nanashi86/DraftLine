@@ -164,7 +164,7 @@ describe('Theme names and the Settings shortcut', () => {
     const { UI_THEMES } = await import('../src/lib/userSettings.js');
     assert.deepEqual(UI_THEMES.map((t) => [t.id, t.label, t.hint]), [
       ['dark', 'Espresso Noir', 'Deep roast & cinematic'],
-      ['light', 'Editorial Light', 'Warm linen & ink'],
+      ['light', 'Editorial Light', 'Warm linen & editorial'],
     ]);
   });
   it('Ctrl+, (⌘, on a Mac) opens Settings, and the shortcut list and ⋮ show it', async () => {
