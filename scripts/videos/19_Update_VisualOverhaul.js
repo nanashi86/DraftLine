@@ -44,7 +44,7 @@ main(() => record({
     await hold(400);
     await click(page.getByRole('menuitem', { name: /^Settings/ }), 900);
 
-    await say('Editorial Light: warm linen and ink',
+    await say('Editorial Light: warm linen & editorial',
       'Switch to Editorial Light for warm linen and crisp ink, made for writing in daylight. Espresso Noir is always one click away.');
     await click(dialog.locator('label.st-choice', { hasText: 'Editorial Light' }), 1200);
     await click(dialog.getByRole('button', { name: 'Done' }), 600);
