@@ -6,6 +6,11 @@
 //
 //   node brand/source/site.mjs            # every image, straight to its place under brand/
 //   ONLY=patreon node brand/source/site.mjs   # just the files whose path contains "patreon"
+//   THEME=light node brand/source/site.mjs    # just the Editorial Light set (THEME=dark: just the default)
+//
+// Two looks, both always written: the default on the ink background, and the alternate in the app's
+// Editorial Light palette (linen, ink lettering, the light theme's deeper terracotta), named with -light
+// before the size: x-header-1500x500.png → x-header-light-1500x500.png.
 //
 // Needs Playwright with Chromium, like render.mjs (PLAYWRIGHT_MODULE / CHROMIUM_PATH override them).
 // Fonts come from brand/source/fonts/, so it renders the same on any machine.
@@ -15,8 +20,18 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const HERE = dirname(fileURLToPath(import.meta.url)); // brand/source
 const BRAND = dirname(HERE);
-const RUST = '#C8553D', INK = '#E9E7E2';
-const TILE_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%"><rect width="512" height="512" rx="106.67" fill="#c8553d"/><path fill="#fff" transform="matrix(0.145833 0 0 -0.145833 167.406 334.552)" d="M1155 594Q1155 406 1088 272.5Q1021 139 895 69.5Q769 0 594 0H123Q99 0 86 8Q73 16 66.5 38Q60 60 60 102Q60 144 66.5 166Q73 188 86 196.5Q99 205 123 205H220V982H123Q99 982 86 990Q73 998 66.5 1020Q60 1042 60 1084Q60 1126 66.5 1148Q73 1170 86 1178.5Q99 1187 123 1187H594Q769 1187 895 1118Q1021 1049 1088 915.5Q1155 782 1155 594ZM470 215H574Q729 215 808 311.5Q887 408 887 594Q887 780 808 876Q729 972 574 972H470Z"/></svg>`;
+const THEMES = {
+  dark: { suffix: '', rust: '#C8553D', word: '#E9E7E2', bg: '#18181b', rule: 'rgba(255,255,255,.022)', head: '#f4f4f5',
+    muted: '#a1a1aa', pill: '#3f3f46', paper: '#fdfcf8', shadow: 'rgba(0,0,0,.6)' },
+  // Editorial Light: the app's light shell (oatmeal desk, ink text, stone lines, light-theme terracotta).
+  light: { suffix: '-light', rust: '#B83A2C', word: '#22201E', bg: '#ebe6dc', rule: 'rgba(34,32,30,.045)', head: '#22201e',
+    muted: '#6e6a64', pill: '#cfc8bb', paper: '#fffefb', shadow: 'rgba(60,50,30,.22)' },
+};
+let T = THEMES.dark;
+let RUST = T.rust, INK = T.word;
+const tileSvg = (fill) => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%"><rect width="512" height="512" rx="106.67" fill="${fill}"/><path fill="#fff" transform="matrix(0.145833 0 0 -0.145833 167.406 334.552)" d="M1155 594Q1155 406 1088 272.5Q1021 139 895 69.5Q769 0 594 0H123Q99 0 86 8Q73 16 66.5 38Q60 60 60 102Q60 144 66.5 166Q73 188 86 196.5Q99 205 123 205H220V982H123Q99 982 86 990Q73 998 66.5 1020Q60 1042 60 1084Q60 1126 66.5 1148Q73 1170 86 1178.5Q99 1187 123 1187H594Q769 1187 895 1118Q1021 1049 1088 915.5Q1155 782 1155 594ZM470 215H574Q729 215 808 311.5Q887 408 887 594Q887 780 808 876Q729 972 574 972H470Z"/></svg>`;
+/** x-header-1500x500.png → x-header-light-1500x500.png (the size stays last, as everywhere in the kit). */
+const themed = (file) => (T.suffix ? file.replace(/-(\d+x\d+)\.png$/, `${T.suffix}-$1.png`) : file);
 const font = (family, weight, file, type) => `@font-face{font-family:${family};font-weight:${weight};src:url(data:font/${type};base64,${readFileSync(join(HERE, 'fonts', file)).toString('base64')})}`;
 const FONTS = [
   font('CP', 400, 'CourierPrime-Regular.ttf', 'ttf'), font('CP', 700, 'CourierPrime-Bold.ttf', 'ttf'),
@@ -48,12 +63,12 @@ const BANNERS = [
   { w: 680, h: 240, files: ['discord/discord-profile-banner-680x240.png', 'discord/discord-profile-banner-1360x480.png'], box: [290, 34, 360, 172], headline: false, page: null },
 ];
 
-const lockupHtml = `<div class="lockup" id="lock"><span class="tile">${TILE_SVG}</span><span class="word" id="w">DraftLine</span><i class="cursor" id="c"></i></div>`;
+const lockupHtml = () => `<div class="lockup" id="lock"><span class="tile">${tileSvg(RUST)}</span><span class="word" id="w">DraftLine</span><i class="cursor" id="c"></i></div>`;
 const CSS = (w, h) => `${FONTS}
 html,body{margin:0}
-body{width:${w}px;height:${h}px;overflow:hidden;position:relative;color:#f4f4f5;font-family:Inter,system-ui,sans-serif;
-  background:repeating-linear-gradient(to bottom,transparent 0 ${h / 20 - 1}px,rgba(255,255,255,.022) ${h / 20 - 1}px ${h / 20}px),#18181b}
-.page{position:absolute;box-sizing:border-box;background:#fdfcf8;border-radius:4px;transform-origin:top left;box-shadow:0 28px 70px rgba(0,0,0,.6);color:#1a1a1a;font-family:CP,monospace}
+body{width:${w}px;height:${h}px;overflow:hidden;position:relative;color:${T.head};font-family:Inter,system-ui,sans-serif;
+  background:repeating-linear-gradient(to bottom,transparent 0 ${h / 20 - 1}px,${T.rule} ${h / 20 - 1}px ${h / 20}px),${T.bg}}
+.page{position:absolute;box-sizing:border-box;background:${T.paper};border-radius:4px;transform-origin:top left;box-shadow:0 28px 70px ${T.shadow};color:#1a1a1a;font-family:CP,monospace}
 .page p{margin:0 0 1em}.page b{font-weight:700}.page .cue{margin-left:10em;margin-bottom:0}.page .line{margin-left:5.3em}
 .caret{display:inline-block;width:2px;height:1.05em;margin-left:2px;vertical-align:-.15em;background:${RUST}}
 .copy{position:absolute;transform-origin:top left;width:max-content}
@@ -63,12 +78,12 @@ body{width:${w}px;height:${h}px;overflow:hidden;position:relative;color:#f4f4f5;
 .tile{position:absolute;left:0;top:0;width:112px;height:112px}
 .word{position:absolute;font-family:CP;font-weight:700;color:${INK};white-space:nowrap;line-height:1}
 .cursor{position:absolute;background:${RUST}}
-h1{margin:48px 0 0;font-size:44px;line-height:1.15;font-weight:700;letter-spacing:-.5px;color:#f4f4f5}
-.tagline{margin:16px 0 0;font-size:23px;font-weight:500;color:#a1a1aa}
+h1{margin:48px 0 0;font-size:44px;line-height:1.15;font-weight:700;letter-spacing:-.5px;color:${T.head}}
+.tagline{margin:16px 0 0;font-size:23px;font-weight:500;color:${T.muted}}
 .tagline em{font-style:normal;font-weight:600;color:${RUST}}
 .pills{margin-top:30px;display:flex;gap:8px}
 .copy.center .pills{justify-content:center}
-.pills span{font-size:15px;padding:6px 12px;border:1px solid #3f3f46;border-radius:999px;color:#a1a1aa;white-space:nowrap}`;
+.pills span{font-size:15px;padding:6px 12px;border:1px solid ${T.pill};border-radius:999px;color:${T.muted};white-space:nowrap}`;
 
 const pageHtml = (pg) => (pg ? `<div class="page" style="left:${pg[0]}px;top:${pg[1]}px;width:${pg[2]}px;height:${pg[2] * 1.12}px;padding:${pg[2] * 0.125}px 0 0 ${pg[2] * 0.127}px;font-size:${pg[2] * 0.0288}px;transform:rotate(${pg[3]}deg)">
 <p>FADE IN:</p><p><b>INT. WRITERS' ROOM - NIGHT</b></p><p>A blank page. A blinking cursor.<br>Somewhere, a story is waiting.</p>
@@ -77,7 +92,7 @@ const pageHtml = (pg) => (pg ? `<div class="page" style="left:${pg[0]}px;top:${p
 const bannerHtml = (s) => `<!doctype html><html><head><meta charset="utf-8"><style>${CSS(s.w, s.h)}</style></head><body>
 ${pageHtml(s.page)}
 ${s.copy === false ? '' : `<div class="copy${s.align === 'center' ? ' center' : ''}" id="copy">
-  ${lockupHtml}
+  ${lockupHtml()}
   ${s.headline === false ? '' : `<h1>${s.h1 || 'Fast, distraction-free<br>screenwriting.'}</h1>`}
   <p class="tagline">${s.tag || 'Always offline-first. <em>Always 100% free.</em>'}</p>
   ${s.pills ? `<div class="pills">${PILLS.map((p) => `<span>${p}</span>`).join('')}</div>` : ''}
@@ -94,7 +109,7 @@ const tierHtml = (t) => `<!doctype html><html><head><meta charset="utf-8"><style
 .lockup{position:absolute;left:28px;top:28px;transform-origin:top left}
 .name{position:absolute;left:28px;right:28px;top:86px;font-family:CP;font-weight:700;font-size:38px;line-height:1.05;color:${INK};white-space:nowrap}
 .rule{position:absolute;left:28px;top:146px;width:40px;height:3px;background:${RUST}}
-</style></head><body>${lockupHtml}<div class="name" id="name">${t.name}</div><div class="rule"></div></body></html>`;
+</style></head><body>${lockupHtml()}<div class="name" id="name">${t.name}</div><div class="rule"></div></body></html>`;
 
 // The lockup, exactly as the approved banners: caps 0.39 of the tile, the word's ink 0.30 tile from it, caps
 // centred on the tile; the cursor 0.154 cap wide, 0.158 cap after the e, 0.115 cap above the caps, to 0.167 below.
@@ -125,6 +140,7 @@ function placeLockup() {
 const pw = process.env.PLAYWRIGHT_MODULE ? await import(pathToFileURL(process.env.PLAYWRIGHT_MODULE).href) : await import('playwright');
 const browser = await pw.chromium.launch(process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH } : {});
 const only = process.env.ONLY || '';
+const themes = process.env.THEME ? [process.env.THEME] : Object.keys(THEMES);
 let n = 0;
 async function shoot(html, w, h, scale, file, arrange) {
   const page = await browser.newPage({ viewport: { width: w, height: h }, deviceScaleFactor: scale });
@@ -136,13 +152,18 @@ async function shoot(html, w, h, scale, file, arrange) {
     await document.fonts.ready;
   });
   if (arrange) await page.evaluate(arrange.fn, arrange.arg);
-  const out = join(BRAND, file);
+  const out = join(BRAND, themed(file));
   mkdirSync(dirname(out), { recursive: true });
   await page.screenshot({ path: out });
   await page.close();
   n += 1;
-  console.log(file);
+  console.log(themed(file));
 }
+
+for (const theme of themes) {
+T = THEMES[theme];
+RUST = T.rust;
+INK = T.word;
 
 for (const s of BANNERS) {
   for (const [i, file] of s.files.entries()) {
@@ -179,6 +200,7 @@ for (const t of TIERS) {
       arg: placeLockup.toString(),
     });
   }
+}
 }
 await browser.close();
 console.log(`${n} images written under ${BRAND}`);

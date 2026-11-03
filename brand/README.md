@@ -33,9 +33,12 @@ Every file is named `<platform>-<slot>[-minimal]-<width>x<height>.png` (squares:
 | | Header | `X/x-header-1500x500.png` | 1500×500 (3:1), under 2 MB. Everything sits right of the avatar's corner (bottom-left) and inside the phone crop (60 px top and bottom) |
 | | Logo with name | `X/draftline-x-full-logo-dark.png` / `-light.png` | Transparent, for dark or light backgrounds (2112×520; the same as `logo/draftline-lockup-for-*-bg@2x.png`) |
 | | Logo, vector | `X/draftline-x-full-logo.svg` | One file: the name switches to light or dark with the viewer's setting where SVG styles apply |
+| **YouTube** | Video intro card | `youtube/youtube-intro-1920x1080.png` (or 3840×2160) | The 2-second title card at the start of every video (16:9). The demo videos are built with the 1080p one (`videos/_shared_assets/DraftLine_Intro_1080p.png`, the same image) |
 | **Website** | Link preview (`og:image` / `twitter:image`) | `website/site-link-preview-1200x630.png`, served from `public/og-image.png` | 1200×630 (1.91:1), the size Facebook, LinkedIn, X, Discord and Slack previews use. Replace `public/og-image.png` (same name and size) to change what links show |
 
 **Minimal versions:** the logo with its name, alone on the same ink background, at the same sizes and safe areas: `X/x-header-minimal-1500x500.png`, `patreon/patreon-cover-minimal-*`, `discord/discord-profile-banner-minimal-*`, `ko-fi/kofi-cover-minimal-*`, `github/github-social-preview-minimal-1280x640.png` and `github/readme-banner-minimal-*`. There's no minimal Discord server banner, since Discord asks for no logos there.
+
+**Alternate set, Editorial Light:** every banner above, full and minimal, the Patreon tier cards and post, and the YouTube intro card, also comes in the app's light palette, named with `-light` before the size: `X/x-header-light-1500x500.png`, `X/x-header-minimal-light-1500x500.png`, `youtube/youtube-intro-light-1920x1080.png`, and so on, at the same sizes and safe areas. Linen background with faint ruled lines, ink lettering, the light theme's deeper terracotta on the tile and cursor. The dark set stays the default; use the light one where a page or season calls for it, or to match the Editorial Light theme. Avatars and icons have one version (the tile is the same either way).
 
 **Avatars and icons** are all the same picture: the app icon's tile, edge to edge and flat (the same terracotta as the app), with the D kept well inside the circle every platform crops it to.
 
@@ -63,6 +66,17 @@ All the PNGs are well under the platform file-size limits (Patreon cover 3 MB, D
 | Headline | `#F4F4F5` | "Fast, distraction-free screenwriting." |
 | Muted | `#A1A1AA` | Taglines and pills |
 
+**Editorial Light (the `-light` set):**
+
+| Name | Hex | Used for |
+|---|---|---|
+| Linen | `#EBE6DC` | Banner background (the intro card's vignette runs wheat `#E4DDCF` to milk `#F7F3EC`) |
+| Ink | `#22201E` | Wordmark, headlines, tier names |
+| Graphite | `#6E6A64` | Taglines and pills |
+| Stone | `#CFC8BB` | Pill outlines |
+| Terracotta, light | `#B83A2C` | Tile, cursor bar, "Always 100% free.", tier underline |
+| Paper | `#FFFEFB` | The script page |
+
 ## Fonts
 
 - Courier Prime Bold (wordmark, D, tier names) and Courier Prime Regular (the script page), SIL Open Font License; the license is in `source/fonts/`.
@@ -73,7 +87,9 @@ All the PNGs are well under the platform file-size limits (Patreon cover 3 MB, D
 Two generators, both writing every PNG straight to its place in this folder under the names above:
 
 - `source/gen.py` + `source/render.mjs`: the logos, the avatars and icons, and the minimal banners. Colours and the D's placement are at the top of `gen.py`. Its editable SVGs go to `source/svg/` (they open in Figma, Illustrator, Inkscape or Affinity).
-- `source/site.mjs`: the full banners, the Patreon tier cards and post, and the text-free Discord banner and Patreon cover. Each banner's canvas, safe area and page position is one line in its `BANNERS` list; the tier names are in `TIERS`.
+- `source/site.mjs`: the full banners, the Patreon tier cards and post, and the text-free Discord banner and Patreon cover, in both looks. Each banner's canvas, safe area and page position is one line in its `BANNERS` list; the tier names are in `TIERS`; the two palettes are `THEMES` at the top. `THEME=light` (or `dark`) makes just one set.
+- `gen.py`'s minimal banners come in pairs (`minimal_pair`): the default on ink and the `-light` one on linen.
+- The YouTube intro cards aren't generated: the light ones were recoloured pixel for pixel from the dark originals, so their layout is exactly the same.
 
 From the repo folder:
 

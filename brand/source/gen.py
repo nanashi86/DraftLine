@@ -27,6 +27,10 @@ TEXT = '#e9e7e2'
 MUTED = '#9a9890'
 PAPER = '#fdfcf8'
 INK = '#141414'
+# Editorial Light (the app's light shell): the alternate set, named -light before the size
+LINEN = '#ebe6dc'        # --desk, light
+LIGHT_ACCENT = '#b83a2c' # --accent, light (deeper terracotta that holds on linen)
+LIGHT_INK = '#22201e'    # --text, light
 
 FONTS = {
     'cp-bold': os.path.join(HERE, 'fonts/CourierPrime-Bold.ttf'),
@@ -111,7 +115,7 @@ def wordmark(x, baseline, size, fill=TEXT, caret=ACCENT, anchor='start'):
     bar = f'<rect x="{x + w + gap:.2f}" y="{baseline - ch * 1.12:.2f}" width="{cw:.2f}" height="{ch * 1.30:.2f}" fill="{caret}"/>'
     return p + bar, total
 
-def lockup(x, cy, h, fill=TEXT, caret=ACCENT, anchor='start'):
+def lockup(x, cy, h, fill=TEXT, caret=ACCENT, anchor='start', tile=ACCENT):
     """Mark + wordmark on one line, vertically centred on cy. Returns svg, width."""
     size = h * 0.66  # wordmark size so its caps sit at roughly half the tile height
     ww = measure('cp-bold', 'DraftLine', size) + size * 0.155
@@ -120,7 +124,7 @@ def lockup(x, cy, h, fill=TEXT, caret=ACCENT, anchor='start'):
     if anchor == 'middle': x -= total / 2
     ch = cap_height('cp-bold') * size
     wm, _ = wordmark(x + h + gap, cy + ch / 2, size, fill, caret)
-    return mark(x, cy - h / 2, h) + wm, total
+    return mark(x, cy - h / 2, h, tile=tile) + wm, total
 
 def defs():
     return ('<defs>'
@@ -209,18 +213,26 @@ add('X/draftline-x-full-logo', W, H, None, raw=adaptive, files=[], publish_svg='
 # that platform lays over it. The full banners (tagline, pills, script page) are made by site.mjs.
 # No Discord server banner here: Discord asks for no logos or text in it (site.mjs makes a text-free one).
 
-def minimal(w, h, lock_h, cx=None, cy=None):
-    lk, _ = lockup(w / 2 if cx is None else cx, h / 2 if cy is None else cy, lock_h, TEXT, anchor='middle')
+def minimal(w, h, lock_h, cx=None, cy=None, light=False):
+    if light:  # Editorial Light: ink lettering, the light theme's terracotta
+        lk, _ = lockup(w / 2 if cx is None else cx, h / 2 if cy is None else cy, lock_h, LIGHT_INK, LIGHT_ACCENT, anchor='middle', tile=LIGHT_ACCENT)
+    else:
+        lk, _ = lockup(w / 2 if cx is None else cx, h / 2 if cy is None else cy, lock_h, TEXT, anchor='middle')
     return lk
 
+def minimal_pair(name, w, h, lock_h, cx=None, cy=None, scales=(1,)):
+    """The default minimal banner on ink, and its Editorial Light alternate on linen (name-light-WxH)."""
+    add(f'{name}-{w}x{h}', w, h, minimal(w, h, lock_h, cx, cy), scales=scales)
+    add(f'{name}-light-{w}x{h}', w, h, minimal(w, h, lock_h, cx, cy, light=True), bg=LINEN, scales=scales)
+
 # X: the avatar covers the bottom-left and phones crop 60 px top and bottom, so the logo sits a touch high.
-add('X/x-header-minimal-1500x500', 1500, 500, minimal(1500, 500, 120, cy=235))
-add('patreon/patreon-cover-minimal-1600x400', 1600, 400, minimal(1600, 400, 110), scales=(1, 2))
+minimal_pair('X/x-header-minimal', 1500, 500, 120, cy=235)
+minimal_pair('patreon/patreon-cover-minimal', 1600, 400, 110, scales=(1, 2))
 # Discord profile banner: the avatar overlaps the bottom-left.
-add('discord/discord-profile-banner-minimal-680x240', 680, 240, minimal(680, 240, 56, cx=422, cy=105), scales=(1, 2))
-add('ko-fi/kofi-cover-minimal-1200x400', 1200, 400, minimal(1200, 400, 96, cy=190), scales=(1, 2))
-add('github/github-social-preview-minimal-1280x640', 1280, 640, minimal(1280, 640, 150))
-add('github/readme-banner-minimal-1280x320', 1280, 320, minimal(1280, 320, 86), scales=(1, 2))
+minimal_pair('discord/discord-profile-banner-minimal', 680, 240, 56, cx=422, cy=105, scales=(1, 2))
+minimal_pair('ko-fi/kofi-cover-minimal', 1200, 400, 96, cy=190, scales=(1, 2))
+minimal_pair('github/github-social-preview-minimal', 1280, 640, 150)
+minimal_pair('github/readme-banner-minimal', 1280, 320, 86, scales=(1, 2))
 
 # =================== write the sources ===================
 for path, a in ASSETS.items():

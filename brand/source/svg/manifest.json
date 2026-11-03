@@ -218,6 +218,18 @@
   ],
   "publish_svg": null
  },
+ "X/x-header-minimal-light-1500x500": {
+  "w": 1500,
+  "h": 500,
+  "transparent": false,
+  "files": [
+   [
+    1,
+    "X/x-header-minimal-light-1500x500.png"
+   ]
+  ],
+  "publish_svg": null
+ },
  "patreon/patreon-cover-minimal-1600x400": {
   "w": 1600,
   "h": 400,
@@ -230,6 +242,22 @@
    [
     2,
     "patreon/patreon-cover-minimal-3200x800.png"
+   ]
+  ],
+  "publish_svg": null
+ },
+ "patreon/patreon-cover-minimal-light-1600x400": {
+  "w": 1600,
+  "h": 400,
+  "transparent": false,
+  "files": [
+   [
+    1,
+    "patreon/patreon-cover-minimal-light-1600x400.png"
+   ],
+   [
+    2,
+    "patreon/patreon-cover-minimal-light-3200x800.png"
    ]
   ],
   "publish_svg": null
@@ -250,6 +278,22 @@
   ],
   "publish_svg": null
  },
+ "discord/discord-profile-banner-minimal-light-680x240": {
+  "w": 680,
+  "h": 240,
+  "transparent": false,
+  "files": [
+   [
+    1,
+    "discord/discord-profile-banner-minimal-light-680x240.png"
+   ],
+   [
+    2,
+    "discord/discord-profile-banner-minimal-light-1360x480.png"
+   ]
+  ],
+  "publish_svg": null
+ },
  "ko-fi/kofi-cover-minimal-1200x400": {
   "w": 1200,
   "h": 400,
@@ -266,6 +310,22 @@
   ],
   "publish_svg": null
  },
+ "ko-fi/kofi-cover-minimal-light-1200x400": {
+  "w": 1200,
+  "h": 400,
+  "transparent": false,
+  "files": [
+   [
+    1,
+    "ko-fi/kofi-cover-minimal-light-1200x400.png"
+   ],
+   [
+    2,
+    "ko-fi/kofi-cover-minimal-light-2400x800.png"
+   ]
+  ],
+  "publish_svg": null
+ },
  "github/github-social-preview-minimal-1280x640": {
   "w": 1280,
   "h": 640,
@@ -274,6 +334,18 @@
    [
     1,
     "github/github-social-preview-minimal-1280x640.png"
+   ]
+  ],
+  "publish_svg": null
+ },
+ "github/github-social-preview-minimal-light-1280x640": {
+  "w": 1280,
+  "h": 640,
+  "transparent": false,
+  "files": [
+   [
+    1,
+    "github/github-social-preview-minimal-light-1280x640.png"
    ]
   ],
   "publish_svg": null
@@ -290,6 +362,22 @@
    [
     2,
     "github/readme-banner-minimal-2560x640.png"
+   ]
+  ],
+  "publish_svg": null
+ },
+ "github/readme-banner-minimal-light-1280x320": {
+  "w": 1280,
+  "h": 320,
+  "transparent": false,
+  "files": [
+   [
+    1,
+    "github/readme-banner-minimal-light-1280x320.png"
+   ],
+   [
+    2,
+    "github/readme-banner-minimal-light-2560x640.png"
    ]
   ],
   "publish_svg": null
