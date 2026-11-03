@@ -48,9 +48,6 @@ main(() => record({
     await click(dlg.getByRole('button', { name: 'Bold title' }), 900);
     await click(dlg.getByRole('button', { name: 'Bold title' }), 900);
 
-    say('Spec stamp: on screen only, never printed');
-    await click(dlg.locator('.tp-stamp input'), 900);
-
     say('View it at full size: Page 0, above the script');
     await click(dlg.locator('.tp-cover-btn'), 1600);
     await glide([960, 520]);
