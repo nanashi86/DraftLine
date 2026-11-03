@@ -5,7 +5,7 @@ import {
   LIGHT_TIP_KEY, DAY_START_HOUR, DAY_END_HOUR, isDaytime, lightTipSeen, lightTipWanted, markLightTipSeen, resetLightTip,
 } from '../src/lib/lightThemeTip.js';
 import { USER_SETTINGS_KEY, SETTINGS_VERSION, readChosenSettings, readSettings, themeChosen, writeSettings } from '../src/lib/userSettings.js';
-import { HINTS, HINT_IDS, LIGHT_TIP_HINT } from '../src/lib/hints.js';
+import { HINTS, HINT_IDS, HINT_ONBOARD_SETTLE_MS, LIGHT_TIP_HINT, hintSettle, onboardHints } from '../src/lib/hints.js';
 
 const memory = (init = {}) => {
   const map = new Map(Object.entries(init));
@@ -89,8 +89,23 @@ describe('Light-theme tip: only Show tips again clears it', () => {
     assert.ok(!HINT_IDS.includes(LIGHT_TIP_HINT));
     assert.equal(HINTS.lightTheme.target, '.btn-kebab');
   });
-  it('one card per session, and only at a calm moment', () => {
-    assert.match(app, /if \(!id && !sessionHint && !lightTipDone && calm\(HINT_SETTLE_MS\) && lightTipWanted\(\)\) id = LIGHT_TIP_HINT;/);
+  it('one card per session, and only at a calm moment (ten seconds: it is not about the script)', () => {
+    assert.match(app, /const lightFirst = !sessionHint && !lightTipDone && hintStates\.sample && hintStates\.focus && lightTipWanted\(\);/);
+    assert.match(app, /if \(!id && !sessionHint && !lightTipDone && lightTipWanted\(\)\) id = LIGHT_TIP_HINT;/);
+    assert.equal(hintSettle(LIGHT_TIP_HINT), HINT_ONBOARD_SETTLE_MS);
+    assert.equal(HINT_ONBOARD_SETTLE_MS, 10000);
+  });
+  it('past the first-visit tips (every returning writer), it goes ahead of the feature tips', () => {
+    assert.match(app, /let id = lightFirst \? LIGHT_TIP_HINT : pickHint\(hintStates, sessionHint, ctx\);/);
+    const tick = app.slice(app.indexOf('const lightFirst'), app.indexOf('if (id === LIGHT_TIP_HINT) {'));
+    assert.ok(tick.indexOf('lightFirst ? LIGHT_TIP_HINT') < tick.indexOf('FEEDBACK_HINT'), 'before the feedback card too');
+  });
+  it('a brand-new writer still gets sample and Focus first', () => {
+    // lightFirst needs both first-visit tips finished; onboardHints marks them done only for returning writers.
+    const fresh = onboardHints(memory(), true);
+    assert.ok(!(fresh.sample && fresh.focus));
+    const returning = onboardHints(memory(), false); // the library already had scripts
+    assert.ok(returning.sample && returning.focus);
   });
 });
 

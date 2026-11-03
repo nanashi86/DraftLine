@@ -10,7 +10,7 @@ import ExportPdfModal from './components/ExportPdfModal.jsx';
 import Select from './components/Select.jsx';
 import HintCard from './components/HintCard.jsx';
 import {
-  FEEDBACK_HINT, HINTS, HINT_IDS, HINT_ONBOARD_SETTLE_MS, HINT_SETTLE_MS, LIGHT_TIP_HINT, HINT_SESSION_KEY, hintCalm, hintSettle, hintTarget, markHint, onboardHints, pickHint,
+  FEEDBACK_HINT, HINTS, HINT_IDS, HINT_ONBOARD_SETTLE_MS, LIGHT_TIP_HINT, HINT_SESSION_KEY, hintCalm, hintSettle, hintTarget, markHint, onboardHints, pickHint,
   resetHints,
 } from './lib/hints.js';
 import { projectUntouched, scriptIsBlank } from './lib/blankScript.js';
@@ -106,7 +106,7 @@ import PlanFilter from './components/planning/PlanFilter.jsx';
 import { initialPlanFold } from './lib/planFold.js';
 import { EMPTY_PLAN_FILTER } from './lib/planFilter.js';
 import {
-  BACKUP_TOAST_DISMISSED_KEY, BACKUP_TOAST_SESSION_KEY, backupToastCopy, browserFamily, readFlag, readLastBackups, recordBackup,
+  BACKUP_TOAST_DISMISSED_KEY, BACKUP_TOAST_SESSION_KEY, BACKUP_TOAST_SETTLE_MS, backupToastCopy, browserFamily, readFlag, readLastBackups, recordBackup,
   shouldShowBackupToast, writeFlag,
 } from './lib/backupToast.js';
 import { requestPersistence } from './lib/storagePersist.js';
@@ -773,6 +773,14 @@ function Workspace({ boot }) {
     if (forever) writeFlag(globalThis.localStorage, BACKUP_TOAST_DISMISSED_KEY);
     setBackupTipClosed((c) => ({ session: true, forever: c.forever || forever }));
   };
+  // The backup tip waits until folder sync has read the linked folder back, plus a moment to settle:
+  // before that every script looks like App Storage Only, and the tip flashed at launch.
+  const [storageKnown, setStorageKnown] = useState(false);
+  useEffect(() => {
+    if (!sync.ready || storageKnown) return undefined;
+    const t = setTimeout(() => setStorageKnown(true), BACKUP_TOAST_SETTLE_MS);
+    return () => clearTimeout(t);
+  }, [sync.ready, storageKnown]);
   // When each project was last backed up (.draftline), for the Backup Project version of the tip.
   const [lastBackups, setLastBackups] = useState(() => readLastBackups(globalThis.localStorage));
   // Protected storage (lib/storagePersist.js): asked quietly after the first save with words in it,
@@ -2124,6 +2132,7 @@ function Workspace({ boot }) {
     busy: !!(milestone || exportToast || focusMode), // the corner is taken, or you're in Focus: later
     lastBackupAt: lastBackups[projectId] ?? null,
     savedAt: saved.at ?? null,
+    storageKnown,
   });
   // A brand-new writer (the library was empty) gets the sample and Focus hints; anyone else has them done.
   const [hintStates, setHintStates] = useState(() => onboardHints(globalThis.localStorage, boot.fresh === true));
@@ -2192,7 +2201,11 @@ function Workspace({ boot }) {
         findings: s.findings, speakers: s.speakerCount, speeches: s.speeches, blank: s.blank, openedBlank: c.openedBlank,
         focusOnBar: s.focusOnBar,
       };
-      let id = pickHint(hintStates, sessionHint, ctx);
+      // The light-theme tip goes first, once, for anyone past the first-visit tips (every returning
+      // writer): it's a moment (daylight, or a light system) the feature tips can't wait for, and they
+      // lose nothing by waiting a session. A brand-new writer gets sample and Focus first.
+      const lightFirst = !sessionHint && !lightTipDone && hintStates.sample && hintStates.focus && lightTipWanted();
+      let id = lightFirst ? LIGHT_TIP_HINT : pickHint(hintStates, sessionHint, ctx);
       if (!id && !hintStates.populateBio) {
         if (bio.blocks !== s.blocks || bio.characters !== s.characters) {
           const r = populateBiosFromIntros(s.characters, s.blocks, s.speakers);
@@ -2201,10 +2214,11 @@ function Workspace({ boot }) {
         id = pickHint(hintStates, sessionHint, { ...ctx, bioGains: bio.gains });
       }
       if (id && !calm(hintSettle(id))) return;
+      // The light-theme tip for a new writer still on the first-visit tips: in a session where no other
+      // tip qualifies. lightTipWanted bails out first (already shown, or a theme chosen), then asks once:
+      // system in light mode, or daytime?
+      if (!id && !sessionHint && !lightTipDone && lightTipWanted()) id = LIGHT_TIP_HINT;
       // Nothing else to show, and no card yet this session: the feedback card, at a natural pause.
-      // The light-theme tip: lightTipWanted bails out first (already shown, or a theme chosen), then
-      // asks once: system in light mode, or daytime?
-      if (!id && !sessionHint && !lightTipDone && calm(HINT_SETTLE_MS) && lightTipWanted()) id = LIGHT_TIP_HINT;
       if (!id && !sessionHint && !feedbackDone && feedbackWanted({
         sessions: writingSessions(LOCAL), counted: sessionCounted(SESSION), online: globalThis.navigator?.onLine !== false,
       }) && feedbackPause({ now: Date.now(), sessionStart: c.sessionStart, lastKeyAt: c.lastKeyAt, breakAt: c.breakAt, busy: s.busy })) {

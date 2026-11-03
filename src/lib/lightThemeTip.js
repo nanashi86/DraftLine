@@ -3,6 +3,12 @@
 // It's a card like the feature hints (lib/hints.js HINTS.lightTheme: same look, same calm moments,
 // same one-card-per-session rule), but it isn't counted in About → Tips.
 //
+// When: once the first-visit tips (sample, Focus) are behind a writer — every returning writer — it
+// goes ahead of the feature tips, after ten calm seconds: it depends on a moment (daylight, or a light
+// system) that may not come back soon, while the feature tips lose nothing by waiting a session. A
+// brand-new writer gets sample and Focus first; until those are finished, the light tip only takes a
+// session where no other tip qualifies.
+//
 // It can't come back on its own, whatever happens across sessions:
 //   • one flag, LIGHT_TIP_KEY, set to 'true' the moment the card is shown — before Switch to Light or
 //     Keep Dark is even clicked — so a reload, a crash or a second tab never shows it again

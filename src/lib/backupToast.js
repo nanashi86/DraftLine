@@ -15,6 +15,8 @@ export const BACKUP_TOAST_PAGES = 10;
 export const BACKUP_TOAST_WORDS = 5000;
 /** Backup Project version: comes back this long after the last backup, once the script has changed. */
 export const BACKUP_REMINDER_MS = 7 * 24 * 60 * 60 * 1000;
+/** After folder sync is ready, how long the storage state gets to settle (a permission check, say) before the tip may decide. */
+export const BACKUP_TOAST_SETTLE_MS = 1500;
 /** localStorage: "Don't show again". */
 export const BACKUP_TOAST_DISMISSED_KEY = 'draftline_backup_toast_dismissed';
 /** sessionStorage: closed for this session (Dismiss, ✕, Link Folder or Backup Project). */
@@ -68,7 +70,8 @@ export function backupToastCopy({ supported = true, family = 'other', standalone
 }
 
 /**
- * Show the tip? Never when any of these hold: "Don't show again" (`dismissedForever`), closed this
+ * Show the tip? Never before the storage state is known (`storageKnown`: folder sync has started up and
+ * settled, BACKUP_TOAST_SETTLE_MS later), nor when any of these hold: "Don't show again" (`dismissedForever`), closed this
  * session (`dismissedSession`), something else in the corner or Focus mode (`busy`, held back, not
  * dismissed), or the script isn't in App Storage Only (`state` ≠ 'local'). Otherwise the script must
  * be 10+ pages or 5,000+ words, and then:
@@ -78,8 +81,11 @@ export function backupToastCopy({ supported = true, family = 'other', standalone
  */
 export function shouldShowBackupToast({
   pages = 0, words = 0, state = 'local', supported = true, dismissedForever = false, dismissedSession = false, busy = false,
-  lastBackupAt = null, savedAt = null,
+  lastBackupAt = null, savedAt = null, storageKnown = true,
 } = {}) {
+  // Until folder sync has read the linked folder back (and settled), every script looks like App
+  // Storage Only: deciding then flashed the tip for a moment at launch for writers with a folder.
+  if (!storageKnown) return false;
   if (dismissedForever || dismissedSession || busy || state !== 'local') return false;
   if (pages < BACKUP_TOAST_PAGES && words < BACKUP_TOAST_WORDS) return false;
   if (supported || lastBackupAt == null) return true;

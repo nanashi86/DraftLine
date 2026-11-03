@@ -156,6 +156,7 @@ export const HINTS = {
     align: 'end',
     beacon: null,
     run: true,
+    settle: HINT_ONBOARD_SETTLE_MS, // it isn't about the script: no need to wait for one to settle
   },
   // Not a tip: asked once, from a writer's third writing session (lib/feedbackPrompt.js has when).
   // Not in HINT_IDS, so it's never counted in About → Tips or brought back by Show tips again.

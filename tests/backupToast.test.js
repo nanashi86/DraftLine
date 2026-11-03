@@ -2,7 +2,7 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import {
-  BACKUP_REMINDER_MS, BACKUP_TOAST, BACKUP_TOAST_DISMISSED_KEY, BACKUP_TOAST_PAGES, BACKUP_TOAST_SESSION_KEY, BACKUP_TOAST_WORDS,
+  BACKUP_REMINDER_MS, BACKUP_TOAST, BACKUP_TOAST_DISMISSED_KEY, BACKUP_TOAST_SETTLE_MS, BACKUP_TOAST_PAGES, BACKUP_TOAST_SESSION_KEY, BACKUP_TOAST_WORDS,
   LAST_BACKUPS_KEY, backupToastCopy, browserFamily, readFlag, readLastBackups, recordBackup, shouldShowBackupToast, writeFlag,
 } from '../src/lib/backupToast.js';
 import { PERSIST_ASKED_KEY, requestPersistence } from '../src/lib/storagePersist.js';
@@ -202,5 +202,21 @@ describe('Protected storage request', () => {
     const app = read('src/App.jsx');
     assert.match(app, /if \(persistAsked\.current \|\| !saved\.ok \|\| !saved\.at \|\| analysis\.words === 0\) return;/);
     assert.match(app, /const backupProject = async \(\) => \{\s*\/\/[^\n]*\n\s*requestPersistence\(\{ family: BROWSER_FAMILY, fromClick: true, local: globalThis\.localStorage \}\);/);
+  });
+});
+
+describe('Backup tip: never decided before the storage state is known', () => {
+  const app = readFileSync(new URL('../src/App.jsx', import.meta.url), 'utf8');
+  it('while folder sync is still reading the linked folder back, every script looks like App Storage Only: no tip', () => {
+    const long = { pages: 97, words: 18000, state: 'local', supported: true };
+    assert.equal(shouldShowBackupToast({ ...long, storageKnown: false }), false);
+    assert.equal(shouldShowBackupToast({ ...long, storageKnown: true }), true);
+    assert.equal(shouldShowBackupToast({ ...long, state: 'synced', storageKnown: true }), false);
+  });
+  it('the app waits for folder sync to be ready, then a short settle', () => {
+    assert.equal(BACKUP_TOAST_SETTLE_MS, 1500);
+    assert.match(app, /if \(!sync\.ready \|\| storageKnown\) return undefined;\s*const t = setTimeout\(\(\) => setStorageKnown\(true\), BACKUP_TOAST_SETTLE_MS\);/);
+    assert.match(app, /savedAt: saved\.at \?\? null,\s*storageKnown,\s*\}\);/);
+    assert.match(app, /const \[storageKnown, setStorageKnown\] = useState\(false\);/);
   });
 });
