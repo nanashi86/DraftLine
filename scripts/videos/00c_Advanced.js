@@ -11,7 +11,7 @@
 // card per scene on the Scene Board (Import Scenes), so the tour opens on a project in progress.
 // Every step carries its narration: say(step, vo); the voiceover sheet is written beside the video.
 //
-//   node scripts/videos/18_Advanced.js   →   videos/18_Advanced/18_Advanced.mp4
+//   node scripts/videos/00c_Advanced.js   →   videos/00c_Advanced/00c_Advanced.mp4
 import { main, record } from '../lib/demoKit.js';
 
 const fieldIn = (scope, page, label) => scope
@@ -40,7 +40,7 @@ async function prepare(page) {
 }
 
 main(() => record({
-  folder: '18_Advanced',
+  folder: '00c_Advanced',
   sample: true,
   prepare,
   seconds: [120, 240],

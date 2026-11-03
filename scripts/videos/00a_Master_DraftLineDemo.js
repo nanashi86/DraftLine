@@ -10,8 +10,8 @@
 // set, and the suitcase tagged on scene 1; then File → New… leaves a blank page open for the take.
 // Every step carries its narration (say(step, vo)); the voiceover sheet is written beside the video.
 //
-//   node scripts/videos/00_Master_DraftLineDemo.js
-//   → videos/00_Master_DraftLineDemo/00_Master_DraftLineDemo.mp4 (+ _voiceover.md)
+//   node scripts/videos/00a_Master_DraftLineDemo.js
+//   → videos/00a_Master_DraftLineDemo/00a_Master_DraftLineDemo.mp4 (+ _voiceover.md)
 import { main, record } from '../lib/demoKit.js';
 
 async function prepare(page) {
@@ -45,7 +45,7 @@ async function prepare(page) {
 }
 
 main(() => record({
-  folder: '00_Master_DraftLineDemo',
+  folder: '00a_Master_DraftLineDemo',
   sample: true,
   prepare,
   seconds: [60, 80],

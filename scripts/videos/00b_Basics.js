@@ -8,13 +8,13 @@
 // Tips line), the User Guide and Send Feedback. It ends on the finished page.
 //
 // Every step carries its narration: say(step, vo). The voiceover sheet, timed to the finished video,
-// is written beside it: videos/17_Basics/17_Basics_voiceover.md.
+// is written beside it: videos/00b_Basics/00b_Basics_voiceover.md.
 //
-//   node scripts/videos/17_Basics.js   →   videos/17_Basics/17_Basics.mp4
+//   node scripts/videos/00b_Basics.js   →   videos/00b_Basics/00b_Basics.mp4
 import { main, record } from '../lib/demoKit.js';
 
 main(() => record({
-  folder: '17_Basics',
+  folder: '00b_Basics',
   seconds: [120, 240],
   tips: ['focus'], // the first-visit Focus tip is part of the tour: every other tip stays quiet
   // A tip waits for 3 s without a key. Until the tour reaches it, a keydown every second (no key reaches
