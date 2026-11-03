@@ -104,7 +104,8 @@ describe('Settings: the dialog, the ⋮ menu and where storage lives', () => {
   });
   it('the shell theme and the page colour stay independent', () => {
     assert.match(app, /data-canvas=\{canvasTheme\}/);
-    assert.match(app, /applyTheme\(settings\.theme\);\s*writeSettings\(settings\);/);
+    assert.match(app, /writeSettings\(patch\);\s*setSettings/, 'only what the writer picks is written');
+    assert.match(app, /applyTheme\(settings\.theme\);\s*\}, \[settings\.theme\]\);/);
     const css = read('src/index.css');
     const light = css.slice(css.indexOf(":root[data-theme='light'] {"), css.indexOf('}', css.indexOf(":root[data-theme='light'] {")));
     for (const pageToken of ['--paper:', '--ink:', '--caret:', '--selection:']) assert.ok(!light.includes(pageToken), `${pageToken} belongs to the page, not the shell`);

@@ -12,6 +12,8 @@ export const UI_THEMES = [
   { id: 'light', label: 'Editorial Light', hint: 'Warm linen and ink' },
 ];
 export const DEFAULT_SETTINGS = Object.freeze({ theme: 'dark', showCounts: true });
+/** Stored with every choice, so a choice can be told from the first build's blanket defaults. */
+export const SETTINGS_VERSION = 2;
 /** The browser chrome's colour (<meta name="theme-color">) for each shell. */
 export const THEME_COLORS = { dark: '#18181b', light: '#f4f0e8' };
 
@@ -41,11 +43,38 @@ export function readSettings(storage = browserStorage()) {
   }
 }
 
-/** Remember the settings. Returns true if they were stored. */
-export function writeSettings(settings, storage = browserStorage()) {
+/** What the writer has actually chosen, as stored: only the keys they've set (never the defaults). */
+export function readChosenSettings(storage = browserStorage()) {
+  try {
+    const raw = JSON.parse(storage?.getItem(USER_SETTINGS_KEY) || 'null');
+    if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return {};
+    // The first build (no v) wrote every setting on each load, so a default value there was never a
+    // choice: only what differs from the default counts. Choices since are stored with v: 2.
+    const legacy = raw.v !== SETTINGS_VERSION;
+    const valid = normalizeSettings(raw);
+    return Object.fromEntries(Object.keys(DEFAULT_SETTINGS)
+      .filter((k) => k in raw && raw[k] === valid[k] && !(legacy && raw[k] === DEFAULT_SETTINGS[k]))
+      .map((k) => [k, raw[k]]));
+  } catch {
+    return {};
+  }
+}
+
+/** Has the writer picked a theme (in Settings, or through the light-theme tip)? A default never counts. */
+export const themeChosen = (storage = browserStorage()) => 'theme' in readChosenSettings(storage);
+
+/**
+ * Remember what the writer just chose: the patch is merged into what they chose before, so a key is
+ * only ever stored once it has been picked (theme: 'dark' is a choice, not the default written back).
+ * Returns true if it was stored.
+ */
+export function writeSettings(patch, storage = browserStorage()) {
   try {
     if (!storage) return false;
-    storage.setItem(USER_SETTINGS_KEY, JSON.stringify(normalizeSettings(settings)));
+    const next = { ...readChosenSettings(storage) };
+    const valid = normalizeSettings({ ...DEFAULT_SETTINGS, ...patch });
+    for (const k of Object.keys(DEFAULT_SETTINGS)) if (k in (patch || {})) next[k] = valid[k];
+    storage.setItem(USER_SETTINGS_KEY, JSON.stringify({ ...next, v: SETTINGS_VERSION }));
     return true;
   } catch {
     return false;

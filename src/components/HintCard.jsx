@@ -1,6 +1,6 @@
 import { useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Lightbulb, MessageSquare } from 'lucide-react';
+import { Lightbulb, MessageSquare, Sun } from 'lucide-react';
 import { HINTS, hintRoomFor, hintTarget, isTouchScreen } from '../lib/hints.js';
 import './HintCard.css';
 
@@ -72,7 +72,9 @@ export default function HintCard({ id, action, onAction, onDismiss }) {
       <div className="hint-head">
         {hint.icon === 'message'
           ? <MessageSquare size={14} strokeWidth={1.75} aria-hidden className="hint-icon" />
-          : <Lightbulb size={14} strokeWidth={1.75} aria-hidden className="hint-icon" />}
+          : hint.icon === 'sun'
+            ? <Sun size={14} strokeWidth={1.75} aria-hidden className="hint-icon" />
+            : <Lightbulb size={14} strokeWidth={1.75} aria-hidden className="hint-icon" />}
         <h2 id={`hint-${id}`}>{hint.title}</h2>
       </div>
       <p className="hint-text">{hint.touchText && isTouchScreen() ? hint.touchText : hint.text}</p>

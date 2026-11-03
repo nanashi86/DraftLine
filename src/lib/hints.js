@@ -143,6 +143,20 @@ export const HINTS = {
     beacon: null, // the Focus button is in the top bar
     settle: HINT_ONBOARD_SETTLE_MS,
   },
+  // The Editorial Light suggestion (lib/lightThemeTip.js has when, and the flag that keeps it to once).
+  // Not in HINT_IDS: not counted in About → Tips. Show tips again clears its flag, but it still stays
+  // away once the writer has chosen a theme.
+  lightTheme: {
+    title: 'Writing in daylight?',
+    text: 'Editorial Light swaps the charcoal for warm linen and crisp ink, easy on the eyes in a bright room. Change it any time in ⋮ → Settings.',
+    action: 'Switch to Light',
+    dismiss: 'Keep Dark',
+    icon: 'sun',
+    target: '.btn-kebab', // ⋮, where Settings lives, in the top bar at every width
+    align: 'end',
+    beacon: null,
+    run: true,
+  },
   // Not a tip: asked once, from a writer's third writing session (lib/feedbackPrompt.js has when).
   // Not in HINT_IDS, so it's never counted in About → Tips or brought back by Show tips again.
   feedback: {
@@ -158,6 +172,7 @@ export const HINTS = {
   },
 };
 /** The feedback card's id (in HINTS, not in HINT_IDS). */
+export const LIGHT_TIP_HINT = 'lightTheme';
 export const FEEDBACK_HINT = 'feedback';
 
 /** Saved hint states; unreadable or blocked storage reads as none shown. */

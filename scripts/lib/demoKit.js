@@ -3,7 +3,7 @@
 // Each walkthrough is 1920×1080 at 60 fps, in a clean browser profile, with a visible pointer and
 // click ripples. The deliverable is one file per video:
 //
-//   videos/<folder>/<folder>.mp4   = the intro card (recordings/_shared_assets/DraftLine_Intro_1080p.png),
+//   videos/<folder>/<folder>.mp4   = the intro card (videos/_shared_assets/DraftLine_Intro_1080p.png),
 //                                    a still frame for exactly 2.00 s, then the take
 //
 // The take starts on the app already settled: the page load, the first paint and any panel closing all
@@ -35,6 +35,7 @@ import { serializeBackup } from '../../src/lib/backup.js';
 import { HINT_IDS, HINTS_KEY, HINT_SESSION_KEY, ONBOARDING_KEY } from '../../src/lib/hints.js';
 import { FEEDBACK_PROMPT_KEY, FEEDBACK_SEEDED_KEY } from '../../src/lib/feedbackPrompt.js';
 import { BACKUP_TOAST_DISMISSED_KEY } from '../../src/lib/backupToast.js';
+import { LIGHT_TIP_KEY } from '../../src/lib/lightThemeTip.js';
 import { EXPORT_TIP, FORMAT_DOCTOR_TIP } from '../../src/lib/supportTips.js';
 import { makeBlock } from '../../src/lib/screenplay.js';
 import { createRevision } from '../../src/lib/revisions.js';
@@ -44,7 +45,7 @@ export const URL_ = process.env.DEMO_URL || 'http://localhost:5173/DraftLine/';
 const FPS = Number(process.env.DEMO_FPS) || 60;
 const SIZE = { width: 1920, height: 1080 };
 /** The title card every video opens on, and for how long. */
-export const INTRO = join(ROOT, 'recordings', '_shared_assets', 'DraftLine_Intro_1080p.png');
+export const INTRO = join(ROOT, 'videos', '_shared_assets', 'DraftLine_Intro_1080p.png');
 export const INTRO_SECONDS = 2;
 /** Every finished video's length, intro included: [shortest, longest] in seconds. */
 export const VIDEO_SECONDS = [35, 55];
@@ -98,7 +99,7 @@ const CURSOR = `
 /**
  * Every take, before the app loads: every tip and first-visit card (all of HINT_IDS, read from
  * lib/hints.js, so a tip added later is silenced too), the feedback card, the backup reminder and the
- * support lines on export toasts and Format Doctor reports are marked as seen, and the writer counts as returning (no onboarding). Fresh scripts stay clean
+ * support lines on export toasts and Format Doctor reports and the light-theme tip are marked as seen, and the writer counts as returning (no onboarding). Fresh scripts stay clean
  * canvases: nothing can pop up while typing.
  */
 const silence = (tips = []) => `
@@ -108,6 +109,7 @@ const silence = (tips = []) => `
     localStorage.setItem(${JSON.stringify(FEEDBACK_PROMPT_KEY)}, 'done');
     localStorage.setItem(${JSON.stringify(FEEDBACK_SEEDED_KEY)}, '1');
     localStorage.setItem(${JSON.stringify(BACKUP_TOAST_DISMISSED_KEY)}, 'true');
+    ${tips.includes('lightTheme') ? '' : `localStorage.setItem(${JSON.stringify(LIGHT_TIP_KEY)}, 'true');`}
     // The Ko-fi / Patreon line on an export toast and under a clean Format Doctor report: just shown, so not again.
     localStorage.setItem(${JSON.stringify(EXPORT_TIP.lastKey)}, String(Date.now()));
     localStorage.setItem(${JSON.stringify(FORMAT_DOCTOR_TIP.lastKey)}, String(Date.now()));
