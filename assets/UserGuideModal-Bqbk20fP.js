@@ -1,4 +1,4 @@
-import{i as e,t}from"./react-DgawKyfb.js";import{A as n,At as r,F as i,Jt as a,Kt as o,Mt as s,N as c,Nt as l,P as u,Pt as d,Rt as ee,St as f,Tt as p,Zt as m,bt as h,c as g,dt as _,gt as v,h as y,ht as b,j as x,jt as S,kt as te,l as ne,mt as C,n as re,p as ie,qt as ae,r as oe,u as w,ut as T,vt as E,xt as D,yt as O}from"./index-CTJYuQZS.js";import{r as k,t as A}from"./printTitle-C1qWomuv.js";/* empty css                  */var j=e(),M=`# DraftLine User Guide
+import{i as e,t}from"./react-DgawKyfb.js";import{A as n,At as r,F as i,Jt as a,Kt as o,Mt as s,N as c,Nt as l,P as u,Pt as d,Rt as ee,St as f,Tt as p,Zt as m,bt as h,c as g,dt as _,gt as v,h as y,ht as b,j as x,jt as S,kt as te,l as ne,mt as C,n as re,p as ie,qt as ae,r as oe,u as w,ut as T,vt as E,xt as D,yt as O}from"./index-BaO_bC-5.js";import{r as k,t as A}from"./printTitle-C1qWomuv.js";/* empty css                  */var j=e(),M=`# DraftLine User Guide
 
 DraftLine is a distraction-free screenwriting app that runs in your browser. It writes in Courier Prime at 12 pt with standard screenplay margins, saves as you type, and works offline. This guide covers everything from your first scene heading to the final PDF.
 
@@ -42,9 +42,11 @@ These two are only for someone new to DraftLine: if you already had scripts here
 
 **Feedback.** Once you've written in DraftLine across three sessions (150 words or more in each; if you were already writing in DraftLine before this was added, your next one counts as the third), a card under **⋮** asks, once, whether you have thoughts to share: a bug, an idea, or just what you think. It waits for a real pause (45 seconds without typing, or right after you close a panel or dialog, close Projects, or switch between Write and Plan) and never shows while another card is up. **Share feedback** opens the same form as **⋮ → Send Feedback…**, which is anonymous: no cookies, accounts or IP addresses. **Not now** and it won't ask again. It isn't counted among the tips, and Show tips again doesn't bring it back.
 
+**Editorial Light.** If your computer is set to a light appearance, or it's daytime where you are, a card under **⋮** suggests the warm Editorial Light theme, once. **Switch to Light** turns it on and **Keep Dark** keeps the charcoal; either way it's saved as your choice and the card never returns, even if you reload or close it without answering. It isn't counted among the tips. Show tips again clears it, but it still stays away once you've picked a theme (here or in Settings).
+
 When the tool is inside a panel, a small dot appears first, on **Split** or **Characters** (or on the **Bios** or **Dialogue** tab if Characters is already open on the other one). Open it, and a short card beside the tool explains it, with the tool's own button and **Got it**. Tools that are always on screen (the Format stepper, Plan, File, Focus) get the card straight away. Nothing runs until you click, and the card never takes your cursor: after Import Scenes or Populate Bio runs, you're back where you were typing. The card also never sits on top of anything else: when you open a menu or dropdown over it, open a dialog, or a drawer covers its tool, it steps aside and comes back when there's room. Once you click its button, it gets out of the way of whatever the tool opens.
 
-Tips only appear at a quiet moment: a few seconds after you stop typing, a minute after a script is opened or imported (ten seconds for the two first-visit tips), never in Focus, Plan or Viewing, and never while another corner card is up. You'll see at most one new tip per session (Analyze Value Shifts may follow Import Scenes, and Focus the sample tip, straight away), and each one shows once: using the tool, any way at all (even before its tip appeared), or choosing Got it ends it for good. **⋮ → About DraftLine** has a **Tips** line showing how many you've seen; choose **Show tips again** there to start over.
+Tips only appear at a quiet moment: a few seconds after you stop typing, a minute after a script is opened or imported (ten seconds for the two first-visit tips), never in Focus, Plan or Viewing, and never while another corner card is up. You'll see at most one new tip per session (Analyze Value Shifts may follow Import Scenes, and Focus the sample tip, straight away), and each one shows once: using the tool, any way at all (even before its tip appeared), or choosing Got it ends it for good. **⋮ → About DraftLine** has a **Tips** line showing how many you've seen; choose **Show tips again** there (or in **⋮ → Settings…**) to start over.
 
 ### Projects and browser storage
 
@@ -220,6 +222,16 @@ Keeping them apart pays off later: Plan reads the hyphenated parts as the locati
 **Interior and exterior together.** Write the combined prefix with no spaces around the slash (\`INT./EXT.\`, or \`INT/EXT.\`), and lead with the side where the camera setup begins: \`INT./EXT. CAR - NIGHT\` when we start inside, \`EXT./INT. PORCH - DAY\` when we start outside. Plan colours the strip by the side you lead with.
 
 **Time of day.** DAY and NIGHT are the clearest, and anything containing them works too (\`NEXT DAY\`, \`LATER THAT NIGHT\`). CONTINUOUS, LATER and MOMENTS LATER say the scene follows straight on, so it keeps the previous scene's light.
+
+### Settings and appearance
+
+**⋮ → Settings…** holds everything about how DraftLine looks and saves:
+
+- **Appearance:** the interface theme, **Dark Charcoal** (the default) or **Editorial Light** (warm linen and ink), and the page colour, **Paper** or **Midnight**. The two are separate, so a light workspace can have a Midnight page. Printing and PDFs are always black on white.
+- **Storage & Backup:** where scripts are kept (see Folder Sync above). Clicking the save status in the status bar opens Settings right here.
+- **Drafting:** show or hide the scene and word counts in the status bar, and **Show tips again**.
+
+Settings are kept in this browser, on this computer: a laptop and a desktop can each have their own theme. They're never part of a script, so they don't travel with \`.draftline\` files or the linked folder.
 
 ### Page colour and zoom
 
