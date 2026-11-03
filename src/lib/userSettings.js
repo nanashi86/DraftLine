@@ -8,8 +8,8 @@
 
 export const USER_SETTINGS_KEY = 'draftline_user_settings';
 export const UI_THEMES = [
-  { id: 'dark', label: 'Dark Charcoal', hint: 'The default' },
-  { id: 'light', label: 'Editorial Light', hint: 'Warm linen and ink' },
+  { id: 'dark', label: 'Espresso Noir', hint: 'Deep roast & cinematic' }, // the default
+  { id: 'light', label: 'Editorial Light', hint: 'Warm linen & ink' },
 ];
 export const DEFAULT_SETTINGS = Object.freeze({ theme: 'dark', showCounts: true });
 /** Stored with every choice, so a choice can be told from the first build's blanket defaults. */

@@ -13,7 +13,7 @@ const memory = (init = {}) => {
 };
 
 describe('Settings: stored under draftline_user_settings, dark by default', () => {
-  it('the key, and the defaults: Dark Charcoal, counts showing', () => {
+  it('the key, and the defaults: Espresso Noir (dark), counts showing', () => {
     assert.equal(USER_SETTINGS_KEY, 'draftline_user_settings');
     assert.deepEqual(DEFAULT_SETTINGS, { theme: 'dark', showCounts: true });
     assert.deepEqual(readSettings(memory()), DEFAULT_SETTINGS, 'a new visitor gets dark');
@@ -156,5 +156,29 @@ describe('Editorial Light: every shell token has a light value', () => {
   });
   it('INT. DAY strips stay white on linen, with an edge', () => {
     assert.match(read('src/components/planning/PlanningWorkspace.css'), /:root\[data-theme='light'\] \.strip\.strip-int-day,/);
+  });
+});
+
+describe('Theme names and the Settings shortcut', () => {
+  it('Espresso Noir (dark, the default) and Editorial Light, each a title and one short line', async () => {
+    const { UI_THEMES } = await import('../src/lib/userSettings.js');
+    assert.deepEqual(UI_THEMES.map((t) => [t.id, t.label, t.hint]), [
+      ['dark', 'Espresso Noir', 'Deep roast & cinematic'],
+      ['light', 'Editorial Light', 'Warm linen & ink'],
+    ]);
+  });
+  it('Ctrl+, (⌘, on a Mac) opens Settings, and the shortcut list and ⋮ show it', async () => {
+    const { SHORTCUTS } = await import('../src/lib/shortcuts.js');
+    assert.match(SHORTCUTS['Ctrl+,'], /^Settings/);
+    assert.match(read('src/App.jsx'), /else if \(mod && !e\.altKey && !e\.shiftKey && e\.code === 'Comma'\) \{\s*e\.preventDefault\(\);[^\n]*\n\s*setSettingsAt\(\(a\) => \(a \? null : 'top'\)\);/);
+    const noop = () => {};
+    const s = moreMenuItems({ onShortcuts: noop, onAbout: noop, onSettings: noop }).find((i) => i.label === 'Settings…');
+    assert.equal(s.hint, 'Ctrl+,');
+  });
+  it('the light-theme tip names the theme and the shortcut (⌘, on a Mac, none on touch)', async () => {
+    const { HINTS } = await import('../src/lib/hints.js');
+    assert.equal(HINTS.lightTheme.text, 'Prefer writing in light mode? Try our Editorial Light theme in Settings and change back anytime (Ctrl+,).');
+    assert.ok(HINTS.lightTheme.macText.endsWith('(⌘,).'));
+    assert.ok(!/Ctrl|⌘/.test(HINTS.lightTheme.touchText));
   });
 });

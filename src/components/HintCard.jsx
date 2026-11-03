@@ -4,6 +4,7 @@ import { Lightbulb, MessageSquare, Sun } from 'lucide-react';
 import { HINTS, hintRoomFor, hintTarget, isTouchScreen } from '../lib/hints.js';
 import './HintCard.css';
 
+const IS_MAC = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent);
 const GAP = 8;
 const MARGIN = 10;
 
@@ -77,7 +78,7 @@ export default function HintCard({ id, action, onAction, onDismiss }) {
             : <Lightbulb size={14} strokeWidth={1.75} aria-hidden className="hint-icon" />}
         <h2 id={`hint-${id}`}>{hint.title}</h2>
       </div>
-      <p className="hint-text">{hint.touchText && isTouchScreen() ? hint.touchText : hint.text}</p>
+      <p className="hint-text">{hint.touchText && isTouchScreen() ? hint.touchText : hint.macText && IS_MAC ? hint.macText : hint.text}</p>
       <div className="hint-actions">
         <button type="button" className="btn hint-go" onClick={onAction}>{action || hint.action}</button>
         <button type="button" className="btn hint-dismiss" onClick={onDismiss}>{hint.dismiss || 'Got it'}</button>

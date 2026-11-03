@@ -398,7 +398,7 @@ function Workspace({ boot }) {
     writeCanvasTheme(next);
   };
   const themeNext = canvasThemeInfo(nextCanvasTheme(canvasTheme));
-  // App settings (lib/userSettings.js): the shell theme (Dark Charcoal / Editorial Light) and drafting
+  // App settings (lib/userSettings.js): the shell theme (Espresso Noir / Editorial Light) and drafting
   // preferences. index.html already put the theme on <html> before the first paint; this keeps it in step.
   const [settings, setSettings] = useState(() => readSettings());
   // Only what the writer picks is stored (writeSettings merges the patch): a theme left at its default
@@ -1768,6 +1768,9 @@ function Workspace({ boot }) {
       } else if (mod && !e.altKey && e.code === 'Slash') {
         e.preventDefault();
         setHelpKind((k) => (k === 'shortcuts' ? null : 'shortcuts'));
+      } else if (mod && !e.altKey && !e.shiftKey && e.code === 'Comma') {
+        e.preventDefault(); // Ctrl+, (⌘, on a Mac): Settings, as in most apps
+        setSettingsAt((a) => (a ? null : 'top'));
       } else if (e.altKey && !mod && e.code === 'KeyB') {
         e.preventDefault();
         cycleView();

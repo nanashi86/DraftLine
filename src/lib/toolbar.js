@@ -46,7 +46,7 @@ export function moreMenuItems({
     { label: 'Keyboard Shortcuts', hint: 'Ctrl+/', onSelect: onShortcuts },
     { divider: true },
     // Settings: global configuration, just above Help and About (Appearance, Storage & Backup, Drafting).
-    ...(onSettings ? [{ label: 'Settings…', onSelect: onSettings }] : []),
+    ...(onSettings ? [{ label: 'Settings…', hint: 'Ctrl+,', onSelect: onSettings }] : []),
     ...(onGuide ? [{ label: 'User Guide', hint: 'F1', onSelect: onGuide }] : []),
     // Directly above About: three questions, sent anonymously (components/FeedbackModal.jsx).
     ...(onFeedback ? [{ label: 'Send Feedback…', onSelect: onFeedback }] : []),

@@ -66,6 +66,7 @@ export const HINT_ONBOARD_SETTLE_MS = 10000;
  *             app state of its own, like opening the Format stepper's list)
  *   settle  — how long after a script opens before it may show (default HINT_SETTLE_MS)
  *   touchText — its wording on a touch screen, where it differs (Focus: no Esc key)
+ *   macText — its wording on a Mac, where a shortcut it names reads differently (⌘ for Ctrl)
  *   dismiss / icon — the second button's words (default Got it) and the icon (default the lightbulb)
  *   run     — its button does something of its own instead of clicking the target (the sample: File
  *             holds it in a menu, so the card's button opens it directly)
@@ -148,7 +149,9 @@ export const HINTS = {
   // away once the writer has chosen a theme.
   lightTheme: {
     title: 'Writing in daylight?',
-    text: 'Editorial Light swaps the charcoal for warm linen and crisp ink, easy on the eyes in a bright room. Change it any time in ⋮ → Settings.',
+    text: 'Prefer writing in light mode? Try our Editorial Light theme in Settings and change back anytime (Ctrl+,).',
+    macText: 'Prefer writing in light mode? Try our Editorial Light theme in Settings and change back anytime (⌘,).',
+    touchText: 'Prefer writing in light mode? Try our Editorial Light theme in Settings and change back anytime.',
     action: 'Switch to Light',
     dismiss: 'Keep Dark',
     icon: 'sun',

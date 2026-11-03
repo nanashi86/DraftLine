@@ -40,7 +40,7 @@ describe('getting out of Focus on a touch screen', () => {
   it('the tip says to tap Exit focus where there’s no Esc key', () => {
     assert.match(HINTS.focus.text, /Press Esc to bring everything back, right where you left it\.$/);
     assert.equal(HINTS.focus.touchText, 'Focus mode clears the screen of everything but your script. No toolbar, no panels, no distractions. Tap Exit focus, top right, to bring everything back, right where you left it.');
-    assert.match(read('components/HintCard.jsx'), /hint\.touchText && isTouchScreen\(\) \? hint\.touchText : hint\.text/);
+    assert.match(read('components/HintCard.jsx'), /hint\.touchText && isTouchScreen\(\) \? hint\.touchText : hint\.macText && IS_MAC \? hint\.macText : hint\.text/);
     assert.equal(isTouchScreen({ matchMedia: () => ({ matches: true }) }), true);
     assert.equal(isTouchScreen({ matchMedia: () => ({ matches: false }) }), false);
     assert.equal(isTouchScreen({}), false);

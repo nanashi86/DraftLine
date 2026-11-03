@@ -79,6 +79,7 @@ export const SHORTCUT_SECTIONS = [
       ['Alt+Down', 'Next speech by the filtered character (also ] outside the text)'],
       ['Alt+Up', 'Previous speech by the filtered character (also [ outside the text)'],
       ['Alt+B', 'Cycle Page → Split → Board'],
+      ['Ctrl+,', 'Settings (appearance, storage, drafting)'],
       ['Ctrl+/', 'Keyboard shortcuts (this list)'],
       ['F1', 'User Guide (also Shift+? outside the script)'],
     ],
