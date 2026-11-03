@@ -1,4 +1,4 @@
-// 19 · Update — Visual Overhaul (45–70 s, intro card included)
+// 17 · Update — Visual Overhaul (45–70 s, intro card included)
 //
 // What's new: Settings (⋮ → Settings…) and the Editorial Light theme. The Last Ferry opens in Espresso
 // Noir; Settings switches it to Editorial Light; the page colour is its own choice (a light shell
@@ -8,8 +8,8 @@
 // Off camera: The Last Ferry is in Projects with bios (Populate Bio), so Characters has something to show.
 // Every step carries its narration (say(step, vo)); the voiceover sheet is written beside the video.
 //
-//   node scripts/videos/19_Update_VisualOverhaul.js
-//   → videos/19_Update_VisualOverhaul/19_Update_VisualOverhaul.mp4 (+ _voiceover.md)
+//   node scripts/videos/17_Update_VisualOverhaul.js
+//   → videos/17_Update_VisualOverhaul/17_Update_VisualOverhaul.mp4 (+ _voiceover.md)
 import { main, record } from '../lib/demoKit.js';
 
 async function prepare(page) {
@@ -21,7 +21,7 @@ async function prepare(page) {
 }
 
 main(() => record({
-  folder: '19_Update_VisualOverhaul',
+  folder: '17_Update_VisualOverhaul',
   sample: true,
   prepare,
   syncFolder: 'DraftLine Scripts', // stand-in folder: Playwright can't drive the OS folder picker
