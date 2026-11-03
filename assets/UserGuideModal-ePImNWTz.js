@@ -1,4 +1,4 @@
-import{i as e,t}from"./react-DgawKyfb.js";import{A as n,At as r,F as i,Jt as a,Kt as o,Mt as s,N as c,Nt as l,P as u,Pt as d,Rt as ee,St as f,Tt as p,Zt as m,bt as h,c as g,dt as _,gt as v,h as y,ht as b,j as x,jt as S,kt as te,l as ne,mt as C,n as re,p as ie,qt as ae,r as oe,u as w,ut as T,vt as E,xt as D,yt as O}from"./index-Cderm6OD.js";import{r as k,t as A}from"./printTitle-C1qWomuv.js";/* empty css                  */var j=e(),M=`# DraftLine User Guide
+import{i as e,t}from"./react-DgawKyfb.js";import{A as n,At as r,F as i,Jt as a,Kt as o,Mt as s,N as c,Nt as l,P as u,Pt as d,Rt as ee,St as f,Tt as p,Zt as m,bt as h,c as g,dt as _,gt as v,h as y,ht as b,j as x,jt as S,kt as te,l as ne,mt as C,n as re,p as ie,qt as ae,r as oe,u as w,ut as T,vt as E,xt as D,yt as O}from"./index-DTe-0IkT.js";import{r as k,t as A}from"./printTitle-C1qWomuv.js";/* empty css                  */var j=e(),M=`# DraftLine User Guide
 
 DraftLine is a distraction-free screenwriting app that runs in your browser. It writes in Courier Prime at 12 pt with standard screenplay margins, saves as you type, and works offline. This guide covers everything from your first scene heading to the final PDF.
 
@@ -42,7 +42,7 @@ These two are only for someone new to DraftLine: if you already had scripts here
 
 **Feedback.** Once you've written in DraftLine across three sessions (150 words or more in each; if you were already writing in DraftLine before this was added, your next one counts as the third), a card under **⋮** asks, once, whether you have thoughts to share: a bug, an idea, or just what you think. It waits for a real pause (45 seconds without typing, or right after you close a panel or dialog, close Projects, or switch between Write and Plan) and never shows while another card is up. **Share feedback** opens the same form as **⋮ → Send Feedback…**, which is anonymous: no cookies, accounts or IP addresses. **Not now** and it won't ask again. It isn't counted among the tips, and Show tips again doesn't bring it back.
 
-**Editorial Light.** If your computer is set to a light appearance, or it's daytime where you are, a card under **⋮** suggests the warm Editorial Light theme, once, a few seconds after a script opens (after the first-visit tips, if you're new). Like every tip, it waits while you're in Viewing, Focus or Plan. **Switch to Light** turns it on and **Keep Dark** keeps the charcoal; either way it's saved as your choice and the card never returns, even if you reload or close it without answering. It isn't counted among the tips. Show tips again clears it, but it still stays away once you've picked a theme (here or in Settings).
+**Editorial Light.** If your computer is set to a light appearance, or it's daytime where you are, a card under **⋮** suggests the warm Editorial Light theme (instead of the default Espresso Noir), once, a few seconds after a script opens (after the first-visit tips, if you're new). Like every tip, it waits while you're in Viewing, Focus or Plan. **Switch to Light** turns it on and **Keep Dark** keeps the charcoal; either way it's saved as your choice and the card never returns, even if you reload or close it without answering. It isn't counted among the tips. Show tips again clears it, but it still stays away once you've picked a theme (here or in Settings).
 
 When the tool is inside a panel, a small dot appears first, on **Split** or **Characters** (or on the **Bios** or **Dialogue** tab if Characters is already open on the other one). Open it, and a short card beside the tool explains it, with the tool's own button and **Got it**. Tools that are always on screen (the Format stepper, Plan, File, Focus) get the card straight away. Nothing runs until you click, and the card never takes your cursor: after Import Scenes or Populate Bio runs, you're back where you were typing. The card also never sits on top of anything else: when you open a menu or dropdown over it, open a dialog, or a drawer covers its tool, it steps aside and comes back when there's room. Once you click its button, it gets out of the way of whatever the tool opens.
 
@@ -225,9 +225,9 @@ Keeping them apart pays off later: Plan reads the hyphenated parts as the locati
 
 ### Settings and appearance
 
-**⋮ → Settings…** holds everything about how DraftLine looks and saves:
+**⋮ → Settings…** ({{key:Ctrl+,}}) holds everything about how DraftLine looks and saves:
 
-- **Appearance:** the interface theme, **Dark Charcoal** (the default) or **Editorial Light** (warm linen and ink), and the page colour, **Paper** or **Midnight**. The two are separate, so a light workspace can have a Midnight page. Printing and PDFs are always black on white.
+- **Appearance:** the interface theme, **Espresso Noir** (the default: deep roast and cinematic) or **Editorial Light** (warm linen and ink), and the page colour, **Paper** or **Midnight**. The two are separate, so a light workspace can have a Midnight page. Printing and PDFs are always black on white.
 - **Storage & Backup:** where scripts are kept (see Folder Sync above). Clicking the save status in the status bar opens Settings right here.
 - **Drafting:** show or hide the scene and word counts in the status bar, and **Show tips again**.
 
