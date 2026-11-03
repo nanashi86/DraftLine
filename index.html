@@ -12,6 +12,9 @@
     <!-- Installable, offline-capable app (PWA): manifest + service worker (src/pwa/). -->
     <link rel="manifest" href="/DraftLine/manifest.json" />
     <meta name="theme-color" content="#18181b" />
+    <!-- Settings → Appearance: the Editorial Light shell, set before the first paint so a light-theme writer
+         never sees a dark flash. Same key and colours as src/lib/userSettings.js; dark needs nothing. -->
+    <script>try{if(JSON.parse(localStorage.getItem('draftline_user_settings')||'null').theme==='light'){document.documentElement.setAttribute('data-theme','light');document.querySelector('meta[name="theme-color"]').setAttribute('content','#f4f0e8')}}catch(e){}</script>
     <!-- Search and sharing: one title and description everywhere (tab, search result, link previews).
          The title must match SEO_TITLE in src/lib/pageTitle.js. Link previews need absolute URLs. -->
     <link rel="canonical" href="https://nanashi86.github.io/DraftLine/" />
@@ -86,13 +89,13 @@
         document.head.appendChild(beacon);
       })();
     </script>
-    <script type="module" crossorigin src="/DraftLine/assets/index-CECtQkom.js"></script>
+    <script type="module" crossorigin src="/DraftLine/assets/index-CTJYuQZS.js"></script>
     <link rel="modulepreload" crossorigin href="/DraftLine/assets/rolldown-runtime-BCiCTKAo.js">
     <link rel="modulepreload" crossorigin href="/DraftLine/assets/react-DgawKyfb.js">
     <link rel="modulepreload" crossorigin href="/DraftLine/assets/formatting-BYoP7DnV.js">
     <link rel="modulepreload" crossorigin href="/DraftLine/assets/sluglines-NngmNwiy.js">
     <link rel="modulepreload" crossorigin href="/DraftLine/assets/titleFonts-CncB-K-b.js">
-    <link rel="stylesheet" crossorigin href="/DraftLine/assets/index-mKC2Ml7V.css">
+    <link rel="stylesheet" crossorigin href="/DraftLine/assets/index-Cv9V6Za9.css">
   </head>
   <body>
     <div id="root"></div>
