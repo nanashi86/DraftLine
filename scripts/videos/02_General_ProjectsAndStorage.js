@@ -1,8 +1,9 @@
 // 02 · General — Projects and Storage (35–55 s, intro card included)
 //
-// The Projects drawer: make a new script, name it, write in it; rename it from its card; reload the
-// tab and everything is still there (it's saved in the browser as you type); then switch between
-// scripts from the drawer.
+// The Projects drawer, which is only about scripts now: make a new script, name it, write in it; rename
+// it from its card; reload the tab and everything is still there (it's saved in the browser as you
+// type); switch between scripts from the drawer. Then storage, which lives in Settings: the save status
+// opens Settings → Storage & Backup, a folder is linked, and the status bar says it's synced.
 //
 //   node scripts/videos/02_General_ProjectsAndStorage.js
 //   → videos/02_General_ProjectsAndStorage/02_General_ProjectsAndStorage.mp4
@@ -11,6 +12,7 @@ import { main, record } from '../lib/demoKit.js';
 main(() => record({
   folder: '02_General_ProjectsAndStorage',
   sample: true, // the library starts with one script, The Last Ferry
+  syncFolder: 'DraftLine Scripts', // stand-in folder: Playwright can't drive the OS folder picker
   async run({ page, click, glide, typeHuman, press, hold, say, reload }) {
     say('The Last Ferry, open; every script lives in Projects');
     await hold(1000);
@@ -55,6 +57,16 @@ main(() => record({
     await click(page.getByRole('button', { name: 'Projects', exact: true }), 900);
     await click(page.locator('.pd-card', { hasText: 'The Night Shift' }), 1200);
     await glide([960, 470]);
+    await hold(1000);
+
+    say('Storage lives in Settings: the save status opens it; link a folder');
+    const dialog = page.locator('dialog.st-modal[open]');
+    await click(page.locator('.status-save'), 900); // Settings opens on Storage & Backup, Link Folder… focused
+    await click(dialog.getByRole('button', { name: 'Link Folder…' }), 1000);
+    await glide(dialog.locator('.sd-folder'));
     await hold(1200);
+    await click(dialog.getByRole('button', { name: 'Done' }), 500);
+    await glide(page.locator('.status-save'));
+    await hold(1600);
   },
 }));
