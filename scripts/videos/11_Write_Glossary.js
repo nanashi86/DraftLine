@@ -47,10 +47,10 @@ main(() => record({
     await glide(entry.locator('.dict-badge'));
     await hold(2000);
 
-    say('Search the format terms too: Montage');
+    say('Search the format terms too: Intercut');
     await click(search, 300);
     await press('ControlOrMeta+a', 150);
-    await typeHuman('Montage');
+    await typeHuman('Intercut');
     await glide(bible.locator('li.dict-entry').first());
     await hold(2800);
     await press('ControlOrMeta+a', 150);
