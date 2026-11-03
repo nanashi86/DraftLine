@@ -1,7 +1,7 @@
 // 19 · Update — Visual Overhaul (45–70 s, intro card included)
 //
-// What's new: Settings (⋮ → Settings…) and the Editorial Light theme. The Last Ferry opens in Dark
-// Charcoal; Settings switches it to Editorial Light; the page colour is its own choice (a light shell
+// What's new: Settings (⋮ → Settings…) and the Editorial Light theme. The Last Ferry opens in Espresso
+// Noir; Settings switches it to Editorial Light; the page colour is its own choice (a light shell
 // with a Midnight page, then back to Paper); the save status opens Settings on Storage & Backup, where
 // a folder is linked; then the new look carries through the Story Bible, Characters and Plan.
 //
@@ -31,7 +31,7 @@ main(() => record({
     const kebab = page.locator('.btn-kebab').first();
 
     // 1 · What's new --------------------------------------------------------------------------------
-    await say('The Last Ferry, in Dark Charcoal',
+    await say('The Last Ferry, in Espresso Noir',
       'DraftLine just got a fresh new look, and a proper home for your settings.');
     await glide([960, 470]);
     await hold(600);
@@ -45,7 +45,7 @@ main(() => record({
     await click(page.getByRole('menuitem', { name: /^Settings/ }), 900);
 
     await say('Editorial Light: warm linen and ink',
-      'Switch to Editorial Light for warm linen and crisp ink, made for writing in daylight. Dark Charcoal is always one click away.');
+      'Switch to Editorial Light for warm linen and crisp ink, made for writing in daylight. Espresso Noir is always one click away.');
     await click(dialog.locator('label.st-choice', { hasText: 'Editorial Light' }), 1200);
     await click(dialog.getByRole('button', { name: 'Done' }), 600);
     await glide([960, 470]);
