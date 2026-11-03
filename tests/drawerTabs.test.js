@@ -28,11 +28,11 @@ describe('Story Bible & Characters tabs: monochrome stroke icons', () => {
       assert.ok(icon.includes(a), a);
     }
   });
-  it('muted when inactive, white when active', () => {
+  it('muted when inactive, the strongest text when active', () => {
     const css = read('components/ProjectBibleDrawer.css');
     assert.match(css, /\.tab-icon \{ display: inline-block; vertical-align: middle; margin-right: 6px; flex-shrink: 0; \}/);
     assert.match(css, /\.pb-tab \{[^}]*color: var\(--muted\);/);
-    assert.match(css, /\.pb-tab\.is-on \{ color: #ffffff;/);
+    assert.match(css, /\.pb-tab\.is-on \{ color: var\(--text-strong\);/);
   });
 });
 

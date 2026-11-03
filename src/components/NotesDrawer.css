@@ -71,3 +71,5 @@
 .nd-row-head small { text-transform: none; letter-spacing: 0; }
 .nd-row-line { font: 12px/1.35 'Courier Prime', 'Courier New', monospace; opacity: 0.8; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .nd-row-note { font-size: 12.5px; line-height: 1.4; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* Editorial Light: the delete action in an ink that reads on linen. */
+:root[data-theme='light'] .nd-danger { color: var(--danger-ink); border-color: color-mix(in srgb, var(--danger-ink) 45%, transparent); }

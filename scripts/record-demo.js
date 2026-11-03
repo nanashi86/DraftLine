@@ -228,11 +228,11 @@ async function main() {
   await click(page.getByRole('radio', { name: 'Page', exact: true }), 1200);
   if (WITH_FOLDER) {
     caption('Local-first: link a folder, then the Synced badge');
-    await click(page.getByRole('button', { name: 'Switch Project' }), 900);
+    await click(page.locator('.status-save'), 900); // Settings opens on Storage & Backup
     await glide(page.locator('.sd'));
     await hold(1600);
     await click(page.getByRole('button', { name: 'Link Folder…' }), 1800);
-    await click(page.getByRole('button', { name: 'Close projects' }), 900);
+    await click(page.getByRole('button', { name: 'Done' }), 900);
   }
   const badge = page.locator('.status-save');
   await glide(badge);

@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Lock, LockOpen } from 'lucide-react';
 import Menu from './Menu.jsx';
-import StorageDestination from './StorageDestination.jsx';
 import { relativeTime } from '../lib/projectStorage.js';
 import { projectsClickCloses } from '../lib/projectsDismiss.js';
 import './ProjectsDrawer.css';
@@ -72,9 +71,8 @@ function RenameInput({ initial, onDone }) {
  */
 export default function ProjectsDrawer({
   open, activeId, live, loadProjects, onClose, onSwitch, onCreate, onRename, onDuplicate, onExport, onDelete, onToggleLock, libraryRev = 0,
-  storage, // { sync, onChoose, onLink, onDisconnect, onAllow } — the Storage Destination block
-  focusStorage = 0, // bumped by the status bar: open on the storage settings
-  focusTarget = 'storage', // …'folder': on the Linked Folder card, its Link Folder… / Allow access button focused
+  sync = null, // folder sync state (lib/folderSync.js): the subtitle, the folder badges and the footer. Where
+  // scripts are kept is chosen in Settings → Storage & Backup (components/SettingsModal.jsx), not here.
 }) {
   const [list, setList] = useState(null);
   const [error, setError] = useState(null);
@@ -96,7 +94,7 @@ export default function ProjectsDrawer({
 
   // Re-read when the drawer opens, when a folder is linked, changed or allowed (its scripts join the
   // list), and when the app changes the library itself (libraryRev: e.g. a deletion confirmed in its dialog).
-  const syncKey = storage ? `${storage.sync.active}|${storage.sync.folderName}` : '';
+  const syncKey = sync ? `${sync.active}|${sync.folderName}` : '';
   useEffect(() => {
     if (!open) return undefined;
     let live = true;
@@ -118,18 +116,6 @@ export default function ProjectsDrawer({
       cancelAnimationFrame(f);
     };
   }, [open, loadProjects, syncKey, libraryRev]);
-
-  // Opened from the status bar: show the storage settings.
-  useEffect(() => {
-    if (!open || !focusStorage) return undefined;
-    const f = requestAnimationFrame(() => {
-      const sd = panelRef.current?.querySelector('.sd');
-      const card = focusTarget === 'folder' ? sd?.querySelector('.sd-card-folder') : null;
-      (card || sd)?.scrollIntoView({ block: card ? 'center' : 'start' });
-      (card?.querySelector('.sd-buttons .btn') || sd?.querySelector('input:checked'))?.focus();
-    });
-    return () => cancelAnimationFrame(f);
-  }, [open, focusStorage, focusTarget]);
 
   useEffect(() => {
     if (!open) return undefined;
@@ -188,21 +174,11 @@ export default function ProjectsDrawer({
             <h2>Projects</h2>
             <div className="pd-count">
               {list ? plural(count, 'Script') : 'Loading…'} · saved in this browser
-              {storage?.sync.active ? ` · synced to ${storage.sync.folderName}` : ''}
+              {sync?.active ? ` · synced to ${sync.folderName}` : ''}
             </div>
           </div>
           <button type="button" className="btn btn-icon pd-close" onClick={onClose} aria-label="Close projects" title="Close (Esc)">×</button>
         </header>
-
-        {storage && (
-          <StorageDestination
-            sync={storage.sync}
-            onChoose={storage.onChoose}
-            onLink={storage.onLink}
-            onDisconnect={storage.onDisconnect}
-            onAllow={storage.onAllow}
-          />
-        )}
 
         <div className="pd-actions">
           {creating ? (
@@ -256,10 +232,10 @@ export default function ProjectsDrawer({
                     )}
                     {isActive && <span className="pd-badge">Active</span>}
                     {p.source === 'folder' && !isActive && (
-                      <span className="pd-badge is-folder" title={`Only in ${storage?.sync.folderName || 'the synced folder'} so far — open it to add it to this browser`}>In folder</span>
+                      <span className="pd-badge is-folder" title={`Only in ${sync?.folderName || 'the synced folder'} so far — open it to add it to this browser`}>In folder</span>
                     )}
                     {p.fileMissing && (
-                      <span className="pd-badge is-missing" title={`Its .draftline file isn’t in ${storage?.sync.folderName ? `“${storage.sync.folderName}”` : 'the synced folder'} any more (deleted or moved outside DraftLine). This browser’s copy is safe: the file is written again the next time this script is saved.`}>File missing on disk</span>
+                      <span className="pd-badge is-missing" title={`Its .draftline file isn’t in ${sync?.folderName ? `“${sync.folderName}”` : 'the synced folder'} any more (deleted or moved outside DraftLine). This browser’s copy is safe: the file is written again the next time this script is saved.`}>File missing on disk</span>
                     )}
                     {p.source === 'folder-newer' && !isActive && (
                       <span className="pd-badge is-folder" title="The copy in the synced folder is newer (edited on another computer?) — opening the script loads it">Newer in folder</span>
@@ -324,11 +300,11 @@ export default function ProjectsDrawer({
           })}
         </ul>
         <footer className="pd-foot">
-          {storage?.sync.destination === 'folder'
+          {sync?.destination === 'folder'
             ? 'Scripts are saved directly to your chosen folder and mirrored locally for instant offline editing.'
-            : storage?.sync.supported === false
+            : sync?.supported === false
               ? 'Scripts are saved privately in this browser on this device. Use Backup to keep a copy as a file.'
-              : 'Scripts are saved privately in this browser on this device. Link a folder anytime to keep physical files on your drive.'}
+              : 'Scripts are saved privately in this browser on this device. Link a folder in ⋮ → Settings to keep physical files on your drive.'}
         </footer>
       </aside>
     </>

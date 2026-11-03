@@ -15,7 +15,7 @@
 
 .vsm-head { position: relative; padding: 18px 52px 10px 22px; }
 .vsm-head h2 { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 17px; font-weight: 650; }
-.vsm-head h2 svg { color: #f59e0b; }
+.vsm-head h2 svg { color: var(--accent-amber); }
 .vsm-head p { margin: 6px 0 0; font-size: 12.5px; line-height: 1.5; color: var(--muted); }
 .vsm-close {
   position: absolute;
@@ -64,7 +64,7 @@
   white-space: nowrap;
   cursor: help;
 }
-.vsm-chip.is-static { border-color: rgba(245, 158, 11, 0.55); color: #fbbf24; }
+.vsm-chip.is-static { border-color: rgba(245, 158, 11, 0.55); color: var(--amber-ink); }
 .vsm-chip.is-weak { border-style: dashed; }
 .vsm-chip.is-current { cursor: default; background: transparent; }
 .vsm-weak { margin-left: 6px; color: var(--muted); font-size: 10.5px; letter-spacing: 0.04em; text-transform: uppercase; }
@@ -82,8 +82,8 @@
   color: var(--muted);
   cursor: pointer;
 }
-.vsm-accept:hover:not(:disabled) { border-color: rgba(245, 158, 11, 0.6); color: #fbbf24; }
-.vsm-accept.is-done { border-color: transparent; color: #6fae7d; cursor: default; }
+.vsm-accept:hover:not(:disabled) { border-color: rgba(245, 158, 11, 0.6); color: var(--amber-ink); }
+.vsm-accept.is-done { border-color: transparent; color: var(--ok); cursor: default; }
 .vsm-accept:focus-visible,
 .vsm-close:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 

@@ -41,12 +41,12 @@
   margin: 12px 22px 0;
   padding: 8px 12px;
   border-radius: 7px;
-  background: color-mix(in srgb, #e0a458 14%, transparent);
-  color: #e8c08a;
+  background: color-mix(in srgb, var(--warn) 14%, transparent);
+  color: var(--warn-ink);
   font-size: 12.5px;
   line-height: 1.5;
 }
-.sr-check.is-ok { background: color-mix(in srgb, #6fae7d 14%, transparent); color: #9fd3aa; }
+.sr-check.is-ok { background: color-mix(in srgb, var(--ok) 14%, transparent); color: var(--ok-ink); }
 
 .sr-foot { display: flex; align-items: center; gap: 8px; padding: 16px 22px 18px; }
 .sr-spacer { flex: 1; }

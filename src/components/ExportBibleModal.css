@@ -28,7 +28,7 @@
 .eb-label { font-size: 13.5px; font-weight: 600; }
 .eb-hint { font-weight: 400; color: var(--muted); }
 .eb-summary { font-size: 12px; color: var(--muted); }
-.eb-warn { margin: 10px 0 0; font-size: 12px; color: #e0a458; }
+.eb-warn { margin: 10px 0 0; font-size: 12px; color: var(--warn); }
 .eb-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px; }
 .eb-actions .eb-export { background: var(--accent); color: var(--on-accent); padding: 6px 16px; font-weight: 600; }
 .eb-actions .eb-export:hover:not(:disabled) { background: var(--accent); filter: brightness(1.08); }

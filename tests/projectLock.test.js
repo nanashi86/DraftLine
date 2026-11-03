@@ -81,8 +81,8 @@ describe('Project Lock: the padlock in Projects', () => {
     assert.match(drawer, /title=\{p\.isLocked \? 'Project locked \(Deletions and overwrites disabled\)' : 'Lock project'\}/);
     assert.match(drawer, /\? <Lock size=\{14\} strokeWidth=\{2\} aria-hidden \/>\s*: <LockOpen size=\{14\}/);
     assert.match(css, /\.pd-lock\.is-locked \{ color: var\(--accent-amber\); \}/);
-    assert.match(css, /\.pd-lock \{[^}]*color: #52525b;/, 'zinc-600');
-    assert.match(css, /\.pd-lock:hover \{ color: #a1a1aa;/, 'zinc-400 on hover');
+    assert.match(css, /\.pd-lock \{[^}]*color: var\(--ink-faint\);/, 'zinc-600 on dark');
+    assert.match(css, /\.pd-lock:hover \{ color: var\(--ink-cool\);/, 'zinc-400 on hover, on dark');
     assert.match(drawer, /aria-pressed=\{p\.isLocked === true\}/);
   });
   it('⋮ → Delete… is disabled while locked, and says why', () => {

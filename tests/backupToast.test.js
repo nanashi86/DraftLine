@@ -90,7 +90,7 @@ describe('Backup tip: the card', () => {
   it('the wording: Chrome and Edge (Link Folder)', () => {
     assert.deepEqual(backupToastCopy({ supported: true, family: 'other' }), {
       heading: 'Keep your pages safe',
-      message: 'Tip: Your script is only saved locally in this browser. Clearing history will delete your files. Link a computer folder in Projects to keep an automatic physical file backup on a hard drive or cloud drive of your choice.',
+      message: 'Tip: Your script is only saved locally in this browser. Clearing history will delete your files. Link a computer folder in Settings to keep an automatic physical file backup on a hard drive or cloud drive of your choice.',
       action: 'Link Folder',
       extra: null,
       kind: 'link',
@@ -120,13 +120,13 @@ describe('Backup tip: the card', () => {
     assert.match(card, /onClick=\{onDismiss\}>Dismiss<\/button>/);
     assert.match(card, /onClick=\{onNever\}>Don’t show again<\/button>/);
   });
-  it('non-blocking: a status region that never takes focus, bottom-right above the status bar, zinc surface', () => {
+  it('non-blocking: a status region that never takes focus, bottom-right above the status bar, zinc surface (float tokens: zinc on the dark shell, linen on Editorial Light)', () => {
     assert.match(card, /<aside className="bk-toast" role="status"/);
     assert.doesNotMatch(card, /autoFocus|\.focus\(|<dialog/);
     assert.match(css, /\.bk-toast \{[^}]*position: fixed;[^}]*right: 18px;[^}]*bottom: calc\(var\(--status-h\) \+ 14px\);/);
-    assert.match(css, /\.bk-toast \{[^}]*border: 1px solid #3f3f46;[^}]*background: #18181b;/);
+    assert.match(css, /\.bk-toast \{[^}]*border: 1px solid var\(--float-line\);[^}]*background: var\(--float-bg\);/);
   });
-  it('the app: page count and words, the status state, and Link Folder → Projects on the Linked Folder card', () => {
+  it('the app: page count and words, the status state, and Link Folder → Settings on the Linked Folder card', () => {
     assert.match(app, /pages: layout\.pageCount,\s*words: analysis\.words,\s*state: saveStatus\.state,\s*supported: sync\.supported,/);
     assert.match(app, /onAction=\{\(\) => \{\s*closeBackupTip\(\);\s*if \(sync\.supported\) openStorage\('folder'\);\s*else backupProject\(\);\s*\}\}/);
     assert.match(app, /lastBackupAt: lastBackups\[projectId\] \?\? null,\s*savedAt: saved\.at \?\? null,/);

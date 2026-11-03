@@ -126,9 +126,9 @@ describe('Anonymous feedback: menu and modal', () => {
     assert.match(app, /onFailed=\{\(\) => notify\('Could not send feedback\. Check your internet connection\.', 4000\)\}/);
     assert.match(app, /const notify = useCallback\(\(msg, ms = 2400\) => \{/);
   });
-  it('zinc dark surfaces', () => {
+  it('zinc surfaces on dark, linen on Editorial Light (float tokens)', () => {
     const css = read('src/components/FeedbackModal.css');
-    assert.match(css, /\.afb-modal \{[^}]*background: #18181b;/);
-    assert.match(css, /\.afb-input \{[^}]*background: #27272a;/);
+    assert.match(css, /\.afb-modal \{[^}]*background: var\(--float-bg\);/);
+    assert.match(css, /\.afb-input \{[^}]*background: var\(--float-field\);/);
   });
 });

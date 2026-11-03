@@ -35,11 +35,11 @@ describe('Colour tokens: one source for every interactive state', () => {
 
   it('selected and open cards share one accent edge and one tint (Projects, storage, About, bios, glossary, export options)', () => {
     for (const [f, sel] of [
-      ['components/ProjectsDrawer.css', '.pd-card.is-active'], ['components/ProjectsDrawer.css', '.sd-card.is-on'], ['components/HelpModal.css', '.hm-pill:hover'],
+      ['components/ProjectsDrawer.css', '.pd-card.is-active'], ['components/StorageDestination.css', '.sd-card.is-on'], ['components/HelpModal.css', '.hm-pill:hover'],
       ['components/ProjectBibleDrawer.css', '.pb-char.is-open'], ['components/ProjectBibleDrawer.css', '.dict-entry.is-open'], ['components/ExportBibleModal.css', '.eb-option.is-on'],
     ]) assert.match(rule(f, sel), /border-color: var\(--accent-border\);/, sel);
     assert.match(rule('components/ProjectsDrawer.css', '.pd-card.is-active'), /background: var\(--accent-tint-card\);/);
-    assert.match(rule('components/ProjectsDrawer.css', '.sd-card.is-on'), /background: var\(--accent-tint\);/);
+    assert.match(rule('components/StorageDestination.css', '.sd-card.is-on'), /background: var\(--accent-tint\);/);
     assert.match(rule('components/HelpModal.css', '.hm-pill:hover'), /background: var\(--accent-tint-field\);/);
   });
 

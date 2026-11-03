@@ -343,6 +343,10 @@
 .btn-bible { border-color: var(--line-soft); }
 .btn-accent.is-on,
 .btn-bible.is-on { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+/* …and keep it under the pointer: .btn:hover:not(:disabled) is more specific and would swap the fill for
+   the neutral overlay, leaving on-accent text on the bar (unreadable on the Editorial Light shell). */
+.btn-accent.is-on:hover:not(:disabled),
+.btn-bible.is-on:hover:not(:disabled) { background: color-mix(in srgb, var(--accent) 88%, var(--text)); }
 
 .type-select {
   box-sizing: border-box;
@@ -411,7 +415,7 @@
 .menu-item:hover:not(:disabled),
 .menu-item:focus-visible:not(:disabled) { background: var(--accent); color: var(--on-accent); outline: none; }
 .menu-item:disabled { opacity: 0.45; cursor: default; }
-.menu-item.is-danger:not(:disabled) { color: #f0a090; }
+.menu-item.is-danger:not(:disabled) { color: var(--danger-ink); }
 .menu-item.is-danger:hover:not(:disabled) { background: var(--danger); color: var(--on-accent); }
 .menu-hint { opacity: 0.6; font-size: 12px; white-space: nowrap; }
 /* A file type on the right (.fountain, .fdx, .pdf, .csv, .md, .draftline): the hint column, in monospace. */
@@ -554,24 +558,24 @@
   cursor: pointer;
 }
 .status-save:hover { color: var(--text); background: var(--hover-bg); }
-.status-save.is-synced { color: #9fd3aa; }
+.status-save.is-synced { color: var(--ok-ink); }
 /* App Storage Only: a muted hollow circle (nothing wrong, just no folder). Click to resume folder sync:
    an amber hollow circle. Linked Folder Synced: the soft green dot. While saving, the dot pulses. */
 .status-save.is-local .save-dot { background: transparent; box-shadow: inset 0 0 0 1.5px var(--muted); }
 .status-save.is-busy .save-dot { animation: save-pulse 900ms ease-in-out infinite alternate; }
 @keyframes save-pulse { to { opacity: 0.35; } }
 @media (prefers-reduced-motion: reduce) { .status-save.is-busy .save-dot { animation: none; } }
-.status-save.is-warn { color: #f2c27e; }
-.status-save.is-warn .save-dot { background: transparent; box-shadow: inset 0 0 0 1.5px #e0a458; }
+.status-save.is-warn { color: var(--warn-ink-strong); }
+.status-save.is-warn .save-dot { background: transparent; box-shadow: inset 0 0 0 1.5px var(--warn); }
 .save-dot {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: #6fae7d;
+  background: var(--ok);
   transition: background 200ms ease;
 }
-.status-save.is-error { color: #e28b78; }
-.status-save.is-error .save-dot { background: #e28b78; }
+.status-save.is-error { color: var(--error-ink); }
+.status-save.is-error .save-dot { background: var(--error-ink); }
 /* Editing ⇄ Viewing lock: a quiet outline while editable, warm amber when locked. */
 .status-lock {
   display: inline-flex;
@@ -588,8 +592,8 @@
   opacity: 0.75;
 }
 .status-lock:hover { opacity: 1; color: var(--text); }
-.status-lock.is-locked { opacity: 1; background: rgba(224, 164, 88, 0.16); border-color: rgba(224, 164, 88, 0.6); color: #f2c27e; font-weight: 600; }
-.status-lock.is-locked:hover { background: rgba(224, 164, 88, 0.24); color: #f2c27e; }
+.status-lock.is-locked { opacity: 1; background: rgba(224, 164, 88, 0.16); border-color: rgba(224, 164, 88, 0.6); color: var(--warn-ink-strong); font-weight: 600; }
+.status-lock.is-locked:hover { background: rgba(224, 164, 88, 0.24); color: var(--warn-ink-strong); }
 .status-history,
 .status-zoom { display: flex; align-items: center; gap: 2px; }
 .mini {
@@ -614,9 +618,9 @@
 /* ---- Tool steppers (Dialogue, Density): one capsule — components/StatusStepper.jsx ----
    [ icon  Label · 3 of 12   ‹  › ] (✕)   24px tall, full pill, 11px / 500 / 0.02em. */
 .stepper { --stepper-ink: var(--muted); --stepper-strong: var(--text); --stepper-line: var(--line-soft);
-  --stepper-fill: rgba(255, 255, 255, 0.05); --stepper-hover: rgba(255, 255, 255, 0.1);
+  --stepper-fill: rgb(var(--veil) / 0.05); --stepper-hover: rgb(var(--veil) / 0.1);
   display: inline-flex; align-items: center; flex: none; }
-.stepper.is-amber { --stepper-ink: var(--accent-amber); --stepper-strong: #fbbf24; --stepper-line: rgba(245, 158, 11, 0.45);
+.stepper.is-amber { --stepper-ink: var(--accent-amber); --stepper-strong: var(--amber-ink); --stepper-line: rgba(245, 158, 11, 0.45);
   --stepper-fill: rgba(245, 158, 11, 0.1); --stepper-hover: rgba(245, 158, 11, 0.2); }
 .stepper-capsule {
   display: inline-flex;
@@ -695,7 +699,7 @@
 }
 .stepper-list-items { max-height: min(50vh, 360px); overflow-y: auto; }
 .stepper-list .menu-item { justify-content: flex-start; gap: 8px; }
-.stepper-list .menu-item.is-current { background: rgba(255, 255, 255, 0.08); }
+.stepper-list .menu-item.is-current { background: rgb(var(--veil) / 0.08); }
 .stepper-list.is-amber .menu-item.is-current { background: rgba(245, 158, 11, 0.12); }
 .stepper-list-n { flex: none; min-width: 16px; color: var(--muted); font-weight: 650; font-variant-numeric: tabular-nums; }
 .stepper-list.is-amber .stepper-list-n { color: var(--accent-amber); }
@@ -921,7 +925,7 @@
   animation: milestone-in 220ms ease-out;
 }
 .et-line { display: flex; align-items: center; gap: 8px; }
-.et-ok { flex: none; color: #8fcb9c; }
+.et-ok { flex: none; color: var(--ok-mark); }
 .et-msg { flex: 1; min-width: 0; overflow-wrap: break-word; }
 .et-file { color: var(--muted); }
 .et-close {
@@ -1032,21 +1036,21 @@
   align-items: center;
   gap: 5px;
   padding: 1px 8px;
-  border: 1px solid rgba(255, 255, 255, 0.25);
+  border: 1px solid rgb(var(--veil) / 0.25);
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.06);
+  background: rgb(var(--veil) / 0.06);
   color: var(--text);
   font: 11.5px var(--ui-font);
   cursor: pointer;
 }
-.status-noir:hover { background: linear-gradient(var(--hover-bg), var(--hover-bg)), rgba(255, 255, 255, 0.06); }
+.status-noir:hover { background: linear-gradient(var(--hover-bg), var(--hover-bg)), rgb(var(--veil) / 0.06); }
 @media print { .film-noir-mode .workspace::after, .film-noir-mode .workspace::before { display: none; } .milestone-toast { display: none; } }
 @media (prefers-reduced-motion: reduce) { .milestone-toast, .film-noir-mode .workspace::after, .film-noir-mode .workspace::before { animation: none; } }
 
 /* Stepper list rows with their own buttons (Format Doctor: Fix / Ignore). */
 .stepper-list-row { display: flex; align-items: center; gap: 4px; padding-right: 6px; border-radius: 6px; }
 .stepper-list-row .menu-item { flex: 1; min-width: 0; }
-.stepper-list-row.is-current { background: rgba(255, 255, 255, 0.08); }
+.stepper-list-row.is-current { background: rgb(var(--veil) / 0.08); }
 .stepper-list-actions { display: inline-flex; flex: none; align-items: center; gap: 4px; white-space: nowrap; }
 .stepper-list-act {
   height: 22px;

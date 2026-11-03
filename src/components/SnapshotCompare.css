@@ -37,10 +37,10 @@
 .df-modes button:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
 .df-stats { display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--muted); flex-wrap: wrap; }
 .df-chip { padding: 1px 8px; border-radius: 999px; font-weight: 600; font-size: 11.5px; line-height: 18px; }
-.df-chip.is-add { background: color-mix(in srgb, #6fae7d 22%, transparent); color: #9fd3aa; }
-.df-chip.is-del { background: color-mix(in srgb, #e8836b 20%, transparent); color: #f0a492; }
-.df-chip.is-change { background: color-mix(in srgb, #d8b45a 20%, transparent); color: #e3c77d; }
-.df-error { color: #f0a492; }
+.df-chip.is-add { background: color-mix(in srgb, var(--ok) 22%, transparent); color: var(--ok-ink); }
+.df-chip.is-del { background: color-mix(in srgb, #e8836b 20%, transparent); color: var(--danger-ink); }
+.df-chip.is-change { background: color-mix(in srgb, #d8b45a 20%, transparent); color: var(--warn-ink); }
+.df-error { color: var(--danger-ink); }
 
 /* The comparison, on paper. */
 .df-scroll { flex: 1; min-height: 0; overflow: auto; background: var(--paper); color: var(--ink); }

@@ -5,6 +5,8 @@
   --t-dialogue: #6b9fd8;
   --t-parenthetical: #a98ad9;
   --t-transition: #d9786b;
+  --t-format: #6fb7c0;
+  --t-centered: #b9a4d8;
 
   width: min(1120px, calc(100vw - 32px));
   height: min(760px, calc(100vh - 48px));
@@ -79,7 +81,7 @@
   overflow: auto;
 }
 .im-text::placeholder { color: var(--muted); opacity: 0.7; }
-.im-error { margin: -4px 0 0; color: #e28b78; font-size: 12.5px; }
+.im-error { margin: -4px 0 0; color: var(--error-ink); font-size: 12.5px; }
 
 .im-options { display: flex; flex-direction: column; gap: 10px; }
 .im-toggle { display: flex; align-items: flex-start; gap: 10px; cursor: pointer; font-size: 13px; }
@@ -134,8 +136,8 @@
 .im-t-dialogue { --chip-c: var(--t-dialogue); }
 .im-t-parenthetical { --chip-c: var(--t-parenthetical); }
 .im-t-transition { --chip-c: var(--t-transition); }
-.im-t-format_cue { --chip-c: #6fb7c0; }
-.im-t-centered { --chip-c: #b9a4d8; }
+.im-t-format_cue { --chip-c: var(--t-format); }
+.im-t-centered { --chip-c: var(--t-centered); }
 
 .im-list {
   flex: 1;
@@ -196,3 +198,15 @@
 
 /* Project Lock on the open script: the footer says the import becomes a new script. */
 .im-hint.is-locked { display: inline-flex; align-items: center; gap: 6px; color: var(--accent-amber); }
+
+/* Editorial Light: the same element colours, deep enough to read as text on linen. */
+:root[data-theme='light'] .im-modal {
+  --t-scene: #9a5b00;
+  --t-action: #6e6a64;
+  --t-character: #2f7a45;
+  --t-dialogue: #2f5f9e;
+  --t-parenthetical: #6b4fa3;
+  --t-transition: #a3301f;
+  --t-format: #1d6570;
+  --t-centered: #6b4fa3;
+}

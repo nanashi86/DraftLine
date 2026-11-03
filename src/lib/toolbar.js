@@ -14,12 +14,12 @@ export function isOnBar(el, bar) {
 
 /**
  * The ⋮ menu, top to bottom: View Snapshots · Margin Notes · Format Doctor — Keyboard Shortcuts —
- * User Guide · About DraftLine (Sample… is in File ▾), plus Scenes, Focus, Story Bible and/or Characters first (toolbar order), but only while
+ * Settings… · User Guide · Send Feedback… · About DraftLine (Sample… is in File ▾), plus Scenes, Focus, Story Bible and/or Characters first (toolbar order), but only while
  * the toolbar can't show them itself (narrow windows). Snapshots and Notes show their counts.
  */
 export function moreMenuItems({
   bibleOnBar, charactersOnBar, onBible, onCharacters, onSnapshots, snapshotCount = 0, onNotes, noteCount = 0,
-  onShortcuts, onAbout, focusOnBar = true, onFocus, onGuide, onFormatDoctor, issueCount = 0, planTools = null, onReports = null,
+  onShortcuts, onAbout, onSettings, focusOnBar = true, onFocus, onGuide, onFormatDoctor, issueCount = 0, planTools = null, onReports = null,
   onFeedback = null, writeViews = null, scenesOnBar = true, onScenes = null,
 }) {
   const panels = [
@@ -45,6 +45,8 @@ export function moreMenuItems({
     { divider: true },
     { label: 'Keyboard Shortcuts', hint: 'Ctrl+/', onSelect: onShortcuts },
     { divider: true },
+    // Settings: global configuration, just above Help and About (Appearance, Storage & Backup, Drafting).
+    ...(onSettings ? [{ label: 'Settings…', onSelect: onSettings }] : []),
     ...(onGuide ? [{ label: 'User Guide', hint: 'F1', onSelect: onGuide }] : []),
     // Directly above About: three questions, sent anonymously (components/FeedbackModal.jsx).
     ...(onFeedback ? [{ label: 'Send Feedback…', onSelect: onFeedback }] : []),

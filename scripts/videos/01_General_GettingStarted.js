@@ -2,7 +2,7 @@
 //
 // A first visit, start to finish: DraftLine opens on a blank, untitled page with nothing in the way.
 // Name the script, write its first lines, see Write | Plan, open Projects (where everything is kept in
-// this browser), link a folder for files on disk, then go offline and keep writing: About shows the
+// this browser), link a folder for files on disk (the save status opens Settings → Storage & Backup), then go offline and keep writing: About shows the
 // network is gone, and the script still saves.
 //
 //   npm run dev          (DraftLine at http://localhost:5173/DraftLine/, or set DEMO_URL)
@@ -47,8 +47,10 @@ main(() => record({
     await hold(1400);
 
     say('Link a folder: real .draftline files on your drive, too');
+    await click(page.getByRole('button', { name: 'Close projects' }), 600);
+    await click(page.locator('.status-save'), 1000); // Settings opens on Storage & Backup
     await click(page.getByRole('button', { name: 'Link Folder…' }), 1300);
-    await click(page.getByRole('button', { name: 'Close projects' }), 800);
+    await click(page.getByRole('button', { name: 'Done' }), 800);
     await glide(page.locator('.status-save'));
     await hold(1500);
 

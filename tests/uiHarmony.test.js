@@ -167,7 +167,7 @@ describe('Pills: one neutral palette — genre, MISSING BIOS and Dialogue charac
   it('neutral muted text and border on a faint white fill; interface font, 11.5px, 500 — no slate blues left', () => {
     const r = rule('.pill');
     for (const d of ['color: var(--text-muted, #9a9890)', 'border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.1))',
-      'background: rgba(255, 255, 255, 0.05)', 'font-family: var(--ui-font)', 'font-size: 11.5px', 'font-weight: 500']) assert.ok(r.includes(d), d);
+      'background: rgb(var(--veil) / 0.05)', 'font-family: var(--ui-font)', 'font-size: 11.5px', 'font-weight: 500']) assert.ok(r.includes(d), d);
     for (const f of ['index.css', 'components/DialogueTuner.css', 'components/ProjectBibleDrawer.css', 'components/CharactersDrawer.jsx']) {
       assert.ok(!/#94a3b8|#64748b|#e2e8f0|148, 163, 184/i.test(read(f)), `${f} has no slate`);
     }
@@ -177,7 +177,7 @@ describe('Pills: one neutral palette — genre, MISSING BIOS and Dialogue charac
     assert.match(read('components/DialogueTuner.jsx'), /<span className="pill-count cast-count">\{c\.lines\}<\/span>/);
   });
   it('hover: normal text, 22 % white border, a touch more fill', () => {
-    assert.match(rule('.pill:hover:not(.is-on, .is-selected)'), /color: var\(--text-normal, #e9e7e2\); border: 1px solid rgba\(255, 255, 255, 0\.22\); background: linear-gradient\(var\(--hover-bg\), var\(--hover-bg\)\), rgba\(255, 255, 255, 0\.05\);/);
+    assert.match(rule('.pill:hover:not(.is-on, .is-selected)'), /color: var\(--text-normal, #e9e7e2\); border: 1px solid rgb\(var\(--veil\) \/ 0\.22\); background: linear-gradient\(var\(--hover-bg\), var\(--hover-bg\)\), rgb\(var\(--veil\) \/ 0\.05\);/);
   });
   it('selected: accent fill, white text, transparent border', () => {
     assert.match(css, /\.pill\.is-on,\s*\.pill\.is-selected \{ background: var\(--accent\); color: var\(--on-accent\);[^}]*border-color: transparent;/);

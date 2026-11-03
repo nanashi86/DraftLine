@@ -80,12 +80,12 @@ describe('Folder sync: browsers without showDirectoryPicker (Safari, Firefox, ph
     assert.match(card, /'The browser needs your OK to write to this folder again\.'/);
     assert.ok(card.indexOf('sd-folder') < card.lastIndexOf('</div>'), 'no detached folder card after the options');
     assert.equal((ui.match(/className=\{`sd-folder/g) || []).length, 1);
-    const css = readFileSync(new URL('../src/components/ProjectsDrawer.css', import.meta.url), 'utf8');
+    const css = readFileSync(new URL('../src/components/StorageDestination.css', import.meta.url), 'utf8');
     assert.match(css, /\.sd-card > \.sd-folder, \.sd-card > \.sd-link \{/);
   });
   it('the folder actions share one row as outlined buttons; "Change Folder…" shortens on a narrow card', async () => {
     const { readFileSync } = await import('node:fs');
-    const css = readFileSync(new URL('../src/components/ProjectsDrawer.css', import.meta.url), 'utf8');
+    const css = readFileSync(new URL('../src/components/StorageDestination.css', import.meta.url), 'utf8');
     assert.match(css, /\.sd-actions \{ display: flex; flex-wrap: nowrap; gap: 6px; \}/);
     assert.match(css, /\.sd-actions \.btn \{ flex: 1 1 auto; min-width: 0;/);
     assert.match(css, /\.sd-actions \.btn \{[^}]*border-color: var\(--line-soft\)/);
@@ -96,9 +96,9 @@ describe('Folder sync: browsers without showDirectoryPicker (Safari, Firefox, ph
     const { readFileSync } = await import('node:fs');
     const drawer = readFileSync(new URL('../src/components/ProjectsDrawer.jsx', import.meta.url), 'utf8');
     const foot = drawer.slice(drawer.indexOf('<footer className="pd-foot">'), drawer.indexOf('</footer>'));
-    assert.match(foot, /storage\?\.sync\.destination === 'folder'\s*\? 'Scripts are saved directly to your chosen folder and mirrored locally for instant offline editing\.'/);
-    assert.match(foot, /'Scripts are saved privately in this browser on this device\. Link a folder anytime to keep physical files on your drive\.'/);
-    assert.match(foot, /sync\.supported === false\s*\? 'Scripts are saved privately in this browser on this device\. Use Backup/, 'no "link a folder" where folders can\'t be linked');
+    assert.match(foot, /sync\?\.destination === 'folder'\s*\? 'Scripts are saved directly to your chosen folder and mirrored locally for instant offline editing\.'/);
+    assert.match(foot, /'Scripts are saved privately in this browser on this device\. Link a folder in ⋮ → Settings to keep physical files on your drive\.'/);
+    assert.match(foot, /sync\?\.supported === false\s*\? 'Scripts are saved privately in this browser on this device\. Use Backup/, 'no "link a folder" where folders can\'t be linked');
   });
 });
 
@@ -318,18 +318,18 @@ describe('Folder sync: the status bar indicator', () => {
     assert.equal(storageStatus({ saveOk: false, sync: on }).tone, 'error');
     assert.deepEqual([storageStatus({ sync: { ...on, error: 'Disk full' } }).label, storageStatus({ sync: { ...on, error: 'Disk full' } }).tone], ['Folder sync paused', 'warn']);
   });
-  it('the app: permission → the browser prompt; link → Projects on the Linked Folder card; dots per state', async () => {
+  it('the app: permission → the browser prompt; link → Settings on the Linked Folder card; dots per state', async () => {
     const { readFileSync } = await import('node:fs');
     const app = readFileSync(new URL('../src/App.jsx', import.meta.url), 'utf8');
     const css = readFileSync(new URL('../src/App.css', import.meta.url), 'utf8');
-    const drawer = readFileSync(new URL('../src/components/ProjectsDrawer.jsx', import.meta.url), 'utf8');
+    const settings = readFileSync(new URL('../src/components/SettingsModal.jsx', import.meta.url), 'utf8');
     assert.match(app, /if \(saveStatus\.action === 'permission'\) \{\s*folderSync\.requestPermission\(\)/);
     assert.match(app, /openStorage\(saveStatus\.action === 'link' \? 'folder' : 'storage'\);/);
     assert.match(app, /className=\{`status-save is-\$\{saveStatus\.tone\}\$\{saveStatus\.busy \? ' is-busy' : ''\}`\}/);
-    assert.match(drawer, /focusTarget === 'folder' \? sd\?\.querySelector\('\.sd-card-folder'\)/);
+    assert.match(settings, /focus === 'folder' \? sd\?\.querySelector\('\.sd-card-folder'\)/);
     assert.match(css, /\.status-save\.is-local \.save-dot \{ background: transparent; box-shadow: inset 0 0 0 1\.5px var\(--muted\); \}/);
-    assert.match(css, /\.status-save\.is-warn \.save-dot \{ background: transparent; box-shadow: inset 0 0 0 1\.5px #e0a458; \}/);
-    assert.match(css, /\.save-dot \{[^}]*background: #6fae7d;/);
+    assert.match(css, /\.status-save\.is-warn \.save-dot \{ background: transparent; box-shadow: inset 0 0 0 1\.5px var\(--warn\); \}/);
+    assert.match(css, /\.save-dot \{[^}]*background: var\(--ok\);/);
   });
 });
 
@@ -382,13 +382,14 @@ describe('Folder sync: wired into the app', async () => {
   it('Projects lists folder scripts too and opens the newest copy', () => {
     assert.match(app, /const folder = await folderSync\.listProjects\(\);\s*const list = mergeProjectLists\(await projects\.getAllProjects\(\), folder, \{ owned: folderSync\.ownedFiles\(\) \}\);/);
     assert.match(app, /if \(fromFolder\) rec = await projects\.importRecord\(there\);/);
-    assert.match(drawer, /<StorageDestination/);
+    assert.doesNotMatch(drawer, /<StorageDestination/, 'storage lives in Settings now, not Projects');
     assert.match(drawer, /Newer in folder/);
   });
-  it('the status bar indicator: click allows folder sync, or opens the storage settings', () => {
+  it('the status bar indicator: click allows folder sync, or opens Settings on the storage block', () => {
     assert.match(app, /const saveStatus = storageStatus\(\{ saveOk: saved\.ok, dirty, sync \}\);/);
     assert.match(app, /if \(saveStatus\.action === 'permission'\) \{\s*folderSync\.requestPermission\(\)/);
-    assert.match(app, /setDrawerOpen\(true\);\s*setStorageTarget\(target\);\s*setFocusStorage\(\(n\) => n \+ 1\);/);
+    assert.match(app, /const openStorage = \(target = 'storage'\) => setSettingsAt\(target\);/);
+    assert.match(app, /openStorage\(saveStatus\.action === 'link' \? 'folder' : 'storage'\);/);
   });
   it('deleting a script takes its folder file out too (or the folder would bring it back) — after the dialog is confirmed', () => {
     assert.match(app, /await projects\.deleteProject\(d\.id\);\s*setLibraryRev\(\(n\) => n \+ 1\);\s*const folder = await folderSync\.removeProject\(d\.id\);/);

@@ -47,7 +47,7 @@ describe('Blueprint layout', () => {
   it('genre pills wrap with 6px gaps; refined pill; accent fill with white text when picked', () => {
     assert.match(pbCss, /\.dna-pills \{ display: flex; flex-wrap: wrap; gap: 6px; \}/);
     const pill = read('index.css').match(/\.pill \{[^}]*\}/)[0];
-    for (const d of ['padding: 4px 10px', 'font-size: 11.5px', 'border-radius: 12px', 'border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.1))', 'background: rgba(255, 255, 255, 0.05)']) {
+    for (const d of ['padding: 4px 10px', 'font-size: 11.5px', 'border-radius: 12px', 'border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.1))', 'background: rgb(var(--veil) / 0.05)']) {
       assert.ok(pill.includes(d), d);
     }
     assert.match(read('index.css'), /\.pill\.is-on,\s*\.pill\.is-selected \{ background: var\(--accent\); color: var\(--on-accent\);/);
@@ -65,10 +65,10 @@ describe('Blueprint layout', () => {
     assert.ok(!/<em>—/.test(dna), 'no em-dash notes left in the headers');
   });
   it('Plot Devices: divider above, rows spread name ↔ Yes|No, a tight segmented Yes / No', () => {
-    assert.match(pbCss, /\.dna-devices \{[^}]*border-top: 1px solid rgba\(255, 255, 255, 0\.08\); margin-top: 14px; padding-top: 12px;/);
+    assert.match(pbCss, /\.dna-devices \{[^}]*border-top: 1px solid rgb\(var\(--veil\) \/ 0\.08\); margin-top: 14px; padding-top: 12px;/);
     assert.match(pbCss, /\.dna-toggle-row \{ display: flex; justify-content: space-between; align-items: center;[^}]*padding: 6px 0;/);
     assert.match(pbCss, /\.dna-toggle-label \{ gap: 6px; display: inline-flex; align-items: center; \}/);
-    assert.match(pbCss, /\.dna-yn \{ display: inline-flex; border-radius: 4px; overflow: hidden; border: 1px solid rgba\(255, 255, 255, 0\.12\);/);
+    assert.match(pbCss, /\.dna-yn \{ display: inline-flex; border-radius: 4px; overflow: hidden; border: 1px solid rgb\(var\(--veil\) \/ 0\.12\);/);
     assert.match(dna, /<span className="dna-yn" role="radiogroup"/);
   });
 });

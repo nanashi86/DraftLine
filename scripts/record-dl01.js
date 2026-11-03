@@ -16,10 +16,12 @@ main(() => record({
     await hold(1200);
 
     say('Link a folder: scripts are saved as .draftline files there too');
+    await click(page.getByRole('button', { name: 'Close projects' }), 600);
+    await click(page.locator('.status-save'), 900); // Settings opens on Storage & Backup
     await glide(page.locator('.sd'));
     await hold(900);
     await click(page.getByRole('button', { name: 'Link Folder…' }), 1600);
-    await click(page.getByRole('button', { name: 'Close projects' }), 600);
+    await click(page.getByRole('button', { name: 'Done' }), 600);
 
     say('The status bar: Linked Folder Synced');
     await glide(page.locator('.status-save'));

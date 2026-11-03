@@ -1,0 +1,57 @@
+/* Settings (⋮ → Settings…): the HelpModal dialog look, with its own header so it never depends on
+   HelpModal.css (lazy-loaded with that dialog). */
+.st-modal {
+  width: min(560px, calc(100vw - 32px));
+  max-height: min(780px, calc(100dvh - 32px));
+  padding: 0;
+  border: 1px solid var(--line-soft);
+  border-radius: 12px;
+  background: var(--panel);
+  color: var(--text);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.5);
+}
+.st-modal[open] { display: flex; flex-direction: column; }
+.st-modal::backdrop { background: rgba(10, 10, 12, 0.6); backdrop-filter: blur(2px); }
+:root[data-theme='light'] .st-modal { box-shadow: 0 24px 70px rgba(60, 50, 30, 0.25); }
+:root[data-theme='light'] .st-modal::backdrop { background: rgba(60, 52, 40, 0.28); }
+
+.st-head { display: flex; align-items: center; justify-content: space-between; padding: 18px 22px 14px; border-bottom: 1px solid var(--line-soft); }
+.st-head h2 { margin: 0; font-size: 17px; font-weight: 650; }
+.st-body { overflow: auto; padding-bottom: 6px; }
+.st-section { display: grid; gap: 10px; padding: 14px 22px; border-bottom: 1px solid var(--line-soft); }
+.st-section:last-child { border-bottom: 0; }
+.st-section h3 { margin: 0; }
+
+/* Appearance: two-up choices with a swatch. */
+.st-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.st-choice { position: relative; display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid var(--line-soft); border-radius: 8px; background: var(--card); cursor: pointer; }
+.st-choice:hover { border-color: var(--border-hover); }
+.st-choice.is-on { border-color: var(--accent-border); background: var(--accent-tint-card); }
+.st-choice input { position: absolute; opacity: 0; pointer-events: none; }
+.st-choice:has(input:focus-visible) { outline: 2px solid var(--accent); outline-offset: 2px; }
+.st-choice-text { min-width: 0; }
+.st-choice b { display: block; font-size: 13px; font-weight: 600; }
+.st-choice small { display: block; margin-top: 1px; color: var(--muted); font-size: 11.5px; }
+/* The swatches show the real colours of each look, so they're the one place hex belongs here. */
+.st-swatch { flex: none; width: 30px; height: 22px; border-radius: 5px; border: 1px solid var(--line-soft); }
+.st-swatch.is-dark { background: linear-gradient(90deg, #1b1c1f 50%, #2a2b30 50%); }
+.st-swatch.is-light { background: linear-gradient(90deg, #ebe6dc 50%, #fbf9f5 50%); }
+.st-swatch.is-paper { background: #fdfcf8; box-shadow: inset 0 -6px 0 -4px #141414; }
+.st-swatch.is-midnight { background: #1f1f22; box-shadow: inset 0 -6px 0 -4px #e4e4e7; }
+.st-note { margin: 0; color: var(--muted); font-size: 11.5px; }
+
+/* Storage & Backup: Storage Destination brings its own card styles; here it sits flush in the section. */
+.st-storage .sd { padding: 0; margin: 0; border-bottom: 0; }
+
+/* Drafting */
+.st-toggle { display: flex; align-items: flex-start; gap: 10px; cursor: pointer; }
+.st-toggle input { margin: 3px 0 0; accent-color: var(--accent); }
+.st-toggle b, .st-tips b { display: block; font-size: 13px; font-weight: 600; }
+.st-toggle small, .st-tips small { display: block; margin-top: 1px; color: var(--muted); font-size: 11.5px; }
+.st-tips { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.st-tips .btn { flex: none; padding: 4px 10px; font-size: 12px; }
+
+@media (max-width: 480px) {
+  .st-head, .st-section { padding-inline: 16px; }
+  .st-row { grid-template-columns: 1fr; }
+}

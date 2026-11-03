@@ -95,7 +95,7 @@
   white-space: nowrap;
 }
 .col-pace.is-none { opacity: 0.6; }
-.pace-dot { width: 7px; height: 7px; border-radius: 50%; background: #e0a458; }
+.pace-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--warn); }
 .col-pace.is-long,
 .col-pace.is-short { color: var(--text); }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import './StorageDestination.css';
 
 const ago = (ts) => {
   if (!ts) return '';
@@ -10,7 +11,7 @@ const ago = (ts) => {
 };
 
 /**
- * Storage Destination (top of the Projects drawer): where scripts are kept.
+ * Storage Destination (Settings → Storage & Backup): where scripts are kept.
  *   App Storage (Zero Setup) — always; the default.
  *   Linked Folder (File Backup) — only in browsers with the File System Access API. Its folder
  *   status and actions (Allow access · Change Folder… · Disconnect, or Link Folder…) sit inside its card.

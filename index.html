@@ -12,6 +12,9 @@
     <!-- Installable, offline-capable app (PWA): manifest + service worker (src/pwa/). -->
     <link rel="manifest" href="%BASE_URL%manifest.json" />
     <meta name="theme-color" content="#18181b" />
+    <!-- Settings → Appearance: the Editorial Light shell, set before the first paint so a light-theme writer
+         never sees a dark flash. Same key and colours as src/lib/userSettings.js; dark needs nothing. -->
+    <script>try{if(JSON.parse(localStorage.getItem('draftline_user_settings')||'null').theme==='light'){document.documentElement.setAttribute('data-theme','light');document.querySelector('meta[name="theme-color"]').setAttribute('content','#f4f0e8')}}catch(e){}</script>
     <!-- Search and sharing: one title and description everywhere (tab, search result, link previews).
          The title must match SEO_TITLE in src/lib/pageTitle.js. Link previews need absolute URLs. -->
     <link rel="canonical" href="https://nanashi86.github.io/DraftLine/" />

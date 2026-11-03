@@ -62,7 +62,7 @@
   text-align: center;
   white-space: nowrap;
 }
-.fb-count.is-none { color: #f0a492; }
+.fb-count.is-none { color: var(--danger-ink); }
 
 .fb-icon {
   display: grid;

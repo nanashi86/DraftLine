@@ -3,7 +3,7 @@
 // typing, and it stays away for the session once closed, or for good with "Don't show again".
 //
 // Two versions, by what the browser can do:
-//   'link'   — desktop Chrome and Edge can link a folder: Link Folder opens Projects on that card.
+//   'link'   — desktop Chrome and Edge can link a folder: Link Folder opens Settings on that card.
 //              Shown once the script is long enough; once closed it stays closed for the session.
 //   'backup' — Safari, Firefox, phones and tablets can't: Backup Project downloads a .draftline file.
 //              Shown once the script is long enough and never backed up, then again whenever the
@@ -27,7 +27,7 @@ const LOCAL_ONLY = 'Tip: Your script is only saved locally in this browser. Clea
 export const BACKUP_TOAST = {
   heading: 'Keep your pages safe',
   link: {
-    message: `${LOCAL_ONLY} Link a computer folder in Projects to keep an automatic physical file backup on a hard drive or cloud drive of your choice.`,
+    message: `${LOCAL_ONLY} Link a computer folder in Settings to keep an automatic physical file backup on a hard drive or cloud drive of your choice.`,
     action: 'Link Folder',
   },
   backup: {

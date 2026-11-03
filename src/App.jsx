@@ -40,6 +40,7 @@ const BeatBoard = lazy(() => import('./components/BeatBoard.jsx'));
 const PlanningWorkspace = lazy(() => import('./components/planning/PlanningWorkspace.jsx'));
 // So do the occasional dialogs — About / Shortcuts, Import, Format Doctor, Rename — keeping the app's first load small.
 const HelpModal = lazy(() => import('./components/HelpModal.jsx'));
+const SettingsModal = lazy(() => import('./components/SettingsModal.jsx'));
 const FeedbackModal = lazy(() => import('./components/FeedbackModal.jsx'));
 const ImportModal = lazy(() => import('./components/ImportModal.jsx'));
 const FormatDoctorModal = lazy(() => import('./components/FormatDoctorModal.jsx'));
@@ -57,6 +58,7 @@ import { renameCharacter, revertRename } from './lib/renameCharacter.js';
 import { moveCardStep, relinkSceneCards } from './lib/sceneSync.js';
 import { dialogueFilter, dialogueKeyAction, dialogueStops } from './lib/dialogueFilter.js';
 import { canvasThemeInfo, nextCanvasTheme, readCanvasTheme, writeCanvasTheme } from './lib/canvasTheme.js';
+import { applyTheme, readSettings, writeSettings } from './lib/userSettings.js';
 import { mergeDictionary } from './lib/structureDictionary.js';
 import { characterTabFromPrefs, closeDock, openDock, startingPanels, toggleDock } from './lib/dock.js';
 import { ACT_STRUCTURES, DEFAULT_ACT_STRUCTURE, DEFAULT_BIBLE_TAB, convertNotesActs, defaultStoryNotes, realignActs } from './lib/bible.js';
@@ -324,8 +326,9 @@ function Workspace({ boot }) {
   const sync = useSyncExternalStore(folderSync.subscribe, folderSync.getState);
   const [folderSnaps, setFolderSnaps] = useState({ projectId: null, list: [] }); // <folder>/Snapshots files
   const [autoSnapCount, setAutoSnapCount] = useState(0); // bumped per automatic snapshot: the drawer re-reads the folder
-  const [focusStorage, setFocusStorage] = useState(0); // bumped by the status bar → Projects' storage block
-  const [storageTarget, setStorageTarget] = useState('storage'); // …or straight to its Linked Folder card ('folder')
+  // Settings (⋮ → Settings…): null while closed; open, it says where to land — 'top', or the storage block
+  // ('storage', or 'folder' for its Linked Folder card) when the status bar or the backup tip opens it.
+  const [settingsAt, setSettingsAt] = useState(null);
 
   const [lineMap, setLineMap] = useState({});
   const [activeId, setActiveId] = useState(null);
@@ -394,6 +397,14 @@ function Workspace({ boot }) {
     writeCanvasTheme(next);
   };
   const themeNext = canvasThemeInfo(nextCanvasTheme(canvasTheme));
+  // App settings (lib/userSettings.js): the shell theme (Dark Charcoal / Editorial Light) and drafting
+  // preferences. index.html already put the theme on <html> before the first paint; this keeps it in step.
+  const [settings, setSettings] = useState(() => readSettings());
+  const changeSettings = (patch) => setSettings((s) => ({ ...s, ...patch }));
+  useEffect(() => {
+    applyTheme(settings.theme);
+    writeSettings(settings);
+  }, [settings]);
   const barRef = useRef(null);
   // The status bar steps its helpers aside when it's short of room (lib/statusFit.js).
   const statusRef = useRef(null);
@@ -738,12 +749,8 @@ function Workspace({ boot }) {
 
   // Status bar: App Storage Only · Click to resume folder sync · Linked Folder Synced (lib/folderSync.js storageStatus).
   const saveStatus = storageStatus({ saveOk: saved.ok, dirty, sync });
-  // Open Projects on its storage block; 'folder' goes straight to the Linked Folder card.
-  const openStorage = (target = 'storage') => {
-    setDrawerOpen(true);
-    setStorageTarget(target);
-    setFocusStorage((n) => n + 1);
-  };
+  // Open Settings on its storage block; 'folder' goes straight to the Linked Folder card.
+  const openStorage = (target = 'storage') => setSettingsAt(target);
   const onSaveStatusClick = () => {
     if (saveStatus.action === 'permission') {
       folderSync.requestPermission().then((ok) => notify(ok ? `Syncing to ${folderSync.getState().folderName}` : 'Folder sync is still off — the browser didn’t get permission'));
@@ -2576,6 +2583,7 @@ function Workspace({ boot }) {
                 issueCount: issues.length,
                 onAbout: () => setHelpKind('about'),
                 onFeedback: () => setFeedbackOpen(true),
+                onSettings: () => setSettingsAt('top'),
                 onGuide: () => setGuideOpen(true),
                 focusOnBar: inPlan || focusShowing(),
                 onFocus: () => setFocusMode(true),
@@ -2793,7 +2801,7 @@ function Workspace({ boot }) {
             <LockBadge locked={isLocked} onToggle={toggleLock} />
             {/* Counts: the first thing to give way when the bar is short of room (also in Scenes and Reports). */}
             <span className="status-counts">
-            <span>{analysis.sceneCount} scenes</span>
+            {settings.showCounts && <span>{analysis.sceneCount} scenes</span>}
             {noteCount > 0 && (
               <button
                 type="button"
@@ -2810,7 +2818,7 @@ function Workspace({ boot }) {
                 {noteCount} {noteCount === 1 ? 'note' : 'notes'}
               </button>
             )}
-            <span>{analysis.words.toLocaleString()} words</span>
+            {settings.showCounts && <span>{analysis.words.toLocaleString()} words</span>}
             </span>
           </div>
           <span className="status-spacer" />
@@ -3070,9 +3078,7 @@ function Workspace({ boot }) {
           live={{ title: meta.title, author: meta.author, pages: layout.pageCount, scenes: analysis.sceneCount, updatedAt: saved.at, dirty }}
           loadProjects={loadLibrary}
           libraryRev={libraryRev}
-          storage={storageControls}
-          focusStorage={focusStorage}
-          focusTarget={storageTarget}
+          sync={sync}
           onClose={() => setDrawerOpen(false)}
           onSwitch={switchProject}
           onCreate={newScript}
@@ -3082,6 +3088,24 @@ function Workspace({ boot }) {
           onDelete={deleteProject}
           onToggleLock={toggleProjectLock}
         />
+
+        {settingsAt && (
+          <Suspense fallback={null}>
+            <SettingsModal
+              settings={settings}
+              onChange={changeSettings}
+              canvas={canvasTheme}
+              onCanvas={(next) => {
+                setCanvasTheme(next);
+                writeCanvasTheme(next);
+              }}
+              storage={storageControls}
+              focus={settingsAt === 'top' ? null : settingsAt}
+              tips={{ finished: HINT_IDS.filter((id) => hintStates[id]).length, total: HINT_IDS.length, onReset: resetTips }}
+              onClose={() => setSettingsAt(null)}
+            />
+          </Suspense>
+        )}
 
         {guideOpen && (
           <Suspense fallback={null}>

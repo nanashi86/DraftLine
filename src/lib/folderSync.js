@@ -151,11 +151,11 @@ export function snapshotFromFileText(text) {
   };
 }
 
-// The status bar's save indicator: three states, worded the same as Projects → Storage Destination.
-//   App Storage Only            — no folder syncing (muted hollow circle); click: Projects → Linked Folder
+// The status bar's save indicator: three states, worded the same as Settings → Storage Destination.
+//   App Storage Only            — no folder syncing (muted hollow circle); click: Settings → Linked Folder
 //   Click to resume folder sync — linked, but the browser needs permission this session (amber circle);
 //                                 click: the browser's own Allow prompt
-//   Linked Folder Synced        — writing to the folder (soft green dot); click: Projects
+//   Linked Folder Synced        — writing to the folder (soft green dot); click: Settings → Storage
 // Two failures still say so, because they mean a save didn't land: browser storage blocked or full
 // (red), and a folder write that failed ("Folder sync paused", amber). Saving / syncing never changes
 // the words: `busy` pulses the dot instead, so the label doesn't flicker as you type.

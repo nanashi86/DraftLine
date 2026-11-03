@@ -38,6 +38,31 @@
   --accent-soft: color-mix(in srgb, var(--accent) 26%, var(--chip));         /* an on segment (B I U S, filters) */
   --danger: #b5402c;                       /* destructive hovers: Delete, Delete character */
 
+  /* Status inks — saved / warning / error text and marks, retuned per shell theme (never a hex in a component). */
+  --veil: 255 255 255;    /* the neutral overlay colour as an RGB triple: rgb(var(--veil) / 0.05) */
+  --ok: #6fae7d;          /* saved / synced: dots and tints */
+  --ok-ink: #9fd3aa;      /* …its text */
+  --ok-mark: #8fcb9c;     /* …the export toast's check */
+  --warn: #e0a458;        /* needs attention: rings, dots, warning text */
+  --warn-ink: #e8c08a;    /* …softer text on a warn tint */
+  --warn-ink-strong: #f2c27e; /* …the status bar's warn and Viewing lock */
+  --amber-ink: #fbbf24;   /* amber hovers and Day badges */
+  --error-ink: #e28b78;   /* failed saves, import errors */
+  --danger-ink: #f0a090;  /* destructive menu items and their error text */
+  --ink-cool: #a1a1aa;    /* quiet secondary text on floating cards */
+  --ink-faint: #52525b;   /* resting icons that wake on hover */
+  --night-ink: #a9b6c9;   /* Night badges */
+  --text-strong: #ffffff; /* the brightest label: the open Story Bible tab */
+  --tip-bg: #101114;      /* the DNA tooltip */
+  /* Floating cards (backup tip, Send Feedback) */
+  --float-bg: #18181b;
+  --float-field: #27272a;
+  --float-line: #3f3f46;
+  --float-text: #e4e4e7;
+  --float-text-2: #d4d4d8;
+  --float-text-hi: #f4f4f5;
+  --float-faint: #71717a;
+
   /* The page */
   --paper: #fdfcf8;
   --ink: #141414;
@@ -82,6 +107,54 @@ button { font-family: inherit; }
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .el-input:focus-visible { outline: none; }
 
+/* ---- Editorial Light: the warm linen shell (Settings → Appearance), set on <html data-theme="light">
+   before first paint (index.html) and by lib/userSettings.js. Shell only: the page keeps its own Paper /
+   Midnight tokens, and print stays black on white. Dark (no attribute) is the default. ---- */
+:root[data-theme='light'] {
+  --desk: #ebe6dc;
+  --bar: #f4f0e8;
+  --panel: #f7f4ee;
+  --card: #fbf9f5;
+  --field: #fffdf9;
+  --chip: #e4ded2;
+  --line-soft: #d8d2c6;
+  --text: #22201e;
+  --muted: #6e6a64;
+  --border-subtle: rgba(34, 32, 30, 0.13);
+  --accent: #b83a2c;       /* terracotta wax seal */
+  --accent-amber: #b56a00; /* antique amber */
+  --on-accent: #fffdf9;
+  --hover-bg: rgba(34, 32, 30, 0.05);
+  --border-hover: color-mix(in srgb, var(--text) 35%, var(--line-soft));
+  --danger: #a3301f;
+
+  --veil: 34 32 30;
+  --ok: #3f8a55;
+  --ok-ink: #2f7a45;
+  --ok-mark: #2f7a45;
+  --warn: #b56a00;
+  --warn-ink: #8f5600;
+  --warn-ink-strong: #8f5600;
+  --amber-ink: #9a5b00;
+  --error-ink: #a3301f;
+  --danger-ink: #a3301f;
+  --ink-cool: #6e6a64;
+  --ink-faint: #aaa497;
+  --night-ink: #4b5d78;
+  --text-strong: #1a1816;
+  --tip-bg: #fffdf9;
+  --float-bg: #f7f4ee;
+  --float-field: #fffdf9;
+  --float-line: #d8d2c6;
+  --float-text: #22201e;
+  --float-text-2: #22201e;
+  --float-text-hi: #22201e;
+  --float-faint: #9a958c;
+
+  --paper-shadow: 0 1px 2px rgba(60, 50, 30, 0.12), 0 12px 36px rgba(60, 50, 30, 0.14);
+  color-scheme: light;
+}
+
 /* ---- Midnight page: dark paper, soft light ink, on screen only. Scoped to the app, so the
    print view (a sibling of .app) never inherits it: print and PDF stay black on white. ---- */
 .app[data-canvas='midnight'] {
@@ -112,7 +185,7 @@ button { font-family: inherit; }
   font-size: 11.5px;
   border-radius: 12px;
   border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.1));
-  background: rgba(255, 255, 255, 0.05);
+  background: rgb(var(--veil) / 0.05);
   color: var(--text-muted, #9a9890);
   font-family: var(--ui-font);
   font-weight: 500;
@@ -121,7 +194,7 @@ button { font-family: inherit; }
   cursor: pointer;
   transition: background 120ms ease, border-color 120ms ease, color 120ms ease;
 }
-.pill:hover:not(.is-on, .is-selected) { color: var(--text-normal, #e9e7e2); border: 1px solid rgba(255, 255, 255, 0.22); background: linear-gradient(var(--hover-bg), var(--hover-bg)), rgba(255, 255, 255, 0.05); }
+.pill:hover:not(.is-on, .is-selected) { color: var(--text-normal, #e9e7e2); border: 1px solid rgb(var(--veil) / 0.22); background: linear-gradient(var(--hover-bg), var(--hover-bg)), rgb(var(--veil) / 0.05); }
 .pill.is-on,
 .pill.is-selected { background: var(--accent); color: var(--on-accent); border: 1px solid transparent; border-color: transparent; font-weight: 600; }
 .pill-count { opacity: 0.6; color: inherit; font-weight: normal; margin-left: 4px; }

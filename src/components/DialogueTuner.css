@@ -195,3 +195,5 @@
   line-height: 1.5;
   text-align: center;
 }
+/* Editorial Light: the monologue tag in amber ink that reads on linen. */
+:root[data-theme='light'] .tune-mono-tag { color: var(--warn-ink); border-color: color-mix(in srgb, var(--warn) 55%, transparent); }

@@ -4,6 +4,8 @@
   --k-orphan: #6b9fd8;
   --k-act: #a98ad9;
   --k-empty: #9a9890;
+  --k-format: #6fb7c0;
+  --k-ending: #b9a4d8;
 
   width: min(900px, calc(100vw - 32px));
   max-height: min(720px, calc(100vh - 48px));
@@ -46,14 +48,14 @@
 .fd-chip-term { margin-left: 5px; opacity: 0.75; }
 .fd-k-slugline { --kc: var(--k-slugline); }
 .fd-k-secondary { --kc: var(--k-slugline); }
-.fd-k-formatcue { --kc: #6fb7c0; }
+.fd-k-formatcue { --kc: var(--k-format); }
 .fd-k-cue { --kc: var(--k-cue); }
 .fd-k-orphan { --kc: var(--k-orphan); }
 .fd-k-act { --kc: var(--k-act); }
 .fd-k-empty { --kc: var(--k-empty); }
 .fd-k-falsedialogue { --kc: var(--k-orphan); }
-.fd-k-unspaced { --kc: #6fb7c0; }
-.fd-k-ending { --kc: #b9a4d8; }
+.fd-k-unspaced { --kc: var(--k-format); }
+.fd-k-ending { --kc: var(--k-ending); }
 .fd-k-orphancue,
 .fd-k-orphanparen { --kc: var(--k-orphan); }
 .fd-k-slugformat,
@@ -74,8 +76,8 @@
   display: grid;
   place-items: center;
   border-radius: 50%;
-  background: color-mix(in srgb, #6fae7d 20%, transparent);
-  color: #6fae7d;
+  background: color-mix(in srgb, var(--ok) 20%, transparent);
+  color: var(--ok);
   font-weight: 700;
 }
 
@@ -155,3 +157,14 @@
 .fd-modal .fd-time:hover { background: color-mix(in srgb, var(--accent) 22%, transparent); }
 .fd-modal .fd-time .dl-select-value.is-placeholder { color: var(--text); }
 .fd-chips .fd-time-all { margin-left: auto; }
+
+/* Editorial Light: the same finding colours, deep enough to read as text on linen. */
+:root[data-theme='light'] .fd-modal {
+  --k-slugline: #9a5b00;
+  --k-cue: #2f7a45;
+  --k-orphan: #2f5f9e;
+  --k-act: #6b4fa3;
+  --k-empty: #6e6a64;
+  --k-format: #1d6570;
+  --k-ending: #6b4fa3;
+}
