@@ -157,6 +157,11 @@ describe('Beat Board: Import Scenes menu', () => {
     assert.ok(!/Auto-Distribute by Page Targets|Assign by Scene Ranges|Manual Scene Ranges/.test(board + modal));
     assert.match(modal, /<h2 id="sr-title">Manually Assign Scenes<\/h2>/);
   });
+  it('the pacing badge shows ↑ when an act runs long and ↓ when it runs short', () => {
+    assert.match(board, /pace\.status === 'long' && <ArrowUp className="pace-arrow"/);
+    assert.match(board, /pace\.status === 'short' && <ArrowDown className="pace-arrow"/);
+    assert.ok(!board.includes('pace-dot'));
+  });
   it('menus can show a second line under an item', () => {
     const m = readFileSync(join(root, 'components/Menu.jsx'), 'utf8');
     assert.match(m, /<small className="menu-sub">\{it\.sub\}<\/small>/);

@@ -4,7 +4,7 @@ import Menu from './Menu.jsx';
 import SceneRangeModal from './SceneRangeModal.jsx';
 import ClearBoardModal from './ClearBoardModal.jsx';
 import ValueShiftModal from './ValueShiftModal.jsx';
-import { Film, Zap } from 'lucide-react';
+import { ArrowDown, ArrowUp, Film, Zap } from 'lucide-react';
 import { scanValueShifts } from '../lib/valueShiftScanner.js';
 import {
   TAGS, VALUE_SHIFTS, actPacing, beatTags, beatsWithTag, byAct, cardTitleParts, joinCardTitle, formatPageTargets, formatPercentTargets, moveBeat, newBeat, populateByPages, populateByRanges, setValueShift, structureFor, tagAccent, toggleTag, valueShiftInfo,
@@ -533,8 +533,9 @@ export default function BeatBoard({
                 <span className="col-count">{count}</span>
                 {pace && (
                   <span className={`col-pace is-${pace.status}`} title={pace.note}>
-                    {(pace.status === 'long' || pace.status === 'short') && <span className="pace-dot" aria-hidden="true" />}
                     {pace.status === 'none' ? '— pgs · 0%' : pace.label}
+                    {pace.status === 'long' && <ArrowUp className="pace-arrow" size={12} strokeWidth={2.25} aria-hidden />}
+                    {pace.status === 'short' && <ArrowDown className="pace-arrow" size={12} strokeWidth={2.25} aria-hidden />}
                     {(pace.status === 'long' || pace.status === 'short') && <span className="sr-only"> — {pace.note}</span>}
                   </span>
                 )}

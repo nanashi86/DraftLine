@@ -345,7 +345,7 @@ Moving a linked card also moves its scene in the script (one undo step). A card 
 
 ### Pacing distribution
 
-Once cards are linked to scenes, each act column shows how many pages its scenes add up to and what share of the script that is, for example "24 pgs · 25%". A coloured status dot appears when an act runs more than {{board.tolerance}} points above or below its usual share (3 acts: {{board.targets.3}}; 4 acts: {{board.targets.4}}). Hover the badge for details.
+Once cards are linked to scenes, each act column shows how many pages its scenes add up to and what share of the script that is, for example "24 pgs · 25%". An arrow appears when an act runs more than {{board.tolerance}} points away from its usual share: **↑** when it runs long, **↓** when it runs short (3 acts: {{board.targets.3}}; 4 acts: {{board.targets.4}}). Hover the badge for details.
 
 ### Outline export
 

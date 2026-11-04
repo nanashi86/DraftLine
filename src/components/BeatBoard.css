@@ -78,13 +78,13 @@
 }
 .col-act { grid-area: act; font-size: 11px; font-weight: 650; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); }
 .col-name { grid-area: name; font-size: 13px; font-weight: 600; }
-/* Pacing: "24 pgs · 25%" — a dot when the act is well off its usual share of the script */
+/* Pacing: "24 pgs · 25%" — an arrow when the act is well off its usual share: ↑ runs long, ↓ runs short */
 .col-pace {
   grid-area: pace;
   justify-self: start;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 3px;
   margin-top: 6px;
   padding: 1px 8px;
   border-radius: 999px;
@@ -95,7 +95,7 @@
   white-space: nowrap;
 }
 .col-pace.is-none { opacity: 0.6; }
-.pace-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--warn); }
+.pace-arrow { flex: none; color: var(--warn); }
 .col-pace.is-long,
 .col-pace.is-short { color: var(--text); }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }

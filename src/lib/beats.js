@@ -466,7 +466,7 @@ export function populateByRanges(beats, scenes, mode, inputs, totalPages) {
 // Each column's badge: how many pages its scene cards add up to, and what share of the
 // script that is ("24 pgs · 25%"). A scene's length runs from its heading to the next one,
 // in eighths of a page. Guidelines: 3 acts ≈ 25 / 50 / 25 %, 4 acts ≈ 25 % each; a column
-// more than PACING_TOLERANCE points away from its share gets a status dot.
+// more than PACING_TOLERANCE points away from its share gets an arrow on its badge (↑ long, ↓ short).
 
 export const PACING_TARGETS = { 3: [25, 50, 25], 4: [25, 25, 25, 25] };
 export const PACING_TOLERANCE = 7; // percentage points — e.g. Act 1 above 32 % is flagged
