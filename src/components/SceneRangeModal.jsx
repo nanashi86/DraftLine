@@ -8,12 +8,15 @@ import './SceneRangeModal.css';
  * "Manual Scene Ranges…": one range input per visible act column — three in 3-Act
  * view (Act 1 · Act 2 · Act 3), four in 4-Act view (Act 1 · 2A · 2B · Act 3). Starts from
  * the page-target placement; Apply is enabled once every scene is in exactly one act.
+ * "Fill from page targets" puts that placement back in the boxes (the board changes only on Apply).
+ * "Start fresh" rebuilds the board from these ranges alone: every card already on it is replaced.
  */
 export default function SceneRangeModal({ mode, scenes, pageCount, onApply, onClose }) {
   const dialogRef = useRef(null);
   const cols = structureFor(mode);
   const defaults = useMemo(() => rangesFromPageTargets(scenes, mode, pageCount), [scenes, mode, pageCount]);
   const [inputs, setInputs] = useState(defaults);
+  const [fresh, setFresh] = useState(false);
   const check = validateSceneRanges(inputs, scenes.length, mode);
   const byNumber = useMemo(() => new Map(scenes.map((s) => [s.number, s])), [scenes]);
 
@@ -48,7 +51,7 @@ export default function SceneRangeModal({ mode, scenes, pageCount, onApply, onCl
       <form
         onSubmit={(e) => {
           e.preventDefault();
-          if (check.ok) onApply(inputs);
+          if (check.ok) onApply(inputs, { fresh });
         }}
       >
         <header className="sr-head">
@@ -85,9 +88,22 @@ export default function SceneRangeModal({ mode, scenes, pageCount, onApply, onCl
             : check.errors.map((e) => <div key={e}>{e}</div>)}
         </div>
 
+        <label className="sr-fresh">
+          <input type="checkbox" checked={fresh} onChange={(e) => setFresh(e.target.checked)} />
+          <span>
+            <b>Start fresh</b>
+            <small>Replace every card on the board with new scene cards from these ranges. Your edits to the old cards go too.</small>
+          </span>
+        </label>
+
         <footer className="sr-foot">
-          <button type="button" className="btn sr-reset" onClick={() => setInputs(defaults)} title={formatPageTargets(mode, pageCount)}>
-            Reset to page targets
+          <button
+            type="button"
+            className="btn sr-reset"
+            onClick={() => setInputs(defaults)}
+            title={`Put the scenes that start in each act's page target (${formatPageTargets(mode, pageCount)}) back in the boxes. The board changes only when you Apply.`}
+          >
+            Fill from page targets
           </button>
           <span className="sr-spacer" />
           <button type="button" className="btn" onClick={onClose}>Cancel</button>

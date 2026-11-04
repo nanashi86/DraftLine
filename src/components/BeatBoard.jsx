@@ -2,6 +2,7 @@ import { Fragment, memo, useCallback, useEffect, useMemo, useRef, useState } fro
 import AutoTextarea from './AutoTextarea.jsx';
 import Menu from './Menu.jsx';
 import SceneRangeModal from './SceneRangeModal.jsx';
+import ClearBoardModal from './ClearBoardModal.jsx';
 import ValueShiftModal from './ValueShiftModal.jsx';
 import { Film, Zap } from 'lucide-react';
 import { scanValueShifts } from '../lib/valueShiftScanner.js';
@@ -218,6 +219,7 @@ export default function BeatBoard({
   const [focusId, setFocusId] = useState(null);
   const [undo, setUndo] = useState(null); // { message, beats? } — the toast; `beats` is what Undo restores
   const [rangesOpen, setRangesOpen] = useState(false);
+  const [clearOpen, setClearOpen] = useState(false);
   const [shiftScan, setShiftScan] = useState(null); // Analyze Value Shifts: scanValueShifts() while open
   const [tagFilter, setTagFilter] = useState(null); // legend filter: highlight cards with this tag
   const beatsRef = useRef(beats);
@@ -326,6 +328,14 @@ export default function BeatBoard({
     { heading: `${actMode} Acts · ${scenes.length} ${scenes.length === 1 ? 'scene' : 'scenes'} · ${pageCount} ${pageCount === 1 ? 'page' : 'pages'}` },
     { label: 'Auto-Distribute (% Targets)', hint: formatPercentTargets(actMode), sub: targets, onSelect: populateByTargets },
     { label: 'Manual Scene Ranges…', sub: 'Type the scene numbers for each act', onSelect: openRanges },
+    { divider: true },
+    {
+      label: 'Clear Board…',
+      sub: 'Remove every card and start over',
+      danger: true,
+      disabled: !beats.length,
+      onSelect: () => setClearOpen(true),
+    },
   ];
 
   const addBeat = (act) => {
@@ -608,9 +618,25 @@ export default function BeatBoard({
           scenes={scenes}
           pageCount={pageCount}
           onClose={() => setRangesOpen(false)}
-          onApply={(inputs) => {
+          onApply={(inputs, { fresh } = {}) => {
             setRangesOpen(false);
-            applyPopulate(populateByRanges(beatsRef.current, scenes, actMode, inputs, pageCount), 'placed by scene ranges');
+            applyPopulate(
+              populateByRanges(fresh ? [] : beatsRef.current, scenes, actMode, inputs, pageCount),
+              fresh ? 'placed by scene ranges, starting fresh' : 'placed by scene ranges',
+            );
+          }}
+        />
+      )}
+
+      {clearOpen && (
+        <ClearBoardModal
+          count={beats.length}
+          onClose={() => setClearOpen(false)}
+          onClear={() => {
+            const prev = beatsRef.current;
+            setClearOpen(false);
+            onChange([]);
+            setUndo({ message: `Cleared ${prev.length} ${prev.length === 1 ? 'card' : 'cards'}`, beats: prev });
           }}
         />
       )}

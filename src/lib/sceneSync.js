@@ -112,8 +112,9 @@ export function renumberSceneCards(beats, blocks) {
  * scene card pointing at nothing: it still looked like a scene card, but dragging it only
  * moved the board. A card whose title is still in its generated "N. HEADING" form is matched
  * to a scene with that heading that no other card holds: the one numbered N if there are
- * several, otherwise the first. Cards you've retitled, and cards with no match, are left as
- * they are. Returns the same array when nothing changes.
+ * several, otherwise the first. The rest are matched by position (below). Cards with no match
+ * are left as they are. Returns the same array when nothing changes. App runs it on every script
+ * change too, so a heading edited into a new element never leaves its card behind.
  */
 export function relinkSceneCards(beats, blocks) {
   const headings = blocks.filter((b) => b.type === 'scene');
@@ -132,6 +133,36 @@ export function relinkSceneCards(beats, blocks) {
     const pick = open.find((h) => num[h.id] === Number(m[1])) || open[0];
     claimed.add(pick.id);
     fresh.set(card.id, pick.id);
+  }
+  // Then by position: a heading that was retyped or rebuilt (merged into the line above and split
+  // off again, cut and pasted back…) comes back with a new id, and often a new name too, so its card's
+  // title no longer matches. Between the same two linked cards on the board, the stale cards and the
+  // unclaimed headings between those two scenes in the script pair up in order, when there are as
+  // many of each. A card whose scene was deleted outright finds nothing there and stays unlinked.
+  const index = new Map(headings.map((h, i) => [h.id, i]));
+  const linkOf = (b) => (fresh.has(b.id) ? fresh.get(b.id) : b.sceneId && live.has(b.sceneId) ? b.sceneId : null);
+  const order = boardOrder(beats);
+  let k = 0;
+  while (k < order.length) {
+    if (!order[k].sceneId || linkOf(order[k])) {
+      k += 1;
+      continue;
+    }
+    const run = [];
+    let j = k;
+    for (; j < order.length && !linkOf(order[j]); j++) if (order[j].sceneId) run.push(order[j]);
+    const before = k > 0 ? linkOf(order[k - 1]) : null;
+    const after = j < order.length ? linkOf(order[j]) : null;
+    const lo = before ? index.get(before) : -1;
+    const hi = after ? index.get(after) : headings.length;
+    const open = lo < hi ? headings.slice(lo + 1, hi).filter((h) => !claimed.has(h.id)) : [];
+    if (open.length && open.length === run.length) {
+      run.forEach((card, i) => {
+        claimed.add(open[i].id);
+        fresh.set(card.id, open[i].id);
+      });
+    }
+    k = j;
   }
   if (!fresh.size) return beats;
   return beats.map((b) => (fresh.has(b.id) ? { ...b, sceneId: fresh.get(b.id) } : b));

@@ -168,6 +168,34 @@ describe('Scene cards stay linked when the script is replaced (the regression)',
     assert.equal(relinkSceneCards(beats, blocks), beats);
   });
 
+  it('a heading rebuilt with a new id and a new name is found again by its place on the board', () => {
+    const blocks = script();
+    const rebuilt = blocks.map((b) => (b.id === 's2' ? B('s2new', 'scene', 'INT./EXT. FERRY - DAY') : b));
+    const out = relinkSceneCards(board(), rebuilt);
+    assert.deepEqual(out.map((b) => b.sceneId ?? null), ['s1', 's2new', null, 's3']);
+    assert.equal(out.find((b) => b.id === 'k2').title, '2. INT. FERRY - DAY', 'the title is left as it is');
+  });
+
+  it('a deleted scene leaves its card unlinked; uneven runs are not guessed', () => {
+    const gone = script().filter((b) => b.id !== 's2');
+    assert.equal(relinkSceneCards(board(), gone).find((b) => b.id === 'k2').sceneId, 's2');
+    const blocks = [B('x1', 'scene', 'A'), B('x2', 'scene', 'B'), B('x3', 'scene', 'C')];
+    const beats = [card('c1', 0, 'old1', 'One'), card('c2', 0, 'old2', 'Two'), card('c3', 0, 'old3', 'Three'), card('c4', 0, 'old4', 'Four')];
+    assert.equal(relinkSceneCards(beats, blocks), beats, 'four stale cards, three open headings: nothing changes');
+  });
+
+  it('App relinks on every script change', () => {
+    assert.match(read('src/App.jsx'), /useEffect\(\(\) => \{\s*setBeats\(\(cur\) => relinkSceneCards\(cur, blocks\)\);\s*\}, \[blocks\]\);/);
+  });
+
+  it('Import Scenes offers Clear Board, and Manual Scene Ranges can start fresh', () => {
+    const src = read('src/components/BeatBoard.jsx');
+    assert.match(src, /label: 'Clear Board…'/);
+    assert.match(src, /onChange\(\[\]\);\s*setUndo\(\{ message: `Cleared/);
+    assert.match(src, /populateByRanges\(fresh \? \[\] : beatsRef\.current/);
+    assert.match(read('src/components/SceneRangeModal.jsx'), /onApply\(inputs, \{ fresh \}\)/);
+  });
+
   it('App relinks on import (one undo step with the script) and when a project opens', () => {
     const src = read('src/App.jsx');
     const imp = src.slice(src.indexOf('const importScript = '), src.indexOf('const printScript = '));

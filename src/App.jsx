@@ -307,6 +307,12 @@ function Workspace({ boot }) {
   const [meta, setMeta] = useState(initialDoc.meta);
   const { present: blocks, set, undo, redo, reset, canUndo, canRedo } = useHistory(initialDoc.blocks, reconcileMarks);
   const [beats, setBeats] = useState(initialDoc.beats);
+  // Scene cards follow their headings through every edit: a heading rebuilt as a new element (merged
+  // into the line above and split off again, cut and pasted…) has a new id, and its card would show
+  // "Scene removed" until the next reload. Nothing stale: the same array, no re-render.
+  useEffect(() => {
+    setBeats((cur) => relinkSceneCards(cur, blocks));
+  }, [blocks]);
   const [characters, setCharacters] = useState(initialDoc.characters); // Story Bible
   const castNames = useMemo(() => (characters || []).map((c) => c.name).filter(Boolean), [characters]);
   const [storyNotes, setStoryNotes] = useState(initialDoc.storyNotes);
