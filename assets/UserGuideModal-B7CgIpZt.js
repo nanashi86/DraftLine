@@ -1,4 +1,4 @@
-import{i as e,t}from"./react-DgawKyfb.js";import{A as n,At as r,F as i,Jt as a,Kt as o,Mt as s,N as c,Nt as l,P as u,Pt as d,Rt as ee,St as f,Tt as p,Zt as m,bt as h,c as g,dt as _,gt as v,h as y,ht as b,j as x,jt as S,kt as te,l as ne,mt as C,n as re,p as ie,qt as ae,r as oe,u as w,ut as T,vt as E,xt as D,yt as O}from"./index-C2lZmKdr.js";import{r as k,t as A}from"./printTitle-C1qWomuv.js";/* empty css                  */var j=e(),M=`# DraftLine User Guide
+import{i as e,t}from"./react-DgawKyfb.js";import{A as n,At as r,F as i,Jt as a,Kt as o,Mt as s,N as c,Nt as l,P as u,Pt as d,Rt as ee,St as f,Tt as p,Zt as m,bt as h,c as g,dt as _,gt as v,h as y,ht as b,j as x,jt as S,kt as te,l as ne,mt as C,n as re,p as ie,qt as ae,r as oe,u as w,ut as T,vt as E,xt as D,yt as O}from"./index-ByiC47nP.js";import{r as k,t as A}from"./printTitle-C1qWomuv.js";/* empty css                  */var j=e(),M=`# DraftLine User Guide
 
 DraftLine is a distraction-free screenwriting app that runs in your browser. It writes in Courier Prime at 12 pt with standard screenplay margins, saves as you type, and works offline. This guide covers everything from your first scene heading to the final PDF.
 
@@ -336,9 +336,12 @@ The **Scene Board** (formerly the Beat Board; **Board** or **Split** view) lays 
 **Import Scenes** fills the board from your script, one card per scene, linked to that scene:
 
 - **Auto-Distribute (% Targets)** places scenes by page: about {{board.targets.3}} for 3 acts, or {{board.targets.4}} for 4 acts.
-- **Manual Scene Ranges…** lets you say which scenes belong to each act (for example 1–12, 13–40, 41–55).
+- **Manual Scene Ranges…** lets you say which scenes belong to each act (for example 1–12, 13–40, 41–55). The boxes start filled from the page targets; **Fill from page targets** puts that split back if you've changed them. Nothing moves until you **Apply**. Tick **Start fresh** to rebuild the board from your ranges alone, replacing every card already on it.
+- **Clear Board…** removes every card (the script isn't touched), with Undo. Use it when you'd rather start the board over.
 
-Moving a linked card also moves its scene in the script (one undo step). Cards keep their link when you replace the script with **Load into Editor**, as long as the card's title is still the generated "12. INT. HOUSE - NIGHT" one and the scene keeps its heading.
+Running Import Scenes again keeps your linked cards and your edits to them: they just move to their new acts, and new scenes get new cards.
+
+Moving a linked card also moves its scene in the script (one undo step). A card stays linked when you rename or retype its scene heading: if the heading comes back as a new line in the same place, the card finds it again. It also keeps its link when you replace the script with **Load into Editor**, as long as the card's title is still the generated "12. INT. HOUSE - NIGHT" one or the scene is in the same place between its neighbours. A card shows **Scene removed** only when its scene is really gone.
 
 ### Pacing distribution
 
