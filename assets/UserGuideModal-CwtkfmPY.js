@@ -1,4 +1,4 @@
-import{i as e,t}from"./react-DgawKyfb.js";import{A as n,At as r,Ct as i,Et as a,F as o,Ft as s,Jt as c,Mt as l,N as u,Nt as d,P as f,Pt as ee,Qt as p,St as m,Yt as h,_t as g,bt as _,c as v,dt as te,ft as y,gt as b,h as x,ht as S,j as ne,jt as re,l as ie,n as ae,p as oe,qt as C,r as se,u as w,xt as T,yt as E,zt as D}from"./index-DYkYkQek.js";import{r as O,t as k}from"./printTitle-C1qWomuv.js";/* empty css                  */var A=e(),j=`# DraftLine User Guide
+import{i as e,t}from"./react-DgawKyfb.js";import{A as n,At as r,Ct as i,Et as a,F as o,Ft as s,Jt as c,Mt as l,N as u,Nt as d,P as f,Pt as ee,Qt as p,St as m,Yt as h,_t as g,bt as _,c as v,dt as te,ft as y,gt as b,h as x,ht as S,j as ne,jt as re,l as ie,n as ae,p as oe,qt as C,r as se,u as w,xt as T,yt as E,zt as D}from"./index-eWZ4EwKW.js";import{r as O,t as k}from"./printTitle-C1qWomuv.js";/* empty css                  */var A=e(),j=`# DraftLine User Guide
 
 DraftLine is a distraction-free screenwriting app that runs in your browser. It writes in Courier Prime at 12 pt with standard screenplay margins, saves as you type, and works offline. This guide covers everything from your first scene heading to the final PDF.
 
@@ -345,7 +345,7 @@ Moving a linked card also moves its scene in the script (one undo step). A card 
 
 ### Pacing distribution
 
-Once cards are linked to scenes, each act column shows how many pages its scenes add up to and what share of the script that is, for example "24 pgs · 25%". A coloured status dot appears when an act runs more than {{board.tolerance}} points above or below its usual share (3 acts: {{board.targets.3}}; 4 acts: {{board.targets.4}}). Hover the badge for details.
+Once cards are linked to scenes, each act column shows how many pages its scenes add up to and what share of the script that is, for example "24 pgs · 25%". An arrow appears when an act runs more than {{board.tolerance}} points away from its usual share: **↑** when it runs long, **↓** when it runs short (3 acts: {{board.targets.3}}; 4 acts: {{board.targets.4}}). Hover the badge for details.
 
 ### Outline export
 
