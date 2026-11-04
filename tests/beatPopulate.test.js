@@ -15,22 +15,22 @@ const acts = (beats) => byAct(beats).map((col) => col.map((b) => b.title.split('
 describe('proportional page targets', () => {
   it('3 Acts: Act 1 ≤ 25%, Act 2 ≤ 75%, Act 3 the rest — e.g. a 96-page script', () => {
     assert.deepEqual(pageBounds(3, 96), [24, 72]);
-    assert.equal(formatPageTargets(3, 96), 'pp. 1–24 · 25–72 · 73+');
+    assert.equal(formatPageTargets(3, 96), 'pgs. 1–24 · 25–72 · 73+');
     assert.deepEqual([1, 24, 25, 72, 73, 96].map((p) => columnForPage(p, 3, 96)), [0, 0, 1, 1, 2, 2]);
   });
   it('4 Acts: Act 1 ≤ 25%, 2A ≤ 50%, 2B ≤ 75%, Act 3 the rest — e.g. a 110-page script', () => {
     assert.deepEqual(pageBounds(4, 110), [27, 55, 82]);
-    assert.equal(formatPageTargets(4, 110), 'pp. 1–27 · 28–55 · 56–82 · 83+');
+    assert.equal(formatPageTargets(4, 110), 'pgs. 1–27 · 28–55 · 56–82 · 83+');
     assert.deepEqual([1, 27, 28, 55, 56, 82, 83, 110].map((p) => columnForPage(p, 4, 110)), [0, 0, 1, 1, 2, 2, 3, 3]);
   });
   it('scales with the script: a 34-page script still fills every act', () => {
-    assert.equal(formatPageTargets(4, 34), 'pp. 1–8 · 9–17 · 18–25 · 26+');
+    assert.equal(formatPageTargets(4, 34), 'pgs. 1–8 · 9–17 · 18–25 · 26+');
     const { beats } = populateByPages([], scenesOn([1, 5, 9, 14, 18, 22, 26, 34]), 4, 34);
     assert.equal(acts(beats), '1,2|3,4|5,6|7,8');
   });
   it('very short scripts keep the bounds increasing', () => {
     assert.deepEqual(pageBounds(4, 3), [1, 2, 3]);
-    assert.equal(formatPageTargets(3, 1), 'pp. 1 · 2 · 3+');
+    assert.equal(formatPageTargets(3, 1), 'pgs. 1 · 2 · 3+');
   });
   it('a scene is never split: it goes wholly to the act its first page falls in', () => {
     // Scene 2 starts on p. 24 (the last page of Act 1 in a 96-page script) and runs on for pages.

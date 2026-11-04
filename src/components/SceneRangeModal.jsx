@@ -5,7 +5,7 @@ import {
 import './SceneRangeModal.css';
 
 /**
- * "Manual Scene Ranges…": one range input per visible act column — three in 3-Act
+ * Import Scenes → "Manually Assign…": one range input per visible act column — three in 3-Act
  * view (Act 1 · Act 2 · Act 3), four in 4-Act view (Act 1 · 2A · 2B · Act 3). Starts from
  * the board as it is (every scene's card in its column), or from the page-target placement when
  * some scenes have no card yet; Apply is enabled once every scene is in exactly one act.
@@ -24,13 +24,13 @@ export default function SceneRangeModal({ mode, scenes, beats, pageCount, onAppl
     if (d && !d.open) d.showModal();
   }, []);
 
-  /** "4 scenes · pp. 1–27" for one row. */
+  /** "4 scenes · pgs. 1–27" for one row. */
   const rowInfo = (input) => {
     const { numbers, error } = parseSceneRanges(input);
     if (error) return null;
     const pages = numbers.map((n) => byNumber.get(n)?.page).filter(Boolean);
     if (!numbers.length) return 'No scenes';
-    const pp = pages.length ? ` · pp. ${Math.min(...pages)}–${Math.max(...pages)}` : '';
+    const pp = pages.length ? ` · pgs. ${Math.min(...pages)}–${Math.max(...pages)}` : '';
     return `${numbers.length} ${numbers.length === 1 ? 'scene' : 'scenes'}${pp}`;
   };
 
@@ -54,7 +54,7 @@ export default function SceneRangeModal({ mode, scenes, beats, pageCount, onAppl
         }}
       >
         <header className="sr-head">
-          <h2 id="sr-title">Manual Scene Ranges</h2>
+          <h2 id="sr-title">Manually Assign Scenes</h2>
           <p>
             {scenes.length} {scenes.length === 1 ? 'scene' : 'scenes'} · {pageCount} {pageCount === 1 ? 'page' : 'pages'} ·{' '}
             {mode} Acts ({formatPageTargets(mode, pageCount)}). {current ? 'Showing your board as it is now. ' : ''}Enter scene numbers

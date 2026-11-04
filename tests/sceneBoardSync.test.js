@@ -188,7 +188,7 @@ describe('Scene cards stay linked when the script is replaced (the regression)',
     assert.match(read('src/App.jsx'), /useEffect\(\(\) => \{\s*setBeats\(\(cur\) => relinkSceneCards\(cur, blocks\)\);\s*\}, \[blocks\]\);/);
   });
 
-  it('Import Scenes offers Clear Board; Manual Scene Ranges keeps the cards it moves', () => {
+  it('Import Scenes offers Clear Board; Manually Assign keeps the cards it moves', () => {
     const src = read('src/components/BeatBoard.jsx');
     assert.match(src, /label: 'Clear Board…'/);
     assert.match(src, /onChange\(\[\]\);\s*setUndo\(\{ message: `Cleared/);

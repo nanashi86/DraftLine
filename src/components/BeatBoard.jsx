@@ -326,8 +326,8 @@ export default function BeatBoard({
   const targets = formatPageTargets(actMode, pageCount);
   const populateItems = [
     { heading: `${actMode} Acts · ${scenes.length} ${scenes.length === 1 ? 'scene' : 'scenes'} · ${pageCount} ${pageCount === 1 ? 'page' : 'pages'}` },
-    { label: 'Auto-Distribute…', hint: formatPercentTargets(actMode), sub: targets, onSelect: populateByTargets },
-    { label: 'Manual Scene Ranges…', sub: 'Type the scene numbers for each act', onSelect: openRanges },
+    { label: 'Auto-Distribute…', sub: `${formatPercentTargets(actMode)} | ${targets}`, onSelect: populateByTargets },
+    { label: 'Manually Assign…', sub: 'Type the scene numbers for each act', onSelect: openRanges },
     { divider: true },
     {
       label: 'Clear Board…',

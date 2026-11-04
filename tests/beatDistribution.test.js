@@ -11,14 +11,14 @@ describe('Auto-Distribute', () => {
   it('uses the standard shares: 25 / 50 / 25 % in 3 acts, 25 % each in 4', () => {
     assert.deepEqual(PAGE_PERCENTS[3], [0.25, 0.75]);
     assert.deepEqual(PAGE_PERCENTS[4], [0.25, 0.5, 0.75]);
-    assert.equal(formatPercentTargets(3), '25 · 50 · 25%');
-    assert.equal(formatPercentTargets(4), '25 · 25 · 25 · 25%');
+    assert.equal(formatPercentTargets(3), '25% · 50% · 25%');
+    assert.equal(formatPercentTargets(4), '25% · 25% · 25% · 25%');
   });
   it('page ranges come from the script’s actual length', () => {
-    assert.equal(formatPageTargets(3, 96), 'pp. 1–24 · 25–72 · 73+');
-    assert.equal(formatPageTargets(4, 96), 'pp. 1–24 · 25–48 · 49–72 · 73+');
-    assert.equal(formatPageTargets(3, 120), 'pp. 1–30 · 31–90 · 91+');
-    assert.equal(formatPageTargets(4, 110), 'pp. 1–27 · 28–55 · 56–82 · 83+');
+    assert.equal(formatPageTargets(3, 96), 'pgs. 1–24 · 25–72 · 73+');
+    assert.equal(formatPageTargets(4, 96), 'pgs. 1–24 · 25–48 · 49–72 · 73+');
+    assert.equal(formatPageTargets(3, 120), 'pgs. 1–30 · 31–90 · 91+');
+    assert.equal(formatPageTargets(4, 110), 'pgs. 1–27 · 28–55 · 56–82 · 83+');
     assert.deepEqual(pageBounds(3, 4), [1, 3], 'a short script still gets increasing bounds');
   });
   it('places a 96-page script 24 / 48 / 24 scenes in 3 acts (Act 2 split 2A / 2B at the midpoint)', () => {
@@ -33,6 +33,6 @@ describe('Auto-Distribute', () => {
   });
   it('the board’s Populate menu shows the shares and, underneath, the page ranges', () => {
     // see tests/uiLabels.test.js for the labels themselves
-    assert.match(formatPageTargets(3, 96), /^pp\. /);
+    assert.match(formatPageTargets(3, 96), /^pgs\. /);
   });
 });

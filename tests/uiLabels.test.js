@@ -150,12 +150,12 @@ describe('Beat Board: Import Scenes menu', () => {
   const board = readFileSync(join(root, 'components/BeatBoard.jsx'), 'utf8');
   const modal = readFileSync(join(root, 'components/SceneRangeModal.jsx'), 'utf8');
   const menu = board.slice(board.indexOf('const populateItems = ['), board.indexOf('];', board.indexOf('const populateItems = [')));
-  it('offers "Auto-Distribute…" with the percentages beside it and the page ranges underneath, and "Manual Scene Ranges…"', () => {
-    assert.match(menu, /label: 'Auto-Distribute…', hint: formatPercentTargets\(actMode\), sub: targets/);
-    assert.match(menu, /label: 'Manual Scene Ranges…'/);
+  it('offers "Auto-Distribute…" with the percentages and page ranges underneath, and "Manually Assign…"', () => {
+    assert.match(menu, /label: 'Auto-Distribute…', sub: `\$\{formatPercentTargets\(actMode\)\} \| \$\{targets\}`/);
+    assert.match(menu, /label: 'Manually Assign…', sub: 'Type the scene numbers for each act'/);
     assert.match(board, /const targets = formatPageTargets\(actMode, pageCount\);/);
-    assert.ok(!/Auto-Distribute by Page Targets|Assign by Scene Ranges/.test(board + modal));
-    assert.match(modal, /<h2 id="sr-title">Manual Scene Ranges<\/h2>/);
+    assert.ok(!/Auto-Distribute by Page Targets|Assign by Scene Ranges|Manual Scene Ranges/.test(board + modal));
+    assert.match(modal, /<h2 id="sr-title">Manually Assign Scenes<\/h2>/);
   });
   it('menus can show a second line under an item', () => {
     const m = readFileSync(join(root, 'components/Menu.jsx'), 'utf8');
