@@ -188,12 +188,13 @@ describe('Scene cards stay linked when the script is replaced (the regression)',
     assert.match(read('src/App.jsx'), /useEffect\(\(\) => \{\s*setBeats\(\(cur\) => relinkSceneCards\(cur, blocks\)\);\s*\}, \[blocks\]\);/);
   });
 
-  it('Import Scenes offers Clear Board, and Manual Scene Ranges can start fresh', () => {
+  it('Import Scenes offers Clear Board; Manual Scene Ranges keeps the cards it moves', () => {
     const src = read('src/components/BeatBoard.jsx');
     assert.match(src, /label: 'Clear Board…'/);
     assert.match(src, /onChange\(\[\]\);\s*setUndo\(\{ message: `Cleared/);
-    assert.match(src, /populateByRanges\(fresh \? \[\] : beatsRef\.current/);
-    assert.match(read('src/components/SceneRangeModal.jsx'), /onApply\(inputs, \{ fresh \}\)/);
+    assert.match(src, /populateByRanges\(beatsRef\.current, scenes, actMode, inputs, pageCount\)/);
+    const modal = read('src/components/SceneRangeModal.jsx');
+    assert.ok(!/Start fresh|Fill from page targets/.test(modal), 'the popup is just the act boxes, Cancel and Apply');
   });
 
   it('App relinks on import (one undo step with the script) and when a project opens', () => {

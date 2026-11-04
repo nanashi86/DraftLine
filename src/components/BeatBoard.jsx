@@ -326,7 +326,7 @@ export default function BeatBoard({
   const targets = formatPageTargets(actMode, pageCount);
   const populateItems = [
     { heading: `${actMode} Acts · ${scenes.length} ${scenes.length === 1 ? 'scene' : 'scenes'} · ${pageCount} ${pageCount === 1 ? 'page' : 'pages'}` },
-    { label: 'Auto-Distribute (% Targets)', hint: formatPercentTargets(actMode), sub: targets, onSelect: populateByTargets },
+    { label: 'Auto-Distribute', hint: formatPercentTargets(actMode), sub: targets, onSelect: populateByTargets },
     { label: 'Manual Scene Ranges…', sub: 'Type the scene numbers for each act', onSelect: openRanges },
     { divider: true },
     {
@@ -619,12 +619,9 @@ export default function BeatBoard({
           beats={beats}
           pageCount={pageCount}
           onClose={() => setRangesOpen(false)}
-          onApply={(inputs, { fresh } = {}) => {
+          onApply={(inputs) => {
             setRangesOpen(false);
-            applyPopulate(
-              populateByRanges(fresh ? [] : beatsRef.current, scenes, actMode, inputs, pageCount),
-              fresh ? 'placed by scene ranges, starting fresh' : 'placed by scene ranges',
-            );
+            applyPopulate(populateByRanges(beatsRef.current, scenes, actMode, inputs, pageCount), 'placed by scene ranges');
           }}
         />
       )}

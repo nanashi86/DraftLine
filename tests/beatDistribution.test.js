@@ -7,7 +7,7 @@ import {
 /** One scene starting on each page of a `pages`-page script. */
 const scenesFor = (pages) => Array.from({ length: pages }, (_, i) => ({ id: `s${i + 1}`, number: i + 1, heading: `INT. ROOM ${i + 1} - DAY`, page: i + 1, snippet: '' }));
 
-describe('Auto-Distribute (% Targets)', () => {
+describe('Auto-Distribute', () => {
   it('uses the standard shares: 25 / 50 / 25 % in 3 acts, 25 % each in 4', () => {
     assert.deepEqual(PAGE_PERCENTS[3], [0.25, 0.75]);
     assert.deepEqual(PAGE_PERCENTS[4], [0.25, 0.5, 0.75]);

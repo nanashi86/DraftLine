@@ -9,8 +9,6 @@ import './SceneRangeModal.css';
  * view (Act 1 · Act 2 · Act 3), four in 4-Act view (Act 1 · 2A · 2B · Act 3). Starts from
  * the board as it is (every scene's card in its column), or from the page-target placement when
  * some scenes have no card yet; Apply is enabled once every scene is in exactly one act.
- * "Fill from page targets" puts that placement back in the boxes (the board changes only on Apply).
- * "Start fresh" rebuilds the board from these ranges alone: every card already on it is replaced.
  */
 export default function SceneRangeModal({ mode, scenes, beats, pageCount, onApply, onClose }) {
   const dialogRef = useRef(null);
@@ -18,7 +16,6 @@ export default function SceneRangeModal({ mode, scenes, beats, pageCount, onAppl
   const defaults = useMemo(() => rangesFromPageTargets(scenes, mode, pageCount), [scenes, mode, pageCount]);
   const [current] = useState(() => rangesFromBoard(beats, scenes, mode)); // the board when it opened
   const [inputs, setInputs] = useState(current || defaults);
-  const [fresh, setFresh] = useState(false);
   const check = validateSceneRanges(inputs, scenes.length, mode);
   const byNumber = useMemo(() => new Map(scenes.map((s) => [s.number, s])), [scenes]);
 
@@ -53,7 +50,7 @@ export default function SceneRangeModal({ mode, scenes, beats, pageCount, onAppl
       <form
         onSubmit={(e) => {
           e.preventDefault();
-          if (check.ok) onApply(inputs, { fresh });
+          if (check.ok) onApply(inputs);
         }}
       >
         <header className="sr-head">
@@ -91,23 +88,7 @@ export default function SceneRangeModal({ mode, scenes, beats, pageCount, onAppl
             : check.errors.map((e) => <div key={e}>{e}</div>)}
         </div>
 
-        <label className="sr-fresh">
-          <input type="checkbox" checked={fresh} onChange={(e) => setFresh(e.target.checked)} />
-          <span>
-            <b>Start fresh</b>
-            <small>Replace every card on the board with new scene cards from these ranges. Your edits to the old cards go too.</small>
-          </span>
-        </label>
-
         <footer className="sr-foot">
-          <button
-            type="button"
-            className="btn sr-reset"
-            onClick={() => setInputs(defaults)}
-            title={`Put the scenes that start in each act's page target (${formatPageTargets(mode, pageCount)}) back in the boxes. The board changes only when you Apply.`}
-          >
-            Fill from page targets
-          </button>
           <span className="sr-spacer" />
           <button type="button" className="btn" onClick={onClose}>Cancel</button>
           <button type="submit" className="btn btn-primary" disabled={!check.ok}>Apply</button>
