@@ -435,6 +435,25 @@ export function rangesFromPageTargets(scenes, mode, totalPages) {
   return cols.map((ns) => listNums(ns).replace(/–/g, '-'));
 }
 
+/**
+ * The board's current split, written as ranges (["1-21", "22-42", "43-53"]): each scene goes to the
+ * visible column its linked card is in. Null when a scene has no card on the board, or more than one,
+ * so the act boxes fall back to the page targets.
+ */
+export function rangesFromBoard(beats, scenes, mode) {
+  const cols = structureFor(mode);
+  const columnOfAct = new Map(cols.flatMap((c, ci) => c.acts.map((a) => [a, ci])));
+  const cardsOf = new Map();
+  for (const b of beats || []) if (b.sceneId) cardsOf.set(b.sceneId, [...(cardsOf.get(b.sceneId) || []), b]);
+  const out = cols.map(() => []);
+  for (const s of scenes) {
+    const cards = cardsOf.get(s.id);
+    if (!cards || cards.length !== 1 || !columnOfAct.has(cards[0].act)) return null;
+    out[columnOfAct.get(cards[0].act)].push(s.number);
+  }
+  return out.map((ns) => listNums(ns.sort((a, b) => a - b)).replace(/–/g, '-'));
+}
+
 /** Place scenes by validated ranges. */
 export function populateByRanges(beats, scenes, mode, inputs, totalPages) {
   const v = validateSceneRanges(inputs, scenes.length, mode);

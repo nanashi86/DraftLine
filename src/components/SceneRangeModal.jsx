@@ -1,21 +1,23 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
-  formatPageTargets, parseSceneRanges, rangesFromPageTargets, structureFor, validateSceneRanges,
+  formatPageTargets, parseSceneRanges, rangesFromBoard, rangesFromPageTargets, structureFor, validateSceneRanges,
 } from '../lib/beats.js';
 import './SceneRangeModal.css';
 
 /**
  * "Manual Scene Ranges…": one range input per visible act column — three in 3-Act
  * view (Act 1 · Act 2 · Act 3), four in 4-Act view (Act 1 · 2A · 2B · Act 3). Starts from
- * the page-target placement; Apply is enabled once every scene is in exactly one act.
+ * the board as it is (every scene's card in its column), or from the page-target placement when
+ * some scenes have no card yet; Apply is enabled once every scene is in exactly one act.
  * "Fill from page targets" puts that placement back in the boxes (the board changes only on Apply).
  * "Start fresh" rebuilds the board from these ranges alone: every card already on it is replaced.
  */
-export default function SceneRangeModal({ mode, scenes, pageCount, onApply, onClose }) {
+export default function SceneRangeModal({ mode, scenes, beats, pageCount, onApply, onClose }) {
   const dialogRef = useRef(null);
   const cols = structureFor(mode);
   const defaults = useMemo(() => rangesFromPageTargets(scenes, mode, pageCount), [scenes, mode, pageCount]);
-  const [inputs, setInputs] = useState(defaults);
+  const [current] = useState(() => rangesFromBoard(beats, scenes, mode)); // the board when it opened
+  const [inputs, setInputs] = useState(current || defaults);
   const [fresh, setFresh] = useState(false);
   const check = validateSceneRanges(inputs, scenes.length, mode);
   const byNumber = useMemo(() => new Map(scenes.map((s) => [s.number, s])), [scenes]);
@@ -58,7 +60,8 @@ export default function SceneRangeModal({ mode, scenes, pageCount, onApply, onCl
           <h2 id="sr-title">Manual Scene Ranges</h2>
           <p>
             {scenes.length} {scenes.length === 1 ? 'scene' : 'scenes'} · {pageCount} {pageCount === 1 ? 'page' : 'pages'} ·{' '}
-            {mode} Acts ({formatPageTargets(mode, pageCount)}). Enter scene numbers per act — ranges and lists like <code>1-12, 15</code>.
+            {mode} Acts ({formatPageTargets(mode, pageCount)}). {current ? 'Showing your board as it is now. ' : ''}Enter scene numbers
+            per act — ranges and lists like <code>1-12, 15</code>.
           </p>
         </header>
 

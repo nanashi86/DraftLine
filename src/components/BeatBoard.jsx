@@ -616,6 +616,7 @@ export default function BeatBoard({
         <SceneRangeModal
           mode={actMode}
           scenes={scenes}
+          beats={beats}
           pageCount={pageCount}
           onClose={() => setRangesOpen(false)}
           onApply={(inputs, { fresh } = {}) => {

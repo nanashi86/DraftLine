@@ -2,7 +2,7 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   byAct, columnForPage, firstSentence, formatPageTargets, newBeat, pageBounds, parseSceneRanges, populateByPages,
-  populateByRanges, rangesFromPageTargets, structureFor, validateSceneRanges,
+  populateByRanges, rangesFromBoard, rangesFromPageTargets, structureFor, validateSceneRanges,
 } from '../src/lib/beats.js';
 
 /** Scenes starting on the given pages, numbered 1…n. */
@@ -104,6 +104,13 @@ describe('scene ranges', () => {
     // 3 Acts: Act 2's lanes follow the midpoint page (p. 6 of 12).
     assert.equal(acts(populateByRanges([], scenes, 3, ['1-2', '3-10', '11-12'], 12).beats), '1,2|3,4,5,6|7,8,9,10|11,12');
     assert.match(populateByRanges([], scenes, 3, ['1-2', '3-10', '']).error, /Not assigned yet: scenes 11–12/);
+  });
+  it('reads the board\'s current split; null when a scene has no card (or two)', () => {
+    const scenes = scenesOn(Array.from({ length: 6 }, (_, i) => i + 1));
+    const placed = populateByRanges([], scenes, 3, ['1-3', '4-5', '6'], 6).beats;
+    assert.deepEqual(rangesFromBoard(placed, scenes, 3), ['1-3', '4-5', '6']);
+    assert.equal(rangesFromBoard(placed.slice(1), scenes, 3), null);
+    assert.equal(rangesFromBoard([...placed, { ...placed[0], id: 'dupe' }], scenes, 3), null);
   });
   it('defaults to the page-target placement, written as ranges', () => {
     assert.deepEqual(rangesFromPageTargets(scenesOn([1, 10, 30, 60, 80]), 4, 100), ['1-2', '3', '4', '5']);

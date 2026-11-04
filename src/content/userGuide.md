@@ -336,7 +336,7 @@ The **Scene Board** (formerly the Beat Board; **Board** or **Split** view) lays 
 **Import Scenes** fills the board from your script, one card per scene, linked to that scene:
 
 - **Auto-Distribute (% Targets)** places scenes by page: about {{board.targets.3}} for 3 acts, or {{board.targets.4}} for 4 acts.
-- **Manual Scene Ranges…** lets you say which scenes belong to each act (for example 1–12, 13–40, 41–55). The boxes start filled from the page targets; **Fill from page targets** puts that split back if you've changed them. Nothing moves until you **Apply**. Tick **Start fresh** to rebuild the board from your ranges alone, replacing every card already on it.
+- **Manual Scene Ranges…** lets you say which scenes belong to each act (for example 1–12, 13–40, 41–55). The boxes open with your board as it is now (when every scene has a card), otherwise with the page-target split; **Fill from page targets** switches to that suggested split. Nothing moves until you **Apply**. Tick **Start fresh** to rebuild the board from your ranges alone, replacing every card already on it.
 - **Clear Board…** removes every card (the script isn't touched), with Undo. Use it when you'd rather start the board over.
 
 Running Import Scenes again keeps your linked cards and your edits to them: they just move to their new acts, and new scenes get new cards.
