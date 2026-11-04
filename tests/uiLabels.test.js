@@ -150,8 +150,8 @@ describe('Beat Board: Import Scenes menu', () => {
   const board = readFileSync(join(root, 'components/BeatBoard.jsx'), 'utf8');
   const modal = readFileSync(join(root, 'components/SceneRangeModal.jsx'), 'utf8');
   const menu = board.slice(board.indexOf('const populateItems = ['), board.indexOf('];', board.indexOf('const populateItems = [')));
-  it('offers "Auto-Distribute" with the percentages beside it and the page ranges underneath, and "Manual Scene Ranges…"', () => {
-    assert.match(menu, /label: 'Auto-Distribute', hint: formatPercentTargets\(actMode\), sub: targets/);
+  it('offers "Auto-Distribute…" with the percentages beside it and the page ranges underneath, and "Manual Scene Ranges…"', () => {
+    assert.match(menu, /label: 'Auto-Distribute…', hint: formatPercentTargets\(actMode\), sub: targets/);
     assert.match(menu, /label: 'Manual Scene Ranges…'/);
     assert.match(board, /const targets = formatPageTargets\(actMode, pageCount\);/);
     assert.ok(!/Auto-Distribute by Page Targets|Assign by Scene Ranges/.test(board + modal));
