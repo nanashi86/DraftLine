@@ -1,7 +1,7 @@
-[![DraftLine App](https://img.shields.io/badge/Launch-DraftLine-E05A47?style=for-the-badge)](https://nanashi86.github.io/DraftLine/)
-[![Ko-fi](https://img.shields.io/badge/Ko--fi-Tip%20Jar-FF5E5B?style=for-the-badge&logo=kofi&logoColor=white)](https://ko-fi.com/draftline)
-[![Patreon](https://img.shields.io/badge/Patreon-Support-F96854?style=for-the-badge&logo=patreon)](https://patreon.com/DraftLine)
-[![Discord](https://img.shields.io/badge/Discord-Community-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/8ytSsSWsPX)
+[![Launch DraftLine](https://img.shields.io/badge/Launch-DraftLine-C8553D?style=for-the-badge&labelColor=3F3F46&logo=data%3Aimage%2Fsvg%2Bxml%3Bbase64%2CPHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLXdpZHRoPSIyLjI1IiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiPjxwYXRoIGQ9Ik0xMyAyMWg4Ii8%2BPHBhdGggZD0iTTIxLjE3NCA2LjgxMmExIDEgMCAwIDAtMy45ODYtMy45ODdMMy44NDIgMTYuMTc0YTIgMiAwIDAgMC0uNS44M2wtMS4zMjEgNC4zNTJhLjUuNSAwIDAgMCAuNjIzLjYyMmw0LjM1My0xLjMyYTIgMiAwIDAgMCAuODMtLjQ5N3oiLz48L3N2Zz4%3D)](https://nanashi86.github.io/DraftLine/)
+[![Ko-fi: Tip Jar](https://img.shields.io/badge/Ko--fi-Tip_Jar-C8553D?style=for-the-badge&labelColor=3F3F46&logoColor=white&logo=kofi)](https://ko-fi.com/draftline)
+[![Patreon: Support](https://img.shields.io/badge/Patreon-Support-C8553D?style=for-the-badge&labelColor=3F3F46&logoColor=white&logo=patreon)](https://patreon.com/DraftLine)
+[![Discord: Community](https://img.shields.io/badge/Discord-Community-C8553D?style=for-the-badge&labelColor=3F3F46&logoColor=white&logo=discord)](https://discord.gg/8ytSsSWsPX)
 
 <p align="center">
   <img src="public/og-image.png" alt="DraftLine — Fast, Distraction-Free Screenwriting Software" width="100%">
