@@ -54,6 +54,23 @@ All the PNGs are well under the platform file-size limits (Patreon cover 3 MB, D
 - `draftline-wordmark-for-dark-bg` / `-for-light-bg`: the wordmark on its own.
 - `draftline-d-white` / `draftline-d-black`: the D alone, one colour, for stamps, watermarks and embossing.
 
+## Official colours
+
+DraftLine has two official palettes. **Primary** is the default for everything (the app's dark theme, the banners, the promo videos). **Secondary** is the light alternate (Editorial Light, the `-light` banners and intro card). Keep each terracotta on its own background: the brighter one on charcoal, the deeper one on cream.
+
+| Role | Primary (dark) | Secondary (light) |
+|---|---|---|
+| Terracotta: tile, cursor bar, accents | `#C8553D` | `#B83A2C` (deep terracotta) |
+| Background | `#18181B` charcoal | `#EBE6DC` cream (vignettes run `#E4DDCF` at the edges to `#F7F3EC` in the centre) |
+| Wordmark and headlines | `#E9E7E2` | `#22201E` |
+| Accent text (words set in terracotta) | `#E8836B` | `#B83A2C` |
+| Muted text | `#A1A1AA` | `#6E6A64` |
+| Script page | `#FDFCF8` | `#FFFEFB` |
+
+Contrast, for reference: `#C8553D` on charcoal is 4.1:1 and `#E8836B` on charcoal is 6.7:1; `#B83A2C` on cream is 4.6:1. `#C8553D` on cream is only 3.5:1, which is why the light palette uses the deeper terracotta.
+
+Fonts are the same in both palettes: Courier Prime Bold for the wordmark and the D, Inter for everything else (see Fonts below).
+
 ## Colours (the app's own theme tokens)
 
 | Name | Hex | Used for |
