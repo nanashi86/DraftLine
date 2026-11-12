@@ -2,6 +2,97 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <!-- Google Tag Manager (GTM-5M3FDPRW) for Google Ads conversion tracking, with Google Consent Mode v2.
+         Advertising cookies wait for consent wherever the law asks for it: visitors Google locates in the EEA, the
+         UK or Switzerland, and anyone on a European time zone, start with ad and analytics storage denied, and the
+         European time zones also get the cookie banner (#dl-consent). Everywhere else storage starts granted. The
+         choice is kept in localStorage (draftline_ad_consent) and can be changed any time from ⋮ → Cookie Settings…
+         (window.draftlineConsent.open); declining also removes Google's ad cookies. Skipped entirely on the admin's
+         own devices, same rule as the Cloudflare beacon below: your own visits never count as ad conversions. -->
+    <style>#dl-consent{left:18px;bottom:calc(var(--status-h,30px) + 14px);z-index:70;box-sizing:border-box;background:var(--card,#2a2b30);width:min(340px,100vw - 36px);color:var(--text,#e9e7e2);border:1px solid var(--line-soft,#3a3b42);border-left:3px solid var(--accent,#c8553d);font:12.5px/1.45 var(--ui-font,system-ui, sans-serif);border-radius:10px;padding:14px 16px;position:fixed;box-shadow:0 10px 30px #00000059}#dl-consent p{margin:0}#dl-consent .dl-consent-title{font-size:13.5px;font-weight:650}#dl-consent .dl-consent-text{color:var(--muted,#9a9890);margin-top:4px}.dl-consent-actions{gap:8px;margin-top:12px;display:flex}.dl-consent-actions button{font:inherit;cursor:pointer;border:1px solid var(--line-soft,#3a3b42);background:var(--field,#2f3036);color:var(--text,#e9e7e2);border-radius:7px;flex:1;padding:7px 10px;font-weight:600}.dl-consent-actions button:hover{border-color:var(--border-hover,#6b6b70)}.dl-consent-actions button:focus-visible{outline:2px solid var(--accent,#c8553d);outline-offset:2px}.dl-consent-actions button[aria-pressed=true]{border-color:var(--accent-border,#c8553d)}@media print{#dl-consent{display:none}}</style>
+    <script>
+      (function (w, d, id) {
+        var CHOICE_KEY = 'draftline_ad_consent';
+        try {
+          var dev = new URL(w.location.href).searchParams.get('dev');
+          if (dev === 'true') return;
+          if (dev !== 'false' && w.localStorage.getItem('draftline_is_admin') === 'true') return;
+        } catch (e) { /* no URL or storage: carry on */ }
+        var choice = null;
+        try { choice = w.localStorage.getItem(CHOICE_KEY); } catch (e) { /* no storage: ask on every visit */ }
+        if (choice !== 'granted' && choice !== 'denied') choice = null;
+        var tz = '';
+        try { tz = Intl.DateTimeFormat().resolvedOptions().timeZone || ''; } catch (e) { /* unknown: treated as Europe */ }
+        var europe = !tz || /^(Europe|Arctic)\//.test(tz) || /^Atlantic\/(Azores|Canary|Faroe|Madeira|Reykjavik)$/.test(tz) ||
+          /^Asia\/(Nicosia|Famagusta)$/.test(tz) || tz === 'Africa/Ceuta';
+        // EU + Iceland, Liechtenstein, Norway (EEA), the UK and Switzerland, located by Google from the visitor's IP.
+        var REGIONS = ['AT', 'BE', 'BG', 'HR', 'CY', 'CZ', 'DK', 'EE', 'FI', 'FR', 'DE', 'GR', 'HU', 'IE', 'IT', 'LV', 'LT',
+          'LU', 'MT', 'NL', 'PL', 'PT', 'RO', 'SK', 'SI', 'ES', 'SE', 'IS', 'LI', 'NO', 'GB', 'CH'];
+        function state(v) {
+          return { ad_storage: v, ad_user_data: v, ad_personalization: v, analytics_storage: v };
+        }
+        w.dataLayer = w.dataLayer || [];
+        function gtag() { w.dataLayer.push(arguments); }
+        // Consent defaults go in before Tag Manager loads, so no tag ever runs ahead of them.
+        var regional = state('denied');
+        regional.region = REGIONS;
+        regional.wait_for_update = 500;
+        gtag('consent', 'default', regional);
+        gtag('consent', 'default', state(europe ? 'denied' : 'granted'));
+        gtag('set', 'ads_data_redaction', true);
+        if (choice) gtag('consent', 'update', state(choice));
+        w.dataLayer.push({ 'gtm.start': new Date().getTime(), event: 'gtm.js' });
+        var s = d.createElement('script');
+        s.async = true;
+        s.src = 'https://www.googletagmanager.com/gtm.js?id=' + id;
+        d.head.appendChild(s);
+
+        function clearAdCookies() {
+          var host = w.location.hostname;
+          String(d.cookie || '').split(';').forEach(function (c) {
+            var name = c.split('=')[0].trim();
+            if (!/^(_gcl_|_ga)/.test(name)) return;
+            d.cookie = name + '=; Max-Age=0; path=/';
+            d.cookie = name + '=; Max-Age=0; path=/; domain=' + host;
+            d.cookie = name + '=; Max-Age=0; path=/; domain=.' + host;
+          });
+        }
+        var banner = null;
+        function choose(v) {
+          choice = v;
+          try { w.localStorage.setItem(CHOICE_KEY, v); } catch (e) { /* kept for this visit only */ }
+          gtag('consent', 'update', state(v));
+          if (v === 'denied') clearAdCookies();
+          if (banner) { banner.remove(); banner = null; }
+        }
+        // The banner: two equal buttons, never a wall. It doesn't take focus when it appears on its own, so
+        // typing carries on; opened from the menu, focus moves to it.
+        function open(fromMenu) {
+          if (!banner) {
+            banner = d.createElement('section');
+            banner.id = 'dl-consent';
+            banner.setAttribute('aria-label', 'Cookie choices');
+            banner.innerHTML = '<p class="dl-consent-title">Cookies for our ads</p>' +
+              '<p class="dl-consent-text">With your OK, DraftLine uses Google advertising cookies to see which ads bring ' +
+              'writers here. Your writing is never part of it either way.</p>' +
+              '<div class="dl-consent-actions">' +
+              '<button type="button" data-choice="denied" aria-pressed="' + (choice === 'denied') + '">Decline</button>' +
+              '<button type="button" data-choice="granted" aria-pressed="' + (choice === 'granted') + '">Accept</button></div>';
+            banner.addEventListener('click', function (e) {
+              var b = e.target && e.target.closest ? e.target.closest('button[data-choice]') : null;
+              if (b) choose(b.getAttribute('data-choice'));
+            });
+            d.body.appendChild(banner);
+          }
+          if (fromMenu) banner.querySelector('button').focus();
+        }
+        w.draftlineConsent = { open: function () { open(true); }, choice: function () { return choice; } };
+        if (europe && !choice) {
+          if (d.readyState === 'loading') d.addEventListener('DOMContentLoaded', function () { open(false); });
+          else open(false);
+        }
+      })(window, document, 'GTM-5M3FDPRW');
+    </script>
     <!-- DraftLine's red "D" mark: SVG for tabs and bookmarks, PNG for browsers without SVG icons.
          ?v= is the icon version: bump it (here and in manifest.json) when the icons are redrawn, so
          browsers drop the favicon / bookmark / installed-app icon they cached under the old URL. -->
@@ -89,7 +180,7 @@
         document.head.appendChild(beacon);
       })();
     </script>
-    <script type="module" crossorigin src="/DraftLine/assets/index-Cf4_fLXj.js"></script>
+    <script type="module" crossorigin src="/DraftLine/assets/index-Nbz_B8s1.js"></script>
     <link rel="modulepreload" crossorigin href="/DraftLine/assets/rolldown-runtime-BCiCTKAo.js">
     <link rel="modulepreload" crossorigin href="/DraftLine/assets/react-DgawKyfb.js">
     <link rel="modulepreload" crossorigin href="/DraftLine/assets/formatting-BYoP7DnV.js">
