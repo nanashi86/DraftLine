@@ -4,9 +4,13 @@
 // in About → Tips, and Show tips again doesn't bring it back.
 //
 // When:
-//   • from the 3rd writing session: a session (one visit, in one tab) counts once the writer has
-//     typed 150+ words of their own in it, the same measure as the 500-word milestone. Opening
-//     the app, or typing a scene heading, doesn't count.
+//   • from the 3rd writing session: a session (one sitting: a visit in one tab, or, in a tab left
+//     open, the stretch after a 4-hour break) counts once the writer has typed 150+ words of their
+//     own in it, the same measure as the 500-word milestone. Opening the app, or typing a scene
+//     heading, doesn't count. A big sitting (1,000+ words of their own) counts twice, so a writer
+//     who writes a lot in one go is asked on their next sitting rather than two sittings later.
+//   • a new sitting is a new session for the feature tips too (lib/hints.js HINT_SESSION_KEY): still
+//     one card per sitting, picked by the same tick, so the feedback card and the tips never meet.
 //   • that session must itself count (150+ words), and be at least 2 minutes old
 //   • at a natural pause: 45 seconds without a keystroke, or just after a break: a panel or dialog
 //     closed, Projects closed, or a switch between Write and Plan
@@ -23,10 +27,18 @@ import { wordCount } from './screenplay.js';
 export const WRITING_SESSIONS_KEY = 'draftline_writing_sessions';
 /** sessionStorage: this session has been counted. */
 export const SESSION_COUNTED_KEY = 'draftline_session_counted';
+/** sessionStorage: this session's big sitting (1,000+ words) has been counted a second time. */
+export const SESSION_BONUS_KEY = 'draftline_session_bonus';
+/** sessionStorage: when the writer last pressed a key in this tab (ms), to spot a new sitting. */
+export const SESSION_ACTIVE_KEY = 'draftline_session_active';
 /** localStorage: 'done' | 'dismissed' once the card is finished. */
 export const FEEDBACK_PROMPT_KEY = 'draftline_feedback_prompt';
 
 export const FEEDBACK_SESSION_WORDS = 150;
+/** Words of the writer's own in one sitting that count it as two. */
+export const FEEDBACK_BIG_SESSION_WORDS = 1000;
+/** A break this long in an open tab starts a new sitting. */
+export const SITTING_BREAK_MS = 4 * 60 * 60 * 1000;
 export const FEEDBACK_SESSIONS = 3;
 export const FEEDBACK_MIN_SESSION_MS = 2 * 60 * 1000;
 export const FEEDBACK_IDLE_MS = 45 * 1000;
@@ -64,11 +76,40 @@ export const sessionCounted = (session) => get(session, SESSION_COUNTED_KEY) ===
  * number of writing sessions. Blocked storage: nothing is counted (a private window never gets the card).
  */
 export function countWritingSession(local, session, sessionWords) {
-  const n = writingSessions(local);
-  if (sessionWords < FEEDBACK_SESSION_WORDS || sessionCounted(session)) return n;
-  if (!set(local, WRITING_SESSIONS_KEY, String(n + 1))) return n;
-  set(session, SESSION_COUNTED_KEY, '1');
-  return n + 1;
+  let n = writingSessions(local);
+  if (sessionWords < FEEDBACK_SESSION_WORDS) return n;
+  if (!sessionCounted(session)) {
+    if (!set(local, WRITING_SESSIONS_KEY, String(n + 1))) return n;
+    set(session, SESSION_COUNTED_KEY, '1');
+    n += 1;
+  }
+  // A big sitting counts once more (once per sitting).
+  if (sessionWords >= FEEDBACK_BIG_SESSION_WORDS && get(session, SESSION_BONUS_KEY) !== '1' && set(local, WRITING_SESSIONS_KEY, String(n + 1))) {
+    set(session, SESSION_BONUS_KEY, '1');
+    n += 1;
+  }
+  return n;
+}
+
+/**
+ * Called on a keystroke (and once on load): has this tab been idle for SITTING_BREAK_MS? Then a new
+ * sitting starts: this session's counted marks and the shown-tip mark (hintSessionKey) are cleared,
+ * so it counts, and can show one card, like a fresh visit. Remembers now as the last activity
+ * (in sessionStorage, so a reload the next day is a new sitting too). Returns true on a new sitting.
+ * The first call in a tab (nothing stored yet) is the visit itself, not a new sitting.
+ */
+export function noteSittingActivity(session, now, hintSessionKey) {
+  const last = parseInt(get(session, SESSION_ACTIVE_KEY), 10);
+  const fresh = Number.isFinite(last) && now - last >= SITTING_BREAK_MS;
+  if (fresh) {
+    for (const k of [SESSION_COUNTED_KEY, SESSION_BONUS_KEY, hintSessionKey]) {
+      try {
+        if (k) session?.removeItem(k);
+      } catch { /* blocked storage */ }
+    }
+  }
+  set(session, SESSION_ACTIVE_KEY, String(now));
+  return fresh;
 }
 
 /** Is the card finished (shown and answered, or the form opened any way)? */

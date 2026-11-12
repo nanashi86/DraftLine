@@ -5,8 +5,9 @@ import {
   FEEDBACK_BREAK_MS, FEEDBACK_IDLE_MS, FEEDBACK_MIN_SESSION_MS, FEEDBACK_PROMPT_KEY, FEEDBACK_SESSIONS, FEEDBACK_SESSION_WORDS,
   FEEDBACK_SEEDED_KEY, RETURNING_WRITER_WORDS, WRITING_SESSIONS_KEY, countWritingSession, feedbackPause, feedbackPromptFinished,
   feedbackWanted, finishFeedbackPrompt, seedReturningWriter, sessionCounted, writingSessions,
+  FEEDBACK_BIG_SESSION_WORDS, SITTING_BREAK_MS, SESSION_BONUS_KEY, noteSittingActivity,
 } from '../src/lib/feedbackPrompt.js';
-import { FEEDBACK_HINT, HINTS, HINT_IDS } from '../src/lib/hints.js';
+import { FEEDBACK_HINT, HINTS, HINT_IDS, HINT_SESSION_KEY } from '../src/lib/hints.js';
 
 const read = (p) => readFileSync(new URL(`../src/${p}`, import.meta.url), 'utf8');
 const mem = () => {
@@ -124,5 +125,53 @@ describe('feedback card: writers already writing before this update', () => {
   });
   it('the app runs it once on load, over the whole library', () => {
     assert.match(read('App.jsx'), /projects\.getAllProjects\(\)\.then\(\(list\) => seedReturningWriter\(LOCAL, list\), \(\) => \{\}\);/);
+  });
+});
+
+describe('feedback card: big sittings and tabs left open', () => {
+  it('a sitting with 1,000+ words of the writer’s own counts twice, once', () => {
+    assert.equal(FEEDBACK_BIG_SESSION_WORDS, 1000);
+    const local = mem();
+    const s1 = mem();
+    assert.equal(countWritingSession(local, s1, 150), 1);
+    assert.equal(countWritingSession(local, s1, 999), 1);
+    assert.equal(countWritingSession(local, s1, 1000), 2, 'three pages and more in one go');
+    assert.equal(countWritingSession(local, s1, 3000), 2, 'the bonus is once per sitting');
+    assert.equal(s1.getItem(SESSION_BONUS_KEY), '1');
+    assert.equal(countWritingSession(local, mem(), 150), 3, 'so the next sitting is the third');
+    assert.equal(feedbackWanted({ sessions: 3, counted: true }), true);
+  });
+  it('a big first jump (paste-sized edit) still counts the sitting and the bonus together', () => {
+    const local = mem();
+    assert.equal(countWritingSession(local, mem(), 1200), 2);
+  });
+  it('a 4-hour break in an open tab starts a new sitting: counts again, and one more card is allowed', () => {
+    assert.equal(SITTING_BREAK_MS, 4 * 60 * 60 * 1000);
+    const local = mem();
+    const tab = mem();
+    const t0 = 1_000_000;
+    assert.equal(noteSittingActivity(tab, t0, HINT_SESSION_KEY), false, 'the first call is the visit itself');
+    assert.equal(countWritingSession(local, tab, 1000), 2);
+    tab.setItem(HINT_SESSION_KEY, 'focus');
+    assert.equal(noteSittingActivity(tab, t0 + SITTING_BREAK_MS - 60_000, HINT_SESSION_KEY), false, 'a long pause isn’t a new sitting');
+    assert.equal(sessionCounted(tab), true);
+    assert.equal(tab.getItem(HINT_SESSION_KEY), 'focus', 'still one card this sitting');
+    const later = t0 + SITTING_BREAK_MS - 60_000 + SITTING_BREAK_MS;
+    assert.equal(noteSittingActivity(tab, later, HINT_SESSION_KEY), true);
+    assert.equal(sessionCounted(tab), false);
+    assert.equal(tab.getItem(SESSION_BONUS_KEY), null);
+    assert.equal(tab.getItem(HINT_SESSION_KEY), null, 'a new sitting may show one card again, picked by the same tick');
+    assert.equal(countWritingSession(local, tab, 150), 3);
+  });
+  it('blocked storage: no new sittings, nothing thrown', () => {
+    const broken = { getItem() { throw new Error('blocked'); }, setItem() { throw new Error('blocked'); }, removeItem() { throw new Error('blocked'); } };
+    assert.equal(noteSittingActivity(broken, 5, HINT_SESSION_KEY), false);
+    assert.equal(noteSittingActivity(null, 5, HINT_SESSION_KEY), false);
+  });
+  it('the app notes sittings on load and on keystrokes, and resets this sitting’s word count and clock', () => {
+    const app = read('App.jsx');
+    assert.match(app, /noteSittingActivity\(SESSION, Date\.now\(\), HINT_SESSION_KEY\)/);
+    assert.match(app, /if \(noteSittingActivity\(SESSION, now, HINT_SESSION_KEY\)\) newSitting\(now\)/);
+    assert.match(app, /sessionTyped\.current = 0;\s*c\.sessionStart = now;/);
   });
 });

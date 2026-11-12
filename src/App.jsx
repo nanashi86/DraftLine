@@ -15,8 +15,8 @@ import {
 } from './lib/hints.js';
 import { projectUntouched, scriptIsBlank } from './lib/blankScript.js';
 import {
-  countWritingSession, feedbackPause, feedbackPromptFinished, feedbackWanted, finishFeedbackPrompt, seedReturningWriter, sessionCounted,
-  writingSessions,
+  countWritingSession, feedbackPause, feedbackPromptFinished, feedbackWanted, finishFeedbackPrompt, noteSittingActivity, seedReturningWriter,
+  sessionCounted, writingSessions,
 } from './lib/feedbackPrompt.js';
 import ExportFdxModal from './components/ExportFdxModal.jsx';
 import DeleteProjectModal from './components/DeleteProjectModal.jsx';
@@ -2176,8 +2176,21 @@ function Workspace({ boot }) {
   useEffect(() => {
     const c = hintClock.current;
     if (!c.openedAt) c.openedAt = Date.now();
+    // A new sitting (lib/feedbackPrompt.js): after a 4-hour break in this tab, or a reload after one,
+    // the session starts over for the feedback count and the one-card-per-session tips.
+    const newSitting = (now) => {
+      sessionTyped.current = 0;
+      c.sessionStart = now;
+      c.breakAt = 0;
+    };
+    if (noteSittingActivity(SESSION, Date.now(), HINT_SESSION_KEY)) newSitting(Date.now());
+    c.activeNotedAt = Date.now();
     const onKey = () => {
-      c.lastKeyAt = Date.now();
+      const now = Date.now();
+      c.lastKeyAt = now;
+      if (now - (c.activeNotedAt || 0) < 60 * 1000) return; // the stored time is refreshed once a minute at most
+      c.activeNotedAt = now;
+      if (noteSittingActivity(SESSION, now, HINT_SESSION_KEY)) newSitting(now);
     };
     // Where the caret was in the script, so it can go back there after a hint's tool runs.
     const onOut = (e) => {
