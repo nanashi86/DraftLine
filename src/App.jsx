@@ -2652,6 +2652,7 @@ function Workspace({ boot }) {
                 issueCount: issues.length,
                 onAbout: () => setHelpKind('about'),
                 onFeedback: () => setFeedbackOpen(true),
+                onCookies: window.draftlineConsent ? () => window.draftlineConsent.open() : null,
                 onSettings: () => setSettingsAt('top'),
                 onGuide: () => setGuideOpen(true),
                 focusOnBar: inPlan || focusShowing(),

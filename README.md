@@ -22,8 +22,10 @@ Your scripts stay on your device in open formats (Fountain and Final Draft XML),
   act's pacing against its target.
 - **Local-first privacy with IndexedDB persistence (zero telemetry, zero remote database storage).** Scripts are saved
   in your browser's own database, or in a folder you link (Google Drive, Dropbox, OneDrive or a local disk). The editor
-  sends nothing about you or your writing anywhere; the website only counts page views (Cloudflare Web Analytics,
-  no cookies), and Send Feedback sends only what you type, when you choose to.
+  sends nothing about you or your writing anywhere. The website counts page views with Cloudflare Web Analytics (no
+  cookies) and uses Google Tag Manager to measure our ad campaigns, which sets Google advertising cookies. Visitors in
+  the EU, the UK and Switzerland are asked first, and anyone can change their choice under ⋮ → Cookie Settings… at any time.
+  Send Feedback sends only what you type, when you choose to.
 - **Full FDX and Fountain import/export compatibility.** Open and save Final Draft (.fdx) and Fountain files, margin
   notes included, plus PDF, Word and Google Docs import. The User Guide's *Final Draft (.fdx)* section lists the few
   Final Draft settings that don't carry over.

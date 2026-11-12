@@ -79,7 +79,9 @@ describe('page title: what the tab shows, and what search engines index', () => 
       'Local-first privacy with IndexedDB persistence (zero telemetry, zero remote database storage)',
       'Full FDX and Fountain import/export compatibility',
     ]) assert.ok(readme.toLowerCase().includes(phrase.toLowerCase()), phrase);
-    assert.match(readme, /the website only counts page views \(Cloudflare Web Analytics,\s+no cookies\)/, 'zero telemetry is about the editor; the site’s page-view count is disclosed');
+    assert.match(readme, /The website counts page views with Cloudflare Web Analytics \(no\s+cookies\)/, 'zero telemetry is about the editor; the site’s page-view count is disclosed');
+    assert.match(readme, /uses Google Tag Manager to measure our ad campaigns, which sets Google advertising cookies/, '…and so are the ad cookies');
+    assert.match(read('index.html'), /GTM-5M3FDPRW/, 'the ad tag the README discloses is real');
     assert.match(readme, /lists the few\s+Final Draft settings that don't carry over/, '“full” FDX, with its known limits pointed to');
     assert.match(read('index.html'), /cloudflareinsights|beacon/, 'the page-view counter the README discloses is real');
   });

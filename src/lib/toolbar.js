@@ -14,13 +14,13 @@ export function isOnBar(el, bar) {
 
 /**
  * The ⋮ menu, top to bottom: View Snapshots · Margin Notes · Format Doctor — Keyboard Shortcuts —
- * Settings… · User Guide · Send Feedback… · About DraftLine (Sample… is in File ▾), plus Scenes, Focus, Story Bible and/or Characters first (toolbar order), but only while
+ * Settings… · User Guide · Send Feedback… · Cookie Settings… · About DraftLine (Sample… is in File ▾), plus Scenes, Focus, Story Bible and/or Characters first (toolbar order), but only while
  * the toolbar can't show them itself (narrow windows). Snapshots and Notes show their counts.
  */
 export function moreMenuItems({
   bibleOnBar, charactersOnBar, onBible, onCharacters, onSnapshots, snapshotCount = 0, onNotes, noteCount = 0,
   onShortcuts, onAbout, onSettings, focusOnBar = true, onFocus, onGuide, onFormatDoctor, issueCount = 0, planTools = null, onReports = null,
-  onFeedback = null, writeViews = null, scenesOnBar = true, onScenes = null,
+  onFeedback = null, onCookies = null, writeViews = null, scenesOnBar = true, onScenes = null,
 }) {
   const panels = [
     !scenesOnBar && onScenes && { label: 'Scenes', hint: 'Alt+S', onSelect: onScenes },
@@ -50,6 +50,8 @@ export function moreMenuItems({
     ...(onGuide ? [{ label: 'User Guide', hint: 'F1', onSelect: onGuide }] : []),
     // Directly above About: three questions, sent anonymously (components/FeedbackModal.jsx).
     ...(onFeedback ? [{ label: 'Send Feedback…', onSelect: onFeedback }] : []),
+    // Ad-cookie choice (the banner in index.html): only where the Google tag loaded, so never on admin devices.
+    ...(onCookies ? [{ label: 'Cookie Settings…', onSelect: onCookies }] : []),
     { label: 'About DraftLine', onSelect: onAbout },
   ];
 }
