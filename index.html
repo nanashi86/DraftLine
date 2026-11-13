@@ -151,6 +151,41 @@
     <!-- Search engines index this. The app keeps it on the demo script (src/lib/pageTitle.js) and names the
          tab after the script once you're working on your own. -->
     <title>DraftLine — Fast, Distraction-Free Screenwriting Software (PWA)</title>
+    <!-- Structured data (schema.org SoftwareApplication) so search engines know DraftLine is a free software product.
+         applicationCategory must be one of Google's listed values; BusinessApplication is its productivity category.
+         Keep the description true to the README: the editor sends no telemetry (the site has page views and ad tags). -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "DraftLine",
+        "url": "https://nanashi86.github.io/DraftLine/",
+        "description": "A fast, distraction-free, local-first screenwriting PWA with strict 54-line Hollywood pagination, Fountain and Final Draft (.fdx) support, and no telemetry from the editor.",
+        "applicationCategory": "BusinessApplication",
+        "applicationSubCategory": "Screenwriting",
+        "operatingSystem": "Web browser (Windows, macOS, Linux, ChromeOS, Android, iOS); installable as a Progressive Web App",
+        "browserRequirements": "Requires JavaScript. Works offline once loaded.",
+        "isAccessibleForFree": true,
+        "license": "https://opensource.org/licenses/MIT",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD",
+          "description": "Free and open source (MIT). No subscription fees."
+        },
+        "featureList": [
+          "Strict 54-line Hollywood pagination",
+          "Fountain and Final Draft (.fdx) import and export",
+          "4-act index card Scene Board",
+          "Works offline; scripts stay on your device",
+          "No account required"
+        ],
+        "image": "https://nanashi86.github.io/DraftLine/og-image.png",
+        "screenshot": "https://nanashi86.github.io/DraftLine/og-image.png",
+        "author": { "@type": "Person", "name": "NANASHI86", "url": "https://github.com/nanashi86" },
+        "sameAs": ["https://github.com/nanashi86/DraftLine"]
+      }
+    </script>
     <!-- Cloudflare Web Analytics, skipped on the admin's own devices. Visit once with ?dev=true to mark this
          browser as admin (?dev=false clears it); the parameter is then removed from the address bar. The beacon
          is cross-origin, so the service worker never touches it, and nothing here uses IndexedDB. -->
