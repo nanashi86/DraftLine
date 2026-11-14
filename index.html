@@ -96,37 +96,37 @@
     <!-- DraftLine's red "D" mark: SVG for tabs and bookmarks, PNG for browsers without SVG icons.
          ?v= is the icon version: bump it (here and in manifest.json) when the icons are redrawn, so
          browsers drop the favicon / bookmark / installed-app icon they cached under the old URL. -->
-    <link rel="icon" type="image/svg+xml" href="/DraftLine/favicon.svg?v=2" />
-    <link rel="icon" type="image/png" sizes="192x192" href="/DraftLine/icon-192.png?v=2" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=2" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png?v=2" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="format-detection" content="telephone=no" />
     <!-- Installable, offline-capable app (PWA): manifest + service worker (src/pwa/). -->
-    <link rel="manifest" href="/DraftLine/manifest.json" />
+    <link rel="manifest" href="/manifest.json" />
     <meta name="theme-color" content="#18181b" />
     <!-- Settings → Appearance: the Editorial Light shell, set before the first paint so a light-theme writer
          never sees a dark flash. Same key and colours as src/lib/userSettings.js; dark needs nothing. -->
     <script>try{if(JSON.parse(localStorage.getItem('draftline_user_settings')||'null').theme==='light'){document.documentElement.setAttribute('data-theme','light');document.querySelector('meta[name="theme-color"]').setAttribute('content','#f4f0e8')}}catch(e){}</script>
     <!-- Search and sharing: one title and description everywhere (tab, search result, link previews).
          The title must match SEO_TITLE in src/lib/pageTitle.js. Link previews need absolute URLs. -->
-    <link rel="canonical" href="https://nanashi86.github.io/DraftLine/" />
+    <link rel="canonical" href="https://draftlineapp.com/" />
     <meta name="description" content="DraftLine is a 100% free, open-source, local-first screenwriting tool. Fast and distraction-free with strict 54-line Hollywood pagination, 4-act index card beat board, and FDX/Fountain export with no subscriptions or accounts required." />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="DraftLine" />
-    <meta property="og:url" content="https://nanashi86.github.io/DraftLine/" />
+    <meta property="og:url" content="https://draftlineapp.com/" />
     <meta property="og:title" content="DraftLine — Fast, Distraction-Free Screenwriting Software (PWA)" />
     <meta property="og:description" content="DraftLine is a 100% free, open-source, local-first screenwriting tool. Fast and distraction-free with strict 54-line Hollywood pagination, 4-act index card beat board, and FDX/Fountain export with no subscriptions or accounts required." />
-    <meta property="og:image" content="https://nanashi86.github.io/DraftLine/og-image.png" />
+    <meta property="og:image" content="https://draftlineapp.com/og-image.png" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
     <meta property="og:image:alt" content="DraftLine: fast, distraction-free screenwriting. Free." />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:url" content="https://nanashi86.github.io/DraftLine/" />
+    <meta name="twitter:url" content="https://draftlineapp.com/" />
     <meta name="twitter:title" content="DraftLine — Fast, Distraction-Free Screenwriting Software (PWA)" />
     <meta name="twitter:description" content="DraftLine is a 100% free, open-source, local-first screenwriting tool. Fast and distraction-free with strict 54-line Hollywood pagination, 4-act index card beat board, and FDX/Fountain export with no subscriptions or accounts required." />
-    <meta name="twitter:image" content="https://nanashi86.github.io/DraftLine/og-image.png" />
+    <meta name="twitter:image" content="https://draftlineapp.com/og-image.png" />
     <!-- Google Search Console ownership check for the published site: leave it in place, or the site is unverified. -->
     <meta name="google-site-verification" content="DrCDehHt3vN0jJh4gijIObittLvGD1iLPm2yA6TGQrA" />
-    <link rel="apple-touch-icon" href="/DraftLine/apple-touch-icon.png?v=2" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=2" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-title" content="DraftLine" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -159,7 +159,7 @@
         "@context": "https://schema.org",
         "@type": "SoftwareApplication",
         "name": "DraftLine",
-        "url": "https://nanashi86.github.io/DraftLine/",
+        "url": "https://draftlineapp.com/",
         "description": "A fast, distraction-free, local-first screenwriting PWA with strict 54-line Hollywood pagination, Fountain and Final Draft (.fdx) support, and no telemetry from the editor.",
         "applicationCategory": "BusinessApplication",
         "applicationSubCategory": "Screenwriting",
@@ -180,8 +180,8 @@
           "Works offline; scripts stay on your device",
           "No account required"
         ],
-        "image": "https://nanashi86.github.io/DraftLine/og-image.png",
-        "screenshot": "https://nanashi86.github.io/DraftLine/og-image.png",
+        "image": "https://draftlineapp.com/og-image.png",
+        "screenshot": "https://draftlineapp.com/og-image.png",
         "author": { "@type": "Person", "name": "NANASHI86", "url": "https://github.com/nanashi86" },
         "sameAs": ["https://github.com/nanashi86/DraftLine"]
       }
@@ -215,13 +215,13 @@
         document.head.appendChild(beacon);
       })();
     </script>
-    <script type="module" crossorigin src="/DraftLine/assets/index-Nbz_B8s1.js"></script>
-    <link rel="modulepreload" crossorigin href="/DraftLine/assets/rolldown-runtime-BCiCTKAo.js">
-    <link rel="modulepreload" crossorigin href="/DraftLine/assets/react-DgawKyfb.js">
-    <link rel="modulepreload" crossorigin href="/DraftLine/assets/formatting-BYoP7DnV.js">
-    <link rel="modulepreload" crossorigin href="/DraftLine/assets/sluglines-NngmNwiy.js">
-    <link rel="modulepreload" crossorigin href="/DraftLine/assets/titleFonts-CncB-K-b.js">
-    <link rel="stylesheet" crossorigin href="/DraftLine/assets/index-Cv9V6Za9.css">
+    <script type="module" crossorigin src="/assets/index-UjsIoWXf.js"></script>
+    <link rel="modulepreload" crossorigin href="/assets/rolldown-runtime-BCiCTKAo.js">
+    <link rel="modulepreload" crossorigin href="/assets/react-DgawKyfb.js">
+    <link rel="modulepreload" crossorigin href="/assets/formatting-BYoP7DnV.js">
+    <link rel="modulepreload" crossorigin href="/assets/sluglines-NngmNwiy.js">
+    <link rel="modulepreload" crossorigin href="/assets/titleFonts-CncB-K-b.js">
+    <link rel="stylesheet" crossorigin href="/assets/index-LhoUQPkM.css">
   </head>
   <body>
     <div id="root"></div>
