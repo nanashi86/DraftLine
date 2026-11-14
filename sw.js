@@ -10,7 +10,7 @@
    • Google Fonts: cached as they're used (title-page fonts too), served from cache after that.
    • Your scripts never touch this: they live in IndexedDB. Nothing is sent anywhere. */
 
-const VERSION = "897d1c52024e";
+const VERSION = "ffbe88f7f338";
 const PRECACHE = [
   "./",
   "./apple-touch-icon.png",
@@ -59,6 +59,7 @@ const PRECACHE = [
   "./assets/titleFonts-CncB-K-b.js",
   "./credits.json",
   "./favicon.svg",
+  "./googlee6611a83e80afede.html",
   "./icon-192.png",
   "./icon-512.png",
   "./icon-maskable-512.png",
