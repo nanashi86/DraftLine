@@ -93,7 +93,7 @@
 .hm-name { font-size: 18px; font-weight: 650; }
 .hm-version { font-size: 12.5px; color: var(--muted); }
 .hm-features { margin-top: -4px; font-size: 13.5px; }
-.hm-features a { color: var(--accent); }
+.hm-features a { color: var(--accent); display: inline-flex; align-items: center; gap: 4px; }
 .hm-facts { margin: 16px 0 0; display: grid; gap: 6px; }
 .hm-facts > div { display: flex; gap: 12px; }
 .hm-facts dt { flex: none; width: 92px; color: var(--muted); }

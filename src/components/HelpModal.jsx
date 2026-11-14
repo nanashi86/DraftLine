@@ -155,7 +155,10 @@ export default function HelpModal({ kind, storage, onClose, tipsFinished = 0, ti
             absolute focus, and export effortlessly to Fountain or Final Draft (.fdx).
           </p>
           <p className="hm-features">
-            <a href={`${import.meta.env.BASE_URL}features/`} target="_blank" rel="noopener">What is DraftLine? See every feature</a>
+            <a href={`${import.meta.env.BASE_URL}features/`} target="_blank" rel="noopener">
+              See all features
+              <ExternalLink size={12} strokeWidth={1.75} aria-hidden />
+            </a>
           </p>
           <section className="hm-origin" aria-labelledby="hm-origin-title">
             <h3 id="hm-origin-title">Origin Story</h3>
