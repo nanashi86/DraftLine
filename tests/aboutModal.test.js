@@ -98,9 +98,10 @@ describe('About: Storage reflects folder sync', () => {
     const card = src.slice(src.indexOf('className="hm-privacy"'), src.indexOf('</section>', src.indexOf('className="hm-privacy"')));
     const points = [...card.matchAll(/<li>([\s\S]*?)<\/li>/g)].map((m) => m[1].replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim());
     assert.deepEqual(points, [
-      '100% Local: Scripts never touch an external server; zero cloud telemetry or account logins.',
+      '100% Local: DraftLine never uploads your scripts; no account, no cloud copy, no telemetry about your writing.',
       'Drive Sync: Linking a Google Drive or local folder autosaves changes and snapshots straight to disk.',
       'Browser Data Notice: Clearing browser site data removes local drafts unless synced or backed up via .draftline, .fountain, or .fdx.',
+      'Another Device: Link the same Drive, Dropbox or OneDrive folder there (Chrome or Edge on a computer), or use File → Backup Project and open the .draftline file on the other device.',
     ]);
     assert.ok(!/Everything runs locally/.test(src), 'the old paragraph is gone');
   });
@@ -193,7 +194,7 @@ describe('Trademark notices: brand anchors only, never on controls', () => {
   });
   it('README and ROADMAP carry ™ (the README on its first mention, under the search-friendly title); the README ends with the trademark line', () => {
     const readme = read('README.md');
-    assert.match(readme, /^# DraftLine — Fast, Distraction-Free Screenwriting Software \(PWA\)$/m);
+    assert.match(readme, /^# DraftLine — Free Screenwriting Software$/m);
     assert.match(readme, /^# DraftLine — [^\n]*\n\nDraftLine™ is a fast, distraction-free screenwriting progressive web app \(PWA\)/m);
     assert.match(readme.trimEnd(), /DraftLine™ and the DraftLine logo are trademarks of Eric Lemaire Jr\.$/);
     assert.match(read('ROADMAP.md'), /^# DraftLine™ Roadmap$/m);

@@ -6,6 +6,7 @@ All notable changes to DraftLine are recorded here. The format follows [Keep a C
 
 ### Added
 
+- README: **How DraftLine compares**, a short table against Final Draft, Fade In, WriterDuet, Celtx and Beat, with where each of those is the better choice (colored production revisions, live co-writing, Mac-only). The page title, link previews and README heading are now **DraftLine — Free Screenwriting Software** (no "(PWA)"). ⋮ → About DraftLine → Your Data says plainly that DraftLine never uploads your scripts, and adds **Another Device**: link the same folder there, or carry a Backup Project file.
 - Fixed: **Delete…** said "This is your only script" when the other scripts were only in your synced folder ("In folder" cards). DraftLine now checks the folder too, brings the newest of those scripts into the browser first, and then deletes as usual.
 - Fixed: on draftlineapp.com the offline app never installed. `CNAME` was in the service worker's install list, GitHub Pages answers it with a 404, and one missing file fails the whole install; without a service worker Chrome uninstalled the app and asked again for folder access every visit. Files the site never serves (`CNAME`, dot-files) are now left out.
 - DraftLine now lives at **draftlineapp.com**. The build serves from the domain root (`base: '/'`), `public/CNAME` keeps the custom domain set on every deploy, and the canonical link, link previews, structured data, sitemap, robots.txt and README all point to the new address. The old `nanashi86.github.io/DraftLine/` address redirects there.

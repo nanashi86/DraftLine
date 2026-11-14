@@ -258,11 +258,15 @@ export default function HelpModal({ kind, storage, onClose, tipsFinished = 0, ti
           <section className="hm-privacy" aria-labelledby="hm-privacy-title">
             <h3 id="hm-privacy-title">Your Data</h3>
             <ul>
-              <li><b>100% Local:</b> Scripts never touch an external server; zero cloud telemetry or account logins.</li>
+              <li><b>100% Local:</b> DraftLine never uploads your scripts; no account, no cloud copy, no telemetry about your writing.</li>
               <li><b>Drive Sync:</b> Linking a Google Drive or local folder autosaves changes and snapshots straight to disk.</li>
               <li>
                 <b>Browser Data Notice:</b> Clearing browser site data removes local drafts unless synced or backed up via
                 .draftline, .fountain, or .fdx.
+              </li>
+              <li>
+                <b>Another Device:</b> Link the same Drive, Dropbox or OneDrive folder there (Chrome or Edge on a computer),
+                or use File → Backup Project and open the .draftline file on the other device.
               </li>
             </ul>
           </section>

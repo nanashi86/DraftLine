@@ -8,8 +8,8 @@ const read = (p) => readFileSync(new URL(`../${p}`, import.meta.url), 'utf8');
 
 describe('page title: what the tab shows, and what search engines index', () => {
   it('index.html ships the SEO title', () => {
-    assert.equal(SEO_TITLE, 'DraftLine — Fast, Distraction-Free Screenwriting Software (PWA)');
-    assert.match(read('index.html'), /<title>DraftLine — Fast, Distraction-Free Screenwriting Software \(PWA\)<\/title>/);
+    assert.equal(SEO_TITLE, 'DraftLine — Free Screenwriting Software');
+    assert.match(read('index.html'), /<title>DraftLine — Free Screenwriting Software<\/title>/);
   });
   it('the demo (File → Sample…) keeps the SEO title', () => {
     assert.equal(SAMPLE_SCRIPT.meta.title, 'The Last Ferry');
@@ -37,7 +37,7 @@ describe('page title: what the tab shows, and what search engines index', () => 
   });
   it('one title and description everywhere: tab, search result, link previews', () => {
     const html = read('index.html');
-    const T = 'DraftLine — Fast, Distraction-Free Screenwriting Software \\(PWA\\)';
+    const T = 'DraftLine — Free Screenwriting Software';
     const D = 'DraftLine is a 100% free, open-source, local-first screenwriting tool\\. Fast and distraction-free with strict 54-line Hollywood pagination, 4-act index card beat board, and FDX/Fountain export with no subscriptions or accounts required\\.';
     const U = 'https://draftlineapp\\.com/';
     assert.match(html, new RegExp(`<link rel="canonical" href="${U}" />`));

@@ -7,7 +7,7 @@
   <img src="public/og-image.png" alt="DraftLine — Fast, Distraction-Free Screenwriting Software" width="100%">
 </p>
 
-# DraftLine — Fast, Distraction-Free Screenwriting Software (PWA)
+# DraftLine — Free Screenwriting Software
 
 DraftLine™ is a fast, distraction-free screenwriting progressive web app (PWA): free, open source (MIT) and local-first.
 It runs in the browser, installs like a desktop app and keeps working offline, with no account and no subscription.
@@ -31,6 +31,31 @@ Your scripts stay on your device in open formats (Fountain and Final Draft XML),
   Final Draft settings that don't carry over.
 - **Built for rewriting.** Format Doctor, dialogue spotlight, snapshots, a Story Bible with character bios, and Plan
   (breakdowns, stripboard and reports) for when the script is ready to shoot.
+
+## How DraftLine compares
+
+DraftLine is built for one writer, one script, on their own machine: free, open source, offline, no account.
+If that's you, it's a good fit. If you need a team workflow, one of the tools below will serve you better.
+
+| | DraftLine | Final Draft | Fade In | WriterDuet | Celtx | Beat |
+|---|---|---|---|---|---|---|
+| Cost | Free | One-time purchase | One-time purchase | Free tier + subscription | Free tier + subscription | Free on Mac (iOS paid) |
+| Open source | Yes (MIT) | No | No | No | No | Yes (GPL) |
+| Runs on | Any modern browser; installs as an app | Mac, Windows, iPad | Mac, Windows, Linux, iOS, Android | Browser, desktop and mobile apps | Browser, mobile apps | Mac, iOS |
+| Real-time co-writing | No | Yes | Yes | Yes | Yes | No |
+| Colored production revisions | No | Yes | Yes | Yes | Paid plans | Yes |
+
+*Checked November 2026 from each product's own pages and store listings. Plans and features change, so check the
+vendor's site before you decide. Corrections are welcome in [Issues](https://github.com/nanashi86/DraftLine/issues).*
+
+**Where others are the better choice**
+
+- **Production drafts.** Once a script is locked for shooting, productions issue colored revision pages (blue, pink,
+  yellow…) with revision marks. DraftLine doesn't do this; Final Draft, Fade In and WriterDuet do.
+- **Writing together live.** DraftLine has no shared cloud document. Two writers in one script at the same time is
+  what WriterDuet, Final Draft and Celtx are built for. A linked folder lets you move between your own computers, but
+  the most recent save wins; edits aren't merged.
+- **Mac only, also free and open source.** If you only write on a Mac or iPhone, Beat is excellent.
 
 ```bash
 npm install

@@ -6,7 +6,7 @@
 import { SAMPLE_SCRIPT } from './sampleScript.js';
 import { isUntitled } from './blankScript.js';
 
-export const SEO_TITLE = 'DraftLine — Fast, Distraction-Free Screenwriting Software (PWA)';
+export const SEO_TITLE = 'DraftLine — Free Screenwriting Software';
 
 /**
  * document.title for the open script: "<title> — DraftLine", or SEO_TITLE on the demo and on a
