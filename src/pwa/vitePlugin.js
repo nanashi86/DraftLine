@@ -32,9 +32,17 @@ function publicFiles(dir) {
 }
 
 /** The service worker's source for a list of build files. Pure, so it's unit-tested. */
+/**
+ * Build files the site never serves, so they must never be precached: one 404 makes cache.addAll()
+ * reject the whole install, and the browser then drops the service worker (no offline, and Chrome
+ * uninstalls the app). CNAME is GitHub Pages' custom-domain setting, read by GitHub and answered
+ * with a 404; dot-files and dot-folders (.nojekyll, .well-known/…) are hidden by Pages' default build.
+ */
+export const isServed = (f) => f !== 'CNAME' && !f.split('/').some((part) => part.startsWith('.'));
+
 export function buildServiceWorker(files, template = readFileSync(TEMPLATE, 'utf8'), contents = {}) {
   // index.html is always there (Vite writes it after this hook runs), so it's listed explicitly.
-  const names = [...new Set([...files, 'index.html'])].filter((f) => f !== 'sw.js' && !f.endsWith('.map')).sort();
+  const names = [...new Set([...files, 'index.html'])].filter((f) => f !== 'sw.js' && !f.endsWith('.map') && isServed(f)).sort();
   const list = ['./', ...names.map((f) => `./${f}`)];
   const h = createHash('sha256').update(`r${CACHE_REVISION}\n${list.join('\n')}`);
   for (const f of names) if (contents[f] !== undefined) h.update(`\n${f}:`).update(contents[f]);

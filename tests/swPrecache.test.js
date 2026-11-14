@@ -3,10 +3,10 @@
 
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync, existsSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync, existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import draftlinePwa from '../src/pwa/vitePlugin.js';
+import draftlinePwa, { buildServiceWorker } from '../src/pwa/vitePlugin.js';
 
 const precacheOf = (source) => JSON.parse(source.match(/const PRECACHE = (\[[\s\S]*?\]);/)[1]);
 
@@ -48,6 +48,30 @@ describe('Service worker precache list', () => {
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }
+  });
+
+  it('never lists files the site does not serve: CNAME (GitHub reads it, then 404s) and dot-files', () => {
+    const dir = fakeBuild({
+      'index.html': '<!doctype html>',
+      'CNAME': 'draftlineapp.com\n',
+      '.nojekyll': '',
+      '.well-known/assetlinks.json': '[]',
+      'icon-192.png': 'png',
+    });
+    try {
+      draftlinePwa().writeBundle({ dir });
+      assert.deepEqual(precacheOf(readFileSync(join(dir, 'sw.js'), 'utf8')), ['./', './icon-192.png', './index.html']);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it('the real public/ folder: everything the build copies from it is precached except CNAME', () => {
+    const pub = readdirSync(new URL('../public', import.meta.url));
+    assert.ok(pub.includes('CNAME'), 'the custom domain ships with every deploy');
+    const list = precacheOf(buildServiceWorker(pub, undefined, {}).source);
+    assert.ok(!list.includes('./CNAME'));
+    for (const f of pub.filter((x) => x !== 'CNAME' && !x.startsWith('.'))) assert.ok(list.includes(`./${f}`), f);
   });
 
   it('a rebuild that changes one file gets a new version, so the old cache is dropped', () => {
