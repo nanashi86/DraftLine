@@ -5,7 +5,7 @@
 // this browser), link a folder for files on disk (the save status opens Settings → Storage & Backup), then go offline and keep writing: About shows the
 // network is gone, and the script still saves.
 //
-//   npm run dev          (DraftLine at http://localhost:5173/DraftLine/, or set DEMO_URL)
+//   npm run dev          (DraftLine at http://localhost:5173/, or set DEMO_URL)
 //   node scripts/videos/01_General_GettingStarted.js
 //   → videos/01_General_GettingStarted/01_General_GettingStarted.mp4
 import { main, record } from '../lib/demoKit.js';

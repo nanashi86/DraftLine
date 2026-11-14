@@ -7,7 +7,7 @@
 //
 // Needs a production build, where the service worker runs (it's off in `npm run dev`):
 //   npm run build && npm run preview
-//   set DEMO_URL=http://localhost:4173/DraftLine/   (PowerShell: $env:DEMO_URL="http://localhost:4173/DraftLine/")
+//   set DEMO_URL=http://localhost:4173/   (PowerShell: $env:DEMO_URL="http://localhost:4173/")
 //   node scripts/videos/03_General_OfflineAndPWA.js
 //   → videos/03_General_OfflineAndPWA/03_General_OfflineAndPWA.mp4
 import { main, record } from '../lib/demoKit.js';
