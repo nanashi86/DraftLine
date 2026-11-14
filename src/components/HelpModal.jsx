@@ -154,6 +154,9 @@ export default function HelpModal({ kind, storage, onClose, tipsFinished = 0, ti
             A fast, distraction‑free screenwriting app designed for pure flow. Write natively in your browser, maintain
             absolute focus, and export effortlessly to Fountain or Final Draft (.fdx).
           </p>
+          <p className="hm-features">
+            <a href={`${import.meta.env.BASE_URL}features/`} target="_blank" rel="noopener">What is DraftLine? See every feature</a>
+          </p>
           <section className="hm-origin" aria-labelledby="hm-origin-title">
             <h3 id="hm-origin-title">Origin Story</h3>
             <p>

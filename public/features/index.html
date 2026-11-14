@@ -71,7 +71,7 @@
     <header>
       <div class="wrap bar">
         <a class="brand" href="/"><img src="/icon-192.png?v=2" alt="" width="28" height="28" />DraftLine</a>
-        <a class="cta" href="/">Open DraftLine</a>
+        <a class="cta" data-open-app href="/?from=features">Open DraftLine</a>
       </div>
     </header>
     <main class="wrap">
@@ -204,12 +204,24 @@
       </section>
     </main>
     <footer class="wrap">
-      <p><a class="cta" href="/">Open DraftLine</a></p>
+      <p><a class="cta" data-open-app href="/?from=features">Open DraftLine</a></p>
       <p>DraftLine is free and open source under the MIT License. Source, issues and the full README are on
         <a href="https://github.com/nanashi86/DraftLine">GitHub</a>. The in-app User Guide (⋮ → User Guide) covers
         every tool in detail.</p>
     </footer>
     <script>
+      // "Open DraftLine" carries the ad click's identifiers (gclid, utm_…) to the app, where Google Tag
+      // Manager reads them, and marks the visit with from=features so a conversion can count it.
+      (function () {
+        try {
+          var here = new URLSearchParams(window.location.search);
+          document.querySelectorAll('a[data-open-app]').forEach(function (a) {
+            var to = new URL(a.getAttribute('href'), window.location.href);
+            here.forEach(function (v, k) { if (/^(gclid|gbraid|wbraid|utm_[a-z]+)$/.test(k)) to.searchParams.set(k, v); });
+            a.href = to.pathname + to.search;
+          });
+        } catch (e) { /* old browser: the plain link still works */ }
+      })();
       (function () {
         try { if (localStorage.getItem('draftline_is_admin') === 'true') return; } catch (e) { /* no storage */ }
         var beacon = document.createElement('script');

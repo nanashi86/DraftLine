@@ -40,3 +40,15 @@ describe('service worker: only the app page refreshes the offline shell', () => 
     assert.match(sw, /url\.pathname\.endsWith\('\/'\) \? `\$\{url\.pathname\}index\.html` : url\.pathname/);
   });
 });
+
+describe('features page → app, and About → features page', () => {
+  it('Open DraftLine buttons go to the app with from=features and pass the ad click identifiers along', () => {
+    const html = read('public/features/index.html');
+    assert.equal((html.match(/<a class="cta" data-open-app href="\/\?from=features">Open DraftLine<\/a>/g) || []).length, 2);
+    assert.match(html, /\/\^\(gclid\|gbraid\|wbraid\|utm_\[a-z\]\+\)\$\//);
+  });
+  it('About has a "What is DraftLine?" link to the features page, in a new tab', () => {
+    assert.match(read('src/components/HelpModal.jsx'),
+      /<a href=\{`\$\{import\.meta\.env\.BASE_URL\}features\/`\} target="_blank" rel="noopener">What is DraftLine\? See every feature<\/a>/);
+  });
+});
