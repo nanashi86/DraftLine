@@ -40,7 +40,7 @@ describe('Analytics: Cloudflare beacon with an admin opt-out', () => {
   });
 
   it('a normal visit loads the beacon (deferred, with the site token)', () => {
-    const { appended, replaced } = run('https://nanashi86.github.io/DraftLine/');
+    const { appended, replaced } = run('https://draftlineapp.com/');
     assert.equal(appended.length, 1);
     assert.equal(appended[0].src, 'https://static.cloudflareinsights.com/beacon.min.js');
     assert.equal(appended[0].defer, true);
@@ -49,28 +49,28 @@ describe('Analytics: Cloudflare beacon with an admin opt-out', () => {
   });
 
   it('?dev=true marks this browser as admin, cleans the address bar and skips the beacon', () => {
-    const { store, appended, replaced } = run('https://nanashi86.github.io/DraftLine/?dev=true#scene-3');
+    const { store, appended, replaced } = run('https://draftlineapp.com/?dev=true#scene-3');
     assert.equal(store.draftline_is_admin, 'true');
     assert.equal(appended.length, 0);
-    assert.deepEqual(replaced, [{ state: { keep: 1 }, url: '/DraftLine/#scene-3' }], 'only ?dev goes; the path, hash and history state stay');
+    assert.deepEqual(replaced, [{ state: { keep: 1 }, url: '/#scene-3' }], 'only ?dev goes; the path, hash and history state stay');
   });
 
   it('other query parameters survive the clean-up', () => {
-    const { replaced } = run('https://nanashi86.github.io/DraftLine/?a=1&dev=true&b=2');
-    assert.equal(replaced[0].url, '/DraftLine/?a=1&b=2');
+    const { replaced } = run('https://draftlineapp.com/?a=1&dev=true&b=2');
+    assert.equal(replaced[0].url, '/?a=1&b=2');
   });
 
   it('later visits from that browser stay excluded', () => {
-    const { appended, replaced } = run('https://nanashi86.github.io/DraftLine/', { stored: { draftline_is_admin: 'true' } });
+    const { appended, replaced } = run('https://draftlineapp.com/', { stored: { draftline_is_admin: 'true' } });
     assert.equal(appended.length, 0);
     assert.equal(replaced.length, 0);
   });
 
   it('?dev=false clears the flag and counts the visit again', () => {
-    const { store, appended, replaced } = run('https://nanashi86.github.io/DraftLine/?dev=false', { stored: { draftline_is_admin: 'true' } });
+    const { store, appended, replaced } = run('https://draftlineapp.com/?dev=false', { stored: { draftline_is_admin: 'true' } });
     assert.equal(store.draftline_is_admin, undefined);
     assert.equal(appended.length, 1);
-    assert.equal(replaced[0].url, '/DraftLine/');
+    assert.equal(replaced[0].url, '/');
   });
 
   it('blocked storage: ?dev=true still skips this visit; a plain visit still loads', () => {

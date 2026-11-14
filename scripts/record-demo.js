@@ -1,6 +1,6 @@
 // Records a 1080p product showcase of DraftLine with Playwright (Chromium).
 //
-//   npm run dev                      # in one terminal: DraftLine at http://localhost:5173/DraftLine/
+//   npm run dev                      # in one terminal: DraftLine at http://localhost:5173/
 //   node scripts/record-demo.js      # in another: writes recordings/draftline-demo.webm
 //
 // The tour, in a clean browser profile (no saved scripts, nothing from your own browser):
@@ -17,7 +17,7 @@
 // nothing is written to your disk. DEMO_FOLDER=0 skips that step.
 //
 // Options (environment variables):
-//   DEMO_URL       where DraftLine is running   (default http://localhost:5173/DraftLine/)
+//   DEMO_URL       where DraftLine is running   (default http://localhost:5173/)
 //   DEMO_OUT       the video file               (default recordings/draftline-demo.webm)
 //   DEMO_FPS       frames per second            (default 60)
 //   DEMO_HEADED=1  show the browser while it records
@@ -31,7 +31,7 @@ import { fileURLToPath } from 'node:url';
 import process from 'node:process';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const URL_ = process.env.DEMO_URL || 'http://localhost:5173/DraftLine/';
+const URL_ = process.env.DEMO_URL || 'http://localhost:5173/';
 const OUT = resolve(ROOT, process.env.DEMO_OUT || 'recordings/draftline-demo.webm');
 const FPS = Number(process.env.DEMO_FPS) || 60;
 const SIZE = { width: 1920, height: 1080 };

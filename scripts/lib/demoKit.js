@@ -18,7 +18,7 @@
 //
 // The run prints a timeline (seconds in the final video) of every step it calls out with say().
 //
-// Needs `npm run dev` running (DraftLine at http://localhost:5173/DraftLine/) and Playwright:
+// Needs `npm run dev` running (DraftLine at http://localhost:5173/) and Playwright:
 //   npm i -D playwright@1.64.1 && npx playwright install chromium ffmpeg
 //
 // Environment: DEMO_URL (default above) · DEMO_FPS (60) · DEMO_HEADED=1 (show the browser) ·
@@ -41,7 +41,7 @@ import { makeBlock } from '../../src/lib/screenplay.js';
 import { createRevision } from '../../src/lib/revisions.js';
 
 export const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
-export const URL_ = process.env.DEMO_URL || 'http://localhost:5173/DraftLine/';
+export const URL_ = process.env.DEMO_URL || 'http://localhost:5173/';
 const FPS = Number(process.env.DEMO_FPS) || 60;
 const SIZE = { width: 1920, height: 1080 };
 /** The title card every video opens on, and for how long. */

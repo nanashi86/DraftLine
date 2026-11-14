@@ -1,6 +1,6 @@
 // Register the service worker (production builds only — in `npm run dev` it would cache
 // files that Vite changes on every save). It's served next to index.html, so its scope is
-// the app's base path ("/DraftLine/" on GitHub Pages, "/" elsewhere).
+// the app's base path ("/" at draftlineapp.com; "./" in the desktop build).
 
 export function registerServiceWorker({ base = '/', prod = false, nav = globalThis.navigator, win = globalThis.window } = {}) {
   if (!prod || !nav?.serviceWorker || !win) return false;

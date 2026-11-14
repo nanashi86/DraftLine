@@ -66,7 +66,7 @@ src/platform/
   desktop.js                # native dialogs, fs, menus, window, updater
 ```
 
-- **Build:** `npm run build:desktop` runs `vite build --mode desktop`, with `base: './'` instead of `/DraftLine/`.
+- **Build:** `npm run build:desktop` runs `vite build --mode desktop`, with `base: './'` instead of `/`.
   Service worker registration is skipped, and the `src/platform/desktop.js` adapter is used. Then `tauri build`
   runs.
 - **Dev:** `npm run dev:desktop` runs `tauri dev` against the Vite dev server.

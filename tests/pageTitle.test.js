@@ -39,7 +39,7 @@ describe('page title: what the tab shows, and what search engines index', () => 
     const html = read('index.html');
     const T = 'DraftLine — Fast, Distraction-Free Screenwriting Software \\(PWA\\)';
     const D = 'DraftLine is a 100% free, open-source, local-first screenwriting tool\\. Fast and distraction-free with strict 54-line Hollywood pagination, 4-act index card beat board, and FDX/Fountain export with no subscriptions or accounts required\\.';
-    const U = 'https://nanashi86\\.github\\.io/DraftLine/';
+    const U = 'https://draftlineapp\\.com/';
     assert.match(html, new RegExp(`<link rel="canonical" href="${U}" />`));
     assert.match(html, new RegExp(`<meta name="description" content="${D}" />`));
     for (const [k, v] of [['og:type', 'website'], ['og:url', U], ['og:title', T], ['og:description', D], ['og:image', `${U}og-image\\.png`]]) {
@@ -60,15 +60,15 @@ describe('page title: what the tab shows, and what search engines index', () => 
     const png = readFileSync(new URL('../public/og-image.png', import.meta.url));
     assert.equal(png.readUInt32BE(16), 1200);
     assert.equal(png.readUInt32BE(20), 630);
-    assert.equal(read('public/robots.txt'), 'User-agent: *\nAllow: /\n\nSitemap: https://nanashi86.github.io/DraftLine/sitemap.xml\n');
+    assert.equal(read('public/robots.txt'), 'User-agent: *\nAllow: /\n\nSitemap: https://draftlineapp.com/sitemap.xml\n');
   });
   it('sitemap.xml: the one page, plain URLs, valid sitemap namespace, and robots.txt points to it', () => {
     const xml = read('public/sitemap.xml');
     assert.match(xml, /^<\?xml version="1\.0" encoding="UTF-8"\?>\n<urlset xmlns="http:\/\/www\.sitemaps\.org\/schemas\/sitemap\/0\.9">/);
-    assert.match(xml, /<loc>https:\/\/nanashi86\.github\.io\/DraftLine\/<\/loc>/);
+    assert.match(xml, /<loc>https:\/\/draftlineapp\.com\/<\/loc>/);
     assert.match(xml, /<lastmod>\d{4}-\d{2}-\d{2}<\/lastmod>/);
     assert.doesNotMatch(xml, /\]\(/, 'no markdown links');
-    assert.match(read('public/robots.txt'), /^Sitemap: https:\/\/nanashi86\.github\.io\/DraftLine\/sitemap\.xml$/m);
+    assert.match(read('public/robots.txt'), /^Sitemap: https:\/\/draftlineapp\.com\/sitemap\.xml$/m);
   });
   it('README: the search title, and the five search phrases, each backed by the app', () => {
     const readme = read('README.md');

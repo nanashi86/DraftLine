@@ -57,7 +57,7 @@ describe('Google Tag Manager with consent', () => {
   });
 
   it('outside Europe: EEA/UK/CH denied by region, granted elsewhere, Tag Manager loads, no banner', () => {
-    const { calls, appended, body, listeners } = visit('https://nanashi86.github.io/DraftLine/');
+    const { calls, appended, body, listeners } = visit('https://draftlineapp.com/');
     const [regional, global] = calls.filter((c) => c[0] === 'consent' && c[1] === 'default').map((c) => c[2]);
     assert.ok(regional.region.includes('FR') && regional.region.includes('GB') && regional.region.includes('CH'));
     assert.equal(regional.ad_storage, 'denied');
@@ -71,7 +71,7 @@ describe('Google Tag Manager with consent', () => {
   });
 
   it('a European time zone: everything denied by default and the banner shows once the page is parsed', () => {
-    const { calls, body, listeners } = visit('https://nanashi86.github.io/DraftLine/', { tz: 'Europe/Paris' });
+    const { calls, body, listeners } = visit('https://draftlineapp.com/', { tz: 'Europe/Paris' });
     const global = calls.filter((c) => c[1] === 'default')[1][2];
     assert.deepEqual({ ...global }, DENIED);
     assert.equal(body.length, 0);

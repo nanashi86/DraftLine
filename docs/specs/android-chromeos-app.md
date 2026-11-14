@@ -54,9 +54,8 @@ It is the same code as the web app, with no separate mobile editor.
 - **Digital Asset Links:**
   - The site must serve `/.well-known/assetlinks.json` at the **origin root**, so Chrome trusts the app and hides its
     URL bar.
-  - DraftLine lives at `nanashi86.github.io/DraftLine/`, so the file must be at
-    `https://nanashi86.github.io/.well-known/assetlinks.json`. That means a `nanashi86.github.io` user-site repo, or a
-    custom domain. This is decided before Phase 3.
+  - DraftLine lives at the root of its own domain, so the file goes at
+    `https://draftlineapp.com/.well-known/assetlinks.json` (`public/.well-known/assetlinks.json` in this repo).
   - GitHub Pages needs a `.nojekyll` file so the dot-folder is published.
 - **Signing:** Play App Signing holds the release key. Its SHA-256 fingerprint goes into `assetlinks.json`.
 - **Play Console:**
