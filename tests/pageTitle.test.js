@@ -62,7 +62,7 @@ describe('page title: what the tab shows, and what search engines index', () => 
     assert.equal(png.readUInt32BE(20), 630);
     assert.equal(read('public/robots.txt'), 'User-agent: *\nAllow: /\n\nSitemap: https://draftlineapp.com/sitemap.xml\n');
   });
-  it('sitemap.xml: the one page, plain URLs, valid sitemap namespace, and robots.txt points to it', () => {
+  it('sitemap.xml: the app and the features page, plain URLs, valid sitemap namespace, and robots.txt points to it', () => {
     const xml = read('public/sitemap.xml');
     assert.match(xml, /^<\?xml version="1\.0" encoding="UTF-8"\?>\n<urlset xmlns="http:\/\/www\.sitemaps\.org\/schemas\/sitemap\/0\.9">/);
     assert.match(xml, /<loc>https:\/\/draftlineapp\.com\/<\/loc>/);

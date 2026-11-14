@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DraftLine Features — Free Screenwriting Software</title>
+    <meta name="description" content="Everything in DraftLine, the free, open-source screenwriting app: Hollywood pagination, Final Draft and Fountain files, Scene Board, Format Doctor, Dialogue Tuner, Story Bible, snapshots, breakdowns, stripboard and reports. Works offline, no account." />
+    <link rel="canonical" href="https://draftlineapp.com/features/" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=2" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png?v=2" />
+    <meta name="theme-color" content="#1c1d20" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="DraftLine" />
+    <meta property="og:title" content="DraftLine Features — Free Screenwriting Software" />
+    <meta property="og:description" content="Hollywood pagination, Final Draft and Fountain files, Scene Board, Format Doctor, Dialogue Tuner, Story Bible, breakdowns and stripboard. Free, offline, no account." />
+    <meta property="og:url" content="https://draftlineapp.com/features/" />
+    <meta property="og:image" content="https://draftlineapp.com/og-image.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+    <style>
+      :root {
+        --bg: #1c1d20; --panel: #232428; --text: #e9e7e2; --strong: #ffffff; --muted: #9a9890;
+        --accent: #c8553d; --line: rgba(255, 255, 255, 0.1);
+      }
+      @media (prefers-color-scheme: light) {
+        :root { --bg: #f4f0e8; --panel: #f7f4ee; --text: #22201e; --strong: #1a1816; --muted: #6e6a64;
+          --accent: #b83a2c; --line: rgba(34, 32, 30, 0.13); }
+      }
+      * { box-sizing: border-box; }
+      html { -webkit-text-size-adjust: 100%; }
+      body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.65 Inter, system-ui, sans-serif; }
+      a { color: var(--accent); }
+      .wrap { max-width: 760px; margin: 0 auto; padding: 0 16px; }
+      header { border-bottom: 1px solid var(--line); }
+      .bar { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 0; }
+      .brand { display: flex; align-items: center; gap: 10px; color: var(--strong); text-decoration: none;
+        font: 700 20px 'Courier Prime', 'Courier New', monospace; }
+      .brand img { width: 28px; height: 28px; border-radius: 6px; }
+      .cta { display: inline-block; background: var(--accent); color: #fff; text-decoration: none; font-weight: 600;
+        padding: 9px 16px; border-radius: 8px; white-space: nowrap; }
+      .cta:focus-visible, .brand:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+      .hero { padding: 48px 0 24px; }
+      h1 { font: 700 clamp(28px, 6vw, 40px)/1.2 'Courier Prime', 'Courier New', monospace; color: var(--strong); margin: 0 0 14px; }
+      .lede { font-size: 18px; margin: 0 0 22px; }
+      .facts { display: flex; flex-wrap: wrap; gap: 8px; padding: 0; margin: 0; list-style: none; }
+      .facts li { border: 1px solid var(--line); border-radius: 999px; padding: 4px 12px; font-size: 14px; color: var(--muted); }
+      nav.toc { margin: 32px 0 8px; padding: 16px 20px; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; }
+      nav.toc ul { columns: 2; column-gap: 24px; margin: 6px 0 0; padding-left: 18px; }
+      @media (max-width: 520px) { nav.toc ul { columns: 1; } }
+      section { padding: 28px 0; border-bottom: 1px solid var(--line); }
+      h2 { font: 700 24px/1.3 'Courier Prime', 'Courier New', monospace; color: var(--strong); margin: 0 0 10px; }
+      section ul { padding-left: 20px; margin: 10px 0 0; }
+      section li { margin: 4px 0; }
+      kbd { font: 13px 'Courier Prime', monospace; border: 1px solid var(--line); border-radius: 4px; padding: 0 5px; }
+      .note { color: var(--muted); font-size: 14px; }
+      footer { padding: 32px 0 48px; color: var(--muted); font-size: 14px; }
+    </style>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebPage",
+        "name": "DraftLine Features",
+        "url": "https://draftlineapp.com/features/",
+        "about": { "@type": "SoftwareApplication", "name": "DraftLine", "url": "https://draftlineapp.com/" }
+      }
+    </script>
+  </head>
+  <body>
+    <header>
+      <div class="wrap bar">
+        <a class="brand" href="/"><img src="/icon-192.png?v=2" alt="" width="28" height="28" />DraftLine</a>
+        <a class="cta" href="/">Open DraftLine</a>
+      </div>
+    </header>
+    <main class="wrap">
+      <div class="hero">
+        <h1>DraftLine features</h1>
+        <p class="lede">DraftLine is a free, open-source screenwriting app for one writer and their script. It runs in your
+          browser, installs like a desktop app, works offline and needs no account. Here's everything it does.</p>
+        <ul class="facts">
+          <li>Free, MIT licensed</li><li>Works offline</li><li>No account</li><li>Scripts stay on your device</li>
+          <li>Final Draft &amp; Fountain</li>
+        </ul>
+      </div>
+
+      <nav class="toc" aria-label="On this page">
+        <strong>On this page</strong>
+        <ul>
+          <li><a href="#writing">Writing &amp; formatting</a></li>
+          <li><a href="#pagination">Hollywood pagination</a></li>
+          <li><a href="#files">Final Draft, Fountain &amp; PDF</a></li>
+          <li><a href="#scene-board">Scene Board</a></li>
+          <li><a href="#format-doctor">Format Doctor</a></li>
+          <li><a href="#dialogue">Dialogue Tuner</a></li>
+          <li><a href="#characters">Character bios</a></li>
+          <li><a href="#story-bible">Story Bible</a></li>
+          <li><a href="#snapshots">Snapshots &amp; compare</a></li>
+          <li><a href="#plan">Breakdowns, stripboard &amp; reports</a></li>
+          <li><a href="#storage">Storage, sync &amp; offline</a></li>
+          <li><a href="#privacy">Privacy</a></li>
+        </ul>
+      </nav>
+
+      <section id="writing">
+        <h2>Writing &amp; formatting</h2>
+        <p>Every line is a screenplay element, and two keys move you through them: <kbd>Tab</kbd> and <kbd>Enter</kbd>.
+          The status bar always shows where each one goes next.</p>
+        <ul>
+          <li>Scene headings, action, character, dialogue, parentheticals, transitions, centered text and dual dialogue.</li>
+          <li>Autocomplete for character names, locations and times of day.</li>
+          <li>Bold, italic, underline and strikethrough; private margin notes; find &amp; replace.</li>
+          <li>A title page, Focus mode that hides everything but the page, and dark or light themes.</li>
+        </ul>
+      </section>
+
+      <section id="pagination">
+        <h2>Hollywood pagination</h2>
+        <p>Pages break the way a production reads them: 54 lines a page in 12-point Courier Prime, with
+          <code>(MORE)</code> and <code>(CONT'D)</code> when a speech crosses a page, and headings never left alone at the
+          bottom of a page. One page stays about one minute of screen time, and the page count matches the PDF.</p>
+      </section>
+
+      <section id="files">
+        <h2>Final Draft, Fountain &amp; PDF</h2>
+        <ul>
+          <li>Open and save Final Draft (<code>.fdx</code>) and Fountain (<code>.fountain</code>) files, margin notes included.</li>
+          <li>Import from PDF, Word and Google Docs.</li>
+          <li>Export a PDF with the same page breaks as the editor, or print.</li>
+          <li>Back up a whole project (script, Scene Board, Story Bible, characters, snapshots) as one <code>.draftline</code> file.</li>
+        </ul>
+      </section>
+
+      <section id="scene-board">
+        <h2>Scene Board</h2>
+        <p>Plan the story on index cards in four acts (Setup, Escalation to Midpoint, Fall &amp; Crisis, Climax &amp;
+          Resolution) or three. Write a card per beat, drag cards between acts, or build cards from the scenes you've
+          already written and see each act's length against its target. Work beside the script in Split view, and export
+          the outline as Fountain or Markdown.</p>
+      </section>
+
+      <section id="format-doctor">
+        <h2>Format Doctor</h2>
+        <p>Checks the script against spec-script conventions and fixes what it can in one click, or all at once:
+          mistagged elements, cues with no dialogue, dangling or unclosed parentheticals, split speeches, scene-heading
+          style, missing times of day, character introductions not in capitals and more. Anything it can't fix for you,
+          it explains. A separate Density check flags action paragraphs that run too long.</p>
+      </section>
+
+      <section id="dialogue">
+        <h2>Dialogue Tuner</h2>
+        <p>Pick a character and see every line they speak, in order, with scene and page. Edit lines in place, see the
+          line before each speech for context, and read their totals: lines, words, scenes, monologues and cadence
+          (fast banter, balanced or expository).</p>
+      </section>
+
+      <section id="characters">
+        <h2>Character bios</h2>
+        <p>A card per character with role, age or ages across a timeline, traits and backstory. Populate Bio fills in
+          age and description from each character's introduction in your action lines, and Rename across script changes a
+          name everywhere at once. Hover a character cue in the script to see their bio.</p>
+      </section>
+
+      <section id="story-bible">
+        <h2>Story Bible</h2>
+        <p>Everything about the story that isn't the script: the story's DNA (its spine, genre, theme, conflict and plot
+          devices), notes, a synopsis and treatment, and a glossary of screenwriting terms you can rewrite in your own
+          words.</p>
+      </section>
+
+      <section id="snapshots">
+        <h2>Snapshots &amp; compare</h2>
+        <p>Save the whole project as a named checkpoint whenever you like. Compare any snapshot with the current draft,
+          inline or side by side, with deletions and additions marked, and restore it in one step.</p>
+      </section>
+
+      <section id="plan">
+        <h2>Breakdowns, stripboard &amp; reports</h2>
+        <p>Switch from Write to Plan when the script is ready to shoot. DraftLine works these out from the script itself:</p>
+        <ul>
+          <li><strong>Breakdowns:</strong> a card per scene with INT/EXT, day/night, length in eighths and speaking cast,
+            plus lists for extras, props, wardrobe, effects and vehicles. Export as CSV.</li>
+          <li><strong>Stripboard:</strong> one colour-coded strip per scene.</li>
+          <li><strong>Reports:</strong> scenes, characters, locations and script totals, each sortable and downloadable as CSV.</li>
+        </ul>
+      </section>
+
+      <section id="storage">
+        <h2>Storage, sync &amp; offline</h2>
+        <p>Scripts save automatically in your browser, on your device. In Chrome or Edge on a computer you can also link a
+          folder, including a Google Drive, Dropbox or OneDrive folder, and every script is kept there as a file that
+          follows you to your other computers. Install DraftLine from the address bar and it opens in its own window and
+          works fully offline after the first visit.</p>
+        <p class="note">One writer at a time: there's no live co-writing, and when two computers edit the same script the
+          most recent save wins.</p>
+      </section>
+
+      <section id="privacy">
+        <h2>Privacy</h2>
+        <p>No account, no subscription, and DraftLine never uploads your scripts. The website counts visits with
+          Cloudflare Web Analytics (no cookies) and uses Google Tag Manager to measure ads; visitors in the EU, the UK and
+          Switzerland are asked first. Your writing is never part of either.</p>
+      </section>
+    </main>
+    <footer class="wrap">
+      <p><a class="cta" href="/">Open DraftLine</a></p>
+      <p>DraftLine is free and open source under the MIT License. Source, issues and the full README are on
+        <a href="https://github.com/nanashi86/DraftLine">GitHub</a>. The in-app User Guide (⋮ → User Guide) covers
+        every tool in detail.</p>
+    </footer>
+    <script>
+      (function () {
+        try { if (localStorage.getItem('draftline_is_admin') === 'true') return; } catch (e) { /* no storage */ }
+        var beacon = document.createElement('script');
+        beacon.defer = true;
+        beacon.src = 'https://static.cloudflareinsights.com/beacon.min.js';
+        beacon.setAttribute('data-cf-beacon', '{"token": "12fb1a12f74a4632b8201f0cb4563745"}');
+        document.head.appendChild(beacon);
+      })();
+    </script>
+  </body>
+</html>

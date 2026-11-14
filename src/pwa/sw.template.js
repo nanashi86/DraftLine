@@ -67,15 +67,24 @@ self.addEventListener('fetch', (event) => {
   }
   if (url.origin !== self.location.origin) return;
 
-  // Pages: newest when online, the cached app when offline.
+  // Pages: newest when online, the cached app when offline. Only the app's own page refreshes the
+  // cached index.html; other pages (features/, the verification file) are served as they are, and
+  // offline from their own precached copy, so opening one never replaces the app shell.
   if (req.mode === 'navigate') {
+    const root = new URL('./', self.location.href).pathname;
+    const isApp = url.pathname === root || url.pathname === `${root}index.html`;
     event.respondWith((async () => {
       const cache = await caches.open(SHELL_CACHE);
       try {
         const res = await fetch(req);
-        if (res.ok) cache.put('./index.html', res.clone());
+        if (res.ok && isApp) cache.put('./index.html', res.clone());
         return res;
       } catch {
+        if (!isApp) {
+          const own = url.pathname.endsWith('/') ? `${url.pathname}index.html` : url.pathname;
+          const page = await cache.match(own, { ignoreSearch: true, ignoreVary: true });
+          if (page) return page;
+        }
         return (await cache.match('./index.html', { ignoreVary: true })) || (await cache.match('./', { ignoreVary: true })) || Response.error();
       }
     })());
