@@ -117,7 +117,7 @@ const RUNNING_STANDALONE = !!(globalThis.navigator?.standalone || globalThis.mat
 import { createNoirAudio } from './lib/noirAudio.js';
 import { NOIR_CLASS, NOIR_COMBO, noirGenrePicked, noirKeyAction } from './lib/noir.js';
 import {
-  AUTO_SNAPSHOT_INTERVAL_MS, TRASH_DIR, createFolderSync, mergeProjectLists, saveProjectEverywhere, storageStatus,
+  AUTO_SNAPSHOT_INTERVAL_MS, TRASH_DIR, createFolderSync, folderOnlyFallback, mergeProjectLists, saveProjectEverywhere, storageStatus,
 } from './lib/folderSync.js';
 import './App.css';
 
@@ -1378,8 +1378,10 @@ function Workspace({ boot }) {
       notify(`“${title}” is locked — unlock it (the padlock in Projects) to delete it`);
       return;
     }
-    const others = (await projects.getAllProjects()).filter((p) => p.id !== id);
-    if (!others.length) {
+    const local = await projects.getAllProjects();
+    const others = local.filter((p) => p.id !== id);
+    // Only one script in this browser, but others may be only in the synced folder ("In folder" cards).
+    if (!others.length && !folderOnlyFallback(local, await folderSync.listProjects(), id)) {
       notify('This is your only script — create another before deleting it.');
       return;
     }
@@ -1422,6 +1424,13 @@ function Workspace({ boot }) {
               .catch(() => null);
           }
         }
+      }
+      // The last script in this browser, with others only in the folder: bring the newest of those in
+      // first, so there's one to switch to and the library's "only script" guard is satisfied.
+      const local = await projects.getAllProjects();
+      if (!local.some((p) => p.id !== d.id)) {
+        const fallback = folderOnlyFallback(local, await folderSync.listProjects(), d.id);
+        if (fallback) await localCopy(fallback);
       }
       if (d.id === projectId) {
         // Move to the most recently edited other script first, then delete.

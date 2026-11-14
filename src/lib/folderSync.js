@@ -208,6 +208,18 @@ export function mergeProjectLists(local = [], folder = [], { owned = {} } = {}) 
 }
 
 /**
+ * Deleting script `id` when it's the only one in this browser: the other scripts may live only in the
+ * synced folder ("In folder" cards), so the delete isn't really of the last script. Returns the id of the
+ * newest folder script other than `id` that this browser doesn't have (to bring in first), or null.
+ */
+export function folderOnlyFallback(local = [], folder = [], id) {
+  const here = new Set(local.map((r) => r.id));
+  const pick = folder.map((f) => f.record).filter((r) => r?.id && r.id !== id && !here.has(r.id))
+    .sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0))[0];
+  return pick ? pick.id : null;
+}
+
+/**
  * Save a project: to IndexedDB first (the ground truth), then — when folder sync is on — to its
  * file. `onLocal(record)` runs as soon as the browser copy is safe. Resolves
  * { record, folder: 'written' | 'skipped' | 'error' }. If the browser save fails, nothing is
