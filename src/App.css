@@ -1094,6 +1094,14 @@
   }
 }
 
+/* Phones (phone width and a touch screen): every text field is at least 16px, the size below which
+   iPhone Safari zooms the whole page when the field is tapped. Script lines are 16px already. */
+@media (max-width: 559.98px) and (hover: none) {
+  input:is(:not([type]), [type=text], [type=search], [type=email], [type=url], [type=number], [type=tel], [type=password]),
+  textarea:not(.el-input),
+  select { font-size: 16px !important; }
+}
+
 /* Touch screens: no keyboard-shortcut hints (Alt+S, Ctrl+/, F1…) in menus or the Element list.
    Counts, file types and other hints stay. */
 @media (hover: none) {

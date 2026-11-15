@@ -55,7 +55,7 @@ describe('Right-click reaches the browser on script elements', () => {
     assert.equal(stops.length, 1);
     assert.match(stops[0], /e\.key === 'Escape'/);
     // Every change is the textarea's own value (a phone page view adds back the rest of the element's text).
-    assert.match(editor, /onChange=\{\(e\) => \(span\s*\? onText\(block\.id, block\.text\.slice\(0, from\) \+ e\.target\.value \+ block\.text\.slice\(to\), from \+ e\.target\.selectionEnd\)\s*: onText\(block\.id, e\.target\.value\)\)\}/);
+    assert.match(editor, /onChange=\{\(e\) => \(span\s*\? onText\(block\.id, block\.text\.slice\(0, from\) \+ e\.target\.value \+ block\.text\.slice\(to\), from \+ e\.target\.selectionEnd, from\)\s*: onText\(block\.id, e\.target\.value\)\)\}/);
   });
 
   it('the textarea takes the pointer; every layer drawn over or beside the text lets it through', () => {

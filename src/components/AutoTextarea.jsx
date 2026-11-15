@@ -1,15 +1,27 @@
 import { useCallback, useEffect, useLayoutEffect, useRef } from 'react';
-import { measureTextarea } from '../lib/measure.js';
+import { measureTextarea, queueFirstMeasure } from '../lib/measure.js';
 
 /** A textarea that grows to fit its content (no scrollbars, no fixed rows). */
 export default function AutoTextarea({
   value, measureKey, snapToLines = false, fitOnResize = false, ref: externalRef, ...rest
 }) {
   const inner = useRef(null);
+  const queued = useRef(false);
 
   useLayoutEffect(() => {
     const el = inner.current;
     if (!el) return;
+    if (snapToLines) {
+      // A script line: on mount, measured with every other line mounting in the same commit
+      // (lib/measure.js); after that, on its own — and if it isn't laid out (Board view), when shown.
+      if (!queued.current) {
+        queued.current = true;
+        queueFirstMeasure(el);
+      } else if (!measureTextarea(el, true)) {
+        el.dataset.stale = '1';
+      }
+      return;
+    }
     // Hidden (e.g. the editor while Board view is showing): measure when shown.
     if (!el.offsetParent) {
       el.dataset.stale = '1';

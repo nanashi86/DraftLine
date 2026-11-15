@@ -4,7 +4,7 @@ import { hasNote } from '../lib/editorialNotes.js';
 import { linePxFor } from '../lib/zoom.js';
 import { lockedKeyAction } from '../lib/lock.js';
 import { revealAndPulse } from '../lib/reveal.js';
-import { measureTextarea, remeasureTextareas } from '../lib/measure.js';
+import { flushFirstMeasures, measureTextarea, remeasureTextareas } from '../lib/measure.js';
 import { caretLine } from '../lib/caret.js';
 import { backspaceAt, backspaceStepBack, deleteAt } from '../lib/editing.js';
 import {
@@ -308,7 +308,7 @@ const Block = memo(function Block({
             data-from={split ? piece.from : undefined}
             data-to={split ? piece.to : undefined}
             onChange={(e) => (span
-              ? onText(block.id, block.text.slice(0, from) + e.target.value + block.text.slice(to), from + e.target.selectionEnd)
+              ? onText(block.id, block.text.slice(0, from) + e.target.value + block.text.slice(to), from + e.target.selectionEnd, from)
               : onText(block.id, e.target.value))}
             onKeyDown={(e) => onKey(e, block.id)}
             onFocus={() => onFocusBlock(block.id)}
@@ -438,9 +438,20 @@ export default function Editor({
   const [reflowSplits, setReflowSplits] = useState({});
   const spansRef = useRef({});
   const reflowSplitsRef = useRef({});
-  const splitsMoving = useRef(false);
   const shownSplitsRef = useRef({});
   const [measureOn, setMeasureOn] = useState(false); // the page-width copy is laid out (see observeMeasure)
+  const splitCache = useRef(new Map()); // id → { sig, at }: a split speech's break, until its text or page lines change
+  // Phone view, while the keyboard composes a word (predictive text, IME): the element being composed
+  // keeps the views it had when the word began — the break isn't moved and the caret isn't re-placed
+  // under the keyboard's feet — and only the view being typed in grows. The word committed, the break
+  // is placed again. `composing` is that element's id; `frozen` its views ({ pieces, spans } by id).
+  const composing = useRef(null);
+  const frozen = useRef({});
+  const [frozenViews, setFrozenViews] = useState({}); // the same, for the render
+  const itemsRef = useRef(items);
+  const layoutRef = useRef(layout);
+  const [composeEnded, setComposeEnded] = useState(0);
+  const reflowWas = useRef(reflow);
   /** The textarea showing character `caret` of element `id`, and the caret within it (phone span views). */
   const viewAt = useCallback((id, caret) => {
     const spans = spansRef.current[id];
@@ -478,7 +489,15 @@ export default function Editor({
   const sig = suggestions.map((s) => s.value).join('|');
   const acIndex = acState.sig === sig ? Math.min(acState.index, suggestions.length - 1) : 0;
 
+  // Script lines that mounted in this commit are measured here, together, in one layout (lib/measure.js) —
+  // after every line's own layout effect, before the caret is placed and before anything is painted.
   useLayoutEffect(() => {
+    flushFirstMeasures();
+  });
+
+  useLayoutEffect(() => {
+    itemsRef.current = items;
+    layoutRef.current = layout;
     blocksRef.current = blocks;
     lockedRef.current = locked;
     onLockedEditRef.current = onLockedEdit;
@@ -502,13 +521,20 @@ export default function Editor({
       if (it.kind !== 'block' || !ps || ps.length < 2) return;
       const div = measureText.current.get(it.block.id);
       if (!div) return;
+      // The break depends only on the element's text, its type and the page lines it's cut at.
+      const sig = `${it.block.type}|${ps.map((pc) => pc.from).join('.')}|${it.block.text}`;
+      const known = splitCache.current.get(it.block.id);
+      if (known?.sig === sig) {
+        splits[it.block.id] = known.at;
+        return;
+      }
       const len = it.block.text.length;
       const at = [];
       for (let i = 1; i < ps.length; i++) at.push(Math.max(at[i - 2] ?? 1, Math.min(len - 1, offsetAtLine(div, ps[i].from))));
+      splitCache.current.set(it.block.id, { sig, at });
       splits[it.block.id] = at;
     });
     const same = (x, y) => JSON.stringify(x) === JSON.stringify(y);
-    if (!same(reflowSplitsRef.current, splits)) splitsMoving.current = true; // the views re-render first
     reflowSplitsRef.current = splits;
     setReflowSplits((prev) => (same(prev, splits) ? prev : splits));
     spansRef.current = Object.fromEntries(Object.entries(splits).map(([id, at]) => {
@@ -516,22 +542,77 @@ export default function Editor({
       const edges = [0, ...at, len];
       return [id, edges.slice(0, -1).map((e, i) => [e, edges[i + 1]])];
     }));
-  }, [reflow, items, layout, measureOn]);
+    // An element being composed keeps the views it's drawn with (see `frozen`).
+    for (const [id, v] of Object.entries(frozen.current)) {
+      if (v.spans) spansRef.current[id] = v.spans;
+      else delete spansRef.current[id];
+    }
+  }, [reflow, items, layout, measureOn, composeEnded]);
+
+  // Phone view: follow the keyboard's composition (see `composing`).
+  useEffect(() => {
+    if (!reflow) return undefined;
+    const sheet = sheetRef.current;
+    const start = (e) => {
+      const id = e.target?.dataset?.id;
+      if (!id || !e.target.classList.contains('el-input')) return;
+      composing.current = id;
+      // Freeze the views it's drawn with now (the same choice the render makes).
+      const k = itemsRef.current.findIndex((it) => it.kind === 'block' && it.block.id === id);
+      if (k < 0) return;
+      const real = layoutRef.current.place[k] || {};
+      const spans = spansRef.current[id] || null;
+      const pieces = spans ? real.pieces
+        : real.pieces?.length > 1 ? [{ ...real.pieces[0], more: false }] : (real.pieces || [null]);
+      frozen.current = { [id]: { pieces, spans: spans && spans.map((x) => [...x]), page: real.page ?? 0 } };
+      setFrozenViews(frozen.current);
+    };
+    const end = (e) => {
+      if (!composing.current) return;
+      // Where the committed word left the caret, read now — before the views are re-filled.
+      const a = e?.target;
+      if (a?.dataset?.id === composing.current && a.selectionStart != null) {
+        const off = Number(a.dataset.offset || 0);
+        lastSel.current = { id: a.dataset.id, start: a.selectionStart + off, end: a.selectionEnd + off };
+      }
+      composing.current = null;
+      frozen.current = {};
+      setFrozenViews({});
+      setComposeEnded((n) => n + 1); // place the break (and the caret, if it moved views) again
+    };
+    sheet?.addEventListener('compositionstart', start, true);
+    sheet?.addEventListener('compositionend', end, true);
+    sheet?.addEventListener('focusout', end, true); // a composition left unfinished
+    return () => {
+      sheet?.removeEventListener('compositionstart', start, true);
+      sheet?.removeEventListener('compositionend', end, true);
+      sheet?.removeEventListener('focusout', end, true);
+    };
+  }, [reflow]);
 
   // Phone view: when the speech you're writing changes how it's split — the break moved, or it
   // no longer crosses a page — its views were just re-filled and the browser dropped the caret. Put it
   // back on the same character (lastSel keeps it, in whole-element terms).
+  // The same when the view itself changes — the phone turned between portrait (phone view) and
+  // landscape (the page): the lines are re-filled, so the caret goes back on its character.
   useLayoutEffect(() => {
-    if (!reflow || !sheetRef.current) return;
+    if (!sheetRef.current) return;
+    const turned = reflowWas.current !== reflow;
+    reflowWas.current = reflow;
+    if (!reflow && !turned) return;
     const shownSplits = {}; // id → where its page views start, as drawn now
-    sheetRef.current.querySelectorAll('textarea[data-offset]').forEach((t) => {
-      shownSplits[t.dataset.id] = `${shownSplits[t.dataset.id] ?? ''}${t.dataset.offset},`;
-    });
+    if (reflow && (Object.keys(spansRef.current).length || Object.keys(shownSplitsRef.current).length)) {
+      sheetRef.current.querySelectorAll('textarea[data-offset]').forEach((t) => {
+        shownSplits[t.dataset.id] = `${shownSplits[t.dataset.id] ?? ''}${t.dataset.offset},`;
+      });
+    }
     const was = shownSplitsRef.current;
     shownSplitsRef.current = shownSplits;
     const sel = lastSel.current;
-    if (!sel || pendingFocus.current || (was[sel.id] ?? null) === (shownSplits[sel.id] ?? null)) return;
-    if (!sheetRef.current?.contains(document.activeElement)) return;
+    if (!sel || pendingFocus.current || composing.current) return;
+    if (!turned && (was[sel.id] ?? null) === (shownSplits[sel.id] ?? null)) return;
+    const a = document.activeElement;
+    if (!sheetRef.current.contains(a) && !(turned && (a === document.body || !a))) return;
     pendingFocus.current = { id: sel.id, caret: sel.start, selEnd: sel.end };
   });
 
@@ -539,18 +620,19 @@ export default function Editor({
   useLayoutEffect(() => {
     const p = pendingFocus.current;
     if (!p) return;
-    if (splitsMoving.current) { // phone view: a page break just moved; place the caret once the views show it
-      splitsMoving.current = false;
-      return;
-    }
+    // Phone view: a page break just moved and the views haven't been redrawn with it yet — place the
+    // caret on the next render, once the view holding its character is there.
+    if (reflow && JSON.stringify(reflowSplits) !== JSON.stringify(reflowSplitsRef.current)) return;
     const [el, local] = viewAt(p.id, p.caret); // a phone span view, or (always on the desktop) the element's textarea
     if (!el) return;
     pendingFocus.current = null;
+    // The keyboard is composing a word here: it owns the caret until the word is committed.
+    if (composing.current === p.id && document.activeElement === el) return;
     if (document.activeElement !== el) el.focus();
     const c = local === 'end' ? el.value.length : Math.min(local, el.value.length);
     const shift = p.caret === 'end' ? 0 : p.caret - local;
     const e2 = p.selEnd != null ? Math.min(p.selEnd - shift, el.value.length) : c;
-    el.setSelectionRange(c, e2);
+    if (el.selectionStart !== c || el.selectionEnd !== e2) el.setSelectionRange(c, e2);
   });
 
 
@@ -702,12 +784,16 @@ export default function Editor({
     if (!measureRoRef.current) {
       measureRoRef.current = new ResizeObserver((entries) => {
         const changes = {};
+        // One script line as the copy actually lays it out (16px unless a browser or accessibility
+        // setting changed it), so the line counts hold whatever the text size.
+        const first = entries.find((en) => en.target.firstElementChild);
+        const linePx = (first && parseFloat(getComputedStyle(first.target.firstElementChild).lineHeight)) || MEASURE_LINE_PX;
         for (const en of entries) {
           const key = en.target.dataset.key;
           if (!key) continue;
           const h = en.borderBoxSize?.[0]?.blockSize ?? en.target.offsetHeight;
           if (h === 0) continue; // editor hidden (Board view): keep the last measurement
-          changes[key] = Math.max(1, Math.round(h / MEASURE_LINE_PX));
+          changes[key] = Math.max(1, Math.round(h / linePx));
         }
         onMeasureRef.current?.(changes);
       });
@@ -894,12 +980,23 @@ export default function Editor({
     },
   }), [setTypeAt, toggleDual, formatAt, onNotice]);
 
-  const handleText = useCallback((id, text, caret) => {
+  const handleText = useCallback((id, text, caret, from) => {
     if (lockedRef.current) return; // read-only textareas don't fire this; belt and braces
     setTypedIn(id);
-    // A phone span view: the page break may move as you type, so the caret is placed again after the
-    // re-render — in whichever page's view now holds it.
-    if (caret != null) pendingFocus.current = { id, caret };
+    const held = composing.current === id ? frozen.current[id] : null;
+    if (held?.spans && from != null) {
+      // Composing in a phone span view: the view being typed in takes the change; the others keep
+      // their words, and the caret stays where the keyboard has it.
+      const delta = text.length - (blocksRef.current.find((b) => b.id === id)?.text.length ?? text.length);
+      const spans = held.spans.map(([a, z]) => (a === from ? [a, z + delta] : a > from ? [a + delta, z + delta] : [a, z]));
+      frozen.current = { [id]: { ...held, spans } };
+      setFrozenViews(frozen.current);
+      spansRef.current[id] = spans;
+    } else if (caret != null) {
+      // A phone span view: the page break may move as you type, so the caret is placed again after
+      // the re-render — in whichever page's view now holds it.
+      pendingFocus.current = { id, caret };
+    }
     onTextChange(id, text);
   }, [onTextChange]);
 
@@ -1219,7 +1316,10 @@ export default function Editor({
   const viewObserve = reflow ? NO_OBSERVE : observe;
   items.forEach((it, k) => {
     const real = place[k] || { marginLines: 0, marginGaps: 0, page: 0 };
-    const broke = divider((real.page ?? 0) + 1);
+    // An element being composed keeps the page it started on too: a page divider moving to its other
+    // side would move its textarea in the page, and the browser drops the composition with the focus.
+    const heldPage = reflow && it.kind === 'block' ? frozenViews[it.block.id]?.page : undefined;
+    const broke = divider((heldPage ?? real.page ?? 0) + 1);
     const lead = (b) => (broke ? 0 : reflowSpace(b, k));
     if (it.kind === 'dual') {
       rows.push(
@@ -1250,7 +1350,11 @@ export default function Editor({
     // key, so its textarea is never remounted while a seam opens or closes around it.
     let pieces = real.pieces || [null];
     let spans = null;
-    if (reflow && pieces.length > 1) {
+    const held = reflow ? frozenViews[b.id] : null;
+    if (held) {
+      ({ pieces } = held);
+      spans = held.spans;
+    } else if (reflow && pieces.length > 1) {
       const sp = reflowSplits[b.id];
       if (sp && sp.length === pieces.length - 1) {
         const at = [0, ...sp, b.text.length];

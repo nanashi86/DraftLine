@@ -35,15 +35,20 @@ export default function ElementBar({ type, onPick }) {
     // Room to scroll the last lines up past the keyboard and the bar (the layout viewport doesn't
     // shrink for an iPhone keyboard, so the script's own end padding isn't enough). Only while the
     // bar is up; the page itself — and its pagination — is untouched.
-    document.documentElement.style.setProperty('--eb-clear', `${Math.max(0, globalThis.innerHeight - t) + 48}px`);
+    // (Only when it changes: setting it restyles the whole page.)
+    const clear = `${Math.max(0, globalThis.innerHeight - t) + 48}px`;
+    const root = document.documentElement.style;
+    if (root.getPropertyValue('--eb-clear') !== clear) root.setProperty('--eb-clear', clear);
     // Keep the cursor's line — and the suggestion list under it, when one is open — above the bar.
     const ta = activeLine();
     const scroller = ta?.closest('.scroller');
     if (!ta || !scroller) return;
     const r = ta.getBoundingClientRect();
+    const ac = document.querySelector('.sheet .ac');
+    // The whole line already clears the bar: no need to find the cursor's row (that costs a layout).
+    if (!ac && r.bottom <= t - AIR) return;
     const lh = parseFloat(getComputedStyle(ta).lineHeight) || 16;
     const caretBottom = r.top + (caretLine(ta, ta.selectionEnd) + 1) * lh;
-    const ac = document.querySelector('.sheet .ac');
     const bottom = Math.max(caretBottom, ac ? ac.getBoundingClientRect().bottom : 0);
     // getBoundingClientRect and the bar's top are both in layout-viewport px.
     const dy = scrollToClear(bottom, t - AIR);

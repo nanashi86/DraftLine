@@ -106,7 +106,7 @@ describe('phone menus and touch targets (App.css)', () => {
     const top = tail.replace(/\/\*[\s\S]*?\*\//g, '').replace(/@media[^{]+\{(?:[^{}]*\{[^{}]*\})*[^{}]*\}/g, '').trim();
     assert.equal(top, '');
     const queries = [...tail.matchAll(/@media ([^{]+)\{/g)].map((m) => m[1].trim());
-    assert.deepEqual(queries, ['(max-width: 559.98px)', '(hover: none)', '(hover: none) and (pointer: coarse)']);
+    assert.deepEqual(queries, ['(max-width: 559.98px)', '(max-width: 559.98px) and (hover: none)', '(hover: none)', '(hover: none) and (pointer: coarse)']);
   });
   it('File ▾ on a phone: inside the window, 8px from each edge, scrolling when taller', () => {
     assert.match(tail, /\.bar \.file-menu \.menu-pop \{\s*position: fixed;\s*top: calc\(var\(--bar-h\) \+ 6px\);\s*left: 8px;\s*right: 8px;\s*min-width: 0;/);

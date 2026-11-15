@@ -6,6 +6,14 @@ All notable changes to DraftLine are recorded here. The format follows [Keep a C
 
 ### Added
 
+- **Phones: steadier typing, faster opening (mobile hardening, round 2C).**
+  - **Fixed: predictive text in a speech split across a page.** With a keyboard that composes words (Gboard, Samsung, iOS suggestions), typing at a page break could repeat letters ("not qququiquiet") or misplace words. While a word is being composed, the speech's page views and the cursor are left exactly as the keyboard has them. The break is placed again once the word is committed, with the cursor right after it. Tapping the element bar mid-word keeps the word, once. `npm run test:browser` replays these keyboards in Chromium.
+  - **Long scripts open much faster, everywhere.** Script lines that appear together are measured together, in one layout instead of one per line. A 120-page script showed in about 1 s instead of 8.5 s (desktop and phone). Pagination, exports and the page itself are unchanged.
+  - **Lighter typing on phones.** A split speech's page break is worked out again only when its text, type or lines change. The element bar skips locating the cursor's row when the whole line already clears it.
+  - **Turning the phone keeps the cursor** on the same character, including inside a split speech.
+  - **Phone text fields are at least 16px** (the script title, Title Page, Story Bible, Characters, Find & Replace, margin notes…), so iPhone Safari no longer zooms in when you tap one. Only on phone-width touch screens.
+  - **The element bar's buttons keep a finger's width** when a large system text size narrows them. The hidden page-width copy now reads its real line height, so a browser's text-size boost can't misplace page breaks. Accessibility text scaling isn't restricted.
+
 - **Phones: a readable writing view (mobile polish, round 2B).** On a phone-width touch screen the script is no longer a shrunken US Letter page. It's drawn to the phone's width at a reading size (16px Courier Prime, so Safari doesn't zoom on tap), keeping the screenplay's shape: bold capitalised scene headings, Character furthest in, then Parenthetical, then Dialogue, and Transitions on the right.
   - **Pagination is unchanged.** Page breaks still come from page-width wrapping, measured on a hidden copy of the script at print size, never from the phone's own lines. Page count, page breaks, (MORE)/(CONT'D), print, PDF and exports are exactly as on a desktop, and a script edited on a phone opens identically on a desktop. The copy is laid out just after the script appears, so opening a long script doesn't wait for it.
   - **Page breaks:** a faint divider with the page number marks where each real page begins. A speech split across a page shows "(MORE)" and "NAME (CONT'D)", and each side holds exactly that page's words. Typing, deleting, the arrow keys, formatting and undo all work across the break.

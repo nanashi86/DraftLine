@@ -39,7 +39,8 @@ describe('phone view: pagination comes only from the page-width copy', () => {
   it('the hidden copy is measured at 100% page geometry by its own observer, after the first paint', () => {
     assert.match(editor, /const MEASURE_LINE_PX = 16;/);
     assert.match(editor, /<div className="sheet" style=\{\{ '--in': `\$\{MEASURE_LINE_PX \* 6\}px` \}\}>/);
-    assert.match(editor, /changes\[key\] = Math\.max\(1, Math\.round\(h \/ MEASURE_LINE_PX\)\);/);
+    assert.match(editor, /const linePx = \(first && parseFloat\(getComputedStyle\(first\.target\.firstElementChild\)\.lineHeight\)\) \|\| MEASURE_LINE_PX;/);
+    assert.match(editor, /changes\[key\] = Math\.max\(1, Math\.round\(h \/ linePx\)\);/);
     assert.match(editor, /\{reflow && measureOn && <PageMeasure items=\{items\} observe=\{observeMeasure\} textRefs=\{measureText\} \/>\}/);
     assert.match(editor, /requestAnimationFrame\(\(\) => \{ t = setTimeout\(\(\) => setMeasureOn\(true\), 0\); \}\); \/\/ after the first paint/);
     assert.match(css, /\.page-measure \{[^}]*visibility: hidden;[^}]*pointer-events: none;/);
@@ -57,7 +58,7 @@ describe('phone view: a speech split across a page', () => {
     assert.match(editor, /const value = span \? block\.text\.slice\(from, to\) : block\.text;/);
   });
   it('editing a page view always writes the whole element back', () => {
-    assert.match(editor, /onText\(block\.id, block\.text\.slice\(0, from\) \+ e\.target\.value \+ block\.text\.slice\(to\), from \+ e\.target\.selectionEnd\)/);
+    assert.match(editor, /onText\(block\.id, block\.text\.slice\(0, from\) \+ e\.target\.value \+ block\.text\.slice\(to\), from \+ e\.target\.selectionEnd, from\)/);
   });
   it('keys see whole-element positions; Backspace and Delete cross the break through the typing path', () => {
     assert.match(editor, /const start = el\.selectionStart \+ off;\s*const end = el\.selectionEnd \+ off;/);

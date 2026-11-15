@@ -21,8 +21,8 @@
 }
 .eb-btn {
   flex: 1 1 auto;
-  min-width: 0;
-  padding: 0 4px;
+  min-width: 38px; /* "( )" stays a finger's width when large text narrows the screen */
+  padding: 0 3px;
   border: 0;
   background: transparent;
   color: var(--muted);

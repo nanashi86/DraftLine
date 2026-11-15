@@ -3,19 +3,49 @@
  * number of screenplay lines (`calc(var(--line) * N)`), so:
  *   - a font whose glyphs overflow the line box by a pixel can't drift the page grid;
  *   - zoom changes rescale every line for free, with no re-measuring.
+ * Returns false, leaving the height as it was, when the textarea isn't laid out (display: none —
+ * the editor behind Board view): it measures 0 then, so no separate visibility check (and the forced
+ * layout it costs) is needed first.
  */
 export function measureTextarea(el, snap) {
-  if (snap) {
-    // Read style before mutating so we pay for one forced layout, not two.
-    const lh = parseFloat(getComputedStyle(el).lineHeight);
-    el.style.height = '0px';
-    const n = Math.max(1, Math.round(el.scrollHeight / (lh || 16)));
-    el.style.height = `calc(var(--line) * ${n})`;
-  } else {
-    el.style.height = '0px';
-    el.style.height = `${el.scrollHeight}px`;
+  // Read style before mutating so we pay for one forced layout, not two.
+  const lh = snap ? parseFloat(getComputedStyle(el).lineHeight) : 0;
+  const was = el.style.height;
+  el.style.height = '0px';
+  const sh = el.scrollHeight;
+  if (!sh) {
+    el.style.height = was;
+    return false;
   }
+  el.style.height = snap ? `calc(var(--line) * ${Math.max(1, Math.round(sh / (lh || 16)))})` : `${sh}px`;
   delete el.dataset.stale;
+  return true;
+}
+
+// ---- Script lines that appear together are measured together ----------------------------------
+// Opening a script mounts every line at once. Measuring each as it mounts forced a full layout per
+// line (two, with the visibility check) — about 4,900 for a 120-page script, most of the time it
+// took to open. Instead each new line is queued, and the editor measures the queue in one batch
+// (remeasureTextareas: one layout) at the end of the same commit, before anything is painted.
+const firstMeasures = new Set();
+let flushQueued = false;
+
+/** Queue a newly mounted script line for the batch. A microtask flushes it if nothing else does. */
+export function queueFirstMeasure(el) {
+  firstMeasures.add(el);
+  if (flushQueued) return;
+  flushQueued = true;
+  queueMicrotask(flushFirstMeasures);
+}
+
+/** Measure every queued line in one layout. Lines not laid out yet (Board view) wait until shown. */
+export function flushFirstMeasures() {
+  flushQueued = false;
+  if (!firstMeasures.size) return;
+  const list = [...firstMeasures].filter((el) => el.isConnected);
+  firstMeasures.clear();
+  remeasureTextareas(list);
+  for (const el of list) if (!el.offsetParent) el.dataset.stale = '1';
 }
 
 /**
