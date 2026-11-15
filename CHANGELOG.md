@@ -6,6 +6,13 @@ All notable changes to DraftLine are recorded here. The format follows [Keep a C
 
 ### Added
 
+- **Phones: a readable writing view (mobile polish, round 2B).** On a phone-width touch screen the script is no longer a shrunken US Letter page. It's drawn to the phone's width at a reading size (16px Courier Prime, so Safari doesn't zoom on tap), keeping the screenplay's shape: bold capitalised scene headings, Character furthest in, then Parenthetical, then Dialogue, and Transitions on the right.
+  - **Pagination is unchanged.** Page breaks still come from page-width wrapping, measured on a hidden copy of the script at print size, never from the phone's own lines. Page count, page breaks, (MORE)/(CONT'D), print, PDF and exports are exactly as on a desktop, and a script edited on a phone opens identically on a desktop. The copy is laid out just after the script appears, so opening a long script doesn't wait for it.
+  - **Page breaks:** a faint divider with the page number marks where each real page begins. A speech split across a page shows "(MORE)" and "NAME (CONT'D)", and each side holds exactly that page's words. Typing, deleting, the arrow keys, formatting and undo all work across the break.
+  - **Dual dialogue** is stacked and joined by a thin rule, with a quiet "spoken together" note.
+  - **Scene numbers and CUE tags** sit small in the left margin. Margin-note marks sit in the right margin, with a larger tap area. Tapping one opens the Margin Notes panel, and "add a note" appears faintly beside the line you're on.
+  - **The zoom controls** leave the status bar in this view, since there's no page to zoom. Desktop, tablets, the Scene Board and Plan are unchanged.
+
 - **Phones: an element bar above the keyboard (mobile polish, round 2A).** While you write on a phone, a slim row on the keyboard's top edge offers Scene · Action · Character · Dialogue · ( ) · Transition, standing in for Tab and Alt+1…8.
   - Tapping one switches the line you're on, keeping the cursor or selection where it was. It's one undo step, like Alt+1…8.
   - It never takes the focus, so the keyboard stays up. The current element is underlined.

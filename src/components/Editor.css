@@ -367,3 +367,157 @@
 
 /* Viewing: no caret, a plain arrow over the text; selecting and copying still work. */
 .sheet.is-locked .el-input { caret-color: transparent; cursor: default; }
+
+/* ---- The phone writing view (.sheet.is-reflow; Editor `reflow`) ----
+   The same elements at a reading size (16px Courier Prime: no Safari zoom on tap), wrapping to the
+   phone's width. Indents keep the screenplay's shape in proportion — Character furthest in, then
+   Parenthetical, then Dialogue — compressed so a speech still gets ~30 characters a line.
+   Narrow margins hold what the page keeps in its margins: scene numbers and CUE on the left, the
+   margin-note mark on the right. Everything else about a line (its text, type, notes) is unchanged. */
+.sheet.is-reflow {
+  --in: 20px;            /* only the little offsets (rules, marks) still read it */
+  --line: 23px;          /* one script line on the phone: 16px type, a little air */
+  --gap: 0px;
+  --gutter-l: 30px;      /* scene numbers · CUE */
+  --gutter-r: 22px;      /* margin-note mark */
+  width: auto;
+  max-width: 40rem;
+  height: auto;
+  margin: 0 auto;
+  padding: 24px var(--gutter-r) 32px var(--gutter-l);
+  font-size: 16px;
+  line-height: var(--line);
+  background: var(--paper);
+  box-shadow: var(--paper-shadow);
+  border-radius: 6px;
+}
+.sheet.is-reflow .el { width: 100%; margin-left: 0; --el-left: 0px; }
+.sheet.is-reflow .el-character { margin-left: 32%; width: 68%; }
+.sheet.is-reflow .el-parenthetical { margin-left: 20%; width: 66%; }
+.sheet.is-reflow .el-dialogue { margin-left: 10%; width: 82%; }
+
+/* The active-line rule, just left of the text. */
+.sheet.is-reflow .el::before { left: -7px; }
+.sheet.is-reflow :is(.el-character, .el-parenthetical, .el-dialogue)::before { left: -7px; }
+
+/* Scene numbers: small and quiet in the left margin, level with the heading (left side only). */
+.sheet.is-reflow .scene-no-right { display: none; }
+.sheet.is-reflow .scene-no-left {
+  right: calc(100% + 11px);
+  top: 0;
+  font: 500 11px/var(--line) var(--ui-font);
+  color: color-mix(in srgb, var(--ink) 42%, transparent);
+  font-variant-numeric: tabular-nums;
+}
+
+/* CUE: the same tag as on the page, smaller, in the left margin. */
+.sheet.is-reflow .el-format_cue::after {
+  right: calc(100% + 5px);
+  top: calc((var(--line) - 12px) / 2);
+  padding: 0 3px;
+  font: 650 8px/12px var(--ui-font);
+  letter-spacing: 0.06em;
+}
+
+/* Margin notes: a noted line shows the small note mark in the right margin — tap it to open the note.
+   No hover on a phone, so "add a note" shows only beside the line you're on, faintly. */
+.sheet.is-reflow .note-mark,
+.sheet.is-reflow .note-add {
+  /* into the right margin from the column's edge: the extra % is the gap between an indented
+     element's right edge and the column's (as a share of the element's own width) */
+  left: auto;
+  right: calc(-1 * var(--to-edge, 0%) - var(--gutter-r) + 3px);
+  top: calc((var(--line) - 16px) / 2);
+  width: 16px;
+  height: 16px;
+}
+.sheet.is-reflow .el-dialogue { --to-edge: 9.76%; }       /* (100 − 10 − 82) / 82 */
+.sheet.is-reflow .el-parenthetical { --to-edge: 21.2%; }  /* (100 − 20 − 66) / 66 */
+.sheet.is-reflow .dual-col .el-parenthetical { --to-edge: 20%; }
+.sheet.is-reflow .dual-col .el-dialogue { --to-edge: 6.8%; }
+/* A finger-sized tap on the 16px mark, without drawing it any bigger: an invisible layer that
+   reaches up and down a line and out across the margin, but only a few px over the text. */
+.sheet.is-reflow :is(.note-mark, .note-add)::before {
+  content: '';
+  position: absolute;
+  inset: -12px calc(-1 * var(--gutter-r) + 14px) -12px -6px;
+}
+.sheet.is-reflow .note-add { opacity: 0; pointer-events: none; }
+.sheet.is-reflow .el.is-active > .note-add { opacity: 0.45; pointer-events: auto; }
+.focus-mode .sheet.is-reflow .el.is-active > .note-add { display: none; }
+
+/* Dual dialogue: the two speeches stacked, held together by one rule and a small label, so they
+   read as spoken at once. */
+.sheet.is-reflow .dual-row {
+  display: block;
+  width: auto;
+  position: relative;
+  padding: 0 0 0 10px;
+  margin-left: 3%;
+  border-left: 1.5px solid color-mix(in srgb, var(--accent) 40%, transparent);
+}
+/* The page's DUAL tag becomes one quiet italic line: what the rule means, not another control. */
+.sheet.is-reflow .dual-tag {
+  position: static;
+  display: block;
+  margin: 0 0 2px;
+  padding: 0;
+  background: none;
+  white-space: nowrap;
+  font-size: 0;
+  letter-spacing: 0;
+}
+.sheet.is-reflow .dual-tag::after {
+  content: 'spoken together';
+  font: italic 500 10px/14px var(--ui-font);
+  color: color-mix(in srgb, var(--ink) 38%, transparent);
+}
+.sheet.is-reflow .dual-col { width: 100%; }
+.sheet.is-reflow .dual-col + .dual-col { margin-top: calc(var(--line) * 0.6); }
+.sheet.is-reflow .dual-col .el { width: 100%; margin-left: 0; }
+.sheet.is-reflow .dual-col .el-character { margin-left: 28%; width: 72%; }
+.sheet.is-reflow .dual-col .el-character :is(.el-input, .el-text) { text-align: left; }
+.sheet.is-reflow .dual-col .el-parenthetical { margin-left: 16%; width: 70%; }
+.sheet.is-reflow .dual-col .el-dialogue { margin-left: 6%; width: 88%; }
+
+.sheet.is-reflow .dual-col .el .note-mark,
+.sheet.is-reflow .dual-col .el .note-add { left: auto; }
+
+/* A speech split across a page: (MORE) and NAME (CONT'D) at the Character cue's indent, as on the page. */
+.sheet.is-reflow .el-dialogue .el-seam { margin-left: 26.8%; }       /* (32% − 10%) of the dialogue's 82% */
+.sheet.is-reflow .el-parenthetical .el-seam { margin-left: 18.2%; }  /* (32% − 20%) of 66% */
+.sheet.is-reflow .el-seam { opacity: 0.5; }
+
+/* Where a real page begins: a faint hairline that fades at both ends, and the page number, small. */
+.sheet.is-reflow .reflow-page {
+  position: relative;
+  height: 1px;
+  margin: 22px 0 18px;
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--ink) 16%, transparent) 18%, color-mix(in srgb, var(--ink) 16%, transparent) 82%, transparent);
+}
+.sheet.is-reflow .reflow-page span {
+  position: absolute;
+  left: 50%;
+  top: -8px;
+  transform: translateX(-50%);
+  padding: 0 8px;
+  background: var(--paper);
+  color: color-mix(in srgb, var(--ink) 38%, transparent);
+  font: 500 10px/16px var(--ui-font);
+  font-variant-numeric: tabular-nums;
+}
+.scroller:has(.sheet.is-reflow) { padding-left: 10px; padding-right: 10px; padding-top: 12px; }
+
+/* The background page measurement (PageMeasure): the script at real page geometry, laid out but never
+   seen, scrolled or focused — only its line counts are read, for the pagination. */
+.page-measure {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+  visibility: hidden;
+  pointer-events: none;
+}
+.page-measure .sheet { position: absolute; top: 0; left: 0; margin: 0; }

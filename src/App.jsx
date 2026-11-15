@@ -383,6 +383,9 @@ function Workspace({ boot }) {
   const phoneWidth = useMediaQuery(PHONE_QUERY);
   const touchUi = useMediaQuery(TOUCH_QUERY);
   const writeViewList = useMemo(() => writeViewsFor(VIEWS, phoneWidth), [phoneWidth]);
+  // The phone writing view (Editor `reflow`): on a phone-width touch screen the script is drawn to the
+  // phone's width at a reading size; pagination still comes from page-width measurement.
+  const phoneView = phoneWidth && touchUi;
   useEffect(() => {
     if (viewOnPhone(view, phoneWidth) !== view) setView(viewOnPhone(view, phoneWidth));
   }, [view, phoneWidth]);
@@ -2839,6 +2842,7 @@ function Workspace({ boot }) {
               onRedo={redo}
               onActiveChange={setActiveId}
               onMeasure={onMeasure}
+              reflow={phoneView}
               onNotice={notify}
               locked={isLocked}
               onLockedEdit={notifyLocked}
@@ -3050,6 +3054,8 @@ function Workspace({ boot }) {
               <button className="mini" onClick={undo} disabled={!canUndo || isLocked} title="Undo script edit (Ctrl+Z)">↶</button>
               <button className="mini" onClick={redo} disabled={!canRedo || isLocked} title="Redo (Ctrl+Shift+Z)">↷</button>
             </span>
+            {/* The phone writing view has no page to zoom: no zoom controls there. */}
+            {!phoneView && (
             <span className="status-zoom">
               <button className="mini" onClick={() => zoomBy(-1)} aria-label="Zoom out">−</button>
               <button
@@ -3061,6 +3067,7 @@ function Workspace({ boot }) {
               </button>
               <button className="mini" onClick={() => zoomBy(1)} aria-label="Zoom in">+</button>
             </span>
+            )}
           </div>
         </footer>
 

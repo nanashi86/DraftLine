@@ -62,7 +62,7 @@ describe('Viewing mode: wiring', () => {
   it('locking makes every script line read-only and marks the page', () => {
     assert.match(app, /locked=\{isLocked\}\s*onLockedEdit=\{notifyLocked\}/);
     assert.match(editor, /readOnly=\{locked\}/);
-    assert.match(editor, /className=\{`sheet\$\{locked \? ' is-locked' : ''\}`\}\s*data-locked=\{locked \? 'true' : 'false'\}\s*aria-readonly=\{locked\}/);
+    assert.match(editor, /className=\{`sheet\$\{locked \? ' is-locked' : ''\}\$\{reflow \? ' is-reflow' : ''\}`\}\s*data-locked=\{locked \? 'true' : 'false'\}\s*aria-readonly=\{locked\}/);
     assert.equal((editor.match(/locked=\{locked\}/g) || []).length, 3, 'single and dual-dialogue lines');
   });
   it('the editor swallows changing keys and every change path refuses while locked', () => {

@@ -114,7 +114,9 @@ describe('Find & Replace in the app', () => {
     assert.match(bar, /disabled=\{locked \|\| !total\} onClick=\{onReplaceAll\}/);
   });
   it('matches are highlighted in the text, on every page piece, never printed', () => {
-    assert.match(editor, /\{hits && <FindMarks text=\{block\.text\} hits=\{hits\} \/>\}/);
+    assert.match(editor, /\{shownHits && <FindMarks text=\{value\} hits=\{shownHits\} \/>\}/);
+    // a phone page view shows the matches that fall in its own words
+    assert.match(editor, /const shownHits = span && hits\s*\? hits\.filter\(\(\[a, z\]\) => a >= from && z <= to\)\.map\(\(\[a, z, c\]\) => \[a - from, z - from, c\]\)\s*: hits;/);
     assert.match(editor, /hits=\{findHits\?\.get\(b\.id\) \|\| null\}/);
     assert.match(read('src/components/Editor.css'), /@media print \{ \.el-find \{ display: none; \} \}/);
     assert.match(app, /findHits=\{findHits\}/);
