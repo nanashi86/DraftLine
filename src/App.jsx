@@ -3,6 +3,7 @@ import {
 } from 'react';
 import { flushSync } from 'react-dom';
 import Editor from './components/Editor.jsx';
+import ElementBar from './components/ElementBar.jsx';
 import CharactersDrawer from './components/CharactersDrawer.jsx';
 import Navigator from './components/Navigator.jsx';
 import TitlePageModal from './components/TitlePageModal.jsx';
@@ -111,7 +112,7 @@ import {
 } from './lib/backupToast.js';
 import { requestPersistence } from './lib/storagePersist.js';
 import {
-  FULL_WIDTH_PANELS_QUERY, PHONE_QUERY, TOUCH_QUERY, exclusivePanels, mediaMatches, viewOnPhone, writeViewsFor,
+  FULL_WIDTH_PANELS_QUERY, PHONE_QUERY, TOUCH_QUERY, exclusivePanels, mediaMatches, showElementBar, viewOnPhone, writeViewsFor,
 } from './lib/mobile.js';
 
 // Which browser this is, for the backup tip's wording and the protected-storage request (lib/backupToast.js).
@@ -387,6 +388,32 @@ function Workspace({ boot }) {
   }, [view, phoneWidth]);
   // Where each panel is the whole window (phones), one at a time: opening the Scenes list closes the
   // dock panel and the other way round. Closing only hides a panel; nothing in it is lost.
+  // Phones: is the cursor in the script? (The element bar shows while it is.) Only watched on a
+  // phone-width touch screen, so a desktop never runs it.
+  const [writingOnPhone, setWritingOnPhone] = useState(false);
+  useEffect(() => {
+    if (!phoneWidth || !touchUi) {
+      setWritingOnPhone(false);
+      return undefined;
+    }
+    let raf = 0;
+    const check = () => {
+      const a = document.activeElement;
+      setWritingOnPhone(!!(a?.classList?.contains('el-input') && a.closest('.sheet')));
+    };
+    const later = () => {
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(check); // focus moving line to line passes through "nothing" for a moment
+    };
+    check();
+    document.addEventListener('focusin', later);
+    document.addEventListener('focusout', later);
+    return () => {
+      cancelAnimationFrame(raf);
+      document.removeEventListener('focusin', later);
+      document.removeEventListener('focusout', later);
+    };
+  }, [phoneWidth, touchUi]);
   const panelsWere = useRef({ dock: startPanels.dock, navOpen: startPanels.navOpen });
   useLayoutEffect(() => {
     const was = panelsWere.current;
@@ -3078,6 +3105,12 @@ function Workspace({ boot }) {
         )}
         {hintCardShown && (
           <HintCard id={activeHint} action={hintAction} onAction={runHint} onDismiss={dismissHint} />
+        )}
+        {showElementBar({
+          phone: phoneWidth, touch: touchUi, writing: writingOnPhone, editor: showEditor && !!activeBlock, locked: isLocked,
+        }) && (
+          // Phones: Scene · Action · Character · Dialogue · ( ) · Transition on top of the keyboard.
+          <ElementBar type={activeBlock.type} onPick={(t) => editorRef.current?.setType(activeId, t, { keepCaret: true })} />
         )}
         {backupTipShown && (
           <BackupToast

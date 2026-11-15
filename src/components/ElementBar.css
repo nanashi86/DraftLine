@@ -1,0 +1,50 @@
+/* The phone element bar (ElementBar.jsx): one slim row on the keyboard's top edge. Only ever drawn on
+   a phone-width touch screen while writing, so nothing here reaches a desktop. */
+.element-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 45; /* over the script and its suggestion list; under menus, drawers and dialogs */
+  height: 44px;
+  display: flex;
+  align-items: stretch;
+  gap: 2px;
+  padding: 0 4px;
+  background: var(--bar);
+  border-top: 1px solid var(--line-soft);
+  box-shadow: 0 -6px 16px rgba(0, 0, 0, 0.18);
+  will-change: transform;
+  -webkit-user-select: none;
+  user-select: none;
+  touch-action: manipulation;
+}
+.eb-btn {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 0 4px;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font: 500 12.5px/1 var(--ui-font);
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  cursor: pointer;
+  position: relative;
+  -webkit-tap-highlight-color: transparent;
+}
+.eb-btn.is-on { color: var(--text); }
+.eb-btn.is-on::after { /* the current element: a short accent rule along the bottom */
+  content: '';
+  position: absolute;
+  left: 22%;
+  right: 22%;
+  bottom: 6px;
+  height: 2px;
+  border-radius: 1px;
+  background: var(--accent);
+}
+.eb-btn:active { color: var(--text); background: var(--chip); border-radius: 6px; }
+/* While the bar is up, the script can scroll its last lines clear of the keyboard and the bar. */
+.has-element-bar .scroller { padding-bottom: max(30vh, var(--eb-clear, 0px)); }
+@media print { .element-bar { display: none; } }

@@ -5,6 +5,7 @@ import { linePxFor } from '../lib/zoom.js';
 import { lockedKeyAction } from '../lib/lock.js';
 import { revealAndPulse } from '../lib/reveal.js';
 import { measureTextarea, remeasureTextareas } from '../lib/measure.js';
+import { caretLine } from '../lib/caret.js';
 import { backspaceAt, backspaceStepBack, deleteAt } from '../lib/editing.js';
 import {
   ELEMENT_META,
@@ -79,28 +80,6 @@ function formatKey(e) {
   return { KeyB: 'b', KeyI: 'i', KeyU: 'u' }[e.code] || null;
 }
 
-/**
- * The visual line (0-based) the caret is on in a textarea, as the browser wraps it: a hidden copy
- * of the text up to the caret, in the same box and font, and where its end lands. (The arithmetic
- * wrap model can differ from the browser by a word near a line end; page seams must not.)
- */
-function caretLine(ta, pos) {
-  const mirror = document.createElement('div');
-  const cs = getComputedStyle(ta);
-  mirror.className = 'el-text';
-  Object.assign(mirror.style, {
-    position: 'absolute', visibility: 'hidden', top: '0', left: '0', width: `${ta.clientWidth}px`,
-    textTransform: cs.textTransform, textAlign: cs.textAlign, fontWeight: cs.fontWeight,
-  });
-  mirror.textContent = ta.value.slice(0, pos);
-  const mark = document.createElement('span');
-  mark.textContent = ta.value.slice(pos, pos + 1) || '\u200b';
-  mirror.appendChild(mark);
-  ta.parentElement.appendChild(mirror);
-  const line = Math.round(mark.offsetTop / (parseFloat(cs.lineHeight) || 1));
-  mirror.remove();
-  return Math.max(0, line);
-}
 
 function marginStyle(lines, gaps) {
   if (!lines && !gaps) return undefined;
@@ -281,6 +260,10 @@ function Suggestions({ anchorId, els, sheetRef, list, index, onPick, onHover }) 
     const s = sheet.getBoundingClientRect();
     box.style.top = `${r.bottom - s.top + 4}px`;
     box.style.left = `${r.left - s.left}px`;
+    // A narrow phone: a list under a Character cue can run past the right edge. Slide it back in.
+    // (On a desktop page it never reaches the window's edge, so this changes nothing there.)
+    const over = box.getBoundingClientRect().right - (document.documentElement.clientWidth - 8);
+    if (over > 0) box.style.left = `${Math.max(8 - s.left, r.left - s.left - over)}px`;
   });
   return (
     <div ref={boxRef} className="ac" role="listbox" aria-label="Suggestions">
@@ -570,13 +553,13 @@ export default function Editor({
     onCommit(next);
   }, [onCommit]);
 
-  const setTypeAt = useCallback((idx, type, caret) => {
+  const setTypeAt = useCallback((idx, type, caret, selEnd) => {
     const cur = blocksRef.current;
     const b = cur[idx];
     if (!b || b.type === type) return;
     const nb = convert(b, type);
     const c = nb.text === '()' ? 1 : (caret ?? 'end');
-    commit(splice(cur, idx, 1, nb), { id: b.id, caret: c });
+    commit(splice(cur, idx, 1, nb), { id: b.id, caret: c, selEnd: nb.text === '()' || nb.text !== b.text ? undefined : selEnd });
   }, [commit]);
 
   const toggleDual = useCallback((id) => {
@@ -640,9 +623,14 @@ export default function Editor({
   }, [commit]);
 
   useImperativeHandle(ref, () => ({
-    setType(id, type) {
+    /** Change element `id` to `type`. `keepCaret` (the phone element bar): the cursor and selection
+     *  stay where they were, as Alt+1…8 does; otherwise the cursor goes to the end, as before. */
+    setType(id, type, { keepCaret = false } = {}) {
       const idx = blocksRef.current.findIndex((b) => b.id === id);
-      if (idx >= 0) setTypeAt(idx, type);
+      if (idx < 0) return;
+      const el = keepCaret ? els.current.get(id) : null;
+      if (el) setTypeAt(idx, type, el.selectionStart, el.selectionEnd);
+      else setTypeAt(idx, type);
     },
     toggleDual,
     format(style) {

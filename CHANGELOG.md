@@ -6,6 +6,12 @@ All notable changes to DraftLine are recorded here. The format follows [Keep a C
 
 ### Added
 
+- **Phones: an element bar above the keyboard (mobile polish, round 2A).** While you write on a phone, a slim row on the keyboard's top edge offers Scene · Action · Character · Dialogue · ( ) · Transition, standing in for Tab and Alt+1…8.
+  - Tapping one switches the line you're on, keeping the cursor or selection where it was. It's one undo step, like Alt+1…8.
+  - It never takes the focus, so the keyboard stays up. The current element is underlined.
+  - It keeps the line you're writing, and Character suggestions, clear of the keyboard.
+  - It shows only on a phone-width touch screen with the cursor in the script, and never while Viewing, on the Board or in Plan. Desktop and tablets are unchanged.
+
 - **Phones and touch screens (mobile polish, round 1).** Everything here applies only to a phone-width window or a touch screen; a desktop with a mouse is unchanged.
   - **File ▾ on a phone** opens as a sheet under the bar, 8px from each edge, and scrolls when it's taller than the screen. The bar's other menus scroll too.
   - **Touch screens** hide keyboard-shortcut hints (Alt+S, Ctrl+/, F1…) in menus, the Element list and the suggestion list. The ⋮ menu leaves out Keyboard Shortcuts, and the User Guide opens without its F1 / Ctrl+/ paragraph. Counts, file types and the printed guide are unchanged.

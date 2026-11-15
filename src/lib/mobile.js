@@ -52,3 +52,42 @@ export function exclusivePanels(prev, next) {
   if (navJustOpened && !dockJustOpened) return { dock: null, navOpen: true };
   return { dock: next.dock, navOpen: false }; // a dock panel opened (or both were already open): it stays
 }
+
+// ---- The element bar (phones): Scene · Action · Character · Dialogue · ( ) · Transition ----------
+// A slim row just above the on-screen keyboard while you write, standing in for Tab and Alt+1…8.
+// components/ElementBar.jsx draws it; switching goes through the editor's own setType, like Alt+1…8.
+
+/** The bar's buttons, in writing order. `short` is used on the narrowest phones (under 375px). */
+export const ELEMENT_BAR = [
+  { type: 'scene', label: 'Scene', short: 'Scene', title: 'Scene Heading' },
+  { type: 'action', label: 'Action', short: 'Action', title: 'Action' },
+  { type: 'character', label: 'Character', short: 'Char', title: 'Character' },
+  { type: 'dialogue', label: 'Dialogue', short: 'Dial', title: 'Dialogue' },
+  { type: 'parenthetical', label: '( )', short: '( )', title: 'Parenthetical' },
+  { type: 'transition', label: 'Transition', short: 'Trans', title: 'Transition' },
+];
+
+/** Show the bar? Phone-width touch screen, the cursor in the script, the page showing, not Viewing. */
+export function showElementBar({ phone, touch, writing, editor = true, locked = false }) {
+  return !!(phone && touch && writing && editor && !locked);
+}
+
+/**
+ * Where the bar sits (its top, in layout-viewport px): on the keyboard's top edge — the bottom of the
+ * visual viewport — or, with no keyboard up, just above the status bar. `vv` is window.visualViewport
+ * ({ offsetTop, height }); `innerHeight` the layout viewport's height; `statusH` the status bar's.
+ */
+export function elementBarTop({ vv, innerHeight, statusH = 0, barH }) {
+  const visibleBottom = vv ? vv.offsetTop + vv.height : innerHeight;
+  return Math.round(Math.min(visibleBottom, innerHeight - statusH) - barH);
+}
+
+/** Is the on-screen keyboard (probably) up? The visible area is well short of the window. */
+export const keyboardUp = ({ vv, innerHeight }) => !!vv && innerHeight - (vv.offsetTop + vv.height) > 120;
+
+/**
+ * How far to scroll the script so the line being written stays clear of the bar: `bottom` is the
+ * lowest point that must show (the cursor's line, or the suggestion list under it), `limit` the bar's
+ * top less a little air. Positive: scroll down by that much; 0: it already shows.
+ */
+export const scrollToClear = (bottom, limit) => (bottom > limit ? Math.ceil(bottom - limit) : 0);
