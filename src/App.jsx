@@ -106,14 +106,27 @@ import PlanFilter from './components/planning/PlanFilter.jsx';
 import { initialPlanFold } from './lib/planFold.js';
 import { EMPTY_PLAN_FILTER } from './lib/planFilter.js';
 import {
-  BACKUP_TOAST_DISMISSED_KEY, BACKUP_TOAST_SESSION_KEY, BACKUP_TOAST_SETTLE_MS, backupToastCopy, browserFamily, readFlag, readLastBackups, recordBackup,
+  BACKUP_TOAST_DISMISSED_KEY, BACKUP_TOAST_EARLY_KEY, BACKUP_TOAST_SESSION_KEY, BACKUP_TOAST_SETTLE_MS, backupToastCopy, browserFamily, readFlag, readLastBackups, recordBackup,
   shouldShowBackupToast, writeFlag,
 } from './lib/backupToast.js';
 import { requestPersistence } from './lib/storagePersist.js';
+import {
+  FULL_WIDTH_PANELS_QUERY, PHONE_QUERY, TOUCH_QUERY, exclusivePanels, mediaMatches, viewOnPhone, writeViewsFor,
+} from './lib/mobile.js';
 
 // Which browser this is, for the backup tip's wording and the protected-storage request (lib/backupToast.js).
 const BROWSER_FAMILY = browserFamily(globalThis.navigator?.userAgent || '', { maxTouchPoints: globalThis.navigator?.maxTouchPoints || 0 });
 const RUNNING_STANDALONE = !!(globalThis.navigator?.standalone || globalThis.matchMedia?.('(display-mode: standalone)').matches);
+
+/** Does a media query match? Re-renders when it changes (rotating a phone, resizing a window). lib/mobile.js has the queries. */
+function useMediaQuery(query) {
+  const subscribe = useCallback((onChange) => {
+    const m = globalThis.matchMedia?.(query);
+    m?.addEventListener?.('change', onChange);
+    return () => m?.removeEventListener?.('change', onChange);
+  }, [query]);
+  return useSyncExternalStore(subscribe, () => mediaMatches(query), () => false);
+}
 import { createNoirAudio } from './lib/noirAudio.js';
 import { NOIR_CLASS, NOIR_COMBO, noirGenrePicked, noirKeyAction } from './lib/noir.js';
 import {
@@ -364,6 +377,26 @@ function Workspace({ boot }) {
     setCharacterTab('dialogue');
   }, [dock, characterTab]);
   const [navOpen, setNavOpen] = useState(startPanels.navOpen);
+  // Phones and touch screens (lib/mobile.js). A phone-width window offers Page · Board (no Split); a
+  // touch screen leaves out keyboard-shortcut hints. A desktop with a mouse matches neither.
+  const phoneWidth = useMediaQuery(PHONE_QUERY);
+  const touchUi = useMediaQuery(TOUCH_QUERY);
+  const writeViewList = useMemo(() => writeViewsFor(VIEWS, phoneWidth), [phoneWidth]);
+  useEffect(() => {
+    if (viewOnPhone(view, phoneWidth) !== view) setView(viewOnPhone(view, phoneWidth));
+  }, [view, phoneWidth]);
+  // Where each panel is the whole window (phones), one at a time: opening the Scenes list closes the
+  // dock panel and the other way round. Closing only hides a panel; nothing in it is lost.
+  const panelsWere = useRef({ dock: startPanels.dock, navOpen: startPanels.navOpen });
+  useLayoutEffect(() => {
+    const was = panelsWere.current;
+    const now = { dock, navOpen };
+    panelsWere.current = now;
+    if (!mediaMatches(FULL_WIDTH_PANELS_QUERY)) return;
+    const next = exclusivePanels(was, now);
+    if (next.dock !== dock) setDock(next.dock);
+    if (next.navOpen !== navOpen) setNavOpen(next.navOpen);
+  }, [dock, navOpen]);
   const [selectedChar, setSelectedChar] = useState(null);
   const [hoverId, setHoverId] = useState(null);
   const [zoom, setZoom] = useState(initialPrefs.zoom ?? 1);
@@ -770,14 +803,17 @@ function Workspace({ boot }) {
     openStorage(saveStatus.action === 'link' ? 'folder' : 'storage');
   };
   // The backup tip (lib/backupToast.js): 10+ pages or 5,000+ words saved only in this browser.
+  // iPhone / iPad also get it once early, at the first scene, in Safari (`early`: that showing is used up).
   const [backupTipClosed, setBackupTipClosed] = useState(() => ({
     session: readFlag(globalThis.sessionStorage, BACKUP_TOAST_SESSION_KEY),
     forever: readFlag(globalThis.localStorage, BACKUP_TOAST_DISMISSED_KEY),
+    early: readFlag(globalThis.localStorage, BACKUP_TOAST_EARLY_KEY),
   }));
   const closeBackupTip = (forever = false) => {
     writeFlag(globalThis.sessionStorage, BACKUP_TOAST_SESSION_KEY);
+    writeFlag(globalThis.localStorage, BACKUP_TOAST_EARLY_KEY);
     if (forever) writeFlag(globalThis.localStorage, BACKUP_TOAST_DISMISSED_KEY);
-    setBackupTipClosed((c) => ({ session: true, forever: c.forever || forever }));
+    setBackupTipClosed((c) => ({ session: true, forever: c.forever || forever, early: true }));
   };
   // The backup tip waits until folder sync has read the linked folder back, plus a moment to settle:
   // before that every script looks like App Storage Only, and the tip flashed at launch.
@@ -1642,16 +1678,16 @@ function Workspace({ boot }) {
 
   const jumpTo = useCallback((id) => {
     if (view === 'board') {
-      setView('split');
+      setView(viewOnPhone('split', phoneWidth)); // the script beside the board; on a phone, the script
       requestAnimationFrame(() => requestAnimationFrame(() => editorRef.current?.focusBlock(id)));
     } else {
       editorRef.current?.focusBlock(id);
     }
-  }, [view]);
+  }, [view, phoneWidth]);
 
   const cycleView = useCallback(() => {
-    setView((v) => VIEWS[(VIEWS.findIndex((x) => x.id === v) + 1) % VIEWS.length].id);
-  }, []);
+    setView((v) => writeViewList[(writeViewList.findIndex((x) => x.id === v) + 1) % writeViewList.length].id);
+  }, [writeViewList]);
 
   // Print view is only mounted while printing (File → Print Script…, or Ctrl+P).
   useEffect(() => {
@@ -2151,6 +2187,11 @@ function Workspace({ boot }) {
     lastBackupAt: lastBackups[projectId] ?? null,
     savedAt: saved.at ?? null,
     storageKnown,
+    family: BROWSER_FAMILY,
+    standalone: RUNNING_STANDALONE,
+    scenes: scenes.length,
+    earlyDone: backupTipClosed.early,
+    sample: meta.title === SAMPLE_SCRIPT.meta.title, // The Last Ferry isn't the writer's own pages
   });
   // A brand-new writer (the library was empty) gets the sample and Focus hints; anyone else has them done.
   const [hintStates, setHintStates] = useState(() => onboardHints(globalThis.localStorage, boot.fresh === true));
@@ -2555,7 +2596,7 @@ function Workspace({ boot }) {
             </div>
           ) : (
           <div className="seg view-seg" role="radiogroup" aria-label="Workspace view (Alt+B cycles)" ref={viewSegRef}>
-            {VIEWS.map(({ id, label, title, Icon }) => (
+            {writeViewList.map(({ id, label, title, Icon }) => (
               <button
                 key={id}
                 type="button"
@@ -2669,9 +2710,10 @@ function Workspace({ boot }) {
                 // Phones hide the Scenes button (App.css): the list is here instead.
                 scenesOnBar: inPlan || !showEditor || isOnBar(scenesBtnRef.current, barRef.current),
                 onScenes: () => setNavOpen((o) => !o),
+                touch: touchUi, // no Keyboard Shortcuts item on a touch screen
                 writeViews: inPlan ? null : {
                   onBar: isOnBar(viewSegRef.current, barRef.current),
-                  views: VIEWS.map((v) => ({ label: v.label, on: view === v.id, onSelect: () => setView(v.id) })),
+                  views: writeViewList.map((v) => ({ label: v.label, on: view === v.id, onSelect: () => setView(v.id) })),
                 },
                 planTools: inPlan ? {
                   viewsOnBar: isOnBar(planSegRef.current, barRef.current),

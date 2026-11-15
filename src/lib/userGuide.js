@@ -209,6 +209,15 @@ const blocksHtml = (blocks) => blocks.map((b) => (b.type === 'p'
 /** The printed guide's title — and so the name "Save as PDF" suggests: "DraftLine - User Guide.pdf". */
 export const PRINT_TITLE = 'DraftLine - User Guide';
 
+/**
+ * The guide's opening on a touch screen: without the paragraph about keyboard keys (F1 opens the
+ * guide, Ctrl+/ lists the shortcuts), since a phone or tablet has neither. The rest is unchanged,
+ * and the printed copy keeps everything.
+ */
+export function touchIntro(blocks = []) {
+  return blocks.filter((b) => !(b.type === 'p' && /`F1`/.test(b.text)));
+}
+
 /** The whole guide as a standalone, escaped HTML document — what Print / Save PDF prints. */
 export function guideHtml(guide, { version = '', title = PRINT_TITLE } = {}) {
   const body = [

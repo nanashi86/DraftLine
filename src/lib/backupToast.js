@@ -10,6 +10,12 @@
 //              script has been saved 7+ days after its last backup (from the tip or the File menu).
 // Safari adds one line: Add to Dock on a Mac, Add to Home Screen on iPad and iPhone, since an app
 // opened from there isn't cleared after a week away. Not shown once DraftLine is opened that way.
+//
+// iPhone and iPad come first: Safari there can clear a script after a week away however short it is,
+// so in the browser (not from the Home Screen) the tip shows once early, as soon as the script has its
+// first scene (a scene heading and BACKUP_TOAST_EARLY_WORDS words) saved and never backed up. Closing
+// it that once, any way, uses up the early showing (BACKUP_TOAST_EARLY_KEY); from then on it follows
+// the usual rules above. Same card, same buttons, same "Don't show again".
 
 export const BACKUP_TOAST_PAGES = 10;
 export const BACKUP_TOAST_WORDS = 5000;
@@ -21,6 +27,10 @@ export const BACKUP_TOAST_SETTLE_MS = 1500;
 export const BACKUP_TOAST_DISMISSED_KEY = 'draftline_backup_toast_dismissed';
 /** sessionStorage: closed for this session (Dismiss, ✕, Link Folder or Backup Project). */
 export const BACKUP_TOAST_SESSION_KEY = 'draftline_backup_toast_session';
+/** iPhone / iPad early showing: a script this long, with a scene heading, gets the tip once. */
+export const BACKUP_TOAST_EARLY_WORDS = 50;
+/** localStorage: the early iPhone / iPad showing has been seen and closed. */
+export const BACKUP_TOAST_EARLY_KEY = 'draftline_backup_toast_early';
 /** localStorage: { [projectId]: time of its last .draftline backup, in ms }. */
 export const LAST_BACKUPS_KEY = 'draftline_last_backups';
 
@@ -78,18 +88,34 @@ export function backupToastCopy({ supported = true, family = 'other', standalone
  *   - a browser that can link a folder (`supported`): show it.
  *   - one that can't: show it if this script was never backed up (`lastBackupAt` null), or if it was
  *     last saved (`savedAt`) 7+ days after its last backup. A backup resets the clock.
+ * Below that length, iPhone and iPad only (`family` 'ios', in Safari rather than from the Home Screen,
+ * `standalone` false): once (`earlyDone` false), when the script has a scene (`scenes`), at least
+ * BACKUP_TOAST_EARLY_WORDS words, has been saved (`savedAt`) and was never backed up. Not for the
+ * sample script (`sample`).
  */
 export function shouldShowBackupToast({
   pages = 0, words = 0, state = 'local', supported = true, dismissedForever = false, dismissedSession = false, busy = false,
   lastBackupAt = null, savedAt = null, storageKnown = true,
+  family = 'other', standalone = false, scenes = 0, earlyDone = false, sample = false,
 } = {}) {
   // Until folder sync has read the linked folder back (and settled), every script looks like App
   // Storage Only: deciding then flashed the tip for a moment at launch for writers with a folder.
   if (!storageKnown) return false;
   if (dismissedForever || dismissedSession || busy || state !== 'local') return false;
-  if (pages < BACKUP_TOAST_PAGES && words < BACKUP_TOAST_WORDS) return false;
+  if (pages < BACKUP_TOAST_PAGES && words < BACKUP_TOAST_WORDS) {
+    return showEarlyHomeScreenTip({ family, standalone, supported, scenes, words, savedAt, lastBackupAt, earlyDone, sample });
+  }
   if (supported || lastBackupAt == null) return true;
   return savedAt != null && savedAt - lastBackupAt >= BACKUP_REMINDER_MS;
+}
+
+/** The early iPhone / iPad showing (see shouldShowBackupToast), on its own. */
+export function showEarlyHomeScreenTip({
+  family = 'other', standalone = false, supported = true, scenes = 0, words = 0, savedAt = null, lastBackupAt = null,
+  earlyDone = false, sample = false,
+} = {}) {
+  return family === 'ios' && !standalone && !supported && !earlyDone && !sample
+    && scenes >= 1 && words >= BACKUP_TOAST_EARLY_WORDS && savedAt != null && lastBackupAt == null;
 }
 
 /** Read a flag from storage; a private window or blocked storage reads as "not set". */

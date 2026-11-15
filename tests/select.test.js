@@ -101,7 +101,7 @@ describe('Select: DraftLine’s dropdown everywhere', () => {
   });
   it('a ✓ marks the chosen option (or a checked toggle); hints sit in a column on the right', () => {
     assert.match(ui, /\(o\.checked \?\? o\.value === value\) && <Check size=\{14\} strokeWidth=\{2\} \/>/);
-    assert.match(ui, /\{o\.hint && <span className="dl-opt-hint">\{o\.hint\}<\/span>\}/);
+    assert.match(ui, /\{o\.hint && <span className=\{`dl-opt-hint\$\{isShortcutHint\(o\.hint\) \? ' is-kbd' : ''\}`\}>\{o\.hint\}<\/span>\}/);
     assert.match(css, /\.dl-opt\.is-active \{ background: var\(--accent\); color: var\(--on-accent\); \}/);
     assert.match(css, /\.dl-select-list \{[^}]*background: var\(--panel\);[^}]*box-shadow: 0 12px 32px rgba\(0, 0, 0, 0\.4\);/, 'the same surface as File ▾');
   });

@@ -60,7 +60,7 @@ describe('Page | Split | Board and Breakdowns | Stripboard | Reports behave alik
     assert.deepEqual(tucked.slice(0, 4).map((i) => (i.divider ? '---' : `${i.label}${i.hint ? ` [${i.hint}]` : ''}`)), ['Page', 'Split [Showing]', 'Board', '---']);
     const onBar = moreMenuItems({ bibleOnBar: true, charactersOnBar: true, writeViews: { onBar: true, views } });
     assert.equal(onBar[0].label, 'View Snapshots', 'not repeated while the switch is on the bar');
-    assert.match(app, /writeViews: inPlan \? null : \{\s*onBar: isOnBar\(viewSegRef\.current, barRef\.current\),\s*views: VIEWS\.map\(\(v\) => \(\{ label: v\.label, on: view === v\.id, onSelect: \(\) => setView\(v\.id\) \}\)\),/);
+    assert.match(app, /writeViews: inPlan \? null : \{\s*onBar: isOnBar\(viewSegRef\.current, barRef\.current\),\s*views: writeViewList\.map\(\(v\) => \(\{ label: v\.label, on: view === v\.id, onSelect: \(\) => setView\(v\.id\) \}\)\),/);
     assert.match(app, /className="seg view-seg" role="radiogroup" aria-label="Workspace view \(Alt\+B cycles\)" ref=\{viewSegRef\}/);
   });
 });

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { isShortcutHint } from '../lib/mobile.js';
 
 /**
  * Small dropdown menu: a button that opens a list of actions. `items` can be a function,
@@ -63,7 +64,7 @@ export default function Menu({
                   <small className="menu-sub">{it.sub}</small>
                 </span>
               ) : <span>{it.label}</span>}
-              {it.hint && <span className="menu-hint">{it.hint}</span>}
+              {it.hint && <span className={`menu-hint${isShortcutHint(it.hint) ? ' is-kbd' : ''}`}>{it.hint}</span>}
               {it.ext && <span className="menu-hint menu-ext">{it.ext}</span>}
             </button>
           )))}

@@ -1070,3 +1070,53 @@
 /* A milestone arriving while the export toast is up sits above it. */
 .export-toast ~ .milestone-toast { bottom: calc(var(--status-h) + 66px); }
 .export-toast.has-tip ~ .milestone-toast { bottom: calc(var(--status-h) + 132px); }
+
+/* ---------- Phones and touch screens (lib/mobile.js) ----------
+   Each rule is scoped to a phone-width window or a touch screen with no hover (phones, tablets); a
+   desktop with a mouse matches none of them, so its menus, bar and panels are exactly as above. */
+
+/* Phones: the top bar's menus stay on screen. File ▾ is wider than the room right of its button, so
+   it drops from the bar as a sheet 8px in from each edge; any bar menu taller than the screen scrolls. */
+@media (max-width: 559.98px) {
+  .bar .file-menu .menu-pop {
+    position: fixed;
+    top: calc(var(--bar-h) + 6px);
+    left: 8px;
+    right: 8px;
+    min-width: 0;
+  }
+  .bar .menu-pop {
+    max-height: calc(100vh - var(--bar-h) - 14px);
+    max-height: calc(100dvh - var(--bar-h) - 14px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* Touch screens: no keyboard-shortcut hints (Alt+S, Ctrl+/, F1…) in menus or the Element list.
+   Counts, file types and other hints stay. */
+@media (hover: none) {
+  .menu-hint.is-kbd,
+  .dl-opt-hint.is-kbd,
+  .ac-hint { display: none; } /* the suggestion list's "↵/Tab accept · Esc dismiss": tap a suggestion instead */
+}
+
+/* Touch screens: the top bar's buttons take a finger-sized tap — 44px tall (the bar is 52px) and 5px
+   wider each side — through an invisible layer behind the same icon. Nothing visible changes size.
+   The Write | Plan and view switches only grow outward at their ends, so neighbours never overlap. */
+@media (hover: none) and (pointer: coarse) {
+  .bar button:not(.menu-item) { position: relative; }
+  .bar button:not(.menu-item)::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: -5px;
+    right: -5px;
+    height: max(100%, 44px);
+    transform: translateY(-50%);
+  }
+  .bar .seg > .seg-btn::before { left: 0; right: 0; }
+  .bar .seg > .seg-btn:first-child::before { left: -5px; }
+  .bar .seg > .seg-btn:last-child::before { right: -5px; }
+}

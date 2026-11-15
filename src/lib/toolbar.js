@@ -16,11 +16,12 @@ export function isOnBar(el, bar) {
  * The ⋮ menu, top to bottom: View Snapshots · Margin Notes · Format Doctor — Keyboard Shortcuts —
  * Settings… · User Guide · Send Feedback… · Cookie Settings… · About DraftLine (Sample… is in File ▾), plus Scenes, Focus, Story Bible and/or Characters first (toolbar order), but only while
  * the toolbar can't show them itself (narrow windows). Snapshots and Notes show their counts.
+ * On a touch screen (`touch`) Keyboard Shortcuts is left out: there's no keyboard to use them with.
  */
 export function moreMenuItems({
   bibleOnBar, charactersOnBar, onBible, onCharacters, onSnapshots, snapshotCount = 0, onNotes, noteCount = 0,
   onShortcuts, onAbout, onSettings, focusOnBar = true, onFocus, onGuide, onFormatDoctor, issueCount = 0, planTools = null, onReports = null,
-  onFeedback = null, onCookies = null, writeViews = null, scenesOnBar = true, onScenes = null,
+  onFeedback = null, onCookies = null, writeViews = null, scenesOnBar = true, onScenes = null, touch = false,
 }) {
   const panels = [
     !scenesOnBar && onScenes && { label: 'Scenes', hint: 'Alt+S', onSelect: onScenes },
@@ -43,8 +44,7 @@ export function moreMenuItems({
     // Plan → Reports, from Write (Plan has it on its own bar).
     ...(onReports ? [{ label: 'Reports', hint: 'Plan', onSelect: onReports }] : []),
     { divider: true },
-    { label: 'Keyboard Shortcuts', hint: 'Ctrl+/', onSelect: onShortcuts },
-    { divider: true },
+    ...(touch ? [] : [{ label: 'Keyboard Shortcuts', hint: 'Ctrl+/', onSelect: onShortcuts }, { divider: true }]),
     // Settings: global configuration, just above Help and About (Appearance, Storage & Backup, Drafting).
     ...(onSettings ? [{ label: 'Settings…', hint: 'Ctrl+,', onSelect: onSettings }] : []),
     ...(onGuide ? [{ label: 'User Guide', hint: 'F1', onSelect: onGuide }] : []),

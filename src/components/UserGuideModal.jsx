@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import userGuideMarkdown from '../content/userGuide.md?raw';
 import ExpandToggle from './ExpandToggle.jsx';
-import { PRINT_TITLE, fillGuide, guideHtml, highlight, inlineTokens, parseGuide, searchGuide } from '../lib/userGuide.js';
+import { PRINT_TITLE, fillGuide, guideHtml, highlight, inlineTokens, parseGuide, searchGuide, touchIntro } from '../lib/userGuide.js';
+import { TOUCH_QUERY, mediaMatches } from '../lib/mobile.js';
 import { GUIDE_VALUES } from '../config/features.js';
 import { SHORTCUTS } from '../lib/shortcuts.js';
 import { holdPrintTitle, printInNewWindow } from '../lib/printTitle.js';
@@ -165,7 +166,7 @@ export default function UserGuideModal({ onClose }) {
           ) : (
             <>
               <h1 className="ug-title">{GUIDE.title}</h1>
-              <Blocks blocks={GUIDE.intro} query="" />
+              <Blocks blocks={mediaMatches(TOUCH_QUERY) ? touchIntro(GUIDE.intro) : GUIDE.intro} query="" />
             </>
           )}
           {shown.chapters.map((c) => (

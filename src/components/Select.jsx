@@ -2,6 +2,7 @@ import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from 're
 import { createPortal } from 'react-dom';
 import { Check, ChevronDown } from 'lucide-react';
 import { edgeIndex, flattenOptions, openIndex, placeList, selectedIndex, stepIndex, typeaheadIndex } from '../lib/selectModel.js';
+import { isShortcutHint } from '../lib/mobile.js';
 import './Select.css';
 
 /**
@@ -146,7 +147,7 @@ export default function Select({
         {(o.checked ?? o.value === value) && <Check size={14} strokeWidth={2} />}
       </span>
       <span className="dl-opt-label" style={o.style}>{o.label}</span>
-      {o.hint && <span className="dl-opt-hint">{o.hint}</span>}
+      {o.hint && <span className={`dl-opt-hint${isShortcutHint(o.hint) ? ' is-kbd' : ''}`}>{o.hint}</span>}
     </div>
   );
   const groups = [];

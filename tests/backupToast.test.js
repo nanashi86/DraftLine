@@ -216,7 +216,58 @@ describe('Backup tip: never decided before the storage state is known', () => {
   it('the app waits for folder sync to be ready, then a short settle', () => {
     assert.equal(BACKUP_TOAST_SETTLE_MS, 1500);
     assert.match(app, /if \(!sync\.ready \|\| storageKnown\) return undefined;\s*const t = setTimeout\(\(\) => setStorageKnown\(true\), BACKUP_TOAST_SETTLE_MS\);/);
-    assert.match(app, /savedAt: saved\.at \?\? null,\s*storageKnown,\s*\}\);/);
+    assert.match(app, /savedAt: saved\.at \?\? null,\s*storageKnown,\s*family: BROWSER_FAMILY,/);
     assert.match(app, /const \[storageKnown, setStorageKnown\] = useState\(false\);/);
+  });
+});
+
+// iPhone / iPad: the tip once early, at the first scene (Mobile polish, round 1).
+describe('backup tip: the early iPhone / iPad showing', async () => {
+  const { BACKUP_TOAST_EARLY_KEY, BACKUP_TOAST_EARLY_WORDS, showEarlyHomeScreenTip } = await import('../src/lib/backupToast.js');
+  const firstScene = {
+    pages: 1, words: 60, scenes: 1, state: 'local', supported: false, family: 'ios', standalone: false,
+    savedAt: 1000, lastBackupAt: null, storageKnown: true,
+  };
+  it('shows in Safari on iPhone / iPad once the first scene is saved, well before 10 pages', () => {
+    assert.equal(BACKUP_TOAST_EARLY_WORDS, 50);
+    assert.equal(BACKUP_TOAST_EARLY_KEY, 'draftline_backup_toast_early');
+    assert.equal(shouldShowBackupToast(firstScene), true);
+  });
+  it('not before a scene heading, not under 50 words, not before the first save', () => {
+    assert.equal(shouldShowBackupToast({ ...firstScene, scenes: 0 }), false);
+    assert.equal(shouldShowBackupToast({ ...firstScene, words: 49 }), false);
+    assert.equal(shouldShowBackupToast({ ...firstScene, savedAt: null }), false);
+  });
+  it('only once: after it has been closed (any way) the usual 10 pages / 5,000 words apply again', () => {
+    assert.equal(shouldShowBackupToast({ ...firstScene, earlyDone: true }), false);
+    assert.equal(shouldShowBackupToast({ ...firstScene, earlyDone: true, pages: 10 }), true);
+  });
+  it('never from the Home Screen, in a linked folder, once backed up, or for the sample script', () => {
+    assert.equal(shouldShowBackupToast({ ...firstScene, standalone: true }), false);
+    assert.equal(shouldShowBackupToast({ ...firstScene, state: 'folder' }), false);
+    assert.equal(shouldShowBackupToast({ ...firstScene, lastBackupAt: 500 }), false);
+    assert.equal(shouldShowBackupToast({ ...firstScene, sample: true }), false);
+  });
+  it('the usual rules still hold: closed this session, Don\'t show again, busy, storage not known yet', () => {
+    assert.equal(shouldShowBackupToast({ ...firstScene, dismissedSession: true }), false);
+    assert.equal(shouldShowBackupToast({ ...firstScene, dismissedForever: true }), false);
+    assert.equal(shouldShowBackupToast({ ...firstScene, busy: true }), false);
+    assert.equal(shouldShowBackupToast({ ...firstScene, storageKnown: false }), false);
+  });
+  it('other platforms are as before: no early showing on Android, Mac Safari, Firefox or Chrome', () => {
+    for (const family of ['other', 'mac-safari', 'firefox']) assert.equal(shouldShowBackupToast({ ...firstScene, family }), false, family);
+    assert.equal(shouldShowBackupToast({ ...firstScene, family: 'other', supported: true }), false);
+    assert.equal(showEarlyHomeScreenTip({ ...firstScene, supported: true }), false);
+  });
+  it('same card and wording: Backup Project plus the Home Screen line', () => {
+    const c = backupToastCopy({ supported: false, family: 'ios', standalone: false });
+    assert.equal(c.action, 'Backup Project');
+    assert.match(c.extra, /Add to Home Screen/);
+  });
+  it('App: closing the tip (Dismiss, ✕, Backup Project, Don\'t show again) uses up the early showing', () => {
+    const app = read('src/App.jsx');
+    assert.match(app, /const closeBackupTip = \(forever = false\) => \{\s*writeFlag\(globalThis\.sessionStorage, BACKUP_TOAST_SESSION_KEY\);\s*writeFlag\(globalThis\.localStorage, BACKUP_TOAST_EARLY_KEY\);/);
+    assert.match(app, /earlyDone: backupTipClosed\.early,/);
+    assert.match(app, /standalone: RUNNING_STANDALONE,\s*scenes: scenes\.length,/);
   });
 });
