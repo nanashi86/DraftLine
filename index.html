@@ -129,14 +129,13 @@
     <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=2" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-title" content="DraftLine" />
+    <!-- The UI font (Inter) and the script font (Courier Prime) both ship with DraftLine (src/index.css),
+         so nothing from another site holds up the first paint and both work offline. Inter's Latin file
+         is preloaded: it's the one every page needs. -->
+    <link rel="preload" href="/fonts/inter-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin />
+    <!-- Only the optional Title Page fonts below come from Google Fonts. -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <!-- The UI font (Inter) loads first: it blocks rendering. The script font, Courier Prime, ships
-         with DraftLine (src/index.css), so it's the same on every device and offline. -->
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
-      rel="stylesheet"
-    />
     <!-- Title Page fonts (src/lib/titleFonts.js): loaded without blocking the first paint, and with
          display=swap each font file is only downloaded when a title actually uses it. -->
     <link
@@ -197,7 +196,7 @@
               "Story Bible: story DNA, notes, synopsis and glossary",
               "Snapshots with inline and side-by-side compare",
               "Scene breakdowns, stripboard and production reports",
-              "Linked-folder sync in Chrome or Edge on a computer (Google Drive, Dropbox, OneDrive)",
+              "Optional linked folder in Chrome or Edge on a computer, including folders synced by Google Drive, Dropbox or OneDrive",
               "Works offline; scripts stay on your device",
               "No generative AI: the writing is the writer's own",
               "No account required"
@@ -256,13 +255,13 @@
         document.head.appendChild(beacon);
       })();
     </script>
-    <script type="module" crossorigin src="/assets/index-Cac6NA_w.js"></script>
+    <script type="module" crossorigin src="/assets/index-B40rorrS.js"></script>
     <link rel="modulepreload" crossorigin href="/assets/rolldown-runtime-BCiCTKAo.js">
     <link rel="modulepreload" crossorigin href="/assets/react-DgawKyfb.js">
     <link rel="modulepreload" crossorigin href="/assets/formatting-BYoP7DnV.js">
     <link rel="modulepreload" crossorigin href="/assets/sluglines-NngmNwiy.js">
     <link rel="modulepreload" crossorigin href="/assets/titleFonts-CncB-K-b.js">
-    <link rel="stylesheet" crossorigin href="/assets/index-CDQ3pXE9.css">
+    <link rel="stylesheet" crossorigin href="/assets/index-y2_9ePDI.css">
   </head>
   <body>
     <div id="root"></div>

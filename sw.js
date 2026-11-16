@@ -2,20 +2,20 @@
    src/pwa/vitePlugin.js, which fills in the build's file list and version.
 
    • Install: caches the whole app shell — index.html, every JS / CSS file of this build, the
-     icons and manifest, Courier Prime (the script font, shipped with the build) — plus Inter (the
-     UI font) from Google Fonts, so DraftLine starts and runs fully offline after one visit.
+     icons and manifest, Courier Prime (the script font) and Inter (the UI font), both shipped with
+     the build — so DraftLine starts and runs fully offline after one visit.
    • Pages: network first (you get the newest deploy when online), cached index.html offline.
    • Built files (hashed names, never change): cache first.
    • credits.json (About's backers roll): network first, cached copy offline.
-   • Google Fonts: cached as they're used (title-page fonts too), served from cache after that.
+   • Google Fonts (only the optional title-page fonts): cached as they're used, served from cache after that.
    • Your scripts never touch this: they live in IndexedDB. Nothing is sent anywhere. */
 
-const VERSION = "5da96a0f7d3e";
+const VERSION = "3ebdce7a9bb1";
 const PRECACHE = [
   "./",
   "./apple-touch-icon.png",
   "./assets/BeatBoard-CqKCAXOz.css",
-  "./assets/BeatBoard-DXFSj2xj.js",
+  "./assets/BeatBoard-CqW00Pig.js",
   "./assets/CourierPrime-Bold-CsRXgBhi.ttf",
   "./assets/CourierPrime-BoldItalic-C1DEdWqk.ttf",
   "./assets/CourierPrime-Italic-B-AEgkAt.ttf",
@@ -25,46 +25,55 @@ const PRECACHE = [
   "./assets/Cousine-Italic-DPeanP9E.ttf",
   "./assets/Cousine-Regular-BGvNlzBO.ttf",
   "./assets/ExportBibleModal-BmO_EhlI.css",
-  "./assets/ExportBibleModal-DcvepgVM.js",
+  "./assets/ExportBibleModal-DRLPlzjp.js",
   "./assets/FeedbackModal-B7ZrobC9.css",
-  "./assets/FeedbackModal-DMdYztRB.js",
+  "./assets/FeedbackModal-CKZ8qq45.js",
   "./assets/FormatDoctorModal-BPyzaHM9.css",
-  "./assets/FormatDoctorModal-Cg8eUuU8.js",
+  "./assets/FormatDoctorModal-BTGW0UTz.js",
+  "./assets/HelpModal-BrlOW6BF.js",
   "./assets/HelpModal-CeQaX0wE.css",
-  "./assets/HelpModal-D-8w6-Sg.js",
   "./assets/ImportModal-Bhf76i3C.css",
-  "./assets/ImportModal-hHuap67R.js",
-  "./assets/PlanningWorkspace-CWJOVoky.js",
+  "./assets/ImportModal-CYcMsopr.js",
+  "./assets/PlanningWorkspace-CsqbWRni.js",
   "./assets/PlanningWorkspace-D6H_UmVx.css",
   "./assets/RenameCharacterModal-CWbhiDS6.css",
-  "./assets/RenameCharacterModal-D-U4mH0m.js",
-  "./assets/SettingsModal-B3sNl3do.js",
+  "./assets/RenameCharacterModal-Ce4zuDv5.js",
+  "./assets/SettingsModal-D08kM9ft.js",
   "./assets/SettingsModal-DOkz1RRV.css",
-  "./assets/SnapshotCompare-Deo0xjYA.js",
+  "./assets/SnapshotCompare-DfFS5wht.js",
   "./assets/SnapshotCompare-Dy-weC_2.css",
+  "./assets/UserGuideModal-BA-P9Av5.js",
   "./assets/UserGuideModal-BpzC5llS.css",
-  "./assets/UserGuideModal-DW6w3KNg.js",
-  "./assets/compilePdfAsync-DL8rJr5Y.js",
-  "./assets/docxImport-Fk3ygZwa.js",
+  "./assets/compilePdfAsync-DyuvctUd.js",
+  "./assets/docxImport-DY0wDh38.js",
   "./assets/fonts-D2_4q-e9.js",
   "./assets/formatting-BYoP7DnV.js",
-  "./assets/index-CDQ3pXE9.css",
-  "./assets/index-Cac6NA_w.js",
+  "./assets/index-B40rorrS.js",
+  "./assets/index-y2_9ePDI.css",
   "./assets/lib-DI1hcji2.js",
   "./assets/pdf.worker-DicYZRyc.js",
   "./assets/printTitle-C1qWomuv.js",
-  "./assets/productionEngine-CBiivk-d.js",
+  "./assets/productionEngine-O_wRJ7Wd.js",
   "./assets/react-DgawKyfb.js",
-  "./assets/reports-DljBEzVd.js",
+  "./assets/reports-vhtG6Vzj.js",
   "./assets/rolldown-runtime-BCiCTKAo.js",
   "./assets/scriptDiff.worker-CU0LXjzf.js",
-  "./assets/scriptPdf-DM4bazFS.js",
+  "./assets/scriptPdf-DXXXQWF7.js",
   "./assets/sluglines-NngmNwiy.js",
   "./assets/titleFonts-CncB-K-b.js",
   "./compare/index.html",
   "./credits.json",
   "./favicon.svg",
   "./features/index.html",
+  "./fonts/CourierPrime-OFL.txt",
+  "./fonts/Inter-OFL.txt",
+  "./fonts/courier-prime-400.woff2",
+  "./fonts/courier-prime-700.woff2",
+  "./fonts/inter-cyrillic-wght-normal.woff2",
+  "./fonts/inter-greek-wght-normal.woff2",
+  "./fonts/inter-latin-ext-wght-normal.woff2",
+  "./fonts/inter-latin-wght-normal.woff2",
+  "./fonts/inter-vietnamese-wght-normal.woff2",
   "./googlee6611a83e80afede.html",
   "./icon-192.png",
   "./icon-512.png",
@@ -78,30 +87,16 @@ const PRECACHE = [
   "./screenshots/phone.webp",
   "./sitemap.xml"
 ]; // paths relative to this file, e.g. "./assets/index-abc123.js"
-const CORE_FONTS_CSS = "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap";
 const SHELL_CACHE = `draftline-shell-${VERSION}`;
 const FONT_CACHE = 'draftline-fonts-v1';
 
 const FONT_HOSTS = ['fonts.googleapis.com', 'fonts.gstatic.com'];
-
-async function cacheFonts(cssUrl) {
-  const cache = await caches.open(FONT_CACHE);
-  const res = await fetch(cssUrl, { mode: 'cors' });
-  if (!res.ok) return;
-  await cache.put(cssUrl, res.clone());
-  const css = await res.text();
-  // The CSS points at the font files for this browser; fetch and keep them all.
-  const files = [...css.matchAll(/url\((https:\/\/fonts\.gstatic\.com\/[^)]+)\)/g)].map((m) => m[1]);
-  await Promise.all(files.map((u) => fetch(u, { mode: 'cors' }).then((r) => (r.ok ? cache.put(u, r) : null)).catch(() => null)));
-}
 
 self.addEventListener('install', (event) => {
   event.waitUntil((async () => {
     const shell = await caches.open(SHELL_CACHE);
     // cache: 'reload' skips the browser's HTTP cache, so a redrawn icon (same file name) is fetched fresh.
     await shell.addAll(PRECACHE.map((u) => new Request(u, { cache: 'reload' })));
-    // Fonts are a bonus: offline still works (with fallback fonts) if they can't be fetched now.
-    await cacheFonts(CORE_FONTS_CSS).catch(() => null);
     await self.skipWaiting();
   })());
 });
