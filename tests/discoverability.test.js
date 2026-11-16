@@ -137,3 +137,34 @@ describe('the comparison page stays complete and fair', () => {
     assert.match(text, /Chrome or Edge on a computer/);
   });
 });
+
+describe('file formats are described accurately', () => {
+  const features = read('public/features/index.html');
+  const readme = read('README.md');
+  it('Fountain is explained as plain text for editors, backups and Git, without claiming DraftLine stores or syncs it', () => {
+    assert.match(features, /Fountain \(<code>\.fountain<\/code>\) is plain text/);
+    assert.match(features, /version control such as Git/);
+    assert.match(features, /it doesn't keep your scripts as Fountain\s+or sync them anywhere for you/);
+    assert.doesNotMatch(readme, /stay on your device in open formats/, 'scripts are stored in the browser or as .draftline files, not as Fountain');
+  });
+  it('margin notes: in from both formats, out only to Final Draft and only when chosen (as the exporters do)', () => {
+    assert.doesNotMatch(features + readme, /margin notes included/i);
+    assert.match(features, /Fountain\s+never includes them, and Final Draft only if you choose/);
+    assert.match(read('src/lib/fountain.js'), /Margin notes are private editorial notes: they are never written to an export\./);
+  });
+  it('Final Draft limits match the pinned known gaps; .draftline is the format that keeps everything', () => {
+    for (const gap of ['SmartType', 'scene numbers such as 12A', 'Shot or New Act']) assert.ok(features.includes(gap), gap);
+    assert.match(read('tests/fixtures/fdx/README.md'), /## Known gaps/);
+    assert.match(features, /It's the format that keeps everything; Fountain and Final Draft carry the\s+screenplay\./);
+  });
+  it('the phone section says there is no separate mobile app to buy', () => {
+    assert.match(features, /no\s+separate mobile app to buy/);
+  });
+  it('the README invites issues and contributions, pointing at the licence, the tracker and the checks to run', () => {
+    const tail = readme.slice(readme.indexOf('## Open source, open to feedback'));
+    assert.match(tail, /\[MIT License\]\(LICENSE\)/);
+    assert.match(tail, /\[Open an issue\]\(https:\/\/github\.com\/nanashi86\/DraftLine\/issues\)/);
+    assert.match(tail, /`npm test` and `npm run lint`/);
+    assert.match(read('package.json'), /"lint": "eslint \."/);
+  });
+});

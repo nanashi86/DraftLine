@@ -13,7 +13,8 @@
 DraftLine™ is a fast, distraction-free screenwriting progressive web app (PWA): free, open source (MIT) and local-first.
 It runs in the browser on a computer or a phone, installs like an app and keeps working offline, with no account and no
 subscription.
-Your scripts stay on your device in open formats (Fountain and Final Draft XML), so you own your work outright.
+Your scripts stay on your device, and open and save as Fountain (plain text) and Final Draft (.fdx), so they're never
+locked into one app.
 
 **Highlights**
 
@@ -28,9 +29,11 @@ Your scripts stay on your device in open formats (Fountain and Final Draft XML),
   cookies) and uses Google Tag Manager to measure our ad campaigns, which sets Google advertising cookies. Visitors in
   the EU, the UK and Switzerland are asked first, and anyone can change their choice under ⋮ → Cookie Settings… at any time.
   Send Feedback sends only what you type, when you choose to.
-- **Full FDX and Fountain import/export compatibility.** Open and save Final Draft (.fdx) and Fountain files, margin
-  notes included, plus PDF, Word and Google Docs import. The User Guide's *Final Draft (.fdx)* section lists the few
-  Final Draft settings that don't carry over.
+- **Full FDX and Fountain import/export compatibility.** Bring your scripts and take them anywhere: open and save
+  Final Draft (.fdx) and Fountain files, plus PDF, Word and Google Docs import. Fountain is plain text, so an exported
+  script works in any text editor, in ordinary backups and in version control such as Git. The User Guide's *Final
+  Draft (.fdx)* section lists the few Final Draft settings that don't carry over, and a `.draftline` backup is the
+  format that keeps the whole project (Scene Board, Story Bible, snapshots…), which screenplay formats can't hold.
 - **Writing on a phone.** On a phone held upright, the script is drawn to the phone's width in readable 16px Courier
   Prime, with an element bar above the keyboard (Scene · Action · Character · Dialogue · ( ) · Transition). Page breaks
   are worked out at full page width in the background, so they match the desktop, the PDF and every export exactly, and a
@@ -308,7 +311,7 @@ Three tabs — **DNA** opens first unless you've picked another this session:
 ## Writing on a phone
 
 On a phone-width touch screen held upright, DraftLine draws the script to the phone's width instead of shrinking a US
-Letter page. Turn the phone sideways, or use a tablet or a computer, and you get the page as before.
+Letter page. It's the same app in the phone's browser, with nothing separate to buy or sign in to. Turn the phone sideways, or use a tablet or a computer, and you get the page as before.
 
 - **Readable 16px Courier Prime** that keeps the screenplay's shape: bold scene headings, then Character furthest in,
   Parenthetical, Dialogue, and Transitions on the right. At 16px, iPhone Safari doesn't zoom in when you tap a line, and
@@ -594,6 +597,13 @@ src/
   lib/sampleScript.js      "The Last Ferry" sample
 tests/                     node --test suite
 ```
+
+## Open source, open to feedback
+
+DraftLine is released under the [MIT License](LICENSE). Found a bug or have an idea?
+[Open an issue](https://github.com/nanashi86/DraftLine/issues), or use **⋮ → Send Feedback…** in the app.
+Contributions are welcome: for anything beyond a small fix, open an issue first so the change can be talked through,
+and run `npm test` and `npm run lint` before sending a pull request.
 
 ---
 
