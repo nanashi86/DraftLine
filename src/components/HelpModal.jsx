@@ -159,6 +159,10 @@ export default function HelpModal({ kind, storage, onClose, tipsFinished = 0, ti
               See all features
               <ExternalLink size={12} strokeWidth={1.75} aria-hidden />
             </a>
+            <a href={`${import.meta.env.BASE_URL}compare/`} target="_blank" rel="noopener">
+              How it compares
+              <ExternalLink size={12} strokeWidth={1.75} aria-hidden />
+            </a>
           </p>
           <section className="hm-origin" aria-labelledby="hm-origin-title">
             <h3 id="hm-origin-title">Origin Story</h3>

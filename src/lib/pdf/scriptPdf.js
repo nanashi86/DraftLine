@@ -19,8 +19,8 @@ import { parseInline, segments } from '../formatting.js';
 import { basedOnLine } from '../fountain.js';
 import { DEFAULT_CREDIT, draftLines, titleTypography } from '../titleFonts.js';
 import { parseTTF } from './ttf.js';
-import { WIN_ANSI_UNICODE, encodeWinAnsi } from './winAnsi.js';
-import { createPdf, name, ref, serialize, textString } from './pdfWriter.js';
+import { distinct, glyphRuns, hexGlyphs, toUnicodeCMap } from './glyphs.js';
+import { createPdf, name, ref, textString } from './pdfWriter.js';
 
 const IN = 72; // points
 export const GEOMETRY = Object.freeze({
@@ -223,6 +223,7 @@ export function layoutScriptPdf({ meta = {}, blocks = [], sceneNumbers = {}, sho
 const FONT_KEYS = { '00': 'regular', '10': 'bold', '01': 'italic', '11': 'boldItalic' };
 const fontKey = (r) => FONT_KEYS[`${r.b ? 1 : 0}${r.i ? 1 : 0}`];
 const RES = { regular: 'F1', bold: 'F2', italic: 'F3', boldItalic: 'F4' };
+const RES_FALLBACK = { regular: 'F5', bold: 'F6', italic: 'F7', boldItalic: 'F8' };
 
 const pdfDate = (ms) => {
   const d = new Date(ms);
@@ -235,12 +236,13 @@ const fmt = (n) => (Math.round(n * 1000) / 1000).toString();
 /**
  * Compile the script to PDF bytes.
  *   fonts: { regular, bold, italic, boldItalic } — Courier Prime .ttf bytes (only the styles the
- *          script uses are embedded; regular is always needed).
+ *          script uses are embedded; regular is always needed), and optionally `fallback`: the
+ *          same four styles of Cousine, for the characters Courier Prime doesn't have.
  *   deflate(bytes) → Promise<Uint8Array> (zlib) compresses the streams; omit it for plain ones.
  *   now: creation time (ms) for the document info; omit it and the file carries no date, so the
  *        same script always compiles to the same bytes.
- * Returns { bytes, pageCount, scriptPages, missing } — `missing`: characters the font's
- * encoding couldn't show (written as "?").
+ * Returns { bytes, pageCount, scriptPages, missing, unsupported } — `missing`: how many characters
+ * neither font has (each drawn as "?"); `unsupported`: those characters, each once, in order.
  */
 export async function compileScriptPdf({ meta = {}, blocks = [], sceneNumbers = {}, showSceneNumbers = true, fonts, deflate = null, now = null, appVersion = '' }) {
   if (!fonts?.regular) throw new Error('The PDF needs Courier Prime (Regular)');
@@ -254,61 +256,100 @@ export async function compileScriptPdf({ meta = {}, blocks = [], sceneNumbers = 
     if (!parsed[k].embeddable) throw new Error(`${parsed[k].postScriptName} doesn't allow embedding`);
   }
 
+  const fallback = {};
+  for (const k of used) {
+    const bytes = fonts.fallback?.[k] || fonts.fallback?.regular;
+    if (!bytes) continue;
+    fallback[k] = parseTTF(bytes);
+    if (!fallback[k].embeddable) throw new Error(`${fallback[k].postScriptName} doesn't allow embedding`);
+  }
+
+  // Every run's glyphs first, so each font object lists exactly the glyphs it draws.
+  const glyphsUsed = { primary: {}, fallback: {} }; // [font][style] → Map(gid → text)
+  let missing = 0;
+  const unsupported = [];
+  const drawn = model.pages.map((pg) => pg.runs.map((r) => {
+    const k = fontKey(r);
+    const g = glyphRuns(r.text, parsed[k], fallback[k] || null);
+    missing += g.unsupported.length;
+    unsupported.push(...g.unsupported);
+    for (const pc of g.pieces) {
+      const m = (glyphsUsed[pc.font][k] ||= new Map());
+      for (const gl of pc.glyphs) if (!m.has(gl.gid)) m.set(gl.gid, gl.text);
+    }
+    return g.pieces;
+  }));
+
   const pdf = createPdf({ deflate });
   const catalog = pdf.reserve();
   const pagesId = pdf.reserve();
 
-  // Fonts: simple TrueType fonts, WinAnsiEncoding, the whole font file embedded.
+  // Fonts: Type 0 (CIDFontType2), glyphs addressed by id (Identity-H), the whole font file embedded,
+  // with a ToUnicode map so copying and searching the PDF give back the script's own characters.
+  // Courier Prime's glyphs keep their own advances; Cousine's are drawn at Courier Prime's cell.
+  const cell = parsed.regular.widthOf(0x20);
   const fontRefs = {};
-  for (const k of ['regular', 'bold', 'italic', 'boldItalic']) {
-    if (!used.has(k)) continue;
-    const f = parsed[k];
+  const embed = async (f, glyphs, widthOf) => {
     const file = pdf.add(await pdf.stream(f.bytes, { Length1: f.bytes.length }));
     const italic = f.italicAngle !== 0;
     const desc = pdf.add({
       Type: name('FontDescriptor'),
       FontName: name(f.postScriptName),
-      Flags: 1 + 32 + (italic ? 64 : 0), // FixedPitch · Nonsymbolic · Italic
+      Flags: 1 + 4 + (italic ? 64 : 0), // FixedPitch · Symbolic (glyphs by id) · Italic
       FontBBox: f.bbox.map((x) => f.pdfUnits(x)),
       ItalicAngle: f.italicAngle,
       Ascent: f.pdfUnits(f.ascender),
       Descent: f.pdfUnits(f.descender),
       CapHeight: f.pdfUnits(f.capHeight),
       StemV: f.weightClass >= 600 ? 120 : 80,
-      MissingWidth: 600,
       FontFile2: ref(file),
     });
-    const widths = [];
-    for (let c = 32; c <= 255; c++) {
-      const cp = WIN_ANSI_UNICODE.get(c);
-      widths.push((cp && f.widthOf(cp)) || 600);
-    }
-    fontRefs[k] = pdf.add({
+    const gids = [...glyphs.keys()].sort((a, b) => a - b);
+    const cid = pdf.add({
       Type: name('Font'),
-      Subtype: name('TrueType'),
+      Subtype: name('CIDFontType2'),
       BaseFont: name(f.postScriptName),
-      FirstChar: 32,
-      LastChar: 255,
-      Widths: widths,
+      CIDSystemInfo: { Registry: '(Adobe)', Ordering: '(Identity)', Supplement: 0 },
       FontDescriptor: ref(desc),
-      Encoding: name('WinAnsiEncoding'),
+      DW: Math.round(cell),
+      W: gids.flatMap((g) => [g, [widthOf(g)]]),
+      CIDToGIDMap: name('Identity'),
     });
+    const toUnicode = pdf.add(await pdf.stream(toUnicodeCMap(glyphs)));
+    return pdf.add({
+      Type: name('Font'),
+      Subtype: name('Type0'),
+      BaseFont: name(f.postScriptName),
+      Encoding: name('Identity-H'),
+      DescendantFonts: [ref(cid)],
+      ToUnicode: ref(toUnicode),
+    });
+  };
+  for (const k of ['regular', 'bold', 'italic', 'boldItalic']) {
+    if (!used.has(k)) continue;
+    const glyphs = glyphsUsed.primary[k] || new Map([[parsed[k].glyphOf(0x20), ' ']]);
+    fontRefs[RES[k]] = await embed(parsed[k], glyphs, (g) => parsed[k].glyphWidth(g));
+    if (glyphsUsed.fallback[k]?.size) {
+      fontRefs[RES_FALLBACK[k]] = await embed(fallback[k], glyphsUsed.fallback[k], () => cell);
+    }
   }
-  const resources = { Font: Object.fromEntries(Object.entries(fontRefs).map(([k, id]) => [RES[k], ref(id)])) };
+  const resources = { Font: Object.fromEntries(Object.entries(fontRefs).map(([res, id]) => [res, ref(id)])) };
 
-  let missing = 0;
   const kids = [];
-  for (const pg of model.pages) {
+  for (const [p, pg] of model.pages.entries()) {
     let ops = '0 g\n';
-    for (const r of pg.runs) {
-      const f = parsed[fontKey(r)];
+    for (const [n, r] of pg.runs.entries()) {
+      const k = fontKey(r);
+      const f = parsed[k];
       const em = r.size / f.unitsPerEm;
       const content = (f.ascender - f.descender) * em;
       const baseline = r.top + (r.lh - content) / 2 + f.ascender * em; // CSS line box → baseline
       const y = GEOMETRY.pageHeight - baseline;
-      const { bytes, missing: m } = encodeWinAnsi(r.text);
-      missing += m;
-      ops += `BT /${RES[fontKey(r)]} ${fmt(r.size)} Tf ${fmt(r.x)} ${fmt(y)} Td ${serialize({ $bytes: bytes })} Tj ET\n`;
+      for (const pc of drawn[p][n]) {
+        const res = pc.font === 'primary' ? RES[k] : RES_FALLBACK[k];
+        const x = r.x + pc.cell * charWidth(r.size);
+        ops += `BT /${res} ${fmt(r.size)} Tf ${fmt(x)} ${fmt(y)} Td ${hexGlyphs(pc.glyphs.map((gl) => gl.gid))} Tj ET\n`;
+      }
       const w = Array.from(r.text).length * charWidth(r.size);
       const t = f.underlineThickness * em;
       if (r.u) ops += `${fmt(r.x)} ${fmt(y + f.underlinePosition * em - t / 2)} ${fmt(w)} ${fmt(t)} re f\n`;
@@ -333,5 +374,5 @@ export async function compileScriptPdf({ meta = {}, blocks = [], sceneNumbers = 
     ...(now != null ? { CreationDate: textString(pdfDate(now)) } : {}),
   });
   const bytes = await pdf.finish({ root: catalog, info });
-  return { bytes, pageCount: model.pages.length, scriptPages: model.scriptPages, missing };
+  return { bytes, pageCount: model.pages.length, scriptPages: model.scriptPages, missing, unsupported: distinct(unsupported) };
 }

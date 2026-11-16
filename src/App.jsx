@@ -128,6 +128,7 @@ function useMediaQuery(query) {
   }, [query]);
   return useSyncExternalStore(subscribe, () => mediaMatches(query), () => false);
 }
+import { unsupportedMessage as pdfUnsupportedMessage } from './lib/pdf/glyphs.js';
 import { createNoirAudio } from './lib/noirAudio.js';
 import { NOIR_CLASS, NOIR_COMBO, noirGenrePicked, noirKeyAction } from './lib/noir.js';
 import {
@@ -1666,7 +1667,7 @@ function Workspace({ boot }) {
       });
       const name = `${slugify(s.meta.title)}.pdf`;
       download(name, r.bytes, 'application/pdf');
-      if (r.missing) notify(`${r.missing} character${r.missing === 1 ? '' : 's'} Courier Prime can’t show printed as “?”`);
+      if (r.missing) notify(pdfUnsupportedMessage(r), 9000);
       showExportToast(name);
     } catch (err) {
       notify(`Couldn’t compile the PDF: ${err.message}`);

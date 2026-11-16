@@ -9,11 +9,11 @@ const slim = (blocks) => (blocks || []).map((b) => ({
 }));
 
 async function onThisThread(job) {
-  const [{ compileScriptPdf }, { browserDeflate, loadCourierPrime }] = await Promise.all([
+  const [{ compileScriptPdf }, { browserDeflate, loadPdfFonts }] = await Promise.all([
     import('./scriptPdf.js'),
     import('./fonts.js'),
   ]);
-  return compileScriptPdf({ ...job, fonts: await loadCourierPrime(), deflate: browserDeflate() });
+  return compileScriptPdf({ ...job, fonts: await loadPdfFonts(), deflate: browserDeflate() });
 }
 
 /** Resolves to { bytes, pageCount, scriptPages, missing }. */

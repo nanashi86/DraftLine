@@ -5,7 +5,6 @@ import { deflateSync, inflateSync } from 'node:zlib';
 import { Buffer } from 'node:buffer';
 import { GEOMETRY, compileScriptPdf, hasTitlePage, layoutScriptPdf } from '../src/lib/pdf/scriptPdf.js';
 import { parseTTF } from '../src/lib/pdf/ttf.js';
-import { encodeWinAnsi } from '../src/lib/pdf/winAnsi.js';
 import { PAGE_LINES, buildItems, paginate } from '../src/lib/screenplay.js';
 
 const read = (p) => readFileSync(new URL(`../${p}`, import.meta.url));
@@ -16,6 +15,38 @@ const FONTS = {
   boldItalic: read('src/assets/fonts/CourierPrime-BoldItalic.ttf'),
 };
 const B = (id, type, text, extra = {}) => ({ id, type, text, ...extra });
+
+/**
+ * What an uncompressed PDF draws, read back the way a PDF viewer does: each text-showing operator's
+ * glyph ids, through its font's ToUnicode map, with the font's BaseFont and the x / y it's drawn at.
+ * → [{ res, font, x, y, gids, text }]
+ */
+function drawnText(bytes) {
+  const s = latin1(bytes);
+  const obj = (id) => { const m = new RegExp(`\\n${id} 0 obj\\n([\\s\\S]*?)\\nendobj`).exec(s); return m ? m[1] : ''; };
+  const fonts = {};
+  for (const [, res, id] of s.matchAll(/\/(F\d) (\d+) 0 R/g)) {
+    if (fonts[res]) continue;
+    const dict = obj(id);
+    const cmap = obj(/\/ToUnicode (\d+) 0 R/.exec(dict)[1]);
+    const map = new Map();
+    for (const [, g, u] of cmap.matchAll(/<([0-9A-F]{4})> <([0-9A-F]+)>/g)) {
+      map.set(parseInt(g, 16), String.fromCharCode(...u.match(/.{4}/g).map((h) => parseInt(h, 16))));
+    }
+    fonts[res] = { font: /\/BaseFont \/([\w-]+)/.exec(dict)[1], map, dict, w: obj(/\/DescendantFonts \[(\d+) 0 R\]/.exec(dict)[1]) };
+  }
+  return [...s.matchAll(/BT \/(F\d) [\d.]+ Tf ([\d.]+) ([\d.]+) Td <([0-9A-F]*)> Tj ET/g)].map(([, res, x, y, hex]) => {
+    const gids = (hex.match(/.{4}/g) || []).map((h) => parseInt(h, 16));
+    return { res, font: fonts[res].font, x: Number(x), y: Number(y), gids, text: gids.map((g) => fonts[res].map.get(g) ?? '\u0000').join(''), fonts };
+  });
+}
+const COUSINE = {
+  regular: read('src/assets/fonts/Cousine-Regular.ttf'),
+  bold: read('src/assets/fonts/Cousine-Bold.ttf'),
+  italic: read('src/assets/fonts/Cousine-Italic.ttf'),
+  boldItalic: read('src/assets/fonts/Cousine-BoldItalic.ttf'),
+};
+const ALL_FONTS = { ...FONTS, fallback: COUSINE };
 const IN = 72;
 const latin1 = (u8) => Buffer.from(u8).toString('latin1');
 
@@ -175,29 +206,30 @@ describe('Compiled PDF: the file', () => {
     assert.match(s, /\/MediaBox \[0 0 612 792\]/);
   });
 
-  it('embeds Courier Prime — only the styles the script uses — as WinAnsi TrueType fonts', async () => {
-    const plain = latin1((await compileScriptPdf({ blocks: [B('a', 'action', 'Rain.')], fonts: FONTS })).bytes);
-    assert.deepEqual([...plain.matchAll(/\/BaseFont \/([\w-]+)/g)].map((m) => m[1]), ['CourierPrime-Regular']);
+  it('embeds Courier Prime — only the styles the script uses — as Unicode (Type 0, Identity-H) fonts', async () => {
+    const plain = latin1((await compileScriptPdf({ blocks: [B('a', 'action', 'Rain.')], fonts: ALL_FONTS })).bytes);
+    assert.deepEqual([...new Set([...plain.matchAll(/\/BaseFont \/([\w-]+)/g)].map((m) => m[1]))], ['CourierPrime-Regular'], 'no Cousine when nothing needs it');
     const styled = latin1((await compileScriptPdf({ blocks: sample(), fonts: FONTS })).bytes);
-    assert.deepEqual([...styled.matchAll(/\/BaseFont \/([\w-]+)/g)].map((m) => m[1]).sort(), ['CourierPrime-Bold', 'CourierPrime-Italic', 'CourierPrime-Regular']);
-    assert.match(styled, /\/Subtype \/TrueType/);
-    assert.match(styled, /\/Encoding \/WinAnsiEncoding/);
+    assert.deepEqual([...new Set([...styled.matchAll(/\/BaseFont \/([\w-]+)/g)].map((m) => m[1]))].sort(), ['CourierPrime-Bold', 'CourierPrime-Italic', 'CourierPrime-Regular']);
+    assert.match(styled, /\/Subtype \/Type0 \/BaseFont \/CourierPrime-Regular \/Encoding \/Identity-H \/DescendantFonts \[\d+ 0 R\] \/ToUnicode \d+ 0 R/);
+    assert.match(styled, /\/Subtype \/CIDFontType2/);
+    assert.match(styled, /\/CIDToGIDMap \/Identity/);
     assert.match(styled, /\/FontFile2 \d+ 0 R/);
     assert.match(styled, new RegExp(`/Length1 ${FONTS.regular.length}\\b`), 'the whole font file');
-    const widths = /\/FirstChar 32 \/LastChar 255 \/Widths \[([^\]]+)\]/.exec(styled)[1].trim().split(/\s+/);
-    assert.equal(widths.length, 224);
-    assert.ok(widths.every((w) => Math.abs(Number(w) - 600) < 0.5), 'monospaced: every advance 0.1 in at 12 pt (600 for the five codes WinAnsi leaves unused)');
+    const widths = [...styled.matchAll(/\/W \[(.*?)\]\]/g)].flatMap((m) => [...m[1].matchAll(/\[([\d.]+)/g)].map((x) => Number(x[1])));
+    assert.ok(widths.length > 10 && widths.every((w) => Math.abs(w - 599.61) < 0.01), 'monospaced: every advance 0.1 in at 12 pt');
   });
 
-  it('draws the text it laid out, with curly quotes, dashes and accents in WinAnsi', async () => {
-    const { bytes } = await compileScriptPdf({ blocks: sample(), fonts: FONTS });
-    const s = latin1(bytes);
-    assert.match(s, /BT \/F2 12 Tf 108 [\d.]+ Td \(EXT\. HARBOR - DAWN\) Tj ET/, 'bold heading at 1.5 in');
-    assert.ok(s.includes('\\223over\\224'), 'curly quotes as WinAnsi 0x93 / 0x94');
-    assert.ok(s.includes('\\227'), 'em dash 0x97');
-    assert.ok(s.includes('caf\\351'), 'é');
-    assert.match(s, /re f\n/, 'the underline is drawn');
-    assert.deepEqual(encodeWinAnsi('漢 a').missing, 1, 'outside the font: written as ? and counted');
+  it('draws the text it laid out, read back exactly as written: curly quotes, dashes, accents', async () => {
+    const drawn = drawnText((await compileScriptPdf({ blocks: sample(), fonts: FONTS })).bytes);
+    const heading = drawn.find((d) => d.text === 'EXT. HARBOR - DAWN');
+    assert.ok(heading, 'the heading');
+    assert.equal(heading.font, 'CourierPrime-Bold');
+    assert.equal(heading.x, 108, 'at 1.5 in');
+    const all = drawn.map((d) => d.text).join('');
+    for (const t of ['“over”', '—', 'Marie’s café.']) assert.ok(all.includes(t), t);
+    assert.ok(drawn.every((d) => d.gids.every((g) => g > 0)), 'every character a real glyph');
+    assert.match(latin1((await compileScriptPdf({ blocks: sample(), fonts: FONTS })).bytes), /re f\n/, 'the underline is drawn');
   });
 
   it('the same script always compiles to the same bytes; the date only goes in when given', async () => {
@@ -216,7 +248,8 @@ describe('Compiled PDF: the file', () => {
     const s = latin1(packed.bytes);
     const streams = [...s.matchAll(/\/Filter \/FlateDecode \/Length (\d+)>>\nstream\n/g)];
     const texts = streams.map((m) => inflateSync(Buffer.from(s.slice(m.index + m[0].length, m.index + m[0].length + Number(m[1])), 'latin1')).toString('latin1'));
-    assert.ok(texts.some((t) => t.includes('(EXT. HARBOR - DAWN) Tj')));
+    const plainDrawing = /stream\n(0 g\n[\s\S]*?)\nendstream/.exec(latin1(plain.bytes))[1];
+    assert.ok(texts.includes(plainDrawing), 'the same drawing');
   });
 
   it('a 110-page script compiles in well under a few seconds', async () => {
@@ -320,5 +353,99 @@ describe('Compiled PDF: Scene Numbers setting (spec by default)', () => {
     const print = css.slice(css.indexOf('@media print'));
     assert.match(print, /\.hide-print-scene-numbers \.scene-no \{ display: none !important; \}/);
     assert.match(app, /sceneNumbers=\{analysis\.sceneNumbers\}\n/, 'the editor keeps its numbers');
+  });
+});
+
+describe('Compiled PDF: Unicode text', () => {
+  const compile = (text, fonts = ALL_FONTS, type = 'action') => compileScriptPdf({ blocks: [B('a', type, text)], fonts });
+  const drawn = async (text, fonts, type) => {
+    const r = await compile(text, fonts, type);
+    const d = drawnText(r.bytes);
+    return { r, d, text: d.map((x) => x.text).join(''), fontsUsed: [...new Set(d.map((x) => x.font))] };
+  };
+  const shows = async (text, expectFonts) => {
+    const { r, text: got, fontsUsed, d } = await drawn(text);
+    assert.equal(r.missing, 0, `${text}: nothing missing`);
+    assert.equal(got.replace(/\s+/g, ' ').trim(), text, 'copy / search give back the same text');
+    assert.ok(d.every((x) => x.gids.every((g) => g > 0)), 'every character a real glyph');
+    assert.deepEqual(fontsUsed.sort(), expectFonts.sort());
+  };
+
+  it('Latin accents and typographic punctuation: Courier Prime', async () => {
+    await shows('Café naïve façade Ångström São Kraków', ['CourierPrime-Regular']);
+    await shows('“quoted” ‘single’ — – … € £ ™ ©', ['CourierPrime-Regular']);
+  });
+  it('Latin Extended-A (Polish, Czech, Turkish, Hungarian): Courier Prime, which already had them', () => shows('Łódź Dvořák İstanbul ğış Őrület žluťoučký', ['CourierPrime-Regular']));
+  it('Latin Extended-B and Vietnamese: Cousine for the letters Courier Prime lacks', () => shows('București ș ț Tiếng Việt Hội An ǎ', ['CourierPrime-Regular', 'Cousine-Regular']));
+  it('Greek and Cyrillic', async () => {
+    await shows('Γειά σου, κόσμε!', ['CourierPrime-Regular', 'Cousine-Regular']);
+    await shows('Привет, мир! Київ Ђорђе', ['CourierPrime-Regular', 'Cousine-Regular']);
+  });
+  it('bold, italic and capitals keep their style in the fallback too (a Cyrillic scene heading is bold)', async () => {
+    const { d } = await drawn('INT. МОСКВА - NIGHT', ALL_FONTS, 'scene');
+    assert.deepEqual([...new Set(d.map((x) => x.font))].sort(), ['CourierPrime-Bold', 'Cousine-Bold']);
+    assert.equal(d.map((x) => x.text).join(''), 'INT. МОСКВА - NIGHT');
+  });
+  it('mixed-language dialogue keeps every character in its Courier cell: the page layout is unchanged', async () => {
+    const text = 'Hello / Γειά / Привет / Łódź';
+    const { d } = await drawn(text, ALL_FONTS, 'dialogue');
+    const cw = (1228 / 2048) * 12;
+    const start = d[0].x;
+    let cell = 0;
+    for (const piece of d) {
+      assert.ok(Math.abs(piece.x - (start + cell * cw)) < 0.01, `“${piece.text}” at cell ${cell}`);
+      cell += Array.from(piece.text).length;
+    }
+    assert.equal(cell, Array.from(text).length);
+    const fallbackW = [...new Set(d.filter((x) => x.font.startsWith('Cousine')).map((x) => x.fonts[x.res].w))][0];
+    assert.ok([...fallbackW.matchAll(/\[([\d.]+)\]/g)].every((m) => m[1] === '599.61'), 'Cousine drawn at Courier Prime’s exact advance');
+  });
+  it('combining accents are composed: e + ´ prints as é', () => shows('Café Zoë ñ'.normalize('NFC'), ['CourierPrime-Regular']));
+  it('an accent with no composed form is left off and reported, never drawn out of place', async () => {
+    const { r, text } = await drawn('q́ ok');
+    assert.equal(text, 'q ok');
+    assert.equal(r.missing, 1);
+    assert.deepEqual(r.unsupported, ['́']);
+  });
+  it('CJK, Hebrew, Arabic, Devanagari and emoji aren’t in either font: drawn as "?" and reported by name', async () => {
+    const { r, text } = await drawn('你好 שלום مرحبا नमस्ते 🎬');
+    assert.equal(r.missing, 2 + 4 + 5 + 6 + 1);
+    assert.equal(text, '?? ???? ????? ???? ?', 'one "?" per character; Devanagari\'s two vowel signs are accents, left off');
+    assert.deepEqual(r.unsupported.slice(0, 3), ['你', '好', 'ש']);
+    assert.ok(r.unsupported.includes('🎬'));
+  });
+  it('the export message names the characters and points to Print Script…', async () => {
+    const { unsupportedMessage } = await import('../src/lib/pdf/glyphs.js');
+    assert.equal(unsupportedMessage({ missing: 3, unsupported: ['你', '好'] }), 'The PDF can’t show 3 characters: 你, 好. They print as “?”. Print Script… keeps them, in your computer’s fonts.');
+    assert.equal(unsupportedMessage({ missing: 1, unsupported: ['́'] }), 'The PDF can’t show 1 character: ◌́. Those accents are left off. Print Script… keeps them, in your computer’s fonts.');
+    assert.match(unsupportedMessage({ missing: 20, unsupported: [...'abcdefghij'] }), /: a, b, c, d, e, f, g, h, …\./);
+    assert.match(read('src/App.jsx').toString(), /if \(r\.missing\) notify\(pdfUnsupportedMessage\(r\), 9000\);/);
+  });
+  it('without the fallback fonts it still compiles, and reports Greek as unsupported rather than guessing', async () => {
+    const { r, text } = await drawn('Γειά ok', FONTS);
+    assert.equal(text, '???? ok');
+    assert.deepEqual(r.unsupported, ['Γ', 'ε', 'ι', 'ά']);
+  });
+  it('invisible layout characters (joiners, direction marks, variation selectors) are skipped, not reported', async () => {
+    const { r, text } = await drawn('a​b‎c️');
+    assert.equal(text, 'abc');
+    assert.equal(r.missing, 0);
+  });
+  it('the script itself is never changed by compiling', async () => {
+    const blocks = [B('a', 'action', 'Café 你好 Γειά')];
+    const before = JSON.stringify(blocks);
+    await compileScriptPdf({ blocks, fonts: ALL_FONTS });
+    assert.equal(JSON.stringify(blocks), before);
+  });
+  it('Cousine ships beside Courier Prime under the same licence (OFL), loaded by the PDF worker', () => {
+    for (const f of ['Regular', 'Bold', 'Italic', 'BoldItalic']) {
+      const t = parseTTF(COUSINE[f.charAt(0).toLowerCase() + f.slice(1)]);
+      assert.equal(t.embeddable, true);
+      assert.equal(t.widthOf(0x0416), 600.1, 'Ж: Cousine’s own advance (the PDF draws it at Courier Prime’s)');
+      assert.ok(!t.glyphOf(0x05d0), 'no Hebrew: it needs right-to-left layout');
+      assert.ok(!t.glyphOf(0x0041), 'only what Courier Prime lacks');
+    }
+    assert.match(read('src/assets/fonts/Cousine-OFL.txt').toString(), /SIL Open Font License, Version 1\.1/);
+    assert.match(read('src/lib/pdf/pdf.worker.js').toString(), /const fonts = await loadPdfFonts\(\);/);
   });
 });

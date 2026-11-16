@@ -117,6 +117,8 @@ export function parseTTF(input) {
       const g = glyphOf(cp);
       return g ? Math.round(advanceOfGlyph(g) * scale * 100) / 100 : 0;
     },
+    /** Advance of glyph `g` in PDF text units (1/1000 em). */
+    glyphWidth: (g) => Math.round(advanceOfGlyph(g) * scale * 100) / 100,
     /** In PDF units (1/1000 em) for a FontDescriptor. */
     pdfUnits: (x) => Math.round(x * scale),
   };

@@ -2,11 +2,11 @@
 // stalls typing. In: { meta, blocks, sceneNumbers, showSceneNumbers, now, appVersion }. Out: { bytes, … } (the
 // buffer is transferred, not copied) or { error }.
 import { compileScriptPdf } from './scriptPdf.js';
-import { browserDeflate, loadCourierPrime } from './fonts.js';
+import { browserDeflate, loadPdfFonts } from './fonts.js';
 
 self.onmessage = async (e) => {
   try {
-    const fonts = await loadCourierPrime();
+    const fonts = await loadPdfFonts();
     const r = await compileScriptPdf({ ...e.data, fonts, deflate: browserDeflate() });
     self.postMessage(r, [r.bytes.buffer]);
   } catch (err) {

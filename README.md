@@ -405,7 +405,13 @@ US Letter, Courier Prime 12 pt embedded (only the styles the script uses), margi
 page numbers top right from page 2, the title page first. Page breaks come from the same pagination as the editor
 (orphaned headings moved, speeches split with `(MORE)` / `NAME (CONT'D)`), so the file matches the screen and is the
 same on every machine. It compiles in a Web Worker (`src/lib/pdf/`, no dependencies) and downloads `<title>.pdf`.
-Text outside Latin-1 and typographic punctuation prints as `?` (you're told how many characters). The title is set in
+Text is written as Unicode, so copying or searching the PDF gives back the script's own characters. Courier Prime
+draws everything it has (Latin-1, Latin Extended-A, typographic punctuation); a subset of Cousine (SIL Open Font
+License, like Courier Prime) fills in Latin Extended-B, Vietnamese, Greek, Cyrillic and common symbols at the same
+character width, so the page and its breaks don't move. Scripts that need right-to-left or complex shaping (Hebrew,
+Arabic, Devanagari…), Chinese, Japanese, Korean and emoji aren't covered: those characters print as `?`, and an
+accent with no composed form (q́) is left off. After the export DraftLine names the characters it couldn't show; **Print
+Script…** keeps them, in your computer's fonts. The title is set in
 Courier Prime whatever title font you chose; **Print Script…** keeps the chosen font.
 
 Before it compiles, a small **Export PDF** dialog asks one thing: **Include Scene Numbers (Production Draft)**. It's
