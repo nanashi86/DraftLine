@@ -4,7 +4,8 @@
    • Install: caches the whole app shell — index.html, every JS / CSS file of this build, the
      icons and manifest, Courier Prime (the script font) and Inter (the UI font), both shipped with
      the build — so DraftLine starts and runs fully offline after one visit.
-   • Pages: network first (you get the newest deploy when online), cached index.html offline.
+   • Pages: network first (you get the newest deploy when online; the app's page is always
+     revalidated, never taken from the browser's 10-minute HTTP cache), cached index.html offline.
    • Built files (hashed names, never change): cache first.
    • credits.json (About's backers roll): network first, cached copy offline.
    • Google Fonts (only the optional title-page fonts): cached as they're used, served from cache after that.
@@ -62,7 +63,10 @@ self.addEventListener('fetch', (event) => {
     event.respondWith((async () => {
       const cache = await caches.open(SHELL_CACHE);
       try {
-        const res = await fetch(req);
+        // The app's page always asks the server ("no-cache": a quick check, a full download only
+        // when it changed). GitHub Pages lets browsers keep it for 10 minutes, and a copy from
+        // before a deploy points at built files that deploy removed: a blank screen.
+        const res = await (isApp ? fetch(req.url, { cache: 'no-cache', credentials: 'same-origin' }) : fetch(req));
         if (res.ok && isApp) cache.put('./index.html', res.clone());
         return res;
       } catch {
