@@ -4,18 +4,19 @@
    • Install: caches the whole app shell — index.html, every JS / CSS file of this build, the
      icons and manifest, Courier Prime (the script font) and Inter (the UI font), both shipped with
      the build — so DraftLine starts and runs fully offline after one visit.
-   • Pages: network first (you get the newest deploy when online), cached index.html offline.
+   • Pages: network first (you get the newest deploy when online; the app's page is always
+     revalidated, never taken from the browser's 10-minute HTTP cache), cached index.html offline.
    • Built files (hashed names, never change): cache first.
    • credits.json (About's backers roll): network first, cached copy offline.
    • Google Fonts (only the optional title-page fonts): cached as they're used, served from cache after that.
    • Your scripts never touch this: they live in IndexedDB. Nothing is sent anywhere. */
 
-const VERSION = "d09a41ed0d1b";
+const VERSION = "443b06055d00";
 const PRECACHE = [
   "./",
   "./apple-touch-icon.png",
-  "./assets/BeatBoard-2QRY3gPY.js",
   "./assets/BeatBoard-CqKCAXOz.css",
+  "./assets/BeatBoard-DKkJ38aj.js",
   "./assets/CourierPrime-Bold-CsRXgBhi.ttf",
   "./assets/CourierPrime-BoldItalic-C1DEdWqk.ttf",
   "./assets/CourierPrime-Italic-B-AEgkAt.ttf",
@@ -25,40 +26,40 @@ const PRECACHE = [
   "./assets/Cousine-Italic-DPeanP9E.ttf",
   "./assets/Cousine-Regular-BGvNlzBO.ttf",
   "./assets/ExportBibleModal-BmO_EhlI.css",
-  "./assets/ExportBibleModal-C5aZeWct.js",
+  "./assets/ExportBibleModal-Cn4l0tjv.js",
   "./assets/FeedbackModal-BY7SppGS.css",
-  "./assets/FeedbackModal-C7SbDBm-.js",
+  "./assets/FeedbackModal-CyKEtzp4.js",
   "./assets/FormatDoctorModal-BPyzaHM9.css",
-  "./assets/FormatDoctorModal-u0XHQ6Az.js",
-  "./assets/HelpModal-C2yeFBtJ.js",
+  "./assets/FormatDoctorModal-BkL5ZwZr.js",
   "./assets/HelpModal-CeQaX0wE.css",
+  "./assets/HelpModal-DiyHQ0jY.js",
   "./assets/ImportModal-Bhf76i3C.css",
-  "./assets/ImportModal-pkLgd7va.js",
-  "./assets/PlanningWorkspace-CXSl2QJo.js",
+  "./assets/ImportModal-DK6sId5-.js",
+  "./assets/PlanningWorkspace-B6W3Lj5P.js",
   "./assets/PlanningWorkspace-D6H_UmVx.css",
-  "./assets/RenameCharacterModal-CIBe9z1d.js",
+  "./assets/RenameCharacterModal-BzKCKtcq.js",
   "./assets/RenameCharacterModal-CWbhiDS6.css",
-  "./assets/SettingsModal-BGR5rnvt.js",
   "./assets/SettingsModal-DOkz1RRV.css",
-  "./assets/SnapshotCompare-B7cSEiR4.js",
+  "./assets/SettingsModal-DS0gt5mE.js",
+  "./assets/SnapshotCompare-D4-RPhcV.js",
   "./assets/SnapshotCompare-Dy-weC_2.css",
+  "./assets/UserGuideModal-BK3bsyvZ.js",
   "./assets/UserGuideModal-BpzC5llS.css",
-  "./assets/UserGuideModal-DP6vJfR7.js",
-  "./assets/compilePdfAsync-CLK8Zt0D.js",
-  "./assets/docxImport-ChX8xn31.js",
+  "./assets/compilePdfAsync-s12aZbCZ.js",
+  "./assets/docxImport-CeD5-3-y.js",
   "./assets/fonts-D2_4q-e9.js",
   "./assets/formatting-BYoP7DnV.js",
-  "./assets/index-Cru1vmjr.js",
+  "./assets/index-nBKTQ5_M.js",
   "./assets/index-y2_9ePDI.css",
   "./assets/lib-DI1hcji2.js",
   "./assets/pdf.worker-DicYZRyc.js",
   "./assets/printTitle-C1qWomuv.js",
-  "./assets/productionEngine-DKYOBnhV.js",
+  "./assets/productionEngine-BfUz4SHG.js",
   "./assets/react-DgawKyfb.js",
-  "./assets/reports-DBchEZve.js",
+  "./assets/reports-Bk9eZFhX.js",
   "./assets/rolldown-runtime-BCiCTKAo.js",
   "./assets/scriptDiff.worker-CU0LXjzf.js",
-  "./assets/scriptPdf-CjiA3PNL.js",
+  "./assets/scriptPdf-aa5Q9MkJ.js",
   "./assets/sluglines-NngmNwiy.js",
   "./assets/titleFonts-CncB-K-b.js",
   "./compare/index.html",
@@ -137,7 +138,10 @@ self.addEventListener('fetch', (event) => {
     event.respondWith((async () => {
       const cache = await caches.open(SHELL_CACHE);
       try {
-        const res = await fetch(req);
+        // The app's page always asks the server ("no-cache": a quick check, a full download only
+        // when it changed). GitHub Pages lets browsers keep it for 10 minutes, and a copy from
+        // before a deploy points at built files that deploy removed: a blank screen.
+        const res = await (isApp ? fetch(req.url, { cache: 'no-cache', credentials: 'same-origin' }) : fetch(req));
         if (res.ok && isApp) cache.put('./index.html', res.clone());
         return res;
       } catch {
