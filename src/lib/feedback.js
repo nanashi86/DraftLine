@@ -14,7 +14,7 @@ export const FEEDBACK_ENDPOINT = import.meta.env?.VITE_FEEDBACK_ENDPOINT || DEFA
 
 /** "I previously used:" — the software choices, then "None" for a writer new to screenwriting software. */
 export const NO_PREVIOUS_APP = 'None (New Writer)';
-export const PREVIOUS_APPS = ['Final Draft', 'Fade In', 'Highland 2', 'WriterDuet', 'Celtx', 'Google Docs / Word', 'Other', NO_PREVIOUS_APP];
+export const PREVIOUS_APPS = ['Final Draft', 'Fade In', 'Highland 2', 'WriterDuet', 'WriterSolo', 'Beat', 'Celtx', 'Google Docs / Word', 'Other', NO_PREVIOUS_APP];
 export const FOUND_VIA = ['Google search', 'Google ad', 'AI assistant', 'YouTube', 'Instagram / Threads', 'TikTok', 'X', 'Reddit', 'AlternativeTo', 'A friend', 'Other'];
 export const WRITES_ON = ['Computer', 'Phone', 'Tablet', 'All of them'];
 

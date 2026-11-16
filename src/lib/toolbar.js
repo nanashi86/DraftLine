@@ -48,7 +48,7 @@ export function moreMenuItems({
     // Settings: global configuration, just above Help and About (Appearance, Storage & Backup, Drafting).
     ...(onSettings ? [{ label: 'Settings…', hint: 'Ctrl+,', onSelect: onSettings }] : []),
     ...(onGuide ? [{ label: 'User Guide', hint: 'F1', onSelect: onGuide }] : []),
-    // Directly above About: three questions, sent anonymously (components/FeedbackModal.jsx).
+    // Directly above About: the feedback form (components/FeedbackModal.jsx).
     ...(onFeedback ? [{ label: 'Send Feedback…', onSelect: onFeedback }] : []),
     // Ad-cookie choice (the banner in index.html): only where the Google tag loaded, so never on admin devices.
     ...(onCookies ? [{ label: 'Cookie Settings…', onSelect: onCookies }] : []),

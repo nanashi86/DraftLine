@@ -77,7 +77,7 @@ describe('feedback card: once, and not a tip', () => {
   it('the card: the tips’ look, a speech bubble, under ⋮ at every width; not counted in Tips, not brought back by Show tips again', () => {
     const h = HINTS[FEEDBACK_HINT];
     assert.equal(h.title, 'Have thoughts about DraftLine?');
-    assert.equal(h.text, 'Found a bug, have an idea, or just want to say what you think? It’s anonymous, takes a minute, and helps make DraftLine better.');
+    assert.equal(h.text, 'Found a bug, have an idea, or just want to say what you think? No account needed, it takes a minute, and it helps make DraftLine better.');
     assert.deepEqual([h.action, h.dismiss, h.icon, h.target, h.beacon], ['Share feedback', 'Not now', 'message', '.btn-kebab', null]);
     assert.ok(!HINT_IDS.includes(FEEDBACK_HINT));
     const card = read('components/HintCard.jsx');

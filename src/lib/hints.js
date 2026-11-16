@@ -165,7 +165,7 @@ export const HINTS = {
   // Not in HINT_IDS, so it's never counted in About → Tips or brought back by Show tips again.
   feedback: {
     title: 'Have thoughts about DraftLine?',
-    text: 'Found a bug, have an idea, or just want to say what you think? It’s anonymous, takes a minute, and helps make DraftLine better.',
+    text: 'Found a bug, have an idea, or just want to say what you think? No account needed, it takes a minute, and it helps make DraftLine better.',
     action: 'Share feedback', // opens ⋮ → Send Feedback… directly
     dismiss: 'Not now',
     icon: 'message', // a speech bubble, not the tips' lightbulb: it asks rather than teaches

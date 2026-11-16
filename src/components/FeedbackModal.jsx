@@ -83,7 +83,7 @@ export default function FeedbackModal({ onClose, onSent, onFailed, send = sendFe
     >
       <form onSubmit={submit}>
         <header className="afb-head">
-          <h2 id="afb-title">Share Anonymous Feedback</h2>
+          <h2 id="afb-title">Share Feedback</h2>
           <button type="button" className="btn btn-icon afb-close" onClick={close} aria-label="Close" title="Close (Esc)">
             <X size={16} strokeWidth={1.75} aria-hidden />
           </button>
@@ -128,7 +128,7 @@ export default function FeedbackModal({ onClose, onSent, onFailed, send = sendFe
               onChange={(e) => setEmail(e.target.value)}
               maxLength={EMAIL_MAX}
               autoComplete="email"
-              placeholder="Your email (used only to reply)"
+              placeholder="you@example.com"
             />
           </label>
 
@@ -139,7 +139,7 @@ export default function FeedbackModal({ onClose, onSent, onFailed, send = sendFe
         </div>
 
         <footer className="afb-foot">
-          <p className="afb-notice">This form collects no cookies, accounts, or IP addresses.</p>
+          <p className="afb-notice">No account required. Email is optional and used only for replies.</p>
           <div className="afb-actions">
             <button type="button" className="btn" onClick={close} disabled={busy}>Cancel</button>
             <button type="submit" className="btn afb-send" disabled={!canSend}>{busy ? 'Sending…' : 'Send Feedback'}</button>

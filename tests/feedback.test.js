@@ -26,7 +26,7 @@ const nav = (userAgent, onLine = true) => ({ userAgent, onLine });
 
 describe('Anonymous feedback: what is sent', () => {
   it('the previous-app choices, in order: the software, then "None (New Writer)"', () => {
-    assert.deepEqual(PREVIOUS_APPS, ['Final Draft', 'Fade In', 'Highland 2', 'WriterDuet', 'Celtx', 'Google Docs / Word', 'Other', 'None (New Writer)']);
+    assert.deepEqual(PREVIOUS_APPS, ['Final Draft', 'Fade In', 'Highland 2', 'WriterDuet', 'WriterSolo', 'Beat', 'Celtx', 'Google Docs / Word', 'Other', 'None (New Writer)']);
     assert.equal(NO_PREVIOUS_APP, 'None (New Writer)');
     assert.equal(PREVIOUS_APPS.at(-1), NO_PREVIOUS_APP, 'last, so it sits beneath the software choices');
   });
@@ -56,6 +56,18 @@ describe('Anonymous feedback: what is sent', () => {
     assert.equal(feedbackPayload({ missingFeature: 'x' }).canQuote, false);
     assert.equal(feedbackPayload({ missingFeature: 'x', canQuote: 'yes' }).canQuote, false, 'only a real tick');
     assert.equal(feedbackPayload({ missingFeature: 'x', canQuote: true }).canQuote, true);
+  });
+  it('WriterSolo and Beat come right after WriterDuet, and are sent as picked', async () => {
+    const at = PREVIOUS_APPS.indexOf('WriterDuet');
+    assert.deepEqual(PREVIOUS_APPS.slice(at, at + 4), ['WriterDuet', 'WriterSolo', 'Beat', 'Celtx']);
+    for (const app of ['WriterSolo', 'Beat']) {
+      const f = fakeFetch(200);
+      await sendFeedback({ previousApp: app, missingFeature: 'x' }, { fetchImpl: f, nav: nav(WIN) });
+      assert.equal(JSON.parse(f.calls[0].init.body).previousApp, app);
+    }
+  });
+  it('quoting is unticked until the writer ticks it', () => {
+    assert.match(read('src/components/FeedbackModal.jsx'), /const \[canQuote, setCanQuote\] = useState\(false\);/);
   });
   it('only a coarse OS name: Windows, macOS or Other', () => {
     assert.deepEqual([osFamily(WIN), osFamily(MAC), osFamily(LINUX), osFamily('')], ['Windows', 'macOS', 'Other', 'Other']);
@@ -123,7 +135,7 @@ describe('Anonymous feedback: menu and modal', () => {
     assert.match(app, /const FeedbackModal = lazy\(\(\) => import\('\.\/components\/FeedbackModal\.jsx'\)\);/, 'loaded on first use');
   });
   it('the modal: title, ✕, the questions, the notice, Cancel and Send', () => {
-    assert.match(modal, /<h2 id="afb-title">Share Anonymous Feedback<\/h2>/);
+    assert.match(modal, /<h2 id="afb-title">Share Feedback<\/h2>/);
     assert.match(modal, /aria-label="Close"/);
     assert.match(modal, /label="How did you find DraftLine\?" options=\{FOUND_VIA\}/);
     assert.match(modal, /label="Where do you write\?" options=\{WRITES_ON\}/);
@@ -131,7 +143,7 @@ describe('Anonymous feedback: menu and modal', () => {
     assert.match(modal, /role="radiogroup"[\s\S]*?options\.map[\s\S]*?role="radio"\s*aria-checked=\{value === opt\}/, 'single-select pills');
     assert.match(modal, /Want a reply\? <span className="afb-optional">\(optional\)<\/span>[\s\S]*?type="email"/);
     assert.match(modal, /type="checkbox" checked=\{canQuote\}[\s\S]*?OK to quote me anonymously on the DraftLine site/);
-    assert.match(modal, /placeholder="Your email \(used only to reply\)"/);
+    assert.match(modal, /placeholder="you@example\.com"/);
     assert.match(modal, /send\(\{ foundVia, writesOn, previousApp, missingFeature, details, email, canQuote \}\)/);
     const css = read('src/components/FeedbackModal.css');
     assert.match(css, /\.afb-pills \{ display: flex; flex-wrap: wrap; gap: 6px; \}/, 'answers wrap as one-line pills');
@@ -140,7 +152,7 @@ describe('Anonymous feedback: menu and modal', () => {
     assert.match(modal, /placeholder="A bug, an idea, a missing feature, or just what you think…"/);
     assert.match(modal, /<input[\s\S]*?required\s*aria-required="true"/);
     assert.match(modal, /More details <span className="afb-optional">\(optional\)<\/span>[\s\S]*?<textarea/);
-    assert.match(modal, /<p className="afb-notice">This form collects no cookies, accounts, or IP addresses\.<\/p>/);
+    assert.match(modal, /<p className="afb-notice">No account required\. Email is optional and used only for replies\.<\/p>/);
     assert.match(modal, />Cancel<\/button>/);
     assert.match(modal, /disabled=\{!canSend\}>\{busy \? 'Sending…' : 'Send Feedback'\}/);
   });
