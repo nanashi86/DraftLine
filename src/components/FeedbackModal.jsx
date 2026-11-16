@@ -139,7 +139,7 @@ export default function FeedbackModal({ onClose, onSent, onFailed, send = sendFe
         </div>
 
         <footer className="afb-foot">
-          <p className="afb-notice">No account required. Email is optional and used only for replies.</p>
+          <p className="afb-notice">Anonymous unless you add your email. No cookies, accounts, or IP addresses collected.</p>
           <div className="afb-actions">
             <button type="button" className="btn" onClick={close} disabled={busy}>Cancel</button>
             <button type="submit" className="btn afb-send" disabled={!canSend}>{busy ? 'Sending…' : 'Send Feedback'}</button>

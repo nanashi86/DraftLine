@@ -152,7 +152,7 @@ describe('Anonymous feedback: menu and modal', () => {
     assert.match(modal, /placeholder="A bug, an idea, a missing feature, or just what you think…"/);
     assert.match(modal, /<input[\s\S]*?required\s*aria-required="true"/);
     assert.match(modal, /More details <span className="afb-optional">\(optional\)<\/span>[\s\S]*?<textarea/);
-    assert.match(modal, /<p className="afb-notice">No account required\. Email is optional and used only for replies\.<\/p>/);
+    assert.match(modal, /<p className="afb-notice">Anonymous unless you add your email\. No cookies, accounts, or IP addresses collected\.<\/p>/);
     assert.match(modal, />Cancel<\/button>/);
     assert.match(modal, /disabled=\{!canSend\}>\{busy \? 'Sending…' : 'Send Feedback'\}/);
   });
