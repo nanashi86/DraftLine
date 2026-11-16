@@ -40,16 +40,19 @@ Your scripts stay on your device in open formats (Fountain and Final Draft XML),
 
 ## How DraftLine compares
 
-DraftLine is built for one writer, one script, on their own machine: free, open source, offline, no account.
-If that's you, it's a good fit. If you need a team workflow, one of the tools below will serve you better.
+DraftLine is designed for independent writers: free, open source, offline, no account and no generative AI, with story
+development and production planning in the same free app. If you need simultaneous co-writing, colored revision pages,
+or scheduling and budgeting, one of the tools below will serve you better. The full comparison, with sources, is at
+[draftlineapp.com/compare](https://draftlineapp.com/compare/).
 
 | | DraftLine | Final Draft | Fade In | WriterDuet | Celtx | Beat |
 |---|---|---|---|---|---|---|
 | Cost | Free | One-time purchase or subscription | One-time purchase | Free plan + subscription | Free plan + subscription | Free on Mac; iOS app paid |
 | Open source | Yes (MIT) | No | No | No | No | Yes (GPL v3) |
 | Runs on | Any modern browser, on a computer or a phone; installs as an app | Mac, Windows; a separate iOS app (Final Draft Go) | Mac, Windows, Linux, plus a mobile app | Browser, desktop app, mobile apps | Browser | Mac, iOS |
-| Real-time co-writing | No | Yes | Yes | Yes (paid plans) | Yes | No |
-| Production revisions | No | Yes | Yes | Pro plan | Revision history; colored pages not confirmed | Yes |
+| Production planning | Breakdowns, stripboard and reports from the script | Tagging and reports | Breakdowns and production reports | Tagging; reports on Pro | Breakdowns, scheduling, budgeting, call sheets (paid plans) | Not listed |
+| Production revisions | No (snapshots you can compare) | Yes | Yes | Pro plan | Revision history; colored pages not confirmed | Yes |
+| Real-time co-writing | No | Yes | Through the optional Fade In Access service | Yes (paid plans) | Yes | No |
 
 *Checked November 2026 from each product's own pages and store listings; the sources are listed on
 [draftlineapp.com/compare](https://draftlineapp.com/compare/). Plans and features change, so check the vendor's site

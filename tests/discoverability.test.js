@@ -103,3 +103,37 @@ describe('sitemap, robots, llms.txt and manifest', () => {
     for (const s of m.screenshots) assert.ok(existsSync(new URL(`../public/${s.src.replace('./', '')}`, import.meta.url)), s.src);
   });
 });
+
+describe('the comparison page stays complete and fair', () => {
+  const html = read('public/compare/index.html');
+  const text = html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ');
+  it('positions DraftLine for independent writers, never as "one writer and one script"', () => {
+    assert.doesNotMatch(text, /one writer and one script/i);
+    assert.match(text, /designed first for independent writers/);
+  });
+  it('a compact table: these seven rows, each with all six products', () => {
+    const rows = [...html.matchAll(/<tr><th scope="row">([^<]+)<\/th>((?:<td[^>]*>[^<]*(?:<[^/][^>]*>[^<]*<\/[^>]+>[^<]*)*<\/td>)+)<\/tr>/g)];
+    assert.deepEqual(rows.map((r) => r[1]), ['Cost and free version', 'Open source', 'Runs on', 'Story planning', 'Production planning', 'Production revisions', 'Real-time co-writing']);
+    const names = ['DraftLine', 'Final Draft', 'Fade In', 'WriterDuet', 'Celtx', 'Beat'];
+    for (const r of rows) assert.deepEqual([...r[2].matchAll(/<td data-label="([^"]+)">/g)].map((m) => m[1]), names, r[1]);
+  });
+  it('keeps production planning apart from production revisions', () => {
+    assert.match(text, /"Production planning" means preparing a shoot from the script/);
+    assert.match(text, /"Production revisions" means locked shooting scripts with colored revision pages/);
+  });
+  it('says DraftLine has no generative AI, without describing its analysis as AI or claiming others force it', () => {
+    assert.match(text, /it has no generative AI/);
+    assert.match(text, /rule-based readings of your own pages/);
+    assert.doesNotMatch(text, /(Final Draft|Fade In|WriterDuet|Celtx|Beat)[^.]{0,80}\bAI\b/);
+  });
+  it('keeps "Where others are the better choice", the check date and a source for every product', () => {
+    assert.match(html, /<section id="draftline-stands-out">/);
+    assert.match(html, /<section id="others-better">/);
+    assert.match(text, /Checked in November 2026/);
+    for (const name of ['Final Draft', 'Fade In', 'WriterDuet', 'Celtx', 'Beat']) assert.match(html.slice(html.indexOf('id="sources"')), new RegExp(`<li>${name}:`));
+  });
+  it('states DraftLine\'s limits plainly', () => {
+    assert.match(text, /doesn't schedule shoot days, build budgets or make call sheets/);
+    assert.match(text, /Chrome or Edge on a computer/);
+  });
+});
