@@ -1,6 +1,6 @@
 // Vite plugin: writes sw.js into the build from src/pwa/sw.template.js, with
 //   • PRECACHE — every file the build wrote to disk (index.html, hashed JS / CSS, public icons,
-//     manifest), as "./path" relative to the service worker
+//     manifest, the fonts in public/fonts/), as "./path" relative to the service worker
 //   • VERSION — a hash of CACHE_REVISION, that list and each file's contents, so any changed
 //     file (including a redrawn icon that keeps its name) installs a fresh worker and drops
 //     the old cache, while an unchanged build keeps the cache it has.
@@ -10,8 +10,6 @@
 import { readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { join } from 'node:path';
-
-export const CORE_FONTS_CSS = 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap'; // Courier Prime is precached with the build
 
 /** r2: the edge-to-edge maskable icon (icon-maskable-512.png) and manifest icon purposes.
  *  r3: every icon redrawn with the D optically centred (Oct 2026). */
@@ -49,8 +47,7 @@ export function buildServiceWorker(files, template = readFileSync(TEMPLATE, 'utf
   const version = h.digest('hex').slice(0, 12);
   const source = template
     .replace("'__VERSION__'", JSON.stringify(version))
-    .replace('__PRECACHE__', JSON.stringify(list, null, 2))
-    .replace('__CORE_FONTS_CSS__', JSON.stringify(CORE_FONTS_CSS));
+    .replace('__PRECACHE__', JSON.stringify(list, null, 2));
   return { source, version, list };
 }
 

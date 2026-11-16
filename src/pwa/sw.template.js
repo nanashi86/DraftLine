@@ -2,40 +2,26 @@
    src/pwa/vitePlugin.js, which fills in the build's file list and version.
 
    • Install: caches the whole app shell — index.html, every JS / CSS file of this build, the
-     icons and manifest, Courier Prime (the script font, shipped with the build) — plus Inter (the
-     UI font) from Google Fonts, so DraftLine starts and runs fully offline after one visit.
+     icons and manifest, Courier Prime (the script font) and Inter (the UI font), both shipped with
+     the build — so DraftLine starts and runs fully offline after one visit.
    • Pages: network first (you get the newest deploy when online), cached index.html offline.
    • Built files (hashed names, never change): cache first.
    • credits.json (About's backers roll): network first, cached copy offline.
-   • Google Fonts: cached as they're used (title-page fonts too), served from cache after that.
+   • Google Fonts (only the optional title-page fonts): cached as they're used, served from cache after that.
    • Your scripts never touch this: they live in IndexedDB. Nothing is sent anywhere. */
 
 const VERSION = '__VERSION__';
 const PRECACHE = __PRECACHE__; // paths relative to this file, e.g. "./assets/index-abc123.js"
-const CORE_FONTS_CSS = __CORE_FONTS_CSS__;
 const SHELL_CACHE = `draftline-shell-${VERSION}`;
 const FONT_CACHE = 'draftline-fonts-v1';
 
 const FONT_HOSTS = ['fonts.googleapis.com', 'fonts.gstatic.com'];
-
-async function cacheFonts(cssUrl) {
-  const cache = await caches.open(FONT_CACHE);
-  const res = await fetch(cssUrl, { mode: 'cors' });
-  if (!res.ok) return;
-  await cache.put(cssUrl, res.clone());
-  const css = await res.text();
-  // The CSS points at the font files for this browser; fetch and keep them all.
-  const files = [...css.matchAll(/url\((https:\/\/fonts\.gstatic\.com\/[^)]+)\)/g)].map((m) => m[1]);
-  await Promise.all(files.map((u) => fetch(u, { mode: 'cors' }).then((r) => (r.ok ? cache.put(u, r) : null)).catch(() => null)));
-}
 
 self.addEventListener('install', (event) => {
   event.waitUntil((async () => {
     const shell = await caches.open(SHELL_CACHE);
     // cache: 'reload' skips the browser's HTTP cache, so a redrawn icon (same file name) is fetched fresh.
     await shell.addAll(PRECACHE.map((u) => new Request(u, { cache: 'reload' })));
-    // Fonts are a bonus: offline still works (with fallback fonts) if they can't be fetched now.
-    await cacheFonts(CORE_FONTS_CSS).catch(() => null);
     await self.skipWaiting();
   })());
 });

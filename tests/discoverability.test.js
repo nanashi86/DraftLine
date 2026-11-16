@@ -44,7 +44,8 @@ describe('the public pages', () => {
     assert.equal(app.author.name, 'NANASHI86');
     assert.ok(!('aggregateRating' in app) && !('review' in app));
     assert.ok(app.featureList.some((f) => /phone/i.test(f)));
-    assert.ok(app.featureList.some((f) => /Linked-folder sync in Chrome or Edge on a computer/.test(f)), 'folder sync is desktop-only');
+    assert.ok(app.featureList.some((f) => /^Optional linked folder in Chrome or Edge on a computer, including folders synced by Google Drive, Dropbox or OneDrive$/.test(f)), 'folder sync is desktop-only');
+    assert.ok(!app.featureList.some((f) => /\(Google Drive, Dropbox, OneDrive\)/.test(f)), 'cloud services are folders the writer links, not built-in integrations');
     for (const s of app.screenshot) assert.ok(existsSync(new URL(`../public${new URL(s).pathname}`, import.meta.url)), s);
   });
 

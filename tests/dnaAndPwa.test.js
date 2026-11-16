@@ -9,7 +9,7 @@ import {
 import { STRUCTURE_DICTIONARY, dictionaryEntry } from '../src/lib/structureDictionary.js';
 import { dialogueFilter } from '../src/lib/dialogueFilter.js';
 import { analyzeScript } from '../src/lib/screenplay.js';
-import { buildServiceWorker, CACHE_REVISION, CORE_FONTS_CSS } from '../src/pwa/vitePlugin.js';
+import { buildServiceWorker, CACHE_REVISION } from '../src/pwa/vitePlugin.js';
 import { registerServiceWorker } from '../src/pwa/register.js';
 import { renameCharacter } from '../src/lib/renameCharacter.js';
 
@@ -159,13 +159,12 @@ describe('PWA', () => {
     assert.match(html, /<link rel="manifest" href="%BASE_URL%manifest\.json" \/>/);
     assert.match(html, /<meta name="theme-color" content="#18181b" \/>/);
   });
-  it('the service worker precaches this build’s files (Courier Prime among them) and Inter', () => {
-    const { source, list, version } = buildServiceWorker(['assets/index-abc.js', 'assets/index-def.css', 'icon-192.png', 'manifest.json', 'sw.js', 'x.js.map']);
-    assert.deepEqual(list, ['./', './assets/index-abc.js', './assets/index-def.css', './icon-192.png', './index.html', './manifest.json']);
+  it('the service worker precaches this build’s files, Courier Prime and Inter among them', () => {
+    const { source, list, version } = buildServiceWorker(['assets/index-abc.js', 'assets/index-def.css', 'fonts/inter-latin-wght-normal.woff2', 'icon-192.png', 'manifest.json', 'sw.js', 'x.js.map']);
+    assert.deepEqual(list, ['./', './assets/index-abc.js', './assets/index-def.css', './fonts/inter-latin-wght-normal.woff2', './icon-192.png', './index.html', './manifest.json']);
     assert.match(source, /const PRECACHE = \[/);
     assert.match(source, new RegExp(`const VERSION = "${version}"`));
-    assert.match(CORE_FONTS_CSS, /family=Inter/);
-    assert.doesNotMatch(CORE_FONTS_CSS, /Courier/, 'Courier Prime ships with the build, not from Google Fonts');
+    assert.doesNotMatch(source, /family=Inter|cacheFonts\(/, 'Inter ships with the build: the worker never fetches it from Google Fonts');
     assert.ok(!/__PRECACHE__|__VERSION__|__CORE_FONTS_CSS__/.test(source), 'every placeholder filled');
     new Function(source.replace(/self\./g, 'globalThis.__sw.')); // it parses
   });

@@ -7,9 +7,10 @@ const root = new URL('../', import.meta.url);
 const read = (p) => readFileSync(new URL(p, root), 'utf8');
 const html = read('index.html');
 const links = [...html.matchAll(/href="(https:\/\/fonts\.googleapis\.com\/css2\?[^"]+)"/g)].map((m) => m[1]);
-// Courier Prime ships with DraftLine (src/index.css @font-face, all four styles) instead of Google Fonts.
+// Courier Prime (all four styles) and Inter (variable, 100–900) ship with DraftLine (src/index.css @font-face)
+// instead of coming from Google Fonts.
 const indexCss = read('src/index.css');
-const SELF_HOSTED = ['Courier Prime'];
+const SELF_HOSTED = ['Courier Prime', 'Inter'];
 const familiesIn = (url) => [...url.matchAll(/family=([^:&]+)/g)].map((m) => decodeURIComponent(m[1].replace(/\+/g, ' ')));
 const primary = (f) => f.family.match(/'([^']+)'/)[1];
 
@@ -46,7 +47,8 @@ describe('title fonts', () => {
     const all = `${links.join('&')}&`;
     for (const f of TITLE_FONTS.filter((x) => x.bold)) {
       if (SELF_HOSTED.includes(primary(f))) {
-        assert.match(indexCss, new RegExp(`font-family: '${primary(f)}'; font-style: normal; font-weight: ${f.bold};`), `${f.label} ships weight ${f.bold}`);
+        const weights = [...indexCss.matchAll(new RegExp(`font-family: '${primary(f)}'; font-style: normal; font-weight: (\\d+)(?: (\\d+))?;`, 'g'))];
+        assert.ok(weights.some(([, lo, hi]) => (hi ? +lo <= f.bold && f.bold <= +hi : +lo === f.bold)), `${f.label} ships weight ${f.bold}`);
         continue;
       }
       const spec = all.match(new RegExp(`family=${primary(f).replace(/ /g, '\\+')}(:[^&]*)?&`));
@@ -55,8 +57,9 @@ describe('title fonts', () => {
     assert.equal(titleTypography({ titleFont: 'anta', titleBold: true }).bold, false);
     assert.equal(titleTypography({ titleFont: 'google-sans', titleBold: true }).bold, true);
   });
-  it('title fonts load without blocking the first paint; Inter loads first; Courier Prime ships with the app', () => {
-    assert.match(html, /css2\?family=Inter[^"]*"\s+rel="stylesheet"\s*\/>/);
+  it('title fonts load without blocking the first paint; Inter and Courier Prime ship with the app', () => {
+    assert.match(html, /<link rel="preload" href="%BASE_URL%fonts\/inter-latin-wght-normal\.woff2" as="font" type="font\/woff2" crossorigin \/>/);
+    assert.doesNotMatch(html, /family=Inter[:&"]/, 'Inter isn’t fetched from Google Fonts');
     for (const [style, weight, file] of [['normal', 400, 'Regular'], ['normal', 700, 'Bold'], ['italic', 400, 'Italic'], ['italic', 700, 'BoldItalic']]) {
       assert.match(indexCss, new RegExp(`font-family: 'Courier Prime'; font-style: ${style}; font-weight: ${weight}; font-display: block; src: url\\('\\./assets/fonts/CourierPrime-${file}\\.ttf'\\)`));
     }
