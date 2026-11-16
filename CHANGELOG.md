@@ -6,6 +6,14 @@ All notable changes to DraftLine are recorded here. The format follows [Keep a C
 
 ### Added
 
+- **Search engines and AI assistants: clearer public information about DraftLine.** Nothing in the editor changes; draftlineapp.com still opens straight into it.
+  - **draftlineapp.com/compare/**: DraftLine beside Final Draft, Fade In, WriterDuet, Celtx and Beat, with where each of those is the better choice and the vendor pages each fact was checked against (November 2026). The README's table now matches it: Final Draft also sells subscriptions, its iPhone and iPad app is the separate Final Draft Go, and WriterDuet's revision tools are on its Pro plan.
+  - **Writing on a phone** is described on draftlineapp.com/features/ and in the README: the 16px writing view, the element bar, page breaks worked out at full page width, and editable split speeches. Both say plainly that linking a folder is for Chrome or Edge on a computer.
+  - **One description everywhere.** A shorter search description that mentions phones; the structured data names the app and the website with fixed IDs that /features/ and /compare/ point to, adds the phone features, the version (0.11.0, from package.json) and DraftLine's own Ko-fi and Patreon pages, and says it's for screenplays, not novels or casting. No ratings or reviews are claimed.
+  - **/llms.txt**: a short plain-text summary with links, for AI tools that read one.
+  - **A plain description for browsers with JavaScript off.** With JavaScript on (every normal visit) it's never drawn.
+  - **The install prompt shows real screenshots** of the app (computer and phone, the sample script). The sitemap lists /compare/.
+
 - **Phones: steadier typing, faster opening (mobile hardening, round 2C).**
   - **Fixed: predictive text in a speech split across a page.** With a keyboard that composes words (Gboard, Samsung, iOS suggestions), typing at a page break could repeat letters ("not qququiquiet") or misplace words. While a word is being composed, the speech's page views and the cursor are left exactly as the keyboard has them. The break is placed again once the word is committed, with the cursor right after it. Tapping the element bar mid-word keeps the word, once. `npm run test:browser` replays these keyboards in Chromium.
   - **Long scripts open much faster, everywhere.** Script lines that appear together are measured together, in one layout instead of one per line. A 120-page script showed in about 1 s instead of 8.5 s (desktop and phone). Pagination, exports and the page itself are unchanged.

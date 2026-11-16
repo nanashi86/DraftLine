@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>DraftLine Features — Free Screenwriting Software</title>
-    <meta name="description" content="Everything in DraftLine, the free, open-source screenwriting app: Hollywood pagination, Final Draft and Fountain files, Scene Board, Format Doctor, Dialogue Tuner, Story Bible, snapshots, breakdowns, stripboard and reports. Works offline, no account." />
+    <meta name="description" content="Everything in DraftLine, the free, open-source screenwriting app for desktop and phone: Hollywood pagination, Final Draft and Fountain files, a phone writing view, Scene Board, Format Doctor, Story Bible, stripboard and reports. Works offline, no account." />
     <link rel="canonical" href="https://draftlineapp.com/features/" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=2" />
     <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png?v=2" />
@@ -12,10 +12,16 @@
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="DraftLine" />
     <meta property="og:title" content="DraftLine Features — Free Screenwriting Software" />
-    <meta property="og:description" content="Hollywood pagination, Final Draft and Fountain files, Scene Board, Format Doctor, Dialogue Tuner, Story Bible, breakdowns and stripboard. Free, offline, no account." />
+    <meta property="og:description" content="Hollywood pagination, Final Draft and Fountain files, a phone writing view, Scene Board, Format Doctor, Dialogue Tuner, Story Bible, breakdowns and stripboard. Free, offline, no account." />
     <meta property="og:url" content="https://draftlineapp.com/features/" />
     <meta property="og:image" content="https://draftlineapp.com/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="DraftLine: fast, distraction-free screenwriting. Free." />
     <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="DraftLine Features — Free Screenwriting Software" />
+    <meta name="twitter:description" content="Hollywood pagination, Final Draft and Fountain files, a phone writing view, Scene Board, Format Doctor, Dialogue Tuner, Story Bible, breakdowns and stripboard. Free, offline, no account." />
+    <meta name="twitter:image" content="https://draftlineapp.com/og-image.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
@@ -61,9 +67,11 @@
       {
         "@context": "https://schema.org",
         "@type": "WebPage",
+        "@id": "https://draftlineapp.com/features/#page",
         "name": "DraftLine Features",
         "url": "https://draftlineapp.com/features/",
-        "about": { "@type": "SoftwareApplication", "name": "DraftLine", "url": "https://draftlineapp.com/" }
+        "isPartOf": { "@id": "https://draftlineapp.com/#website" },
+        "about": { "@type": "WebApplication", "@id": "https://draftlineapp.com/#app", "name": "DraftLine", "url": "https://draftlineapp.com/" }
       }
     </script>
   </head>
@@ -78,7 +86,8 @@
       <div class="hero">
         <h1>DraftLine features</h1>
         <p class="lede">DraftLine is a free, open-source screenwriting app for one writer and their script. It runs in your
-          browser, installs like a desktop app, works offline and needs no account. Here's everything it does.</p>
+          browser on a computer or a phone, installs like an app, works offline and needs no account. Here's everything
+          it does.</p>
         <ul class="facts">
           <li>Free, MIT licensed</li><li>Works offline</li><li>No account</li><li>Scripts stay on your device</li>
           <li>Final Draft &amp; Fountain</li>
@@ -90,6 +99,7 @@
         <ul>
           <li><a href="#writing">Writing &amp; formatting</a></li>
           <li><a href="#pagination">Hollywood pagination</a></li>
+          <li><a href="#phone">Writing on a phone</a></li>
           <li><a href="#files">Final Draft, Fountain &amp; PDF</a></li>
           <li><a href="#scene-board">Scene Board</a></li>
           <li><a href="#format-doctor">Format Doctor</a></li>
@@ -120,6 +130,32 @@
         <p>Pages break the way a production reads them: 54 lines a page in 12-point Courier Prime, with
           <code>(MORE)</code> and <code>(CONT'D)</code> when a speech crosses a page, and headings never left alone at the
           bottom of a page. One page stays about one minute of screen time, and the page count matches the PDF.</p>
+      </section>
+
+      <section id="phone">
+        <h2>Writing on a phone</h2>
+        <p>Hold a phone upright and DraftLine switches to a writing view made for its width. Turn it sideways, or use a
+          tablet or a computer, and you get the page as before.</p>
+        <ul>
+          <li>Readable 16px Courier Prime, drawn to the phone's width, that keeps the screenplay's shape: scene
+            headings, character names, parentheticals, dialogue and transitions each in their place. Tapping a line
+            doesn't make Safari zoom in.</li>
+          <li>An element bar above the keyboard: Scene, Action, Character, Dialogue, ( ) and Transition. Tap one to
+            change the line you're on; the current element is underlined, and the keyboard stays up.</li>
+          <li>Page breaks match the desktop's exactly. They're worked out at full page width in the background, never
+            from the phone's own line wrapping, so a script written on a phone opens with the same page count and the
+            same breaks on a computer, in the PDF and in exports. A faint numbered divider shows where each page starts.</li>
+          <li>A speech that crosses a page shows <code>(MORE)</code> and <code>(CONT'D)</code>, with exactly that page's words
+            on each side. You can type, delete and format across the break.</li>
+          <li>Margin notes, bold, italic, underline and strikethrough, dual dialogue, scene numbers and Find &amp; Replace
+            all work on the phone.</li>
+          <li>Install it to the home screen (on iPhone: Share, then Add to Home Screen; on Android: the browser menu, then
+            Install app) and it opens like an app and works offline.</li>
+        </ul>
+        <p class="note">On a phone, scripts are saved in the browser. Linking a folder is for Chrome or Edge on a computer,
+          so back up from <em>File</em> now and then, or carry a project between devices as a .draftline backup. On iPhone,
+          adding DraftLine to the Home Screen also keeps Safari from clearing its storage after a week away. Phones offer
+          the Page and Board views; Split needs a wider screen.</p>
       </section>
 
       <section id="files">
@@ -190,8 +226,8 @@
         <h2>Storage, sync &amp; offline</h2>
         <p>Scripts save automatically in your browser, on your device. In Chrome or Edge on a computer you can also link a
           folder, including a Google Drive, Dropbox or OneDrive folder, and every script is kept there as a file that
-          follows you to your other computers. Install DraftLine from the address bar and it opens in its own window and
-          works fully offline after the first visit.</p>
+          follows you to your other computers. Install DraftLine from the address bar (or to a phone's home screen) and it
+          opens in its own window and works fully offline after the first visit.</p>
         <p class="note">One writer at a time: there's no live co-writing, and when two computers edit the same script the
           most recent save wins.</p>
       </section>
@@ -207,7 +243,7 @@
       <p><a class="cta" data-open-app href="/?from=features">Open DraftLine</a></p>
       <p>DraftLine is free and open source under the MIT License. Source, issues and the full README are on
         <a href="https://github.com/nanashi86/DraftLine">GitHub</a>. The in-app User Guide (⋮ → User Guide) covers
-        every tool in detail.</p>
+        every tool in detail. Choosing between screenwriting apps? See <a href="/compare/">how DraftLine compares</a>.</p>
     </footer>
     <script>
       // "Open DraftLine" carries the ad click's identifiers (gclid, utm_…) to the app, where Google Tag

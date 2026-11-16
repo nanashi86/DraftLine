@@ -25,7 +25,7 @@ describe('features page: a static, crawlable description of every tool', () => {
   });
   it('the structured data feature list names the tools', () => {
     const ld = JSON.parse(read('index.html').match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)[1]);
-    const list = ld.featureList.join(' | ');
+    const list = ld['@graph'][0].featureList.join(' | ');
     for (const tool of ['Format Doctor', 'Dialogue Tuner', 'Story Bible', 'stripboard', 'Scene Board']) assert.ok(list.includes(tool), tool);
   });
 });

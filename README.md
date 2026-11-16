@@ -11,7 +11,8 @@
 # DraftLine — Free Screenwriting Software
 
 DraftLine™ is a fast, distraction-free screenwriting progressive web app (PWA): free, open source (MIT) and local-first.
-It runs in the browser, installs like a desktop app and keeps working offline, with no account and no subscription.
+It runs in the browser on a computer or a phone, installs like an app and keeps working offline, with no account and no
+subscription.
 Your scripts stay on your device in open formats (Fountain and Final Draft XML), so you own your work outright.
 
 **Highlights**
@@ -30,6 +31,10 @@ Your scripts stay on your device in open formats (Fountain and Final Draft XML),
 - **Full FDX and Fountain import/export compatibility.** Open and save Final Draft (.fdx) and Fountain files, margin
   notes included, plus PDF, Word and Google Docs import. The User Guide's *Final Draft (.fdx)* section lists the few
   Final Draft settings that don't carry over.
+- **Writing on a phone.** On a phone held upright, the script is drawn to the phone's width in readable 16px Courier
+  Prime, with an element bar above the keyboard (Scene · Action · Character · Dialogue · ( ) · Transition). Page breaks
+  are worked out at full page width in the background, so they match the desktop, the PDF and every export exactly, and a
+  speech split across a page stays editable with (MORE) / (CONT'D). See [Writing on a phone](#writing-on-a-phone).
 - **Built for rewriting.** Format Doctor, dialogue spotlight, snapshots, a Story Bible with character bios, and Plan
   (breakdowns, stripboard and reports) for when the script is ready to shoot.
 
@@ -40,14 +45,15 @@ If that's you, it's a good fit. If you need a team workflow, one of the tools be
 
 | | DraftLine | Final Draft | Fade In | WriterDuet | Celtx | Beat |
 |---|---|---|---|---|---|---|
-| Cost | Free | One-time purchase | One-time purchase | Free tier + subscription | Free tier + subscription | Free on Mac (iOS paid) |
-| Open source | Yes (MIT) | No | No | No | No | Yes (GPL) |
-| Runs on | Any modern browser; installs as an app | Mac, Windows, iPad | Mac, Windows, Linux, iOS, Android | Browser, desktop and mobile apps | Browser, mobile apps | Mac, iOS |
-| Real-time co-writing | No | Yes | Yes | Yes | Yes | No |
-| Colored production revisions | No | Yes | Yes | Yes | Paid plans | Yes |
+| Cost | Free | One-time purchase or subscription | One-time purchase | Free plan + subscription | Free plan + subscription | Free on Mac; iOS app paid |
+| Open source | Yes (MIT) | No | No | No | No | Yes (GPL v3) |
+| Runs on | Any modern browser, on a computer or a phone; installs as an app | Mac, Windows; a separate iOS app (Final Draft Go) | Mac, Windows, Linux, plus a mobile app | Browser, desktop app, mobile apps | Browser | Mac, iOS |
+| Real-time co-writing | No | Yes | Yes | Yes (paid plans) | Yes | No |
+| Production revisions | No | Yes | Yes | Pro plan | Revision history; colored pages not confirmed | Yes |
 
-*Checked November 2026 from each product's own pages and store listings. Plans and features change, so check the
-vendor's site before you decide. Corrections are welcome in [Issues](https://github.com/nanashi86/DraftLine/issues).*
+*Checked November 2026 from each product's own pages and store listings; the sources are listed on
+[draftlineapp.com/compare](https://draftlineapp.com/compare/). Plans and features change, so check the vendor's site
+before you decide. Corrections are welcome in [Issues](https://github.com/nanashi86/DraftLine/issues).*
 
 **Where others are the better choice**
 
@@ -56,7 +62,7 @@ vendor's site before you decide. Corrections are welcome in [Issues](https://git
 - **Writing together live.** DraftLine has no shared cloud document. Two writers in one script at the same time is
   what WriterDuet, Final Draft and Celtx are built for. A linked folder lets you move between your own computers, but
   the most recent save wins; edits aren't merged.
-- **Mac only, also free and open source.** If you only write on a Mac or iPhone, Beat is excellent.
+- **Mac and iPhone only, also open source.** If you only write on a Mac or iPhone, Beat is excellent.
 
 ```bash
 npm install
@@ -296,10 +302,34 @@ Three tabs — **DNA** opens first unless you've picked another this session:
   your own reference's wording (kept for all projects, including wording you saved before the rename; **Reset**
   restores the starter). Every ⓘ in DNA and Characters → Bios, and every Format Doctor chip, opens it at the term.
 
+## Writing on a phone
+
+On a phone-width touch screen held upright, DraftLine draws the script to the phone's width instead of shrinking a US
+Letter page. Turn the phone sideways, or use a tablet or a computer, and you get the page as before.
+
+- **Readable 16px Courier Prime** that keeps the screenplay's shape: bold scene headings, then Character furthest in,
+  Parenthetical, Dialogue, and Transitions on the right. At 16px, iPhone Safari doesn't zoom in when you tap a line, and
+  every other text field on a phone is 16px for the same reason.
+- **An element bar above the keyboard:** Scene · Action · Character · Dialogue · ( ) · Transition. Tapping one switches
+  the line you're on, as one undo step like Alt+1…8; it never takes the focus, so the keyboard stays up, and the current
+  element is underlined. It also keeps the line you're writing clear of the keyboard.
+- **Exact page breaks.** Pagination comes from a hidden copy of the script laid out at full page width, never from the
+  phone's own line wrapping, so page count, page breaks, (MORE) / (CONT'D), print, PDF and exports are exactly as on a
+  desktop. A faint numbered divider marks where each page begins.
+- **Split speeches stay editable.** A speech that crosses a page shows (MORE) and NAME (CONT'D), with exactly that page's
+  words on each side. Typing, deleting, the arrow keys, formatting and undo all work across the break, including with
+  keyboards that compose words (predictive text and autocorrect).
+- **The rest of the script tools:** margin notes, bold / italic / underline / strikethrough, dual dialogue (stacked),
+  scene numbers, Find & Replace and the Scene Board. Phones offer Page · Board; Split needs a wider screen.
+- **Storage on a phone** is the browser's own: linking a folder needs Chrome or Edge on a computer. Back up with
+  File ▾ → Backup Project (.draftline) to carry a script between devices. On iPhone, Share → Add to Home Screen also keeps
+  Safari from clearing DraftLine's storage after a week away.
+
 ## Install & offline (PWA)
 
 DraftLine is an installable web app. In Chrome or Edge, use **Install DraftLine** in the address bar (or the browser
-menu) to get it in its own window with a dock / taskbar icon. After one visit online it runs **fully offline**: a
+menu) to get it in its own window with a dock / taskbar icon. On a phone, use **Share → Add to Home Screen** (iPhone and
+iPad, Safari) or the browser menu's **Install app** (Android, Chrome) to open it like an app. After one visit online it runs **fully offline**: a
 service worker keeps the app itself (every built file, icons, manifest, and Courier Prime, which ships with DraftLine
 so the script looks and paginates the same on every device) and the UI font (Inter); title-page fonts are kept as you use them. Online, you always get the newest version; each new build
 replaces the old cached one. Your scripts remain entirely on your machine—either saved directly to your linked local
@@ -323,7 +353,8 @@ and travel inside .draftline backups.
 
 Every script lives in a secure local project library. Choose between **App Storage (Zero Setup)**, which saves
 automatically inside DraftLine on this device, or **Linked Folder (File Backup)** to save `.draftline` files directly
-into a folder on your computer, including locally synced Google Drive, Dropbox or OneDrive folders. Click the title's **▾**, choose **File ▾ → Projects…**, or press **Alt+P** to open the
+into a folder on your computer, including locally synced Google Drive, Dropbox or OneDrive folders (Chrome or Edge on a
+computer; phones use App Storage). Click the title's **▾**, choose **File ▾ → Projects…**, or press **Alt+P** to open the
 **Projects** drawer:
 
 - Each card shows the title, author, page and scene counts and when it was last edited; the open script is marked

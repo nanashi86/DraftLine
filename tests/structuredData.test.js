@@ -1,4 +1,5 @@
-// The schema.org SoftwareApplication block in index.html: valid JSON, Google-accepted category, and claims that match the site.
+// The schema.org block in index.html (the app and the website, as one @graph): valid JSON, Google-accepted category,
+// and claims that match the site.
 
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
@@ -20,11 +21,11 @@ describe('Structured data: DraftLine as a SoftwareApplication', () => {
     JSON.parse(blocks[0]);
   });
 
-  const data = JSON.parse(blocks[0] || '{}');
+  const data = (JSON.parse(blocks[0] || '{}')['@graph'] || [])[0] || {};
 
   it('names the app, its canonical URL and a Google-accepted category', () => {
-    assert.equal(data['@context'], 'https://schema.org');
-    assert.equal(data['@type'], 'SoftwareApplication');
+    assert.equal(JSON.parse(blocks[0])['@context'], 'https://schema.org');
+    assert.equal(data['@type'], 'WebApplication', "schema.org's SoftwareApplication for the web (it owns browserRequirements)");
     assert.equal(data.name, 'DraftLine');
     assert.match(html, new RegExp(`<link rel="canonical" href="${data.url.replace(/[.]/g, '\\.')}"`), 'same URL as the canonical link');
     assert.ok(CATEGORIES.includes(data.applicationCategory), data.applicationCategory);
@@ -47,7 +48,7 @@ describe('Structured data: DraftLine as a SoftwareApplication', () => {
   });
 
   it('points at images that ship with the site', () => {
-    for (const u of [data.image, data.screenshot]) {
+    for (const u of [data.image, ...data.screenshot]) {
       assert.ok(u.startsWith(data.url));
       readFileSync(new URL('../public/' + u.slice(data.url.length), import.meta.url));
     }

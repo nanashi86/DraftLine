@@ -38,7 +38,7 @@ describe('page title: what the tab shows, and what search engines index', () => 
   it('one title and description everywhere: tab, search result, link previews', () => {
     const html = read('index.html');
     const T = 'DraftLine — Free Screenwriting Software';
-    const D = 'DraftLine is a 100% free, open-source, local-first screenwriting tool\\. Fast and distraction-free with strict 54-line Hollywood pagination, 4-act index card beat board, and FDX/Fountain export with no subscriptions or accounts required\\.';
+    const D = 'Free, open-source screenwriting software for desktop and phone\\. Exact Hollywood pagination, Final Draft \\(\\.fdx\\) and Fountain files, works offline, no account\\.';
     const U = 'https://draftlineapp\\.com/';
     assert.match(html, new RegExp(`<link rel="canonical" href="${U}" />`));
     assert.match(html, new RegExp(`<meta name="description" content="${D}" />`));

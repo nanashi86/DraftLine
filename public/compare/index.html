@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DraftLine Compared with Final Draft, Fade In, WriterDuet, Celtx and Beat</title>
+    <meta name="description" content="How DraftLine, a free, open-source screenwriting app for desktop and phone, compares with Final Draft, Fade In, WriterDuet, Celtx and Beat on cost, platforms, co-writing and production revisions, and where each is the better choice." />
+    <link rel="canonical" href="https://draftlineapp.com/compare/" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=2" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png?v=2" />
+    <meta name="theme-color" content="#1c1d20" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="DraftLine" />
+    <meta property="og:title" content="DraftLine Compared with Final Draft, Fade In, WriterDuet, Celtx and Beat" />
+    <meta property="og:description" content="A free, open-source screenwriting app for desktop and phone, side by side with Final Draft, Fade In, WriterDuet, Celtx and Beat, including where each of them is the better choice." />
+    <meta property="og:url" content="https://draftlineapp.com/compare/" />
+    <meta property="og:image" content="https://draftlineapp.com/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="DraftLine: fast, distraction-free screenwriting. Free." />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="DraftLine Compared with Final Draft, Fade In, WriterDuet, Celtx and Beat" />
+    <meta name="twitter:description" content="A free, open-source screenwriting app for desktop and phone, side by side with Final Draft, Fade In, WriterDuet, Celtx and Beat." />
+    <meta name="twitter:image" content="https://draftlineapp.com/og-image.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+    <style>
+      :root {
+        --bg: #1c1d20; --panel: #232428; --text: #e9e7e2; --strong: #ffffff; --muted: #9a9890;
+        --accent: #c8553d; --line: rgba(255, 255, 255, 0.1);
+      }
+      @media (prefers-color-scheme: light) {
+        :root { --bg: #f4f0e8; --panel: #f7f4ee; --text: #22201e; --strong: #1a1816; --muted: #6e6a64;
+          --accent: #b83a2c; --line: rgba(34, 32, 30, 0.13); }
+      }
+      * { box-sizing: border-box; }
+      html { -webkit-text-size-adjust: 100%; }
+      body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.65 Inter, system-ui, sans-serif; }
+      a { color: var(--accent); }
+      .wrap { max-width: 760px; margin: 0 auto; padding: 0 16px; }
+      header { border-bottom: 1px solid var(--line); }
+      .bar { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 0; }
+      .brand { display: flex; align-items: center; gap: 10px; color: var(--strong); text-decoration: none;
+        font: 700 20px 'Courier Prime', 'Courier New', monospace; }
+      .brand img { width: 28px; height: 28px; border-radius: 6px; }
+      .cta { display: inline-block; background: var(--accent); color: #fff; text-decoration: none; font-weight: 600;
+        padding: 9px 16px; border-radius: 8px; white-space: nowrap; }
+      .cta:focus-visible, .brand:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+      .hero { padding: 48px 0 24px; }
+      h1 { font: 700 clamp(28px, 6vw, 40px)/1.2 'Courier Prime', 'Courier New', monospace; color: var(--strong); margin: 0 0 14px; }
+      .lede { font-size: 18px; margin: 0 0 22px; }
+      .facts { display: flex; flex-wrap: wrap; gap: 8px; padding: 0; margin: 0; list-style: none; }
+      .facts li { border: 1px solid var(--line); border-radius: 999px; padding: 4px 12px; font-size: 14px; color: var(--muted); }
+      nav.toc { margin: 32px 0 8px; padding: 16px 20px; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; }
+      nav.toc ul { columns: 2; column-gap: 24px; margin: 6px 0 0; padding-left: 18px; }
+      @media (max-width: 520px) { nav.toc ul { columns: 1; } }
+      section { padding: 28px 0; border-bottom: 1px solid var(--line); }
+      h2 { font: 700 24px/1.3 'Courier Prime', 'Courier New', monospace; color: var(--strong); margin: 0 0 10px; }
+      section ul { padding-left: 20px; margin: 10px 0 0; }
+      section li { margin: 4px 0; }
+      kbd { font: 13px 'Courier Prime', monospace; border: 1px solid var(--line); border-radius: 4px; padding: 0 5px; }
+      .note { color: var(--muted); font-size: 14px; }
+      footer { padding: 32px 0 48px; color: var(--muted); font-size: 14px; }
+      .table-wrap { overflow-x: auto; margin: 14px 0 0; border: 1px solid var(--line); border-radius: 10px; }
+      table { border-collapse: collapse; width: 100%; min-width: 860px; font-size: 14.5px; line-height: 1.45; }
+      th, td { text-align: left; vertical-align: top; padding: 9px 12px; border-bottom: 1px solid var(--line); }
+      thead th { color: var(--strong); background: var(--panel); font-weight: 600; }
+      tbody th { color: var(--strong); font-weight: 600; width: 8.5em; }
+      tbody tr:last-child th, tbody tr:last-child td { border-bottom: 0; }
+      td:nth-child(2) { color: var(--strong); }
+    </style>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebPage",
+        "@id": "https://draftlineapp.com/compare/#page",
+        "name": "DraftLine compared with other screenwriting software",
+        "url": "https://draftlineapp.com/compare/",
+        "dateModified": "2026-11-16",
+        "isPartOf": { "@id": "https://draftlineapp.com/#website" },
+        "about": { "@type": "WebApplication", "@id": "https://draftlineapp.com/#app", "name": "DraftLine", "url": "https://draftlineapp.com/" }
+      }
+    </script>
+  </head>
+  <body>
+    <header>
+      <div class="wrap bar">
+        <a class="brand" href="/"><img src="/icon-192.png?v=2" alt="" width="28" height="28" />DraftLine</a>
+        <a class="cta" href="/">Open DraftLine</a>
+      </div>
+    </header>
+    <main class="wrap">
+      <div class="hero">
+        <h1>How DraftLine compares</h1>
+        <p class="lede">DraftLine is built for one writer and one script: free, open source, in the browser on a computer or
+          a phone, offline, with no account. If that's you, it's a good fit. If you need a team workflow or production
+          drafts, one of the tools below will serve you better, and this page says which.</p>
+      </div>
+
+      <section id="at-a-glance">
+        <h2>At a glance</h2>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th scope="col"></th><th scope="col">DraftLine</th><th scope="col">Final Draft</th><th scope="col">Fade In</th><th scope="col">WriterDuet</th><th scope="col">Celtx</th><th scope="col">Beat</th></tr>
+            </thead>
+            <tbody>
+              <tr><th scope="row">Cost</th><td>Free</td><td>One-time purchase or subscription</td><td>One-time purchase</td><td>Free plan + subscription</td><td>Free plan + subscription</td><td>Free on Mac; iOS app paid</td></tr>
+              <tr><th scope="row">Open source</th><td>Yes (MIT)</td><td>No</td><td>No</td><td>No</td><td>No</td><td>Yes (GPL v3)</td></tr>
+              <tr><th scope="row">Runs on</th><td>Any modern browser, on a computer or a phone; installs as an app</td><td>Mac, Windows; a separate iOS app (Final Draft Go)</td><td>Mac, Windows, Linux, plus a mobile app</td><td>Browser, desktop app, mobile apps</td><td>Browser</td><td>Mac, iOS</td></tr>
+              <tr><th scope="row">Real-time co-writing</th><td>No</td><td>Yes</td><td>Yes</td><td>Yes (paid plans)</td><td>Yes</td><td>No</td></tr>
+              <tr><th scope="row">Production revisions</th><td>No</td><td>Yes</td><td>Yes</td><td>Pro plan</td><td>Revision history; colored pages not confirmed</td><td>Yes</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="note">Checked in November 2026 from each product's own pages and store listings (sources below). Plans
+          and features change, so check the vendor's site before you decide. Corrections are welcome in
+          <a href="https://github.com/nanashi86/DraftLine/issues">DraftLine's GitHub issues</a>.</p>
+      </section>
+
+      <section id="others-better">
+        <h2>Where others are the better choice</h2>
+        <ul>
+          <li><strong>Production drafts.</strong> Once a script is locked for shooting, productions issue colored revision
+            pages (blue, pink, yellow…) with revision marks. DraftLine doesn't do this; Final Draft, Fade In and
+            WriterDuet do.</li>
+          <li><strong>Writing together live.</strong> DraftLine has no shared cloud document. Two writers in one script at
+            the same time is what WriterDuet, Final Draft and Celtx are built for. A linked folder lets you move between
+            your own computers, but the most recent save wins; edits aren't merged.</li>
+          <li><strong>Mac and iPhone only, also open source.</strong> If you only write on a Mac or an iPhone, Beat is
+            excellent.</li>
+          <li><strong>A full production suite.</strong> Celtx's paid plans add scheduling, budgeting and call sheets.
+            DraftLine's Plan view covers breakdowns, a stripboard and reports worked out from the script, not
+            scheduling or budgets.</li>
+        </ul>
+      </section>
+
+      <section id="draftline-fits">
+        <h2>Where DraftLine fits</h2>
+        <ul>
+          <li><strong>Free, with nothing held back.</strong> Every tool is in the free app: pagination, Final Draft and
+            Fountain files, PDF, Scene Board, Format Doctor, Dialogue Tuner, Story Bible, snapshots and Plan.</li>
+          <li><strong>Exact pages everywhere.</strong> Strict 54-line Hollywood pagination with (MORE) and (CONT'D). The
+            same page breaks on a computer, on a phone, in the PDF and in exports.</li>
+          <li><strong>Writing on a phone.</strong> A readable 16px writing view with an element bar above the keyboard,
+            in the phone's browser, with no app store. <a href="/features/#phone">More about writing on a phone</a>.</li>
+          <li><strong>Your files, on your device.</strong> No account, works offline, and scripts stay in your browser or
+            in a folder you link (Chrome or Edge on a computer), in open formats.</li>
+        </ul>
+        <p><a href="/features/">See every feature</a>.</p>
+      </section>
+
+      <section id="sources">
+        <h2>Sources</h2>
+        <ul class="note">
+          <li>Final Draft: <a href="https://www.finaldraft.com/store">finaldraft.com/store</a> (one-time purchase, annual and monthly subscriptions; Mac and Windows; iOS app sold separately)</li>
+          <li>Fade In: <a href="https://www.fadeinpro.com/">fadeinpro.com</a> and its <a href="https://apps.apple.com/us/app/fade-in/id488557039">App Store listing</a></li>
+          <li>WriterDuet: <a href="https://writerduet.com/article/231-choose-the-best-subscription-for-you">plan comparison</a> (Free, Plus, Pro, Premium)</li>
+          <li>Celtx: <a href="https://blog.celtx.com/celtx-free-plan-guide/">free plan guide</a> (April 2026)</li>
+          <li>Beat: <a href="https://github.com/lmparppei/Beat">source and feature list</a> and the <a href="https://apps.apple.com/app/id6458740044">iOS App Store listing</a></li>
+        </ul>
+      </section>
+    </main>
+    <footer class="wrap">
+      <p><a class="cta" href="/">Open DraftLine</a></p>
+      <p>DraftLine is free and open source under the MIT License. Source, issues and the full README are on
+        <a href="https://github.com/nanashi86/DraftLine">GitHub</a>.</p>
+    </footer>
+  </body>
+</html>
