@@ -29,7 +29,7 @@ locked into one app.
   cookies) and uses Google Tag Manager to measure our ad campaigns, which sets Google advertising cookies. Visitors in
   the EU, the UK and Switzerland are asked first, and anyone can change their choice under ⋮ → Cookie Settings… at any time.
   Send Feedback sends only what you type, when you choose to.
-- **Full FDX and Fountain import/export compatibility.** Bring your scripts and take them anywhere: open and save
+- **FDX and Fountain import and export.** Bring your scripts and take them anywhere: open and save
   Final Draft (.fdx) and Fountain files, plus PDF, Word and Google Docs import. Fountain is plain text, so an exported
   script works in any text editor, in ordinary backups and in version control such as Git. The User Guide's *Final
   Draft (.fdx)* section lists the few Final Draft settings that don't carry over, and a `.draftline` backup is the
