@@ -109,12 +109,12 @@
     <!-- Search and sharing: one title and description everywhere (tab, search result, link previews).
          The title must match SEO_TITLE in src/lib/pageTitle.js. Link previews need absolute URLs. -->
     <link rel="canonical" href="https://draftlineapp.com/" />
-    <meta name="description" content="DraftLine is a 100% free, open-source, local-first screenwriting tool. Fast and distraction-free with strict 54-line Hollywood pagination, 4-act index card beat board, and FDX/Fountain export with no subscriptions or accounts required." />
+    <meta name="description" content="Free, open-source screenwriting software for desktop and phone. Exact Hollywood pagination, Final Draft (.fdx) and Fountain files, works offline, no account." />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="DraftLine" />
     <meta property="og:url" content="https://draftlineapp.com/" />
     <meta property="og:title" content="DraftLine — Free Screenwriting Software" />
-    <meta property="og:description" content="DraftLine is a 100% free, open-source, local-first screenwriting tool. Fast and distraction-free with strict 54-line Hollywood pagination, 4-act index card beat board, and FDX/Fountain export with no subscriptions or accounts required." />
+    <meta property="og:description" content="Free, open-source screenwriting software for desktop and phone. Exact Hollywood pagination, Final Draft (.fdx) and Fountain files, works offline, no account." />
     <meta property="og:image" content="https://draftlineapp.com/og-image.png" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
@@ -122,7 +122,7 @@
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:url" content="https://draftlineapp.com/" />
     <meta name="twitter:title" content="DraftLine — Free Screenwriting Software" />
-    <meta name="twitter:description" content="DraftLine is a 100% free, open-source, local-first screenwriting tool. Fast and distraction-free with strict 54-line Hollywood pagination, 4-act index card beat board, and FDX/Fountain export with no subscriptions or accounts required." />
+    <meta name="twitter:description" content="Free, open-source screenwriting software for desktop and phone. Exact Hollywood pagination, Final Draft (.fdx) and Fountain files, works offline, no account." />
     <meta name="twitter:image" content="https://draftlineapp.com/og-image.png" />
     <!-- Google Search Console ownership check for the published site: leave it in place, or the site is unverified. -->
     <meta name="google-site-verification" content="DrCDehHt3vN0jJh4gijIObittLvGD1iLPm2yA6TGQrA" />
@@ -151,47 +151,79 @@
     <!-- Search engines index this. The app keeps it on the demo script (src/lib/pageTitle.js) and names the
          tab after the script once you're working on your own. -->
     <title>DraftLine — Free Screenwriting Software</title>
-    <!-- Structured data (schema.org SoftwareApplication) so search engines know DraftLine is a free software product.
-         applicationCategory must be one of Google's listed values; BusinessApplication is its productivity category.
-         Keep the description true to the README: the editor sends no telemetry (the site has page views and ad tags). -->
+    <!-- Structured data (schema.org): the app (a WebApplication, schema.org's SoftwareApplication for the web) and the website, each with a fixed @id that features/ and compare/
+         point to, so every page describes the same DraftLine. applicationCategory must be one of Google's listed
+         values; BusinessApplication is its productivity category. softwareVersion must match package.json
+         (tests/discoverability.test.js checks). sameAs lists only accounts that are DraftLine's own, plus its
+         AlternativeTo entry. Keep it true to the README: the editor sends no telemetry (the site has page views and
+         ad tags), and no ratings or reviews are claimed. -->
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
-        "@type": "SoftwareApplication",
-        "name": "DraftLine",
-        "url": "https://draftlineapp.com/",
-        "description": "A fast, distraction-free, local-first screenwriting PWA with strict 54-line Hollywood pagination, Fountain and Final Draft (.fdx) support, and no telemetry from the editor.",
-        "applicationCategory": "BusinessApplication",
-        "applicationSubCategory": "Screenwriting",
-        "operatingSystem": "Web browser (Windows, macOS, Linux, ChromeOS, Android, iOS); installable as a Progressive Web App",
-        "browserRequirements": "Requires JavaScript. Works offline once loaded.",
-        "isAccessibleForFree": true,
-        "license": "https://opensource.org/licenses/MIT",
-        "offers": {
-          "@type": "Offer",
-          "price": "0",
-          "priceCurrency": "USD",
-          "description": "Free and open source (MIT). No subscription fees."
-        },
-        "featureList": [
-          "Strict 54-line Hollywood pagination",
-          "Fountain and Final Draft (.fdx) import and export",
-          "PDF export with the editor's page breaks",
-          "4-act index card Scene Board",
-          "Format Doctor: spec-script format checks with one-click fixes",
-          "Dialogue Tuner: every line per character, with monologue and cadence stats",
-          "Character bios",
-          "Story Bible: story DNA, notes, synopsis and glossary",
-          "Snapshots with inline and side-by-side compare",
-          "Scene breakdowns, stripboard and production reports",
-          "Linked-folder sync (Google Drive, Dropbox, OneDrive)",
-          "Works offline; scripts stay on your device",
-          "No account required"
-        ],
-        "image": "https://draftlineapp.com/og-image.png",
-        "screenshot": "https://draftlineapp.com/og-image.png",
-        "author": { "@type": "Person", "name": "NANASHI86", "url": "https://github.com/nanashi86" },
-        "sameAs": ["https://github.com/nanashi86/DraftLine"]
+        "@graph": [
+          {
+            "@type": "WebApplication",
+            "@id": "https://draftlineapp.com/#app",
+            "name": "DraftLine",
+            "alternateName": "DraftLine Screenwriting",
+            "url": "https://draftlineapp.com/",
+            "description": "A free, open-source screenwriting app that runs in the browser on desktop and phone, installs as a Progressive Web App and works offline. Strict 54-line Hollywood pagination, Fountain and Final Draft (.fdx) files, no account, and no telemetry from the editor.",
+            "disambiguatingDescription": "Software for writing screenplays (film and TV scripts). It is not a novel-writing app or a casting service.",
+            "applicationCategory": "BusinessApplication",
+            "applicationSubCategory": "Screenwriting",
+            "operatingSystem": "Web browser (Windows, macOS, Linux, ChromeOS, Android, iOS); installable as a Progressive Web App",
+            "browserRequirements": "Requires JavaScript. Works offline once loaded.",
+            "softwareVersion": "0.11.0",
+            "isAccessibleForFree": true,
+            "license": "https://opensource.org/licenses/MIT",
+            "offers": {
+              "@type": "Offer",
+              "price": "0",
+              "priceCurrency": "USD",
+              "description": "Free and open source (MIT). No subscription fees."
+            },
+            "featureList": [
+              "Strict 54-line Hollywood pagination",
+              "Fountain and Final Draft (.fdx) import and export",
+              "PDF export with the editor's page breaks",
+              "Phone writing view: 16px Courier Prime, with the screenplay's layout kept",
+              "Element bar above the phone keyboard: Scene, Action, Character, Dialogue, Parenthetical, Transition",
+              "Phone page breaks identical to the desktop's, worked out at full page width",
+              "Speeches split across pages with (MORE) and (CONT'D), editable on a phone",
+              "4-act index card Scene Board",
+              "Format Doctor: spec-script format checks with one-click fixes",
+              "Dialogue Tuner: every line per character, with monologue and cadence stats",
+              "Character bios",
+              "Story Bible: story DNA, notes, synopsis and glossary",
+              "Snapshots with inline and side-by-side compare",
+              "Scene breakdowns, stripboard and production reports",
+              "Linked-folder sync in Chrome or Edge on a computer (Google Drive, Dropbox, OneDrive)",
+              "Works offline; scripts stay on your device",
+              "No account required"
+            ],
+            "image": "https://draftlineapp.com/og-image.png",
+            "screenshot": [
+              "https://draftlineapp.com/screenshots/desktop.webp",
+              "https://draftlineapp.com/screenshots/phone.webp"
+            ],
+            "author": { "@type": "Person", "name": "NANASHI86", "url": "https://github.com/nanashi86" },
+            "sameAs": [
+              "https://github.com/nanashi86/DraftLine",
+              "https://ko-fi.com/draftline",
+              "https://patreon.com/DraftLine",
+              "https://alternativeto.net/software/draftline-screenwriting/about/"
+            ]
+          },
+          {
+            "@type": "WebSite",
+            "@id": "https://draftlineapp.com/#website",
+            "name": "DraftLine",
+            "alternateName": "DraftLine Screenwriting",
+            "url": "https://draftlineapp.com/",
+            "inLanguage": "en",
+            "about": { "@id": "https://draftlineapp.com/#app" }
+          }
+        ]
       }
     </script>
     <!-- Cloudflare Web Analytics, skipped on the admin's own devices. Visit once with ?dev=true to mark this
@@ -233,5 +265,25 @@
   </head>
   <body>
     <div id="root"></div>
+    <!-- Shown only in a browser with JavaScript turned off (and read by tools that fetch the page without running
+         it). With JavaScript on it is never drawn, so the editor opens exactly as before. It describes the app
+         plainly; keep it free of "not available" wording, which can keep a page out of search results. -->
+    <noscript>
+      <style>html,body{background:#18181b!important;height:auto!important;overflow:auto!important}#root{display:none}</style>
+      <main style="max-width: 640px; margin: 48px auto; padding: 0 16px; font: 16px/1.6 system-ui, sans-serif; color: #e9e7e2;">
+        <h1 style="font-size: 26px; line-height: 1.25;">DraftLine — free screenwriting software</h1>
+        <p>DraftLine is a free, open-source (MIT) screenwriting app that runs in your web browser on a computer or a
+          phone. It formats screenplays to industry standard with strict 54-line Hollywood pagination, opens and saves
+          Final Draft (.fdx) and Fountain files, and exports PDF. It installs as an app, works offline, and needs no
+          account: scripts stay on your device.</p>
+        <p>On a phone, DraftLine shows a readable 16px writing view with an element bar above the keyboard, and its
+          page breaks match the desktop's exactly. The editor runs with JavaScript turned on.</p>
+        <ul>
+          <li><a href="/features/" style="color: #e0866f;">Every feature</a></li>
+          <li><a href="/compare/" style="color: #e0866f;">How DraftLine compares with other screenwriting software</a></li>
+          <li><a href="https://github.com/nanashi86/DraftLine" style="color: #e0866f;">Source code and documentation on GitHub</a></li>
+        </ul>
+      </main>
+    </noscript>
   </body>
 </html>
