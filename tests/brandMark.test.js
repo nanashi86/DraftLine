@@ -89,6 +89,13 @@ describe('Maskable icon (Android / ChromeOS shelf)', () => {
 
 describe('Brand mark: favicon and icons match the in-app "D" badge', () => {
   const svg = read('public/favicon.svg');
+  it('favicon.ico at the site root (16, 32 and 48 px), for search engines and sites that look there', () => {
+    const ico = readFileSync(new URL('../public/favicon.ico', import.meta.url));
+    assert.equal(ico.readUInt16LE(0), 0, 'reserved');
+    assert.equal(ico.readUInt16LE(2), 1, 'an icon file');
+    const sizes = Array.from({ length: ico.readUInt16LE(4) }, (_, i) => ico[6 + i * 16] || 256);
+    assert.deepEqual(sizes.sort((a, b) => a - b), [16, 32, 48]);
+  });
   it('favicon.svg is the badge scaled up: same corner radius, colour and white Courier Prime "D"', () => {
     const [, w] = svg.match(/viewBox="0 0 (\d+) \1"/);
     const scale = Number(w) / px('width');
