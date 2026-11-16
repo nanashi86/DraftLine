@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import {
   DEFAULT_FEEDBACK_ENDPOINT, DETAILS_MAX, EMAIL_MAX, FEATURE_MAX, FEEDBACK_ENDPOINT, FOUND_VIA, NO_PREVIOUS_APP, PREVIOUS_APPS, WRITES_ON,
-  feedbackPayload, osFamily, replyEmail, sendFeedback,
+  FEEDBACK_HASH, feedbackPayload, osFamily, replyEmail, sendFeedback, takeFeedbackLink,
 } from '../src/lib/feedback.js';
 import { moreMenuItems } from '../src/lib/toolbar.js';
 
@@ -170,5 +170,33 @@ describe('Anonymous feedback: menu and modal', () => {
     const css = read('src/components/FeedbackModal.css');
     assert.match(css, /\.afb-modal \{[^}]*background: var\(--float-bg\);/);
     assert.match(css, /\.afb-input \{[^}]*background: var\(--float-field\);/);
+  });
+});
+
+describe('Anonymous feedback: the #feedback link', () => {
+  const loc = (hash, pathname = '/', search = '') => ({ hash, pathname, search });
+  const hist = () => { const h = { state: { x: 1 }, calls: [] }; h.replaceState = (st, t, url) => h.calls.push([st, url]); return h; };
+  it('draftlineapp.com/#feedback opens the form and takes #feedback off the address', () => {
+    const h = hist();
+    assert.equal(takeFeedbackLink(loc('#feedback'), h), true);
+    assert.deepEqual(h.calls, [[{ x: 1 }, '/']], 'same page, history state kept, no #feedback');
+    const h2 = hist();
+    assert.equal(takeFeedbackLink(loc('#Feedback', '/', '?utm_source=reddit'), h2), true, 'any capitalisation');
+    assert.deepEqual(h2.calls[0][1], '/?utm_source=reddit', 'the rest of the address is kept');
+  });
+  it('any other address is left alone', () => {
+    for (const hash of ['', '#', '#phone', '#feedbacks']) {
+      const h = hist();
+      assert.equal(takeFeedbackLink(loc(hash), h), false, hash);
+      assert.equal(h.calls.length, 0);
+    }
+  });
+  it('a browser that refuses replaceState still opens the form', () => {
+    assert.equal(takeFeedbackLink(loc('#feedback'), { replaceState() { throw new Error('nope'); } }), true);
+  });
+  it('the app checks on arrival and when an open tab follows the link', () => {
+    const app = read('src/App.jsx');
+    assert.match(app, /const open = \(\) => \{\s*if \(takeFeedbackLink\(\)\) setFeedbackOpen\(true\);\s*\};\s*open\(\);\s*window\.addEventListener\('hashchange', open\);/);
+    assert.equal(FEEDBACK_HASH, '#feedback');
   });
 });

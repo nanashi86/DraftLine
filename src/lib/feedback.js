@@ -18,6 +18,22 @@ export const PREVIOUS_APPS = ['Final Draft', 'Fade In', 'Highland 2', 'WriterDue
 export const FOUND_VIA = ['Google search', 'Google ad', 'AI assistant', 'YouTube', 'Instagram / Threads', 'TikTok', 'X', 'Reddit', 'AlternativeTo', 'A friend', 'Other'];
 export const WRITES_ON = ['Computer', 'Phone', 'Tablet', 'All of them'];
 
+/**
+ * draftlineapp.com/#feedback opens DraftLine with this form already up (a link for Reddit, Discord,
+ * emails…). The "#feedback" is then taken off the address, so a reload or a bookmark of the page
+ * the writer ends up on doesn't open the form again.
+ */
+export const FEEDBACK_HASH = '#feedback';
+export function takeFeedbackLink(loc = globalThis.location, hist = globalThis.history) {
+  if (String(loc?.hash || '').toLowerCase() !== FEEDBACK_HASH) return false;
+  try {
+    hist?.replaceState(hist.state, '', `${loc.pathname}${loc.search}`);
+  } catch {
+    // the address keeps its #feedback: harmless, the form still opens
+  }
+  return true;
+}
+
 export const FEATURE_MAX = 200;
 export const DETAILS_MAX = 2000;
 export const EMAIL_MAX = 254;

@@ -19,6 +19,7 @@ import {
   countWritingSession, feedbackPause, feedbackPromptFinished, feedbackWanted, finishFeedbackPrompt, noteSittingActivity, seedReturningWriter,
   sessionCounted, writingSessions,
 } from './lib/feedbackPrompt.js';
+import { takeFeedbackLink } from './lib/feedback.js';
 import ExportFdxModal from './components/ExportFdxModal.jsx';
 import DeleteProjectModal from './components/DeleteProjectModal.jsx';
 import DialogueStepper from './components/DialogueStepper.jsx';
@@ -2355,6 +2356,15 @@ function Workspace({ boot }) {
     setFeedbackDone(true);
     setActiveHint((a) => (a === FEEDBACK_HINT ? null : a));
   }, [feedbackOpen]);
+  // draftlineapp.com/#feedback opens the form (lib/feedback.js): on arrival, or when an open tab follows the link.
+  useEffect(() => {
+    const open = () => {
+      if (takeFeedbackLink()) setFeedbackOpen(true);
+    };
+    open();
+    window.addEventListener('hashchange', open);
+    return () => window.removeEventListener('hashchange', open);
+  }, []);
   // Writing has started on the blank page: the sample card steps aside (not done: it can come back on
   // another blank page), and the Focus tip may follow at the next pause.
   useEffect(() => {
