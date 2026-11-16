@@ -2,7 +2,8 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import {
-  DEFAULT_FEEDBACK_ENDPOINT, DETAILS_MAX, FEATURE_MAX, FEEDBACK_ENDPOINT, NO_PREVIOUS_APP, PREVIOUS_APPS, feedbackPayload, osFamily, sendFeedback,
+  DEFAULT_FEEDBACK_ENDPOINT, DETAILS_MAX, EMAIL_MAX, FEATURE_MAX, FEEDBACK_ENDPOINT, FOUND_VIA, NO_PREVIOUS_APP, PREVIOUS_APPS, WRITES_ON,
+  feedbackPayload, osFamily, replyEmail, sendFeedback,
 } from '../src/lib/feedback.js';
 import { moreMenuItems } from '../src/lib/toolbar.js';
 
@@ -25,7 +26,7 @@ const nav = (userAgent, onLine = true) => ({ userAgent, onLine });
 
 describe('Anonymous feedback: what is sent', () => {
   it('the previous-app choices, in order: the software, then "None (New Writer)"', () => {
-    assert.deepEqual(PREVIOUS_APPS, ['Final Draft', 'Fade In', 'Highland 2', 'WriterDuet', 'Celtx', 'Other', 'None (New Writer)']);
+    assert.deepEqual(PREVIOUS_APPS, ['Final Draft', 'Fade In', 'Highland 2', 'WriterDuet', 'Celtx', 'Google Docs / Word', 'Other', 'None (New Writer)']);
     assert.equal(NO_PREVIOUS_APP, 'None (New Writer)');
     assert.equal(PREVIOUS_APPS.at(-1), NO_PREVIOUS_APP, 'last, so it sits beneath the software choices');
   });
@@ -38,13 +39,33 @@ describe('Anonymous feedback: what is sent', () => {
     }
     assert.equal(feedbackPayload({ previousApp: 'New Writer', missingFeature: 'x' }).previousApp, null, 'the old label is no longer a choice');
   });
+  it('how they found DraftLine and where they write: listed answers only, or null', () => {
+    assert.deepEqual(FOUND_VIA, ['Google search', 'Google ad', 'AI assistant', 'YouTube', 'Instagram / Threads', 'TikTok', 'X', 'Reddit', 'AlternativeTo', 'A friend', 'Other']);
+    assert.deepEqual(WRITES_ON, ['Computer', 'Phone', 'Tablet', 'All of them']);
+    const p = feedbackPayload({ foundVia: 'TikTok', writesOn: 'Phone', missingFeature: 'x' });
+    assert.equal(p.foundVia, 'TikTok');
+    assert.equal(p.writesOn, 'Phone');
+    const q = feedbackPayload({ foundVia: 'Facebook', writesOn: 'Typewriter', missingFeature: 'x' });
+    assert.equal(q.foundVia, null);
+    assert.equal(q.writesOn, null);
+  });
+  it('the reply email is optional, and a typo is dropped rather than sent; quoting is opt-in', () => {
+    assert.equal(replyEmail('  sam@example.com '), 'sam@example.com');
+    for (const bad of ['', 'sam', 'sam@example', 'sam @example.com', `${'a'.repeat(EMAIL_MAX)}@example.com`]) assert.equal(replyEmail(bad), '', bad);
+    assert.equal(feedbackPayload({ missingFeature: 'x' }).replyEmail, '');
+    assert.equal(feedbackPayload({ missingFeature: 'x' }).canQuote, false);
+    assert.equal(feedbackPayload({ missingFeature: 'x', canQuote: 'yes' }).canQuote, false, 'only a real tick');
+    assert.equal(feedbackPayload({ missingFeature: 'x', canQuote: true }).canQuote, true);
+  });
   it('only a coarse OS name: Windows, macOS or Other', () => {
     assert.deepEqual([osFamily(WIN), osFamily(MAC), osFamily(LINUX), osFamily('')], ['Windows', 'macOS', 'Other', 'Other']);
   });
-  it('the payload is exactly { previousApp, missingFeature, details, env }: trimmed and capped', () => {
+  it('the payload is exactly these fields: trimmed and capped', () => {
     const p = feedbackPayload({ previousApp: 'Fade In', missingFeature: '  Revision colours  ', details: ' crashes on paste ' }, WIN);
-    assert.deepEqual(p, { previousApp: 'Fade In', missingFeature: 'Revision colours', details: 'crashes on paste', env: 'Windows' });
-    assert.deepEqual(Object.keys(p), ['previousApp', 'missingFeature', 'details', 'env']);
+    assert.deepEqual(p, {
+      previousApp: 'Fade In', foundVia: null, writesOn: null, missingFeature: 'Revision colours', details: 'crashes on paste', replyEmail: '', canQuote: false, env: 'Windows',
+    });
+    assert.deepEqual(Object.keys(p), ['previousApp', 'foundVia', 'writesOn', 'missingFeature', 'details', 'replyEmail', 'canQuote', 'env']);
     assert.equal(feedbackPayload({ previousApp: 'Notepad', missingFeature: 'x' }).previousApp, null, 'only a listed app, or null');
     assert.equal(feedbackPayload({ missingFeature: 'x'.repeat(FEATURE_MAX + 50), details: 'y'.repeat(DETAILS_MAX + 50) }).missingFeature.length, FEATURE_MAX);
     assert.equal(feedbackPayload({ missingFeature: 'x', details: 'y'.repeat(DETAILS_MAX + 50) }).details.length, DETAILS_MAX);
@@ -64,7 +85,9 @@ describe('Anonymous feedback: sending', () => {
     const [{ url, init }] = f.calls;
     assert.equal(url, DEFAULT_FEEDBACK_ENDPOINT);
     assert.equal(init.method, 'POST');
-    assert.deepEqual(JSON.parse(init.body), { previousApp: 'Celtx', missingFeature: 'Index cards on iPad', details: '', env: 'macOS' });
+    assert.deepEqual(JSON.parse(init.body), {
+      previousApp: 'Celtx', foundVia: null, writesOn: null, missingFeature: 'Index cards on iPad', details: '', replyEmail: '', canQuote: false, env: 'macOS',
+    });
     assert.equal(init.credentials, 'omit');
     assert.equal(init.referrerPolicy, 'no-referrer');
     assert.equal(init.cache, 'no-store');
@@ -99,20 +122,26 @@ describe('Anonymous feedback: menu and modal', () => {
     assert.match(app, /onFeedback: \(\) => setFeedbackOpen\(true\),/);
     assert.match(app, /const FeedbackModal = lazy\(\(\) => import\('\.\/components\/FeedbackModal\.jsx'\)\);/, 'loaded on first use');
   });
-  it('the modal: title, ✕, the three questions, the notice, Cancel and Send', () => {
+  it('the modal: title, ✕, the questions, the notice, Cancel and Send', () => {
     assert.match(modal, /<h2 id="afb-title">Share Anonymous Feedback<\/h2>/);
     assert.match(modal, /aria-label="Close"/);
-    assert.match(modal, />I previously used:</);
-    assert.match(modal, /role="radiogroup"[\s\S]*?PREVIOUS_APPS\.map[\s\S]*?role="radio"\s*aria-checked=\{previousApp === app\}/, 'single-select pills');
-    assert.match(modal, /className=\{`afb-pill\$\{app === NO_PREVIOUS_APP \? ' is-none' : ''\}/, '"None (New Writer)" is marked');
+    assert.match(modal, /label="How did you find DraftLine\?" options=\{FOUND_VIA\}/);
+    assert.match(modal, /label="Where do you write\?" options=\{WRITES_ON\}/);
+    assert.match(modal, /label="I previously used:"\s*options=\{PREVIOUS_APPS\}[\s\S]*?grid\s*noneOption=\{NO_PREVIOUS_APP\}/);
+    assert.match(modal, /role="radiogroup"[\s\S]*?options\.map[\s\S]*?role="radio"\s*aria-checked=\{value === opt\}/, 'single-select pills');
+    assert.match(modal, /className=\{`afb-pill\$\{opt === noneOption \? ' is-none' : ''\}/, '"None (New Writer)" is marked');
+    assert.match(modal, /Want a reply\? <span className="afb-optional">\(optional\)<\/span>[\s\S]*?type="email"/);
+    assert.match(modal, /type="checkbox" checked=\{canQuote\}[\s\S]*?OK to quote what I wrote, anonymously, on the DraftLine site/);
+    assert.match(modal, /send\(\{ foundVia, writesOn, previousApp, missingFeature, details, email, canQuote \}\)/);
     const css = read('src/components/FeedbackModal.css');
-    assert.match(css, /\.afb-pills \{ display: grid; grid-template-columns: repeat\(3, max-content\); gap: 6px; \}/, 'software choices in an even grid');
+    assert.match(css, /\.afb-pills \{ display: grid; grid-template-columns: repeat\(3, minmax\(0, 1fr\)\); gap: 6px; \}/, 'software choices in an even grid');
+    assert.match(css, /\.afb-pills\.is-wrap \{ display: flex; flex-wrap: wrap; \}/, 'the other questions wrap');
     assert.match(css, /\.afb-pill\.is-none \{ grid-column: 1 \/ -1; justify-self: start;/, 'None on its own row beneath them');
     assert.match(modal, />What’s on your mind\?</, 'a bug, an idea or a thank-you fits, not only a missing feature');
     assert.match(modal, /placeholder="A bug, an idea, a missing feature, or just what you think…"/);
     assert.match(modal, /<input[\s\S]*?required\s*aria-required="true"/);
     assert.match(modal, /More details <span className="afb-optional">\(optional\)<\/span>[\s\S]*?<textarea/);
-    assert.match(modal, /No cookies, accounts, or IP addresses collected\./);
+    assert.match(modal, /This form collects no cookies, accounts, or IP addresses\. An email is used only to reply to you\./);
     assert.match(modal, />Cancel<\/button>/);
     assert.match(modal, /disabled=\{!canSend\}>\{busy \? 'Sending…' : 'Send Feedback'\}/);
   });

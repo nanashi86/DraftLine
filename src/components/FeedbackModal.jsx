@@ -1,19 +1,50 @@
 import { useEffect, useRef, useState } from 'react';
 import { X } from 'lucide-react';
-import { DETAILS_MAX, FEATURE_MAX, NO_PREVIOUS_APP, PREVIOUS_APPS, sendFeedback } from '../lib/feedback.js';
+import {
+  DETAILS_MAX, EMAIL_MAX, FEATURE_MAX, FOUND_VIA, NO_PREVIOUS_APP, PREVIOUS_APPS, WRITES_ON, sendFeedback,
+} from '../lib/feedback.js';
 import './FeedbackModal.css';
 
 /**
- * ⋮ → Send Feedback…: three questions and Send. Esc, ✕, Cancel or a click outside closes it.
+ * One question answered with pills: pick one, pick it again to clear it.
+ */
+function PillGroup({ id, label, options, value, onChange, grid = false, noneOption = null }) {
+  return (
+    <div className="afb-field">
+      <span className="afb-label" id={id}>{label}</span>
+      <div className={`afb-pills${grid ? '' : ' is-wrap'}`} role="radiogroup" aria-labelledby={id}>
+        {options.map((opt) => (
+          <button
+            key={opt}
+            type="button"
+            role="radio"
+            aria-checked={value === opt}
+            className={`afb-pill${opt === noneOption ? ' is-none' : ''}${value === opt ? ' is-on' : ''}`}
+            onClick={() => onChange((cur) => (cur === opt ? null : opt))}
+          >
+            {opt}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/**
+ * ⋮ → Send Feedback…: three pill questions, what's on your mind, details, an optional email, and Send. Esc, ✕, Cancel or a click outside closes it.
  * On success the app closes it and thanks the writer; on failure it stays open (nothing typed is lost)
  * and the app says so. What's sent is in lib/feedback.js.
  */
 export default function FeedbackModal({ onClose, onSent, onFailed, send = sendFeedback }) {
   const dialogRef = useRef(null);
   const featureRef = useRef(null);
+  const [foundVia, setFoundVia] = useState(null);
+  const [writesOn, setWritesOn] = useState(null);
   const [previousApp, setPreviousApp] = useState(null);
   const [missingFeature, setMissingFeature] = useState('');
   const [details, setDetails] = useState('');
+  const [email, setEmail] = useState('');
+  const [canQuote, setCanQuote] = useState(false);
   const [busy, setBusy] = useState(false);
   const canSend = missingFeature.trim().length > 0 && !busy;
 
@@ -31,7 +62,7 @@ export default function FeedbackModal({ onClose, onSent, onFailed, send = sendFe
     e.preventDefault();
     if (!canSend) return;
     setBusy(true);
-    const ok = await send({ previousApp, missingFeature, details });
+    const ok = await send({ foundVia, writesOn, previousApp, missingFeature, details, email, canQuote });
     setBusy(false);
     if (ok) onSent();
     else onFailed();
@@ -59,24 +90,18 @@ export default function FeedbackModal({ onClose, onSent, onFailed, send = sendFe
         </header>
 
         <div className="afb-body">
-          <div className="afb-field">
-            <span className="afb-label" id="afb-prev">I previously used:</span>
-            {/* One radio group: the software choices as an even grid, then "None (New Writer)" on its own row. */}
-            <div className="afb-pills" role="radiogroup" aria-labelledby="afb-prev">
-              {PREVIOUS_APPS.map((app) => (
-                <button
-                  key={app}
-                  type="button"
-                  role="radio"
-                  aria-checked={previousApp === app}
-                  className={`afb-pill${app === NO_PREVIOUS_APP ? ' is-none' : ''}${previousApp === app ? ' is-on' : ''}`}
-                  onClick={() => setPreviousApp((cur) => (cur === app ? null : app))}
-                >
-                  {app}
-                </button>
-              ))}
-            </div>
-          </div>
+          <PillGroup id="afb-found" label="How did you find DraftLine?" options={FOUND_VIA} value={foundVia} onChange={setFoundVia} />
+          <PillGroup id="afb-writes" label="Where do you write?" options={WRITES_ON} value={writesOn} onChange={setWritesOn} />
+          {/* The software choices as an even grid, then "None (New Writer)" on its own row. */}
+          <PillGroup
+            id="afb-prev"
+            label="I previously used:"
+            options={PREVIOUS_APPS}
+            value={previousApp}
+            onChange={setPreviousApp}
+            grid
+            noneOption={NO_PREVIOUS_APP}
+          />
 
           <label className="afb-field">
             <span className="afb-label">What’s on your mind?</span>
@@ -102,10 +127,28 @@ export default function FeedbackModal({ onClose, onSent, onFailed, send = sendFe
               rows={4}
             />
           </label>
+
+          <label className="afb-field">
+            <span className="afb-label">Want a reply? <span className="afb-optional">(optional)</span></span>
+            <input
+              type="email"
+              className="afb-input"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              maxLength={EMAIL_MAX}
+              autoComplete="email"
+              placeholder="you@example.com"
+            />
+          </label>
+
+          <label className="afb-check">
+            <input type="checkbox" checked={canQuote} onChange={(e) => setCanQuote(e.target.checked)} />
+            <span>OK to quote what I wrote, anonymously, on the DraftLine site</span>
+          </label>
         </div>
 
         <footer className="afb-foot">
-          <p className="afb-notice">No cookies, accounts, or IP addresses collected.</p>
+          <p className="afb-notice">This form collects no cookies, accounts, or IP addresses. An email is used only to reply to you.</p>
           <div className="afb-actions">
             <button type="button" className="btn" onClick={close} disabled={busy}>Cancel</button>
             <button type="submit" className="btn afb-send" disabled={!canSend}>{busy ? 'Sending…' : 'Send Feedback'}</button>

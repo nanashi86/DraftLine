@@ -1,6 +1,7 @@
 // ⋮ → Send Feedback…: what the form sends, and how.
 //
-// Only what the writer types, which app they used before (if they pick one) and a coarse OS name
+// Only what the writer types or picks (how they found DraftLine, where they write, the app they used
+// before, an optional email for a reply, whether they're happy to be quoted) and a coarse OS name
 // are sent. No cookies or credentials (credentials: 'omit'), no referrer, no script text, no
 // project or library data, nothing stored in the browser. The endpoint is a Cloudflare Worker;
 // set VITE_FEEDBACK_ENDPOINT at build time to send somewhere else.
@@ -13,10 +14,13 @@ export const FEEDBACK_ENDPOINT = import.meta.env?.VITE_FEEDBACK_ENDPOINT || DEFA
 
 /** "I previously used:" — the software choices, then "None" for a writer new to screenwriting software. */
 export const NO_PREVIOUS_APP = 'None (New Writer)';
-export const PREVIOUS_APPS = ['Final Draft', 'Fade In', 'Highland 2', 'WriterDuet', 'Celtx', 'Other', NO_PREVIOUS_APP];
+export const PREVIOUS_APPS = ['Final Draft', 'Fade In', 'Highland 2', 'WriterDuet', 'Celtx', 'Google Docs / Word', 'Other', NO_PREVIOUS_APP];
+export const FOUND_VIA = ['Google search', 'Google ad', 'AI assistant', 'YouTube', 'Instagram / Threads', 'TikTok', 'X', 'Reddit', 'AlternativeTo', 'A friend', 'Other'];
+export const WRITES_ON = ['Computer', 'Phone', 'Tablet', 'All of them'];
 
 export const FEATURE_MAX = 200;
 export const DETAILS_MAX = 2000;
+export const EMAIL_MAX = 254;
 const TIMEOUT_MS = 10_000;
 
 /** "Windows" · "macOS" · "Other": nothing finer than that. */
@@ -26,12 +30,27 @@ export function osFamily(userAgent = '') {
   return 'Other';
 }
 
-/** The request body. Trimmed, length-capped; previousApp is null when none was picked. */
-export function feedbackPayload({ previousApp = null, missingFeature = '', details = '' }, userAgent = '') {
+/** A plausible email address, or '' (the field is optional; a typo is dropped rather than sent). */
+export function replyEmail(value = '') {
+  const v = String(value).trim();
+  return v.length <= EMAIL_MAX && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) ? v : '';
+}
+
+/**
+ * The request body. Trimmed, length-capped; a choice is null when none was picked (or it isn't one
+ * of the listed answers). replyEmail is '' unless the writer typed one; canQuote is true only when ticked.
+ */
+export function feedbackPayload({
+  previousApp = null, foundVia = null, writesOn = null, missingFeature = '', details = '', email = '', canQuote = false,
+}, userAgent = '') {
   return {
     previousApp: PREVIOUS_APPS.includes(previousApp) ? previousApp : null,
+    foundVia: FOUND_VIA.includes(foundVia) ? foundVia : null,
+    writesOn: WRITES_ON.includes(writesOn) ? writesOn : null,
     missingFeature: String(missingFeature).trim().slice(0, FEATURE_MAX),
     details: String(details).trim().slice(0, DETAILS_MAX),
+    replyEmail: replyEmail(email),
+    canQuote: canQuote === true,
     env: osFamily(userAgent),
   };
 }
