@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>DraftLine Compared with Final Draft, Fade In, WriterDuet, Celtx and Beat</title>
-    <meta name="description" content="How DraftLine, a free, open-source screenwriting app for desktop and phone, compares with Final Draft, Fade In, WriterDuet, Celtx and Beat on cost, platforms, co-writing and production revisions, and where each is the better choice." />
+    <meta name="description" content="How DraftLine, a free, open-source screenwriting app for desktop and phone, compares with Final Draft, Fade In, WriterDuet, Celtx and Beat: free versions, story planning, production planning, revisions and co-writing, and where each is the better choice." />
     <link rel="canonical" href="https://draftlineapp.com/compare/" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=2" />
     <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png?v=2" />
@@ -63,12 +63,28 @@
       .note { color: var(--muted); font-size: 14px; }
       footer { padding: 32px 0 48px; color: var(--muted); font-size: 14px; }
       .table-wrap { overflow-x: auto; margin: 14px 0 0; border: 1px solid var(--line); border-radius: 10px; }
-      table { border-collapse: collapse; width: 100%; min-width: 860px; font-size: 14.5px; line-height: 1.45; }
+      table { border-collapse: collapse; width: 100%; min-width: 700px; font-size: 14px; line-height: 1.45; }
       th, td { text-align: left; vertical-align: top; padding: 9px 12px; border-bottom: 1px solid var(--line); }
       thead th { color: var(--strong); background: var(--panel); font-weight: 600; }
       tbody th { color: var(--strong); font-weight: 600; width: 8.5em; }
       tbody tr:last-child th, tbody tr:last-child td { border-bottom: 0; }
       td:nth-child(2) { color: var(--strong); }
+      /* Wide screens: the table takes a little more room than the text column, so all six products fit. */
+      @media (min-width: 900px) {
+        .table-wrap { width: min(1040px, calc(100vw - 48px)); position: relative; left: 50%; transform: translateX(-50%); }
+      }
+      /* Phones: each row becomes a short list, "Product  value", instead of a table to scroll sideways. */
+      @media (max-width: 640px) {
+        .table-wrap { border: 0; border-radius: 0; overflow: visible; }
+        table, tbody, tr, th, td { display: block; }
+        table { min-width: 0; font-size: 15px; }
+        thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+        tbody tr { border: 1px solid var(--line); border-radius: 10px; margin: 0 0 12px; overflow: hidden; }
+        tbody th { width: auto; background: var(--panel); border-bottom: 1px solid var(--line); }
+        td { display: grid; grid-template-columns: 6.5em 1fr; gap: 10px; padding: 7px 12px; }
+        td::before { content: attr(data-label); color: var(--muted); font-weight: 600; }
+        tbody tr td:last-child { border-bottom: 0; }
+      }
     </style>
     <script type="application/ld+json">
       {
@@ -93,9 +109,14 @@
     <main class="wrap">
       <div class="hero">
         <h1>How DraftLine compares</h1>
-        <p class="lede">DraftLine is built for one writer and one script: free, open source, in the browser on a computer or
-          a phone, offline, with no account. If that's you, it's a good fit. If you need a team workflow or production
-          drafts, one of the tools below will serve you better, and this page says which.</p>
+        <p class="lede">DraftLine brings professional screenplay formatting, story development and production planning into
+          one free, open-source writing app. Write on a computer or a phone, work offline, and keep your scripts without an
+          account, a subscription or AI-generated writing.</p>
+        <p>Nothing is held back for paying users, because there are none: the Scene Board with live act pacing, the Story
+          Bible, Final Draft compatibility and production breakdowns are all in the free app.</p>
+        <p>DraftLine is designed first for independent writers. If your work needs simultaneous co-writing, locked shooting
+          scripts with colored revision pages, or full scheduling and budgeting, the established tools below offer what
+          DraftLine doesn't currently provide. Here's how the options compare.</p>
       </div>
 
       <section id="at-a-glance">
@@ -106,59 +127,80 @@
               <tr><th scope="col"></th><th scope="col">DraftLine</th><th scope="col">Final Draft</th><th scope="col">Fade In</th><th scope="col">WriterDuet</th><th scope="col">Celtx</th><th scope="col">Beat</th></tr>
             </thead>
             <tbody>
-              <tr><th scope="row">Cost</th><td>Free</td><td>One-time purchase or subscription</td><td>One-time purchase</td><td>Free plan + subscription</td><td>Free plan + subscription</td><td>Free on Mac; iOS app paid</td></tr>
-              <tr><th scope="row">Open source</th><td>Yes (MIT)</td><td>No</td><td>No</td><td>No</td><td>No</td><td>Yes (GPL v3)</td></tr>
-              <tr><th scope="row">Runs on</th><td>Any modern browser, on a computer or a phone; installs as an app</td><td>Mac, Windows; a separate iOS app (Final Draft Go)</td><td>Mac, Windows, Linux, plus a mobile app</td><td>Browser, desktop app, mobile apps</td><td>Browser</td><td>Mac, iOS</td></tr>
-              <tr><th scope="row">Real-time co-writing</th><td>No</td><td>Yes</td><td>Yes</td><td>Yes (paid plans)</td><td>Yes</td><td>No</td></tr>
-              <tr><th scope="row">Production revisions</th><td>No</td><td>Yes</td><td>Yes</td><td>Pro plan</td><td>Revision history; colored pages not confirmed</td><td>Yes</td></tr>
+              <tr><th scope="row">Cost and free version</th><td data-label="DraftLine">Free, every tool; no paid tier, no account</td><td data-label="Final Draft">One-time purchase or subscription</td><td data-label="Fade In">One-time purchase</td><td data-label="WriterDuet">Free plan (three projects); paid plans add more</td><td data-label="Celtx">Free plan (one active project); paid plans add more</td><td data-label="Beat">Free on Mac; iOS app paid</td></tr>
+              <tr><th scope="row">Open source</th><td data-label="DraftLine">Yes (MIT)</td><td data-label="Final Draft">No</td><td data-label="Fade In">No</td><td data-label="WriterDuet">No</td><td data-label="Celtx">No</td><td data-label="Beat">Yes (GPL v3)</td></tr>
+              <tr><th scope="row">Runs on</th><td data-label="DraftLine">Any modern browser, on a computer or a phone; installs as an app and works offline</td><td data-label="Final Draft">Mac, Windows; a separate iOS app (Final Draft Go)</td><td data-label="Fade In">Mac, Windows, Linux, plus a mobile app</td><td data-label="WriterDuet">Browser, desktop app, mobile apps</td><td data-label="Celtx">Browser</td><td data-label="Beat">Mac, iOS</td></tr>
+              <tr><th scope="row">Story planning</th><td data-label="DraftLine">Scene Board in act columns, linked to the script, with live act pacing; Story Bible</td><td data-label="Final Draft">Beat Board, Outline Editor, Structure Lines</td><td data-label="Fade In">Outlining, index cards, scene navigator</td><td data-label="WriterDuet">Cards view, mind map</td><td data-label="Celtx">Beat sheets (limited on the free plan)</td><td data-label="Beat">Index cards, outline, timeline</td></tr>
+              <tr><th scope="row">Production planning</th><td data-label="DraftLine">Breakdowns, stripboard and reports from the script</td><td data-label="Final Draft">Tagging and reports</td><td data-label="Fade In">Breakdowns and production reports</td><td data-label="WriterDuet">Tagging; reports on Pro</td><td data-label="Celtx">Breakdowns, scheduling, budgeting, call sheets (paid plans)</td><td data-label="Beat">Not listed</td></tr>
+              <tr><th scope="row">Production revisions</th><td data-label="DraftLine">No (drafts are kept as snapshots you can compare)</td><td data-label="Final Draft">Yes</td><td data-label="Fade In">Yes</td><td data-label="WriterDuet">Pro plan</td><td data-label="Celtx">Revision history; colored pages not confirmed</td><td data-label="Beat">Yes</td></tr>
+              <tr><th scope="row">Real-time co-writing</th><td data-label="DraftLine">No</td><td data-label="Final Draft">Yes</td><td data-label="Fade In">Through the optional Fade In Access service</td><td data-label="WriterDuet">Yes (paid plans)</td><td data-label="Celtx">Yes</td><td data-label="Beat">No</td></tr>
             </tbody>
           </table>
         </div>
-        <p class="note">Checked in November 2026 from each product's own pages and store listings (sources below). Plans
-          and features change, so check the vendor's site before you decide. Corrections are welcome in
+        <p class="note">Checked in November 2026 from each product's own pages, help articles and store listings (sources
+          below). "Production planning" means preparing a shoot from the script: breakdowns, strips, reports. "Production
+          revisions" means locked shooting scripts with colored revision pages. Plans and features change, so check the
+          vendor's site before you decide. Corrections are welcome in
           <a href="https://github.com/nanashi86/DraftLine/issues">DraftLine's GitHub issues</a>.</p>
+      </section>
+
+      <section id="draftline-stands-out">
+        <h2>Where DraftLine stands out</h2>
+        <ul>
+          <li><strong>Free means everything.</strong> No subscription, no account, no paid tier, and no page or project
+            limits set by DraftLine. Professional pagination, Final Draft files, the Scene Board, Story Bible, Format Doctor,
+            Dialogue Tuner, snapshots and production planning are in the one free app.</li>
+          <li><strong>Your story, your voice.</strong> DraftLine doesn't write for you: it has no generative AI, and nothing
+            in it drafts, rewrites or suggests your story or dialogue. Its checks and counts are rule-based readings of your
+            own pages: Format Doctor flags format problems and offers fixes, Dialogue Tuner shows each character's lines with
+            monologue and cadence statistics, and the Scene Board can suggest each scene's value shift. You decide what to
+            apply.</li>
+          <li><strong>Story development beside the script.</strong> The Scene Board's cards sit in 3- or 4-act columns and
+            are linked to their scenes: drag a card and its whole scene moves in the screenplay. Live act pacing shows each
+            act's pages and share of the script against the usual share (25 / 50 / 25 in three acts, a quarter each in
+            four), and updates as you move scenes or rewrite. The Story Bible holds the story's DNA (genre, theme, central dramatic question, plot devices and eight
+            story questions), notes such as the logline, and a screenwriting glossary; Characters holds bios and every line
+            each character speaks.</li>
+          <li><strong>Production preparation from the same pages.</strong> Plan reads the script into scene breakdowns
+            (INT/EXT, day or night, length in eighths, speaking cast with numbers, plus your lists of extras, props,
+            wardrobe and vehicles), a color-coded stripboard, and reports on scenes, characters, locations and the whole
+            script, each exportable as CSV.</li>
+          <li><strong>Professional pages, even on a phone.</strong> Strict 54-line pagination with (MORE) and (CONT'D),
+            and a PDF built to match the screen. On a phone you write in a readable 16px view with an element bar above the
+            keyboard, and the page breaks stay exactly as they are on a computer: a script continued on a phone is the same
+            script, page for page. <a href="/features/#phone">More about writing on a phone</a>.</li>
+          <li><strong>Your scripts stay in your hands.</strong> Work offline, without an account. Scripts are kept in your
+            browser, or as files in a folder you link (Chrome or Edge on a computer), and open and save as Final Draft
+            (.fdx), Fountain and a complete .draftline backup.</li>
+        </ul>
+        <p><a href="/features/">See every feature</a>.</p>
       </section>
 
       <section id="others-better">
         <h2>Where others are the better choice</h2>
         <ul>
-          <li><strong>Production drafts.</strong> Once a script is locked for shooting, productions issue colored revision
-            pages (blue, pink, yellow…) with revision marks. DraftLine doesn't do this; Final Draft, Fade In and
-            WriterDuet do.</li>
-          <li><strong>Writing together live.</strong> DraftLine has no shared cloud document. Two writers in one script at
-            the same time is what WriterDuet, Final Draft and Celtx are built for. A linked folder lets you move between
-            your own computers, but the most recent save wins; edits aren't merged.</li>
-          <li><strong>Mac and iPhone only, also open source.</strong> If you only write on a Mac or an iPhone, Beat is
-            excellent.</li>
-          <li><strong>A full production suite.</strong> Celtx's paid plans add scheduling, budgeting and call sheets.
-            DraftLine's Plan view covers breakdowns, a stripboard and reports worked out from the script, not
-            scheduling or budgets.</li>
+          <li><strong>Locked shooting scripts.</strong> Once a script is locked for production, revisions go out as colored
+            pages with revision marks, locked pages and omitted scenes. Final Draft, Fade In and WriterDuet's Pro plan are
+            built for that. DraftLine keeps drafts as snapshots you can compare, but doesn't produce revision pages.</li>
+          <li><strong>Writing together, live.</strong> Two writers in one script at the same moment is what WriterDuet,
+            Celtx and Final Draft do, and Fade In through its optional online service. DraftLine has no shared cloud
+            document: a linked folder carries a script between your own computers, and the latest save wins.</li>
+          <li><strong>Scheduling and budgeting.</strong> DraftLine prepares breakdowns, strips and reports, but doesn't
+            schedule shoot days, build budgets or make call sheets. Celtx's paid plans do.</li>
+          <li><strong>A native app on Mac and iPhone.</strong> If you only write on Apple devices and want a native,
+            open-source app, Beat is excellent.</li>
         </ul>
-      </section>
-
-      <section id="draftline-fits">
-        <h2>Where DraftLine fits</h2>
-        <ul>
-          <li><strong>Free, with nothing held back.</strong> Every tool is in the free app: pagination, Final Draft and
-            Fountain files, PDF, Scene Board, Format Doctor, Dialogue Tuner, Story Bible, snapshots and Plan.</li>
-          <li><strong>Exact pages everywhere.</strong> Strict 54-line Hollywood pagination with (MORE) and (CONT'D). The
-            same page breaks on a computer, on a phone, in the PDF and in exports.</li>
-          <li><strong>Writing on a phone.</strong> A readable 16px writing view with an element bar above the keyboard,
-            in the phone's browser, with no app store. <a href="/features/#phone">More about writing on a phone</a>.</li>
-          <li><strong>Your files, on your device.</strong> No account, works offline, and scripts stay in your browser or
-            in a folder you link (Chrome or Edge on a computer), in open formats.</li>
-        </ul>
-        <p><a href="/features/">See every feature</a>.</p>
       </section>
 
       <section id="sources">
         <h2>Sources</h2>
         <ul class="note">
-          <li>Final Draft: <a href="https://www.finaldraft.com/store">finaldraft.com/store</a> (one-time purchase, annual and monthly subscriptions; Mac and Windows; iOS app sold separately)</li>
-          <li>Fade In: <a href="https://www.fadeinpro.com/">fadeinpro.com</a> and its <a href="https://apps.apple.com/us/app/fade-in/id488557039">App Store listing</a></li>
-          <li>WriterDuet: <a href="https://writerduet.com/article/231-choose-the-best-subscription-for-you">plan comparison</a> (Free, Plus, Pro, Premium)</li>
+          <li>Final Draft: <a href="https://www.finaldraft.com/store">store</a> (one-time purchase, annual and monthly subscriptions; Mac and Windows; iOS app sold separately) and <a href="https://finaldraft.com/products/features/">features</a> (Beat Board, Outline Editor, Structure Lines, Tagging for Production, Advanced Reporting, Revision Mode)</li>
+          <li>Fade In: <a href="https://apps.apple.com/us/app/fade-in/id488557039">App Store listing</a> (breakdowns and production reports, revisions and page locking, the optional Fade In Access service) and <a href="https://www.fadeinpro.com/">fadeinpro.com</a></li>
+          <li>WriterDuet: <a href="https://writerduet.com/article/231-choose-the-best-subscription-for-you">plan comparison</a> (Free, Plus, Pro, Premium) and <a href="https://writerduet.com/article/211-cards-mode">Cards view</a></li>
           <li>Celtx: <a href="https://blog.celtx.com/celtx-free-plan-guide/">free plan guide</a> (April 2026)</li>
-          <li>Beat: <a href="https://github.com/lmparppei/Beat">source and feature list</a> and the <a href="https://apps.apple.com/app/id6458740044">iOS App Store listing</a></li>
+          <li>Beat: <a href="https://github.com/lmparppei/Beat">source and feature list</a>, the <a href="https://apps.apple.com/us/app/beat/id1549538329">Mac App Store listing</a> and the <a href="https://apps.apple.com/app/id6458740044">iOS App Store listing</a></li>
+          <li>DraftLine: <a href="https://github.com/nanashi86/DraftLine">source code and README</a></li>
         </ul>
       </section>
     </main>

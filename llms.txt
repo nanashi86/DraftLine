@@ -9,7 +9,9 @@
 - Pagination: strict 54-line Hollywood pagination in 12-point Courier Prime, with (MORE) and (CONT'D)
 - Phones: a 16px Courier Prime writing view, an element bar above the keyboard (Scene, Action, Character, Dialogue, Parenthetical, Transition), and page breaks identical to the desktop's, worked out at full page width
 - Storage: in the browser on every device; linking a folder (including Google Drive, Dropbox or OneDrive folders) works in Chrome or Edge on a computer, not on phones
-- Built for one writer: no real-time co-writing and no colored production revisions
+- Writing: human-authored. DraftLine has no generative AI; its checks (Format Doctor, Dialogue Tuner statistics, Scene Board pacing and value-shift suggestions) are rule-based readings of the writer's own pages
+- Story and production tools, all free: Scene Board linked to the script with live act pacing, Story Bible, Characters, Format Doctor, Dialogue Tuner, snapshots, and a Plan workspace with breakdowns, a stripboard and reports
+- Designed for independent writers: no real-time co-writing, no colored production revisions, and no shoot scheduling or budgeting
 
 ## Pages
 
