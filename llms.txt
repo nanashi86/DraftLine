@@ -17,6 +17,7 @@
 
 - [Features](https://draftlineapp.com/features/): every tool, including writing on a phone, the Scene Board, Format Doctor, Dialogue Tuner, Story Bible, snapshots, breakdowns, stripboard and reports
 - [How DraftLine compares](https://draftlineapp.com/compare/): DraftLine beside Final Draft, Fade In, WriterDuet, Celtx and Beat, including where each of those is the better choice
+- [Philosophy](https://draftlineapp.com/philosophy/): why DraftLine exists, its mission, and the five principles behind it
 - [README](https://github.com/nanashi86/DraftLine/blob/main/README.md): full documentation of every tool, keyboard shortcuts and file formats
 
 ## Optional

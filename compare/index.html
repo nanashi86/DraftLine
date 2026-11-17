@@ -45,7 +45,7 @@
       html { -webkit-text-size-adjust: 100%; }
       body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.65 Inter, system-ui, sans-serif; }
       a { color: var(--accent); }
-      .wrap { max-width: 760px; margin: 0 auto; padding: 0 16px; }
+      .wrap { max-width: 1072px; margin: 0 auto; padding: 0 16px; } /* a 1040px column, the width of compare/'s table */
       header { border-bottom: 1px solid var(--line); }
       .bar { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 0; }
       .brand { display: flex; align-items: center; gap: 10px; color: var(--strong); text-decoration: none;
@@ -76,10 +76,6 @@
       tbody th { color: var(--strong); font-weight: 600; width: 8.5em; }
       tbody tr:last-child th, tbody tr:last-child td { border-bottom: 0; }
       td:nth-child(2) { color: var(--strong); }
-      /* Wide screens: the table takes a little more room than the text column, so all six products fit. */
-      @media (min-width: 900px) {
-        .table-wrap { width: min(1040px, calc(100vw - 48px)); position: relative; left: 50%; transform: translateX(-50%); }
-      }
       /* Phones: each row becomes a short list, "Product  value", instead of a table to scroll sideways. */
       @media (max-width: 640px) {
         .table-wrap { border: 0; border-radius: 0; overflow: visible; }
@@ -214,7 +210,8 @@
     <footer class="wrap">
       <p><a class="cta" href="/">Open DraftLine</a></p>
       <p>DraftLine is free and open source under the MIT License. Source, issues and the full README are on
-        <a href="https://github.com/nanashi86/DraftLine">GitHub</a>.</p>
+        <a href="https://github.com/nanashi86/DraftLine">GitHub</a>. Why DraftLine exists:
+        <a href="/philosophy/">its philosophy</a>.</p>
     </footer>
   </body>
 </html>
