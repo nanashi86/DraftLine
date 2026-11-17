@@ -2,6 +2,7 @@
 [![Ko-fi: Tip Jar](https://img.shields.io/badge/Ko--fi-Tip_Jar-C8553D?style=for-the-badge&labelColor=3F3F46&logoColor=white&logo=kofi)](https://ko-fi.com/draftline)
 [![Patreon: Support](https://img.shields.io/badge/Patreon-Support-C8553D?style=for-the-badge&labelColor=3F3F46&logoColor=white&logo=patreon)](https://patreon.com/DraftLine)
 [![Features](https://img.shields.io/badge/Features-All_Tools-C8553D?style=for-the-badge&labelColor=3F3F46)](https://draftlineapp.com/features/)
+[![Philosophy: Just Write](https://img.shields.io/badge/Philosophy-Just_Write-C8553D?style=for-the-badge&labelColor=3F3F46)](https://draftlineapp.com/philosophy/)
 [![Discord: Community](https://img.shields.io/badge/Discord-Community-C8553D?style=for-the-badge&labelColor=3F3F46&logoColor=white&logo=discord)](https://discord.gg/8ytSsSWsPX)
 
 <p align="center">
@@ -480,6 +481,9 @@ end with a similar line at most every 30 days. Both are throttled and muted per 
   overwrites: if that project is already in your library, the backup comes in beside it. Your own dictionary wording
   always wins over the backup's. A script in App Storage stays in the browser it was written in, so this is also how you
   move projects between browsers, or between your local DraftLine and the published one.
+- **Theme** (**⋮ → Settings…**): **System Default**, the default, follows your device's light or dark setting and
+  switches with it; **Espresso Noir** (deep roast and cinematic) and **Editorial Light** (warm linen) stay put once
+  picked. Remembered in this browser, and the website's Features, Compare and Philosophy pages use the same choice.
 - **Page colour** (status bar, or the top-right corner in Focus mode): **Paper** — the classic ivory page with black
   ink — or **Midnight**, a dark page (#1f1f22) with soft light text (#e4e4e7) that matches the app around it.
   Remembered in this browser (`draftline_canvas_theme`). Printing and PDFs are always black on white either way.
@@ -601,7 +605,8 @@ tests/                     node --test suite
 ## Open source, open to feedback
 
 DraftLine is released under the [MIT License](LICENSE). Found a bug or have an idea?
-[Open an issue](https://github.com/nanashi86/DraftLine/issues), or use **⋮ → Send Feedback…** in the app.
+[Open an issue](https://github.com/nanashi86/DraftLine/issues), or use **⋮ → Send Feedback…** in the app
+([draftlineapp.com/#feedback](https://draftlineapp.com/#feedback) opens it directly).
 Contributions are welcome: for anything beyond a small fix, open an issue first so the change can be talked through,
 and run `npm test` and `npm run lint` before sending a pull request.
 
