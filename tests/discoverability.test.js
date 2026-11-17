@@ -6,7 +6,7 @@ import { existsSync, readFileSync } from 'node:fs';
 
 const read = (p) => readFileSync(new URL(`../${p}`, import.meta.url), 'utf8');
 const pkg = JSON.parse(read('package.json'));
-const PAGES = { '/': 'index.html', '/features/': 'public/features/index.html', '/compare/': 'public/compare/index.html' };
+const PAGES = { '/': 'index.html', '/features/': 'public/features/index.html', '/compare/': 'public/compare/index.html', '/philosophy/': 'public/philosophy/index.html' };
 const jsonLd = (html) => [...html.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)].map((m) => JSON.parse(m[1]));
 const meta = (html, attr, name) => html.match(new RegExp(`<meta ${attr}="${name.replace(/[:.]/g, '\\$&')}" content="([^"]*)"`))?.[1];
 
@@ -28,7 +28,7 @@ describe('the public pages', () => {
     const [root] = jsonLd(read('index.html'));
     const ids = root['@graph'].map((n) => n['@id']);
     assert.deepEqual(ids, ['https://draftlineapp.com/#app', 'https://draftlineapp.com/#website']);
-    for (const f of ['public/features/index.html', 'public/compare/index.html']) {
+    for (const f of ['public/features/index.html', 'public/compare/index.html', 'public/philosophy/index.html']) {
       const [page] = jsonLd(read(f));
       assert.equal(page.about['@id'], 'https://draftlineapp.com/#app');
       assert.equal(page.isPartOf['@id'], 'https://draftlineapp.com/#website');

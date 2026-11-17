@@ -47,6 +47,10 @@ describe('features page → app, and About → features page', () => {
     assert.equal((html.match(/<a class="cta" data-open-app href="\/\?from=features">Open DraftLine<\/a>/g) || []).length, 2);
     assert.match(html, /\/\^\(gclid\|gbraid\|wbraid\|utm_\[a-z\]\+\)\$\//);
   });
+  it('About links to the Philosophy page first ("Core Philosophy"), in a new tab, with the external-link icon', () => {
+    const about = readFileSync(new URL('../src/components/HelpModal.jsx', import.meta.url), 'utf8');
+    assert.match(about, /<p className="hm-features">\s*<a href=\{`\$\{import\.meta\.env\.BASE_URL\}philosophy\/`\} target="_blank" rel="noopener">\s*Core Philosophy\s*<ExternalLink size=\{12\} strokeWidth=\{1\.75\} aria-hidden \/>\s*<\/a>\s*<a href=\{`\$\{import\.meta\.env\.BASE_URL\}features\/`\}/);
+  });
   it('About has a "See all features" link to the features page, in a new tab, with the external-link icon', () => {
     assert.match(read('src/components/HelpModal.jsx'),
       /<a href=\{`\$\{import\.meta\.env\.BASE_URL\}features\/`\} target="_blank" rel="noopener">\s*See all features\s*<ExternalLink size=\{12\} strokeWidth=\{1\.75\} aria-hidden \/>\s*<\/a>/);

@@ -7,7 +7,7 @@ import { readFileSync, existsSync, statSync } from 'node:fs';
 
 const read = (p) => readFileSync(new URL(`../${p}`, import.meta.url), 'utf8');
 const exists = (p) => existsSync(new URL(`../${p}`, import.meta.url));
-const PAGES = ['index.html', 'public/features/index.html', 'public/compare/index.html'];
+const PAGES = ['index.html', 'public/features/index.html', 'public/compare/index.html', 'public/philosophy/index.html'];
 
 describe('self-hosted fonts', () => {
   it('no page loads Inter or Courier Prime from Google Fonts', () => {
@@ -19,6 +19,7 @@ describe('self-hosted fonts', () => {
     }
     assert.equal(read('public/features/index.html').includes('fonts.googleapis.com'), false);
     assert.equal(read('public/compare/index.html').includes('fonts.googleapis.com'), false);
+    assert.equal(read('public/philosophy/index.html').includes('fonts.googleapis.com'), false);
   });
 
   it('the only Google Fonts stylesheet left (Title Page fonts) does not block rendering', () => {

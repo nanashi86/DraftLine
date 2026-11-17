@@ -155,6 +155,10 @@ export default function HelpModal({ kind, storage, onClose, tipsFinished = 0, ti
             absolute focus, and export effortlessly to Fountain or Final Draft (.fdx).
           </p>
           <p className="hm-features">
+            <a href={`${import.meta.env.BASE_URL}philosophy/`} target="_blank" rel="noopener">
+              Core Philosophy
+              <ExternalLink size={12} strokeWidth={1.75} aria-hidden />
+            </a>
             <a href={`${import.meta.env.BASE_URL}features/`} target="_blank" rel="noopener">
               See all features
               <ExternalLink size={12} strokeWidth={1.75} aria-hidden />
