@@ -68,7 +68,7 @@ describe('the Philosophy page', () => {
 
   it('the mission, word for word', () => {
     const s = text(between('<section id="mission"', '</section>'));
-    assert.ok(s.startsWith('Our Mission'), s);
+    assert.ok(s.startsWith('The Mission'), s);
     for (const line of MISSION) assert.ok(s.includes(line), line);
   });
 
