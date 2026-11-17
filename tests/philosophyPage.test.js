@@ -1,5 +1,6 @@
 // The Philosophy page (public/philosophy/): the mission, the founder's story and the five principles are
-// published word for word as Eric wrote them. Change the wording here and on the page together, on purpose.
+// published word for word as Eric wrote them. The story ends with his signature (the page opens with
+// "Your Story. Your Rules." and "Just Write.", so the story doesn't repeat them). Change the wording here and on the page together, on purpose.
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
@@ -24,8 +25,7 @@ const STORY = [
   "That's why DraftLine is free and open-source. That's why it doesn't require an account. That's why the interface stays out of your way, and why your scripts remain yours to manage.",
   "I believe good writing software should make the difficult parts of writing easier—not introduce new difficulties of its own.",
   "DraftLine was built for a simple reason: writers should spend their energy on their stories, not their software.",
-  "Your Story. Your Rules.",
-  "Just Write."
+  "— Eric Lemaire Jr."
 ];
 const PRINCIPLES = [
   [
@@ -77,7 +77,7 @@ describe('the Philosophy page', () => {
     const ps = [...prose.matchAll(/<p[^>]*>([\s\S]*?)<\/p>/g)].map((m) => text(m[1]));
     assert.deepEqual(ps, STORY);
     assert.match(prose, /<p><strong>DraftLine was built for a simple reason: writers should spend their energy on their stories, not their software\.<\/strong><\/p>/);
-    assert.match(prose, /<p class="signoff"><strong>Just Write\.<\/strong><\/p>/);
+    assert.match(prose, /<p class="signoff">— Eric Lemaire Jr\.<\/p>\s*$/, 'signed by Eric, and nothing after it');
     assert.match(html, /<h2 class="label" id="why-label">Why DraftLine Exists<\/h2>\s*<p class="sub">Built by a writer, for writers\.<\/p>/);
   });
 
