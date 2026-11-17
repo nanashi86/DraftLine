@@ -59,7 +59,7 @@ describe('the Philosophy page', () => {
   it('opens on "Just Write." with the philosophy and the product promise, and no brand-development captions', () => {
     assert.match(html, /<h1>Just Write\.<\/h1>/);
     assert.match(html, /<dt class="label">The Philosophy<\/dt>\s*<dd class="statement">Your Story\. Your Rules\.<\/dd>/);
-    const promise = html.match(/<dt class="label">The Product Promise<\/dt>\s*<dd class="statement">([\s\S]*?)<\/dd>/)[1];
+    const promise = html.match(/<dt class="label">The Promise<\/dt>\s*<dd class="statement">([\s\S]*?)<\/dd>/)[1];
     assert.equal(text(promise), 'Fast, Distraction-Free Screenwriting.');
     assert.match(promise, /<span class="nowrap">Distraction-Free<\/span>/, 'never split at the hyphen');
     assert.doesNotMatch(html, /The Slogan|The invitation\.|The belief\.|The experience\./);
