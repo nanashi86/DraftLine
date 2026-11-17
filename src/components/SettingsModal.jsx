@@ -4,7 +4,7 @@ import { CANVAS_THEMES } from '../lib/canvasTheme.js';
 import StorageDestination from './StorageDestination.jsx';
 import './SettingsModal.css';
 
-/** One choice in a two-up radio row, with a little swatch of what it looks like. */
+/** One choice in a radio row (three themes, or two page colours), with a little swatch of what it looks like. */
 function Choice({ name, id, label, hint, checked, onPick }) {
   return (
     <label className={`st-choice${checked ? ' is-on' : ''}`}>
@@ -64,7 +64,7 @@ export default function SettingsModal({ settings, onChange, canvas, onCanvas, st
       <div className="st-body">
         <section className="st-section" aria-labelledby="st-appearance">
           <h3 id="st-appearance" className="micro-label">Appearance</h3>
-          <div className="st-row" role="radiogroup" aria-label="Interface theme">
+          <div className="st-row st-row-3" role="radiogroup" aria-label="Interface theme">
             {UI_THEMES.map((t) => (
               <Choice key={t.id} name="st-theme" {...t} checked={settings.theme === t.id} onPick={(theme) => onChange({ theme })} />
             ))}

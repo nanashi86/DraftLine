@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import {
   USER_SETTINGS_KEY, DEFAULT_SETTINGS, THEME_COLORS, normalizeSettings, readSettings, writeSettings, applyTheme,
+  resolveTheme, followSystemTheme, SYSTEM_LIGHT_QUERY,
 } from '../src/lib/userSettings.js';
 import { moreMenuItems } from '../src/lib/toolbar.js';
 
@@ -12,11 +13,18 @@ const memory = (init = {}) => {
   return { map, getItem: (k) => (map.has(k) ? map.get(k) : null), setItem: (k, v) => map.set(k, String(v)) };
 };
 
-describe('Settings: stored under draftline_user_settings, dark by default', () => {
-  it('the key, and the defaults: Espresso Noir (dark), counts showing', () => {
+// A window whose device asks for light or dark, and lets the test flip it.
+const device = (light) => {
+  const listeners = new Set();
+  const mq = { matches: light, addEventListener: (_, f) => listeners.add(f), removeEventListener: (_, f) => listeners.delete(f) };
+  return { mq, listeners, matchMedia: (q) => { assert.equal(q, SYSTEM_LIGHT_QUERY); return mq; } };
+};
+
+describe('Settings: stored under draftline_user_settings, System Default by default', () => {
+  it('the key, and the defaults: System Default, counts showing', () => {
     assert.equal(USER_SETTINGS_KEY, 'draftline_user_settings');
-    assert.deepEqual(DEFAULT_SETTINGS, { theme: 'dark', showCounts: true });
-    assert.deepEqual(readSettings(memory()), DEFAULT_SETTINGS, 'a new visitor gets dark');
+    assert.deepEqual(DEFAULT_SETTINGS, { theme: 'system', showCounts: true });
+    assert.deepEqual(readSettings(memory()), DEFAULT_SETTINGS, 'a new visitor follows their device');
     assert.deepEqual(readSettings(null), DEFAULT_SETTINGS, 'no storage at all');
   });
   it('anything odd in storage falls back to the defaults, field by field', () => {
@@ -34,6 +42,25 @@ describe('Settings: stored under draftline_user_settings, dark by default', () =
     assert.equal(writeSettings({ theme: 'light' }, { setItem() { throw new Error('full'); } }), false);
     assert.equal(writeSettings({ theme: 'light' }, null), false);
   });
+  it('a choice stays until it is changed; the first build\'s unchosen "dark" (no v) now means System Default', () => {
+    const s = memory();
+    writeSettings({ theme: 'dark' }, s);
+    assert.equal(readSettings(s).theme, 'dark', 'Espresso Noir, picked, stays');
+    writeSettings({ theme: 'system' }, s);
+    assert.equal(readSettings(s).theme, 'system');
+    assert.equal(readSettings(memory({ [USER_SETTINGS_KEY]: JSON.stringify({ theme: 'dark', showCounts: true }) })).theme, 'system');
+    assert.equal(readSettings(memory({ [USER_SETTINGS_KEY]: JSON.stringify({ theme: 'light', showCounts: true }) })).theme, 'light', 'its light was a choice');
+  });
+  it('System Default shows what the device asks for; a chosen theme ignores the device', () => {
+    for (const light of [true, false]) {
+      const w = device(light);
+      assert.equal(resolveTheme('system', w), light ? 'light' : 'dark');
+      assert.equal(resolveTheme('dark', w), 'dark');
+      assert.equal(resolveTheme('light', w), 'light');
+    }
+    assert.equal(resolveTheme('system', {}), 'dark', 'no matchMedia: dark');
+    assert.equal(resolveTheme('system', { matchMedia() { throw new Error('nope'); } }), 'dark');
+  });
   it('applyTheme sets data-theme="light" on <html> (dark removes it) and the browser chrome colour', () => {
     const attrs = new Map();
     let chrome = null;
@@ -41,34 +68,58 @@ describe('Settings: stored under draftline_user_settings, dark by default', () =
       documentElement: { setAttribute: (k, v) => attrs.set(k, v), removeAttribute: (k) => attrs.delete(k) },
       querySelector: () => ({ setAttribute: (_, v) => { chrome = v; } }),
     };
-    applyTheme('light', doc);
+    applyTheme('light', doc, device(false));
     assert.equal(attrs.get('data-theme'), 'light');
     assert.equal(chrome, THEME_COLORS.light);
-    applyTheme('dark', doc);
+    applyTheme('dark', doc, device(true));
     assert.equal(attrs.has('data-theme'), false);
     assert.equal(chrome, THEME_COLORS.dark);
+    applyTheme('system', doc, device(true));
+    assert.equal(attrs.get('data-theme'), 'light', 'System Default on a light device');
+    applyTheme('system', doc, device(false));
+    assert.equal(attrs.has('data-theme'), false, 'System Default on a dark device');
+  });
+  it('System Default follows the device while DraftLine is open; a chosen theme does not listen', () => {
+    const w = device(false);
+    let calls = 0;
+    const stop = followSystemTheme('system', () => calls++, w);
+    assert.equal(w.listeners.size, 1);
+    for (const f of w.listeners) f();
+    assert.equal(calls, 1);
+    stop();
+    assert.equal(w.listeners.size, 0, 'stops when the theme changes or the app closes');
+    followSystemTheme('dark', () => calls++, w);
+    followSystemTheme('light', () => calls++, w);
+    assert.equal(w.listeners.size, 0);
   });
 });
 
 describe('Settings: no flash of the wrong theme', () => {
   const html = read('index.html');
-  it('index.html applies a saved light theme before anything paints, from the same key and colours', () => {
+  it('index.html applies the theme before anything paints, from the same key, rule and colours', () => {
     const script = html.match(/<script>(try\{[^<]*draftline_user_settings[^<]*)<\/script>/);
     assert.ok(script, 'an inline pre-paint script');
     assert.ok(html.indexOf(script[0]) < html.indexOf('<script type="module"'), 'before the app bundle');
     assert.match(script[1], /setAttribute\('data-theme','light'\)/);
     assert.ok(script[1].includes(THEME_COLORS.light));
-    const run = (stored) => {
+    const run = (stored, light = false) => {
       const attrs = new Map();
       const meta = { content: THEME_COLORS.dark, setAttribute: (_, v) => { meta.content = v; } };
       const localStorage = { getItem: () => stored };
       const document = { documentElement: { setAttribute: (k, v) => attrs.set(k, v) }, querySelector: () => meta };
-      new Function('localStorage', 'document', script[1])(localStorage, document);
+      new Function('localStorage', 'document', 'matchMedia', script[1])(localStorage, document, () => ({ matches: light }));
       return [attrs.get('data-theme') ?? null, meta.content];
     };
-    assert.deepEqual(run(JSON.stringify({ theme: 'light' })), ['light', THEME_COLORS.light]);
-    assert.deepEqual(run(null), [null, THEME_COLORS.dark], 'new visitors stay dark');
-    assert.deepEqual(run('{oops'), [null, THEME_COLORS.dark], 'bad JSON never throws out of the script');
+    const LIGHT = ['light', THEME_COLORS.light];
+    const DARK = [null, THEME_COLORS.dark];
+    assert.deepEqual(run(JSON.stringify({ theme: 'light', v: 2 }), false), LIGHT, 'Editorial Light, even on a dark device');
+    assert.deepEqual(run(JSON.stringify({ theme: 'dark', v: 2 }), true), DARK, 'Espresso Noir, even on a light device');
+    assert.deepEqual(run(null, true), LIGHT, 'new visitors follow a light device');
+    assert.deepEqual(run(null, false), DARK, '…and a dark one');
+    assert.deepEqual(run(JSON.stringify({ theme: 'system', v: 2 }), true), LIGHT);
+    assert.deepEqual(run(JSON.stringify({ theme: 'dark', showCounts: true }), true), LIGHT, 'the first build\'s unchosen dark is System Default');
+    assert.deepEqual(run(JSON.stringify({ theme: 'light' }), false), LIGHT, 'the first build\'s light was a choice');
+    assert.deepEqual(run('{oops', false), DARK, 'bad JSON never throws out of the script');
   });
 });
 
@@ -105,10 +156,18 @@ describe('Settings: the dialog, the ⋮ menu and where storage lives', () => {
   it('the shell theme and the page colour stay independent', () => {
     assert.match(app, /data-canvas=\{canvasTheme\}/);
     assert.match(app, /writeSettings\(patch\);\s*setSettings/, 'only what the writer picks is written');
-    assert.match(app, /applyTheme\(settings\.theme\);\s*\}, \[settings\.theme\]\);/);
+    assert.match(app, /applyTheme\(settings\.theme\);\s*return followSystemTheme\(settings\.theme, \(\) => applyTheme\(settings\.theme\)\);\s*\}, \[settings\.theme\]\);/);
     const css = read('src/index.css');
     const light = css.slice(css.indexOf(":root[data-theme='light'] {"), css.indexOf('}', css.indexOf(":root[data-theme='light'] {")));
     for (const pageToken of ['--paper:', '--ink:', '--caret:', '--selection:']) assert.ok(!light.includes(pageToken), `${pageToken} belongs to the page, not the shell`);
+  });
+  it('Appearance: the three themes in one row across the same width as the two page colours; stacked when narrow', () => {
+    const css = read('src/components/SettingsModal.css');
+    assert.match(modal, /className="st-row st-row-3" role="radiogroup" aria-label="Interface theme"/);
+    assert.match(css, /\.st-row \{ display: grid; grid-template-columns: 1fr 1fr; gap: 8px; \}/);
+    assert.match(css, /\.st-row-3 \{ grid-template-columns: repeat\(3, minmax\(0, 1fr\)\); \}/, 'three equal columns in the same width');
+    assert.match(css, /@media \(max-width: 560px\) \{\s*\.st-row-3 \{ grid-template-columns: 1fr; \}/);
+    assert.match(css, /\.st-swatch\.is-system \{ background: linear-gradient\(135deg, #1b1c1f 50%, #ebe6dc 50%\); \}/);
   });
   it('the scene and word counts can be hidden; margin notes stay', () => {
     assert.match(app, /\{settings\.showCounts && <span>\{analysis\.sceneCount\} scenes<\/span>\}/);
@@ -160,9 +219,10 @@ describe('Editorial Light: every shell token has a light value', () => {
 });
 
 describe('Theme names and the Settings shortcut', () => {
-  it('Espresso Noir (dark, the default) and Editorial Light, each a title and one short line', async () => {
+  it('System Default (first, the default), Espresso Noir and Editorial Light, each a title and one short line', async () => {
     const { UI_THEMES } = await import('../src/lib/userSettings.js');
     assert.deepEqual(UI_THEMES.map((t) => [t.id, t.label, t.hint]), [
+      ['system', 'System Default', 'Matches your device'],
       ['dark', 'Espresso Noir', 'Deep roast & cinematic'],
       ['light', 'Editorial Light', 'Warm linen & editorial'],
     ]);
@@ -175,10 +235,50 @@ describe('Theme names and the Settings shortcut', () => {
     const s = moreMenuItems({ onShortcuts: noop, onAbout: noop, onSettings: noop }).find((i) => i.label === 'Settings…');
     assert.equal(s.hint, 'Ctrl+,');
   });
-  it('the light-theme tip names the theme and the shortcut (⌘, on a Mac, none on touch)', async () => {
+  it('no light-theme suggestion card any more: System Default already follows a light device', async () => {
     const { HINTS } = await import('../src/lib/hints.js');
-    assert.equal(HINTS.lightTheme.text, 'Prefer writing in light mode? Try our Editorial Light theme in Settings and change back anytime (Ctrl+,).');
-    assert.ok(HINTS.lightTheme.macText.endsWith('(⌘,).'));
-    assert.ok(!/Ctrl|⌘/.test(HINTS.lightTheme.touchText));
+    assert.equal(HINTS.lightTheme, undefined);
+    assert.doesNotMatch(read('src/App.jsx'), /lightTip|LIGHT_TIP|lightThemeTip/);
+  });
+});
+
+describe('The public pages follow the same theme rule as the app', () => {
+  const PAGES = ['public/features/index.html', 'public/compare/index.html', 'public/philosophy/index.html'];
+  const scriptOf = (html) => html.match(/<script>\s*(\(function \(\) \{\s*var KEY = 'draftline_user_settings';[\s\S]*?\}\)\(\);)\s*<\/script>/);
+  it('each reads the app\'s setting before it paints, and has the light palette only under data-theme', () => {
+    for (const p of PAGES) {
+      const html = read(p);
+      const s = scriptOf(html);
+      assert.ok(s, `${p}: the theme script`);
+      assert.ok(html.indexOf(s[0]) < html.indexOf('<style>'), `${p}: before the styles, so no flash`);
+      assert.match(html, /:root\[data-theme='light'\] \{ --bg: #f4f0e8;/, p);
+      assert.doesNotMatch(html.replace(s[0], ''), /prefers-color-scheme/, `${p}: no separate rule of its own`);
+    }
+  });
+  it('System Default follows the device (and its switches); a theme picked in the app wins', () => {
+    const run = (stored, light) => {
+      const attrs = new Map();
+      const meta = { content: '#1c1d20', setAttribute: (_, v) => { meta.content = v; } };
+      const listeners = [];
+      const mq = { matches: light, addEventListener: (_, f) => listeners.push(f) };
+      const document = {
+        documentElement: { setAttribute: (k, v) => attrs.set(k, v), removeAttribute: (k) => attrs.delete(k) },
+        querySelector: () => meta,
+      };
+      const window = { matchMedia: () => mq, addEventListener() {} };
+      new Function('window', 'document', 'localStorage', scriptOf(read(PAGES[2]))[1])(window, document, { getItem: () => stored });
+      return { look: attrs.get('data-theme') ?? 'dark', chrome: meta.content, flip: () => { mq.matches = !mq.matches; listeners.forEach((f) => f()); return attrs.get('data-theme') ?? 'dark'; } };
+    };
+    assert.equal(run(null, true).look, 'light');
+    assert.equal(run(null, true).chrome, '#f4f0e8');
+    assert.equal(run(null, false).look, 'dark');
+    assert.equal(run(JSON.stringify({ theme: 'dark', v: 2 }), true).look, 'dark');
+    assert.equal(run(JSON.stringify({ theme: 'light', v: 2 }), false).look, 'light');
+    assert.equal(run(JSON.stringify({ theme: 'dark', showCounts: true }), true).look, 'light', 'the first build\'s unchosen dark');
+    assert.equal(run(null, false).flip(), 'light', 'the device switches while the page is open');
+    assert.equal(run(JSON.stringify({ theme: 'dark', v: 2 }), false).flip(), 'dark', 'a chosen theme does not');
+    const same = (p) => scriptOf(read(p))[1];
+    assert.equal(same(PAGES[0]), same(PAGES[2]));
+    assert.equal(same(PAGES[1]), same(PAGES[2]));
   });
 });

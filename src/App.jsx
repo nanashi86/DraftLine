@@ -11,7 +11,7 @@ import ExportPdfModal from './components/ExportPdfModal.jsx';
 import Select from './components/Select.jsx';
 import HintCard from './components/HintCard.jsx';
 import {
-  FEEDBACK_HINT, HINTS, HINT_IDS, HINT_ONBOARD_SETTLE_MS, LIGHT_TIP_HINT, HINT_SESSION_KEY, hintCalm, hintSettle, hintTarget, markHint, onboardHints, pickHint,
+  FEEDBACK_HINT, HINTS, HINT_IDS, HINT_ONBOARD_SETTLE_MS, HINT_SESSION_KEY, hintCalm, hintSettle, hintTarget, markHint, onboardHints, pickHint,
   resetHints,
 } from './lib/hints.js';
 import { projectUntouched, scriptIsBlank } from './lib/blankScript.js';
@@ -60,8 +60,7 @@ import { renameCharacter, revertRename } from './lib/renameCharacter.js';
 import { moveCardStep, relinkSceneCards } from './lib/sceneSync.js';
 import { dialogueFilter, dialogueKeyAction, dialogueStops } from './lib/dialogueFilter.js';
 import { canvasThemeInfo, nextCanvasTheme, readCanvasTheme, writeCanvasTheme } from './lib/canvasTheme.js';
-import { applyTheme, readSettings, themeChosen, writeSettings } from './lib/userSettings.js';
-import { lightTipSeen, lightTipWanted, markLightTipSeen, resetLightTip } from './lib/lightThemeTip.js';
+import { applyTheme, followSystemTheme, readSettings, writeSettings } from './lib/userSettings.js';
 import { mergeDictionary } from './lib/structureDictionary.js';
 import { characterTabFromPrefs, closeDock, openDock, startingPanels, toggleDock } from './lib/dock.js';
 import { ACT_STRUCTURES, DEFAULT_ACT_STRUCTURE, DEFAULT_BIBLE_TAB, convertNotesActs, defaultStoryNotes, realignActs } from './lib/bible.js';
@@ -469,17 +468,19 @@ function Workspace({ boot }) {
     writeCanvasTheme(next);
   };
   const themeNext = canvasThemeInfo(nextCanvasTheme(canvasTheme));
-  // App settings (lib/userSettings.js): the shell theme (Espresso Noir / Editorial Light) and drafting
-  // preferences. index.html already put the theme on <html> before the first paint; this keeps it in step.
+  // App settings (lib/userSettings.js): the shell theme (System Default / Espresso Noir / Editorial Light)
+  // and drafting preferences. index.html already put the theme on <html> before the first paint; this
+  // keeps it in step, and on System Default follows the device when it switches between light and dark.
   const [settings, setSettings] = useState(() => readSettings());
   // Only what the writer picks is stored (writeSettings merges the patch): a theme left at its default
-  // is never written, so the light-theme tip can tell "never chose" from "chose dark".
+  // is never written, so a new default (System Default) reaches everyone who never chose.
   const changeSettings = (patch) => {
     writeSettings(patch);
     setSettings((s) => ({ ...s, ...patch }));
   };
   useEffect(() => {
     applyTheme(settings.theme);
+    return followSystemTheme(settings.theme, () => applyTheme(settings.theme));
   }, [settings.theme]);
   const barRef = useRef(null);
   // The status bar steps its helpers aside when it's short of room (lib/statusFit.js).
@@ -2229,8 +2230,6 @@ function Workspace({ boot }) {
   const [hintStates, setHintStates] = useState(() => onboardHints(globalThis.localStorage, boot.fresh === true));
   const [activeHint, setActiveHint] = useState(null);
   const [feedbackDone, setFeedbackDone] = useState(() => feedbackPromptFinished(LOCAL)); // lib/feedbackPrompt.js
-  // The Editorial Light tip (lib/lightThemeTip.js): finished once shown, or once a theme has been chosen.
-  const [lightTipDone, setLightTipDone] = useState(() => lightTipSeen() || themeChosen());
   const breakSig = useRef(null);
   // The hint whose button was clicked: its card steps aside for the tool's own menu or window.
   const [hintHandedOff, setHintHandedOff] = useState(null);
@@ -2287,7 +2286,7 @@ function Workspace({ boot }) {
       pane?.removeEventListener('focusout', onOut);
     };
   }, [scrollerRef]);
-  const allHintsFinished = HINT_IDS.every((id) => hintStates[id]) && feedbackDone && lightTipDone;
+  const allHintsFinished = HINT_IDS.every((id) => hintStates[id]) && feedbackDone;
   useEffect(() => {
     if (allHintsFinished || activeHint) return undefined;
     let bio = { blocks: null, characters: null, gains: 0 }; // Populate Bio's dry run, redone only when the script or bios change
@@ -2305,11 +2304,7 @@ function Workspace({ boot }) {
         findings: s.findings, speakers: s.speakerCount, speeches: s.speeches, blank: s.blank, openedBlank: c.openedBlank,
         focusOnBar: s.focusOnBar,
       };
-      // The light-theme tip goes first, once, for anyone past the first-visit tips (every returning
-      // writer): it's a moment (daylight, or a light system) the feature tips can't wait for, and they
-      // lose nothing by waiting a session. A brand-new writer gets sample and Focus first.
-      const lightFirst = !sessionHint && !lightTipDone && hintStates.sample && hintStates.focus && lightTipWanted();
-      let id = lightFirst ? LIGHT_TIP_HINT : pickHint(hintStates, sessionHint, ctx);
+      let id = pickHint(hintStates, sessionHint, ctx);
       if (!id && !hintStates.populateBio) {
         if (bio.blocks !== s.blocks || bio.characters !== s.characters) {
           const r = populateBiosFromIntros(s.characters, s.blocks, s.speakers);
@@ -2318,10 +2313,6 @@ function Workspace({ boot }) {
         id = pickHint(hintStates, sessionHint, { ...ctx, bioGains: bio.gains });
       }
       if (id && !calm(hintSettle(id))) return;
-      // The light-theme tip for a new writer still on the first-visit tips: in a session where no other
-      // tip qualifies. lightTipWanted bails out first (already shown, or a theme chosen), then asks once:
-      // system in light mode, or daytime?
-      if (!id && !sessionHint && !lightTipDone && lightTipWanted()) id = LIGHT_TIP_HINT;
       // Nothing else to show, and no card yet this session: the feedback card, at a natural pause.
       if (!id && !sessionHint && !feedbackDone && feedbackWanted({
         sessions: writingSessions(LOCAL), counted: sessionCounted(SESSION), online: globalThis.navigator?.onLine !== false,
@@ -2332,19 +2323,11 @@ function Workspace({ boot }) {
       try {
         globalThis.sessionStorage?.setItem(HINT_SESSION_KEY, id);
       } catch { /* blocked storage: the in-memory state still shows it once */ }
-      if (id === LIGHT_TIP_HINT) {
-        markLightTipSeen(); // the moment it shows: a reload, a crash or another tab never shows it again
-        setLightTipDone(true);
-      }
       setActiveHint(id);
     };
     const timer = setInterval(tick, 2000);
     return () => clearInterval(timer);
-  }, [allHintsFinished, activeHint, hintStates, feedbackDone, lightTipDone]);
-  // A theme picked in Settings while the light-theme card is up answers it.
-  useEffect(() => {
-    if (themeChosen()) setActiveHint((a) => (a === LIGHT_TIP_HINT ? null : a));
-  }, [settings.theme]);
+  }, [allHintsFinished, activeHint, hintStates, feedbackDone]);
   // Once per browser: a writer already writing before sessions were counted starts at 2 (lib/feedbackPrompt.js).
   useEffect(() => {
     projects.getAllProjects().then((list) => seedReturningWriter(LOCAL, list), () => {});
@@ -2425,12 +2408,6 @@ function Workspace({ boot }) {
     return () => document.removeEventListener('click', onClick, true);
   }, [hintStates, hintToolUsed]);
   const runHint = () => {
-    if (activeHint === LIGHT_TIP_HINT) {
-      markLightTipSeen();
-      changeSettings({ theme: 'light' }); // Switch to Light: a choice, so the tip's bailout holds from now on
-      setActiveHint(null);
-      return;
-    }
     if (activeHint === FEEDBACK_HINT) {
       setFeedbackOpen(true); // ⋮ → Send Feedback…, opened directly (that ends the card: see below)
       return;
@@ -2444,12 +2421,6 @@ function Workspace({ boot }) {
     hintTarget(HINTS[activeHint].target)?.click(); // exactly what clicking the tool does (its copy that's showing)
   };
   const dismissHint = () => {
-    if (activeHint === LIGHT_TIP_HINT) {
-      markLightTipSeen();
-      changeSettings({ theme: 'dark' }); // Keep Dark: also a choice
-      setActiveHint(null);
-      return;
-    }
     if (activeHint === FEEDBACK_HINT) {
       finishFeedbackPrompt(LOCAL, 'dismissed'); // Not now: never asked again
       setFeedbackDone(true);
@@ -2460,8 +2431,6 @@ function Workspace({ boot }) {
     setActiveHint(null);
   };
   const resetTips = () => {
-    resetLightTip(); // Show tips again is the only thing that clears it (and a chosen theme still keeps it away)
-    setLightTipDone(themeChosen());
     setHintStates(resetHints(globalThis.localStorage, globalThis.sessionStorage));
     setActiveHint(null);
     setHintHandedOff(null);
@@ -2480,7 +2449,6 @@ function Workspace({ boot }) {
     sample: true,
     focus: true,
     feedback: true, // ⋮ is in the top bar at every width
-    lightTheme: true, // …so is the light-theme tip's
   }[activeHint] ?? false;
   const hintCardShown = !hintHidden && hintPanelOpen;
   // Characters already open on the other tab: the dot goes on the tab (clicking Characters would close it).
