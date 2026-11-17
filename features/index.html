@@ -9,6 +9,32 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=2" />
     <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png?v=2" />
     <meta name="theme-color" content="#1c1d20" />
+    <!-- Settings → Appearance in the app (src/lib/userSettings.js): the same key and the same rule, applied
+         before the page paints. System Default (the default) follows the device, light or dark, and
+         switches with it; Espresso Noir or Editorial Light, once picked in the app, stays on every page. -->
+    <script>
+      (function () {
+        var KEY = 'draftline_user_settings';
+        var mq = window.matchMedia ? window.matchMedia('(prefers-color-scheme: light)') : null;
+        var choice = function () {
+          try {
+            var s = JSON.parse(localStorage.getItem(KEY) || 'null') || {};
+            return s.v === 2 ? s.theme : s.theme === 'light' ? 'light' : ''; // the first build's "dark" was never a choice
+          } catch (e) { return ''; }
+        };
+        var apply = function () {
+          var t = choice();
+          var light = t === 'light' || (t !== 'dark' && !!(mq && mq.matches));
+          if (light) document.documentElement.setAttribute('data-theme', 'light');
+          else document.documentElement.removeAttribute('data-theme');
+          var meta = document.querySelector('meta[name="theme-color"]');
+          if (meta) meta.setAttribute('content', light ? '#f4f0e8' : '#1c1d20');
+        };
+        apply();
+        if (mq && mq.addEventListener) mq.addEventListener('change', apply);
+        window.addEventListener('storage', function (e) { if (e.key === KEY) apply(); });
+      })();
+    </script>
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="DraftLine" />
     <meta property="og:title" content="DraftLine Features — Free Screenwriting Software" />
@@ -37,10 +63,8 @@
         --bg: #1c1d20; --panel: #232428; --text: #e9e7e2; --strong: #ffffff; --muted: #9a9890;
         --accent: #c8553d; --line: rgba(255, 255, 255, 0.1);
       }
-      @media (prefers-color-scheme: light) {
-        :root { --bg: #f4f0e8; --panel: #f7f4ee; --text: #22201e; --strong: #1a1816; --muted: #6e6a64;
-          --accent: #b83a2c; --line: rgba(34, 32, 30, 0.13); }
-      }
+      :root[data-theme='light'] { --bg: #f4f0e8; --panel: #f7f4ee; --text: #22201e; --strong: #1a1816; --muted: #6e6a64;
+        --accent: #b83a2c; --line: rgba(34, 32, 30, 0.13); }
       * { box-sizing: border-box; }
       html { -webkit-text-size-adjust: 100%; }
       body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.65 Inter, system-ui, sans-serif; }
