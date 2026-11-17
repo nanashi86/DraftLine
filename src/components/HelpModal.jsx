@@ -4,6 +4,7 @@ import { SHORTCUT_SECTIONS as SECTIONS, keycaps } from '../lib/shortcuts.js';
 import pkg from '../../package.json';
 import BrandMark from './BrandMark.jsx';
 import { loadCredits, normalizeCredits } from '../lib/credits.js';
+import { openInThemedTab } from '../lib/themedTab.js';
 import './HelpModal.css';
 
 const IS_MAC = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent);
@@ -155,15 +156,18 @@ export default function HelpModal({ kind, storage, onClose, tipsFinished = 0, ti
             absolute focus, and export effortlessly to Fountain or Final Draft (.fdx).
           </p>
           <p className="hm-features">
-            <a href={`${import.meta.env.BASE_URL}philosophy/`} target="_blank" rel="noopener">
+            <a href={`${import.meta.env.BASE_URL}philosophy/`} target="_blank" rel="noopener"
+              onClick={(e) => openInThemedTab(e, e.currentTarget.href)}>
               Core Philosophy
               <ExternalLink size={12} strokeWidth={1.75} aria-hidden />
             </a>
-            <a href={`${import.meta.env.BASE_URL}features/`} target="_blank" rel="noopener">
+            <a href={`${import.meta.env.BASE_URL}features/`} target="_blank" rel="noopener"
+              onClick={(e) => openInThemedTab(e, e.currentTarget.href)}>
               See all features
               <ExternalLink size={12} strokeWidth={1.75} aria-hidden />
             </a>
-            <a href={`${import.meta.env.BASE_URL}compare/`} target="_blank" rel="noopener">
+            <a href={`${import.meta.env.BASE_URL}compare/`} target="_blank" rel="noopener"
+              onClick={(e) => openInThemedTab(e, e.currentTarget.href)}>
               How it compares
               <ExternalLink size={12} strokeWidth={1.75} aria-hidden />
             </a>
