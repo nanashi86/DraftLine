@@ -66,6 +66,8 @@
       section { padding: 32px 0; border-top: 1px solid var(--line); }
 
       .hero { padding: 48px 0 32px; }
+      .kicker { font: 600 15px/1.5 Inter, system-ui, sans-serif; color: var(--muted); margin: 0 0 6px; }
+      .kicker span { white-space: nowrap; } /* a phone wraps between the phrases, never inside one */
       h1 { font: 700 clamp(28px, 6vw, 40px)/1.2 'Courier Prime', 'Courier New', monospace; color: var(--strong); margin: 0; }
       .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; margin: 28px 0 0; }
       .pair div { border-top: 1px solid var(--line); padding-top: 14px; }
@@ -117,6 +119,7 @@
     </header>
     <main class="wrap">
       <div class="hero">
+        <p class="kicker"><span>No subscriptions.</span> <span>No distractions.</span> <span>No compromises.</span></p>
         <h1>Just Write.</h1>
         <dl class="pair">
           <div>
@@ -141,13 +144,14 @@
         <p class="sub">Built by a writer, for writers.</p>
         <div class="prose">
           <p>I wrote my first feature screenplay in Google Docs.</p>
+          <p>Part of the reason was practical. I was switching between my PC and a Pixelbook running ChromeOS, and not every screenwriting app would run on it. Google Docs ran in the browser and kept my script synced through Google Drive, so I could pick up wherever I'd left off.</p>
           <p>It wasn't professional screenwriting software, but it worked. More importantly, it let me tell my story. And that experience taught me something: you don't need expensive tools to be a writer.</p>
           <p>When I started my second feature, things changed. I found myself spending more time worrying about formatting, page breaks, and technical details than I wanted to. The software was getting in the way of the writing.</p>
           <p>I looked for something better. There were plenty of options, but none offered quite the combination I wanted: professional formatting, useful creative tools, a clean writing environment, and the freedom to work without subscriptions, accounts, or unnecessary restrictions.</p>
           <p>So I built my own.</p>
           <p>DraftLine started as a solution to my own frustration. I wasn't trying to reinvent screenwriting. I just wanted software that would let me concentrate on what mattered: telling a story.</p>
           <p>But somewhere along the way, I realized I probably wasn't the only writer who felt this way.</p>
-          <p>That's why DraftLine is free and open-source. That's why it doesn't require an account. That's why the interface stays out of your way, and why your scripts remain yours to manage.</p>
+          <p>That's why DraftLine is free and open-source. That's why it runs in the browser, on whatever computer you're using. That's why it doesn't require an account. That's why the interface stays out of your way, and why your scripts remain yours to manage.</p>
           <p>I believe good writing software should make the difficult parts of writing easier—not introduce new difficulties of its own.</p>
           <p><strong>DraftLine was built for a simple reason: writers should spend their energy on their stories, not their software.</strong></p>
           <p class="signoff">— Eric Lemaire Jr.</p>

@@ -16,13 +16,14 @@ const MISSION = [
 ];
 const STORY = [
   "I wrote my first feature screenplay in Google Docs.",
+  "Part of the reason was practical. I was switching between my PC and a Pixelbook running ChromeOS, and not every screenwriting app would run on it. Google Docs ran in the browser and kept my script synced through Google Drive, so I could pick up wherever I'd left off.",
   "It wasn't professional screenwriting software, but it worked. More importantly, it let me tell my story. And that experience taught me something: you don't need expensive tools to be a writer.",
   "When I started my second feature, things changed. I found myself spending more time worrying about formatting, page breaks, and technical details than I wanted to. The software was getting in the way of the writing.",
   "I looked for something better. There were plenty of options, but none offered quite the combination I wanted: professional formatting, useful creative tools, a clean writing environment, and the freedom to work without subscriptions, accounts, or unnecessary restrictions.",
   "So I built my own.",
   "DraftLine started as a solution to my own frustration. I wasn't trying to reinvent screenwriting. I just wanted software that would let me concentrate on what mattered: telling a story.",
   "But somewhere along the way, I realized I probably wasn't the only writer who felt this way.",
-  "That's why DraftLine is free and open-source. That's why it doesn't require an account. That's why the interface stays out of your way, and why your scripts remain yours to manage.",
+  "That's why DraftLine is free and open-source. That's why it runs in the browser, on whatever computer you're using. That's why it doesn't require an account. That's why the interface stays out of your way, and why your scripts remain yours to manage.",
   "I believe good writing software should make the difficult parts of writing easier—not introduce new difficulties of its own.",
   "DraftLine was built for a simple reason: writers should spend their energy on their stories, not their software.",
   "— Eric Lemaire Jr."
@@ -57,7 +58,9 @@ const PRINCIPLES = [
 
 describe('the Philosophy page', () => {
   it('opens on "Just Write." with the philosophy and the product promise, and no brand-development captions', () => {
-    assert.match(html, /<h1>Just Write\.<\/h1>/);
+    const kicker = html.match(/<p class="kicker">([\s\S]*?)<\/p>\s*<h1>Just Write\.<\/h1>/);
+    assert.ok(kicker, 'the full slogan sits right above the headline');
+    assert.equal(text(kicker[1]), 'No subscriptions. No distractions. No compromises.');
     assert.match(html, /<dt class="label">The Philosophy<\/dt>\s*<dd class="statement">Your Story\. Your Rules\.<\/dd>/);
     const promise = html.match(/<dt class="label">The Promise<\/dt>\s*<dd class="statement">([\s\S]*?)<\/dd>/)[1];
     assert.equal(text(promise), 'Fast, Distraction-Free Screenwriting.');
