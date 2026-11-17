@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { openInThemedTab, PAGE_BACKGROUND } from '../src/lib/themedTab.js';
+import { INSTALLED_MODES, isInstalledApp, openInThemedTab, PAGE_BACKGROUND } from '../src/lib/themedTab.js';
 
 function setup(theme, { blocked = false } = {}) {
   const written = [];
@@ -44,4 +44,28 @@ test('modified and middle clicks keep the link behaviour', () => {
     assert.equal(openInThemedTab(event, '/features/', doc, win), false);
     assert.equal(event.prevented, false);
   }
+});
+
+test('the installed app keeps the link behaviour, so the pages open in an app window', () => {
+  for (const mode of INSTALLED_MODES) {
+    const { doc, win, event } = setup('light');
+    let opened = false;
+    win.open = () => { opened = true; return null; };
+    win.matchMedia = (q) => ({ matches: q === `(display-mode: ${mode})` });
+    assert.equal(isInstalledApp(win), true, mode);
+    assert.equal(openInThemedTab(event, '/features/', doc, win), false, mode);
+    assert.equal(event.prevented, false, mode);
+    assert.equal(opened, false, mode);
+  }
+  const ios = setup('light');
+  ios.win.navigator = { standalone: true };
+  assert.equal(openInThemedTab(ios.event, '/compare/', ios.doc, ios.win), false);
+});
+
+test('a browser tab (no installed display mode) still gets the themed tab', () => {
+  const { tab, doc, win, event } = setup('light');
+  win.matchMedia = () => ({ matches: false });
+  assert.equal(isInstalledApp(win), false);
+  assert.equal(openInThemedTab(event, '/philosophy/', doc, win), true);
+  assert.equal(tab.replaced, '/philosophy/');
 });
