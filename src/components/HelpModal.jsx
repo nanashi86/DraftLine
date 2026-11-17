@@ -153,7 +153,7 @@ export default function HelpModal({ kind, storage, onClose, tipsFinished = 0, ti
           </div>
           <p>
             A fast, distraction‑free screenwriting app designed for pure flow. Write natively in your browser, maintain
-            absolute focus, and export effortlessly to Fountain or Final Draft (.fdx).
+            focus, and export effortlessly to Fountain or Final Draft (.fdx).
           </p>
           <p className="hm-features">
             <a href={`${import.meta.env.BASE_URL}philosophy/`} target="_blank" rel="noopener"
@@ -163,12 +163,12 @@ export default function HelpModal({ kind, storage, onClose, tipsFinished = 0, ti
             </a>
             <a href={`${import.meta.env.BASE_URL}features/`} target="_blank" rel="noopener"
               onClick={(e) => openInThemedTab(e, e.currentTarget.href)}>
-              See all features
+              See All Features
               <ExternalLink size={12} strokeWidth={1.75} aria-hidden />
             </a>
             <a href={`${import.meta.env.BASE_URL}compare/`} target="_blank" rel="noopener"
               onClick={(e) => openInThemedTab(e, e.currentTarget.href)}>
-              How it compares
+              How It Compares
               <ExternalLink size={12} strokeWidth={1.75} aria-hidden />
             </a>
           </p>
@@ -176,9 +176,10 @@ export default function HelpModal({ kind, storage, onClose, tipsFinished = 0, ti
             <h3 id="hm-origin-title">Origin Story</h3>
             <p>
               I began storytelling at eight on my father&apos;s electric typewriter. Decades later, while writing my first
-              feature, <em>What Happened to Haiti?</em>, I refused to pay bloated subscriptions and wrote all six
-              drafts in raw Google Docs. That grind taught me structure and what tools screenwriters truly need. So I
-              built DraftLine: a clean, fast, distraction‑free editor with dramatic architecture built right in.
+              feature, <em>What Happened to Haiti?</em>, I refused to pay for expensive screenwriting software and wrote
+              all six drafts in Google Docs. That experience taught me structure and what writers truly need. So I
+              built DraftLine: a clean, fast, distraction‑free editor with professional formatting and storytelling
+              tools built in.
             </p>
           </section>
           <section className="hm-community" aria-labelledby="hm-community-title">

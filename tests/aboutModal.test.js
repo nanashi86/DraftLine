@@ -25,16 +25,16 @@ describe('About DraftLine', () => {
   it('the description: pure flow, in the browser, export to Fountain or Final Draft', () => {
     const p = about.slice(about.indexOf('<p>'), about.indexOf('</p>'));
     assert.equal(text(p).trim(), 'A fast, distraction‑free screenwriting app designed for pure flow. Write natively in your '
-      + 'browser, maintain absolute focus, and export effortlessly to Fountain or Final Draft (.fdx).');
+      + 'browser, maintain focus, and export effortlessly to Fountain or Final Draft (.fdx).');
   });
 
   it('the Origin Story reads exactly as written', () => {
     const block = about.slice(about.indexOf('className="hm-origin"'), about.indexOf('</section>'));
     const story = text(block.slice(block.indexOf('<p>'), block.indexOf('</p>'))).trim(); // the paragraph, not the signature after it
     assert.equal(story, 'I began storytelling at eight on my father\'s electric typewriter. Decades later, while writing '
-      + 'my first feature, What Happened to Haiti?, I refused to pay bloated subscriptions and wrote all six '
-      + 'drafts in raw Google Docs. That grind taught me structure and what tools screenwriters truly need. So I built '
-      + 'DraftLine: a clean, fast, distraction‑free editor with dramatic architecture built right in.');
+      + 'my first feature, What Happened to Haiti?, I refused to pay for expensive screenwriting software and wrote '
+      + 'all six drafts in Google Docs. That experience taught me structure and what writers truly need. So I built '
+      + 'DraftLine: a clean, fast, distraction‑free editor with professional formatting and storytelling tools built in.');
     assert.match(block, /<h3 id="hm-origin-title">Origin Story<\/h3>/);
     assert.match(block, /my first\s+feature, <em>What Happened to Haiti\?<\/em>, I refused/, 'the screenplay title is italic');
     assert.ok(!/features writers/.test(block));
