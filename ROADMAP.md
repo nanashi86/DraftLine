@@ -1,32 +1,64 @@
 # DraftLine™ Roadmap
 
 > **DraftLine is and will always remain 100% free, private, and local-first in the browser.
-> No user surveillance, no third-party ad tracking, no locked formats, and no paywalled core writing or story planning tools.**
+> No user surveillance, no third-party ad tracking, no locked formats, and no feature you have today will ever be paywalled.**
 
 Your scripts live on your machine: in your browser, or as `.draftline` files in a folder you choose.
 Every script exports to open formats (Final Draft `.fdx`, Fountain and PDF), so you're never locked in.
 
-## Milestones
+## The DraftLine family
 
-- [x] **Phase 1: Core Web Engine**
-  Final Draft (`.fdx`) and Fountain import and export, a compiled PDF built right in DraftLine, Format
-  Doctor, the Density Risk meter, and an offline library that keeps working without a connection.
-- [ ] **Phase 2: In-App Feedback & Community Hardening**
-  A live feedback pipeline inside the app (⋮ → Send Feedback…), and performance benchmarks for
-  long scripts.
-- [ ] **Phase 3: DraftLine Pro Desktop**
-  Native builds for Windows and macOS (Tauri 2): instant file-system sync with no browser prompts, and
-  double-click to open `.draftline` and `.fdx` files. A one-time licence, or included with Patreon support,
-  to cover code signing and upkeep. The browser version stays free.
-- [ ] **Phase 4: Production & Script Supervision Tools**
-  For shooting scripts: multi-colour revision tracking, locked pages and scene numbers, and split comparison of
-  drafts. These are production tools, separate from the core writing and story planning tools, which stay free.
-  - **Interactive Stripboard & Shooting Days**: Draggable strip reordering, Day Break dividers, and automatic
-    shoot day calculation for production exports.
-- [ ] **Phase 5: Mobile & Companion**
-  A touch-optimised tablet layout and Android builds.
+| Product | Tagline | What it is |
+|---|---|---|
+| **DraftLine Core** | **Write Your Story** | The complete, free-forever screenwriting app. Everything DraftLine does today, and everything it keeps gaining. |
+| **DraftLine Pro: Co-Write** | **Write Together** | Optional real-time collaboration for writing partners and rooms. *(future, exploring)* |
+| **DraftLine Pro: Production** | **Page to Production** | Optional advanced shooting-script tools: locked pages, A-pages, colored revisions. *(future, deferred)* |
 
-Milestones are listed in order, not with dates: each one ships when it's ready.
+**DraftLine Core is not a limited version of DraftLine Pro.** It is the whole app. Every feature DraftLine has today
+stays free, fully functional and unrestricted, forever: Write, the entire Plan workspace, the Scene Board and Live
+Act Pacing, the Story Bible and character tools, Breakdowns, Stripboard and Reports, Snapshots and Compare, Format
+Doctor, every import and export, offline use and folder sync. Nothing is ever moved behind a paywall or held back.
+Core keeps getting new features too: the next two, Schedule and Budget, are free.
+
+Pro is only for optional, specialised workflows that add something genuinely new. All three are planned as
+browser-based. You don't need to download anything, and you don't need an account to use Core. Until Pro exists,
+the app is simply called **DraftLine**.
+
+## Shipped
+
+- [x] **Core Web Engine**: Final Draft (`.fdx`) and Fountain import and export, a compiled PDF built right in
+  DraftLine, Format Doctor, the Density Risk meter, and an offline library that keeps working without a connection.
+- [x] **In-app feedback**: ⋮ → Send Feedback… goes straight to the developer, anonymous unless you add your email.
+
+## What's next
+
+- [ ] **Phase 1 · Core: Schedule & Budget** (*next, free*)
+  Plan grows to four tabs: **Breakdowns · Stripboard · Schedule · Budget**. Reports moves into Plan's ⋮ menu, right
+  after Format Doctor, and works exactly as it does now.
+  - **Schedule** (ideas, not final): turn the stripboard into shooting days, group scenes by location, set tentative
+    dates, estimate shoot time, and flag scheduling conflicts.
+  - **Budget** (ideas, not final): an approachable estimate built from your breakdowns and schedule, covering cast,
+    crew, locations, props and equipment, with categories, totals, side-by-side scenarios and export. Made for writers
+    and independent filmmakers, not studio accounting.
+- [ ] **Phase 2 · Pro: Co-Write, Write Together** (*exploring, 2027*)
+  Optional real-time co-writing: shared sessions, live cursors and synced edits, with solo writing unchanged, still
+  local-first and still free. Architecture, running costs and pricing are researched before anything is built.
+- [ ] **Phase 3 · Pro: Production, Page to Production** (*deferred*)
+  Locked pages and scene numbers, A-pages, colored revision rounds, revision marks and revised-pages PDFs. These add
+  to the free Plan workspace and replace nothing in it. They will be revisited only if DraftLine finds real traction
+  and writers ask for them.
+
+## Also on the table
+
+These are worth exploring, but are not on the critical path and are not tied to Pro:
+
+- **Performance benchmarks** for very long scripts (Core).
+- **Tablet and touch layout** improvements (Core).
+- **Native desktop app** (Windows, macOS, Linux): a possible separate project, not a requirement for anything above.
+- **Android and Chromebook app on Google Play**: also a separate possibility.
+
+Milestones are listed in order of intent, not with dates: each one ships when it's ready. Design notes live in
+[`docs/specs/`](docs/specs/).
 
 ## How to support
 

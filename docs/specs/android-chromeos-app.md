@@ -1,6 +1,14 @@
 # Android & ChromeOS App — phones, tablets and Chromebooks (future plan)
 
-Status: **planned, not started.** Written October 2026.
+Status: **independent, optional future consideration. Not started, not scheduled.** Written October 2026.
+
+> **November 2026 update: pricing below is under review.** DraftLine Core (*Write Your Story*) is the complete,
+> free-forever app ([`../../ROADMAP.md`](../../ROADMAP.md)), so "reading and basic editing are free" understates it:
+> **all writing and planning is free**, in the browser and in any app. The "included with DraftLine Pro" lines assumed
+> Pro was the desktop app, which is no longer the plan ([`desktop-app.md`](desktop-app.md)). Whether Android-only
+> extras such as native folder sync (which the Android browser can't do today) cost anything is an open decision.
+> **Part B's community copy repeats the old pricing and must not be posted as is.** The technical plan in Part A
+> stands.
 
 Pricing: tiered. Reading and basic editing are **free**, in the browser and in the app. The advanced companion
 workflow tools (keeping a Drive folder in sync with your computer, for example) are **included free with DraftLine

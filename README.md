@@ -518,11 +518,12 @@ end with a similar line at most every 30 days. Both are throttled and muted per 
 
 ## Roadmap
 
-Want to see where DraftLine is heading? Check out our [Public Roadmap](ROADMAP.md) for upcoming desktop and
-offline-first milestones.
+Want to see where DraftLine is heading? Check out the [Public Roadmap](ROADMAP.md). Everything DraftLine does today
+stays free, forever, and the next planned features, **Schedule** and **Budget** in Plan, are free too.
 
-Design notes for planned features live in `docs/specs/`: **Table Read** (local-first read-aloud) and **Revision
-Mode** (colored revisions, locked pages and scene numbers).
+Design notes for planned and possible features live in `docs/specs/`: Schedule & Budget, Co-Write (real-time
+collaboration), Production (colored revisions, locked pages and scene numbers), Table Read (local-first read-aloud),
+and the desktop and Android apps.
 
 ## Testing
 

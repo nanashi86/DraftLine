@@ -1,16 +1,22 @@
 # Desktop App — native shell for Windows, macOS and Linux (future plan)
 
-Status: **planned, not started.** Written October 2026. The web app stays the product; the desktop app is the same
-DraftLine in a native window, built from the same code.
+Status: **independent, optional future consideration. Not started, not scheduled.** Written October 2026; repositioned
+November 2026. The web app stays the product; a desktop app would be the same DraftLine in a native window, built
+from the same code.
 
-Licensing: the browser version (the installable PWA) is **100% free and open source (MIT), forever**. The native
-desktop build, **DraftLine Pro** (Tauri 2), carries a **perpetual one-time licence ($49)**, or is included while you're
-an active Patreon supporter. That pays for the code-signing certificates (Apple $99 a year, Windows $120–$400 a year)
-and the ongoing maintenance a signed desktop app needs.
-
-Revision tracking (colour-coded revision rounds) and locked pages belong to **Phase 4: Production & Script
-Supervision Tools**, for shooting scripts (design: `docs/specs/revision-mode.md`). They are production tools, not
-part of the core writing and story planning tools, which stay free in the browser.
+> **November 2026 update: desktop is separate from Pro.** DraftLine's products are **DraftLine Core** (*Write Your
+> Story*, free forever), **DraftLine Pro: Co-Write** (*Write Together*) and **DraftLine Pro: Production** (*Page to
+> Production*), all planned as **browser-based** ([`../../ROADMAP.md`](../../ROADMAP.md)). A native desktop app is
+> **not** required for Core, Co-Write or Production, is **not** the default paid product, and is **not** a
+> prerequisite for any paid offering. Whether a desktop build is ever made, and whether it costs anything (for example
+> to cover code-signing), is a separate decision for later.
+>
+> Superseded statements kept below for the record: this document originally called the desktop build "DraftLine Pro"
+> with a one-time $49 licence (or included with Patreon), and placed revision tracking and locked pages in its
+> "Phase 4". Revision tracking and locked pages are now **DraftLine Pro: Production**, browser-based and indefinitely
+> deferred ([`production-revisions-concept.md`](production-revisions-concept.md)). Part A's technical research
+> (Tauri vs Electron, file system, windows, shortcuts, updater, signing costs, security) remains valid. **Part B's
+> community copy is out of date and must not be posted as is.**
 
 ---
 
@@ -184,12 +190,17 @@ Shortcuts the browser takes for itself stop being a problem once there's no brow
   build's code paths for it are simply unused there.
 - **Unsigned builds** work but show OS warnings. Signing costs money every year (see the table above), which is what
   the backer milestone is for.
-- **The web app is not going away.** It stays 100% free and open source, forever. DraftLine Pro is an option, never a
-  requirement: a one-time $49 licence (or included with an active Patreon supporter tier) for the native build.
+- **The web app is not going away.** It stays 100% free and open source, forever. A desktop build would be an option,
+  never a requirement. *(The earlier "DraftLine Pro, one-time $49" pricing here is superseded; see the update at the
+  top.)*
 
 ---
 
 ## B. Community & Backer Brief
+
+> **Superseded (November 2026). Do not post.** This copy presents the desktop app as "DraftLine Pro" at $49, which no
+> longer matches the product plan (see the update at the top). Kept only as a draft to rewrite if a desktop app is
+> ever pursued.
 
 Copy ready to paste. No dates are promised; update the status line as phases land.
 
