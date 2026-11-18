@@ -7,9 +7,10 @@
 > to a paid product.** Everything here would be *added* beside the free Plan workspace, which keeps all of its
 > current production tools (Breakdowns, Stripboard, Reports, and the coming Schedule and Budget).
 >
-> **Pricing direction (not final):** about **$9.99/month**, **including everything in Pro: Co-Write**, plus the native
-> desktop and Android apps that come with any Pro subscription. Active Patreon supporters get a Production licence.
-> No accounts: a Pro purchase gives a licence token. See [`co-write.md`](co-write.md) §6.
+> **Pricing direction (not final):** about **$9.99/month**, **including everything in Pro: Co-Write**. The licence is
+> tied to the writer, not the platform: a token entered in Settings → Pro License unlocks Production in the browser,
+> the installed app and the planned desktop and Android apps. No accounts. Eligible active Patreon supporters get a
+> Production licence. See [`co-write.md`](co-write.md) §6.
 
 Feasibility assessment written November 2026 against DraftLine 0.11.0 (commit `4a72ac6`; references re-checked at
 `343c49a`). Line numbers drift, so use function names as the stable reference.

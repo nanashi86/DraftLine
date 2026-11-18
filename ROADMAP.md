@@ -22,9 +22,9 @@ Core keeps getting new features too: the next two, Schedule and Budget, are free
 
 Pro is only for optional, specialised workflows that add something genuinely new. All three are planned as
 browser-based. You don't need to download anything, and you don't need an account to use Core. Pro would be an
-optional monthly subscription (pricing not final, no account needed: you get a licence token), and a Pro subscription would also include DraftLine's native
-desktop and Android apps, each with everything in Core plus your Pro tier. Core in the browser, including installing
-it as an app from your browser, stays free. Until Pro exists, the app is simply called **DraftLine**.
+optional monthly subscription (pricing not final) tied to you, not to a device: you get a licence token, enter it in
+Settings → Pro License, and it works wherever you use DraftLine. No account needed. Where you write is never
+paywalled: the browser, the installed app, and the planned desktop and Android apps all run Core free. Until Pro exists, the app is simply called **DraftLine**.
 
 ## Shipped
 
@@ -56,9 +56,9 @@ These are worth exploring, but are not on the critical path and are not tied to 
 
 - **Performance benchmarks** for very long scripts (Core).
 - **Tablet and touch layout** improvements (Core).
-- **Native apps for Pro subscribers**: a desktop app (Windows, macOS, Linux) and an Android and Chromebook app on
-  Google Play, each with everything in Core plus the subscriber's Pro tier. Pro features themselves work in the
-  browser, so the native apps are an extra, not a requirement.
+- **Native apps**: a desktop app (Windows, macOS, Linux) and an Android and Chromebook app on Google Play. They're
+  free, like the browser version: Core costs nothing on any platform, and a Pro licence works on all of them. Ko-fi
+  and Patreon supporters get early access once the Ko-fi goal is reached.
 
 Milestones are listed in order of intent, not with dates: each one ships when it's ready. Design notes live in
 [`docs/specs/`](docs/specs/).
@@ -67,8 +67,8 @@ Milestones are listed in order of intent, not with dates: each one ships when it
 
 DraftLine is built by one writer-developer, funded by the people who use it.
 
-- **Patreon:** [patreon.com/DraftLine](https://patreon.com/DraftLine). When Pro launches, active supporters will get Pro: Production (which includes Co-Write) and the desktop
-  and Android apps.
+- **Patreon:** [patreon.com/DraftLine](https://patreon.com/DraftLine). When Pro launches, eligible active supporters will get a Pro: Production licence (which includes
+  Co-Write).
 - **Ko-fi:** [ko-fi.com/draftline](https://ko-fi.com/draftline)
 - **Discord:** [discord.gg/8ytSsSWsPX](https://discord.gg/8ytSsSWsPX): the DraftLine Writers' Room, for
   feedback, bug reports and early builds

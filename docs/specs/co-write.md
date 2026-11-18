@@ -99,15 +99,27 @@ C and D may be worth more per hour of work than A, and D could even be a Core fe
 
 ## 6. Commercial model
 
-**Pro pricing model (direction, prices not final).**
-- **Pro is a monthly subscription to one of two tiers:**
+**Pro pricing model (direction, prices not final).** One DraftLine, one licence, write anywhere.
+- **Pro is a licence tied to the writer, not to a platform.** It's a monthly subscription to one of two tiers:
   - **Pro: Co-Write**, around **$4.99/month**. The subscriber can invite collaborators, who co-write free without
     paying.
   - **Pro: Production**, around **$9.99/month**, **including everything in Co-Write**.
-- **Any Pro subscription includes the native apps**: desktop (Windows, macOS, Linux) and Android (phones, tablets,
-  Chromebooks via Google Play). Each native app has everything Core has, plus the subscriber's tier.
-- **Core stays free in the browser, everywhere**, including installing it as an app (PWA) on a computer or Android,
-  which works today and stays free.
+- **Platforms are not paywalled.** The browser, the installed PWA, and the planned desktop (Windows, macOS, Linux)
+  and Android/ChromeOS apps are all just ways to use DraftLine. **Core is free on every one of them**, and a Pro
+  licence unlocks its tier on every one of them. Subscribe once, enter the token on Windows, use the same licence
+  on a Chromebook, with no second purchase.
+
+| Platform | Core | Co-Write licence | Production licence |
+|---|---|---|---|
+| Browser | Free | Unlocked | Unlocked |
+| Installed PWA | Free | Unlocked | Unlocked |
+| Desktop app (planned) | Free | Unlocked | Unlocked |
+| Android/ChromeOS app (planned) | Free | Unlocked | Unlocked |
+
+- **Entering the licence:** a **"Pro License"** field in **Settings**, the same on every platform, where the writer
+  pastes their token. No account.
+- **A licence unlocks features, not unlimited service.** Hosting, storage, concurrent sessions and devices per token
+  get reasonable limits, defined before launch.
 
 Why a subscription fits: hosted relays are an **ongoing** cost that grows with use, and a monthly price covers it
 where a one-time licence wouldn't.
@@ -115,8 +127,8 @@ where a one-time licence wouldn't.
 Still open:
 - **Limits for free invitees**: how many per session, and per subscriber.
 - **Identity (decided): no accounts.** Paying for Pro gives the subscriber a **unique licence token**, which they
-  must save. The token unlocks Pro features and the native app downloads, and it authenticates the subscriber to the
-  relay. Invitees join by **invite link alone** and need no token. Still to design:
+  must save and enter in **Settings → Pro License** on any platform. The token unlocks the tier's features and
+  authenticates the subscriber to the relay. It is **not** needed to download or use any DraftLine app. Invitees join by **invite link alone** and need no token. Still to design:
   - recovering a lost token (for example re-sending it to the payment email, which the payment provider holds, not
     DraftLine);
   - limiting token sharing (for example concurrent sessions per token);
@@ -126,9 +138,12 @@ Still open:
   editable as an ordinary solo Core project.
 - **Self-hosting**: should the relay be open source, so anyone can run their own? That fits MIT, but competes with
   the paid hosted relay.
-- **Patreon (decided)**: active Patreon supporters get a **Pro: Production licence** (which includes Co-Write) and the
-  links to download the desktop and Android apps. Still open: which Patreon tier qualifies, and how tokens are issued
-  and expired as pledges start and stop.
+- **Patreon (decided)**: eligible active Patreon supporters get a **Pro: Production licence** (which includes
+  Co-Write). Still open: which Patreon tier qualifies, and how tokens are issued and expired as pledges start and stop.
+- **Early access (decided)**: supporters (Ko-fi and Patreon) get **early access to the native desktop and Android
+  apps** before public release, provided the Ko-fi goal ("DraftLine Native Desktop & Android/ChromeOS Builds") is
+  reached. Any early-access promise already made is kept. Early access is a head start, not a paywall: the apps are
+  free for everyone once released.
 - **Payments**: provider, taxes and receipts, which a solo developer has to run.
 
 ## 7. Research plan (before any commitment)

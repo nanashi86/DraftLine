@@ -1,18 +1,18 @@
 # Android & ChromeOS App — phones, tablets and Chromebooks (future plan)
 
-Status: **future: Google Play app included with any Pro subscription. Not started, not scheduled.** Written October 2026.
+Status: **future, free for everyone (Core free, Pro by licence). Not started, not scheduled.** Written October 2026.
 
-> **November 2026 update: the Android app comes with Pro.** The Google Play app (phones, tablets, Chromebooks) is
-> bundled with the desktop app: **downloadable with either Pro subscription** (Co-Write about $4.99/month, or
-> Production about $9.99/month including Co-Write; direction, prices not final; see [`co-write.md`](co-write.md) §6).
-> - Active Patreon supporters get a Pro: Production licence, which includes the Android and desktop downloads. No
->   accounts: a Pro purchase gives a unique licence token the subscriber saves.
-> - The Android app has **everything Core has, plus the subscriber's tier**. Native extras such as Drive folder sync
->   on Android are part of the app, with no separate unlock.
-> - **Core stays free in the browser on Android and ChromeOS**, including installing it from Chrome as an app (PWA),
->   which works today.
+> **November 2026 update: the Android app is free, and Pro is a licence, not a platform.**
+> - **The Google Play app is not behind a paywall.** Like the browser and the installed PWA, it's a way to use
+>   DraftLine: **Core is free in it**, including Android-only extras such as Drive folder sync, and a Pro licence
+>   unlocks its tier in it.
+> - **Pro is a licence tied to the writer** (Co-Write about $4.99/month, Production about $9.99/month including
+>   Co-Write; direction, prices not final; see [`co-write.md`](co-write.md) §6). The token goes in **Settings → Pro
+>   License**, the same field on every platform, with no account.
+> - **Early access:** Ko-fi and Patreon supporters get early access to the Android and desktop builds, provided the
+>   Ko-fi goal ("DraftLine Native Desktop & Android/ChromeOS Builds") is reached. Existing promises are kept.
 > - The earlier pricing lines below ("reading and basic editing are free", the $9.99 one-time unlock, "free with
->   DraftLine Pro" meaning the old desktop Pro) are **superseded**.
+>   DraftLine Pro") are **superseded**.
 >
 > **Part B's community copy repeats the old pricing and must not be posted as is.** Part A's technical plan stands.
 > The adaptive layout and touch work in Part A that benefits the browser app is Core and free.
@@ -222,9 +222,9 @@ whether a hardware keyboard has been seen.
 ## B. Community & Backer Brief
 
 > **Superseded (November 2026). Do not post.** This copy uses the old pricing ("reading and basic editing are
-> free", a one-time $9.99 unlock, "free with DraftLine Pro") and says "No accounts". Under the current plan the
-> Play app is **included with a Pro subscription** (or a Patreon supporter's Production licence) and has everything in
-> Core. It checks a saved **licence token**, with no account. Kept only as a draft to rewrite when the time comes.
+> free", a one-time $9.99 unlock, "free with DraftLine Pro"). Under the current plan the Play app is **free** with
+> everything in Core, Pro is unlocked by a licence token in Settings (still no accounts, so "No accounts" stays
+> true), and supporters get early access once the Ko-fi goal is reached. The $25 Google Play fee is accurate. Kept only as a draft to rewrite when the time comes.
 
 Copy ready to paste. No dates are promised; update the status line as phases land.
 
