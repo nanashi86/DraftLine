@@ -518,8 +518,13 @@ end with a similar line at most every 30 days. Both are throttled and muted per 
 
 ## Roadmap
 
-Want to see where DraftLine is heading? Check out the [Public Roadmap](ROADMAP.md). Everything DraftLine does today
-stays free, forever, and the next planned features, **Schedule** and **Budget** in Plan, are free too.
+Want to see where DraftLine is heading? Check out the [Public Roadmap](ROADMAP.md).
+
+**DraftLine is free.** The software and every core writing, planning and export tool (**DraftLine Core**) are free
+forever, with no subscriptions and no paywalls. That includes the next planned features, **Schedule** and **Budget**
+in Plan. Two optional paid services are planned for later: **DraftLine Pro: Co-Write** (real-time co-writing rooms on
+a hosted relay) and **DraftLine Pro: Production** (a Shoot workspace for locked pages and revision rounds, bundled
+with Co-Write). You'd only pay if you opt into one of them. See the roadmap for how they fit.
 
 Design notes for planned and possible features live in `docs/specs/`: Schedule & Budget, Co-Write (real-time
 collaboration), Production (colored revisions, locked pages and scene numbers), Pro licences, Table Read (local-first

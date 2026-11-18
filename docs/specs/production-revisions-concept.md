@@ -7,6 +7,9 @@
 > to a paid product.** Everything here would be *added* beside the free Plan workspace, which keeps all of its
 > current production tools (Breakdowns, Stripboard, Reports, and the coming Schedule and Budget).
 >
+> **What it is:** **DraftLine Pro: Production (DLP:PROD)**, the **Shoot** workspace (heavy-duty *local* shooting-script
+> tools) **bundled with the DraftLine Pro: Co-Write** collaboration service. One DraftLine, not a separate app.
+>
 > **Pricing direction (not final):** about **$9.99/month**, **including everything in Pro: Co-Write**. The licence is
 > tied to the writer, not the platform: a token entered in Settings → Pro License unlocks Production in the browser,
 > the installed app and the planned desktop and Android apps. No accounts. Patreon's Writers' Room and Executive Producer
@@ -48,8 +51,9 @@ Today `App.jsx` has `WORKSPACES` Write (`PenLine`) | Plan (`Clapperboard`) and `
 - the four-button view switch must still fit, or collapse into ⋮ the way the views already do on narrow windows
   (`toolbar.js` `writeViews`);
 - what the Shoot view shows for a script that isn't locked (likely an explanation and the lock action);
-- the Shoot button is visible only to Production subscribers, or visible to everyone as an introduction. This needs
-  care not to clutter Core (P11).
+- **visibility (decided):** Shoot is present for **everyone**, in the same place in every copy, and greyed out with a
+  small "Pro" badge without a Production licence. Clicking it opens the explanation modal with a path to Settings →
+  Pro License. It never appears or disappears with licence status. See [`pro-license.md`](pro-license.md) §4a.
 
 ## 2. Q1: Can production page locking coexist safely with normal pagination?
 
@@ -223,8 +227,9 @@ locked pages → FDX interoperability, the last only once real Final Draft files
   read-only?
 - **P10. Licensing.** It is paid (about $9.99/month, direction only). How does that square with MIT source (§5,
   trade-off 2)?
-- **P11. Shoot for Core users.** Hidden, shown as an introduction, or shown only once a script is opened that was
-  locked by a subscriber (read-only display, §5 trade-off 3)?
+- **P11. Shoot for Core users: decided.** Always visible and greyed out without a licence, opening an explanation
+  modal on click. Locked scripts opened without a licence display read-only. See [`pro-license.md`](pro-license.md)
+  §4a.
 
 ## 8. Deferred even when revisited
 
@@ -273,5 +278,6 @@ right of Board (§1), and the final interface may differ.
 | ![Editor on a revised A-page](production-revisions-mockups/editor.png) | **Writing in a revision.** Page 12A with "Blue Rev. (11/17/26)", a thin blue tab on the page, asterisks on changed lines, 12A scene tags, and one status chip. Its padlock icon clashes with the Editing/Viewing badge (P8). |
 | ![Revisions panel and archive](production-revisions-mockups/archive.png) | **Revisions and Archive.** The current Blue set, the White archive with page 12 as it was, Compare, Start Pink Revision, and Print Revised Pages. |
 
-Principles they follow: nothing appears until a script is locked, a single status chip, marks in the margins only,
+Principles they follow: apart from the always-present (greyed-out until licensed) Shoot entry point, nothing appears
+until a script is locked, a single status chip, marks in the margins only,
 and colour as a small tab rather than tinted paper.
