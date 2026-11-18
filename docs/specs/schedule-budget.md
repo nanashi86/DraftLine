@@ -48,13 +48,14 @@ What the code already does, which makes this small:
   5. the rest, in their current order
 
 Details to handle during implementation:
-- **Reports as a view without a tab.** While Reports is showing, no tab in the segment is lit. The header label
-  already reads "Plan · Reports" (`App.jsx`), and that may be enough. Decide whether the ⋮ item shows "Showing" as
-  its hint, the way the collapsed view items do.
+- **Reports as a view without a tab (decided).** While Reports is showing, no tab is lit, and the header label
+  **"Plan · Reports"** (already in `App.jsx`) is the only indicator. The ⋮ item gets no "Showing" hint.
 - **The narrow-window fallback.** When the tab segment doesn't fit, `planTools.views` (built from `PLAN_VIEWS`) is
   listed in ⋮. Reports must come out of `PLAN_VIEWS` so it isn't listed twice.
-- **Filtering.** `PlanFilter` is hidden on Reports (`planView !== 'reports'`), which still works. Schedule and Budget
-  need a decision on whether the scene filter applies to them.
+- **Filtering (decided).** The Plan scene filter (`lib/planFilter.js`) **applies to Schedule and Budget too**, as it
+  does to Breakdowns and Stripboard. It stays hidden on Reports (`planView !== 'reports'`), which always covers the
+  whole script. Budget totals should say when they're filtered (as the Plan summary line already does with
+  "· filtered"), so a filtered total is never mistaken for the whole budget.
 - **Tests to update:**
   - `tests/toolbar.test.js`, `tests/toolbarAlignment.test.js` and `tests/uiLabels.test.js` (menu order and labels);
   - `tests/reports.test.js`;
@@ -79,14 +80,14 @@ All confirmed in code:
 - **Reports** (`reports.js`): scenes, characters, locations and script totals, each as CSV.
 - **Exports**: `breakdownCsv` and `reportCsv`, through the existing download helper.
 
-## 3. Schedule: functional direction (ideas to scope)
+## 3. Schedule: functional direction
 
-- Arrange strips into **shooting days**, with day-break dividers. This is a *schedule order* separate from script
-  order. The ROADMAP's earlier "Interactive Stripboard & Shooting Days" item belongs here.
+- Arrange strips into **shooting days**, with day-break dividers. **Schedule order is separate from script order
+  (decided): rearranging shoot days never reorders the script.** The ROADMAP's earlier "Interactive Stripboard & Shooting Days" item belongs here.
 - Group or sort by location, INT/EXT, day/night or cast.
 - Tentative dates per shooting day, including a start date with optional days off.
 - Estimated time per scene and per day, from page eighths and a pages-per-day rate the writer sets.
-- Conflict flags. Examples:
+- **Conflict warnings (in v1, decided).** Examples:
   - a cast member needed on more than a set number of days;
   - a night scene placed on a day-only date;
   - a location split across distant days;
@@ -99,7 +100,7 @@ All confirmed in code:
 Days hold scene-heading ids, so they survive script edits. Scenes deleted from the script drop out. New scenes appear
 as unscheduled.
 
-## 4. Budget: functional direction (ideas to scope)
+## 4. Budget: functional direction
 
 - Categories: cast, crew, locations, props and set dressing, wardrobe, equipment, vehicles, post-production, other.
 - Lines connected to the breakdown, for example:
@@ -109,13 +110,23 @@ as unscheduled.
 
   Free-form lines are allowed too.
 - Totals per category and overall, with an optional contingency percentage.
-- Scenarios: duplicate a budget ("Low", "Target") and compare totals side by side.
-- Export as CSV, and possibly PDF later. The currency symbol is a setting. No exchange rates.
+- **Linked to Schedule in v1 (decided)**: for example an actor's rate × the shoot days they're scheduled for, or a
+  location's daily cost × its days. Changing the schedule updates the budget.
+- **Scenarios ("Low" vs "Target"): not in v1 (recommended).** v1 is one budget: categories, lines, totals and an
+  optional contingency. Linking to Schedule is already the hard part, and scenarios are mostly "duplicate and
+  compare", which is easy to add once v1 is stable. The stored shape below already holds a list of scenarios (v1 uses
+  one), so adding them later needs no data migration. Until then, a Snapshot taken before a big change serves as a
+  rough "what was the budget before".
+- **Currency (decided)**: one default for all projects, set in **Settings**, which a project can override for itself.
+  The symbol and number format only, with no exchange rates. Settings already persists per device
+  (`lib/userSettings.js`, `draftline_user_settings`). The project override lives with the project's budget.
+- Export as CSV, and possibly PDF later.
 - **Scope guard:** approachable estimates for writers and independent filmmakers. No payroll, fringes, tax
   incentives, cost reporting or chart-of-accounts templates in v1.
 
 **Proposed stored shape** (to validate):
-`production.budget = { currency, scenarios: [{ id, name, lines: [{ id, category, label, qty, rate, unit, link? }], contingency }] }`.
+`production.budget = { currency?: override, scenarios: [{ id, name, lines: [{ id, category, label, qty, rate, unit, link? }], contingency }] }`.
+v1 writes exactly one scenario. `link` points at a schedule-derived quantity (for example `{ kind: 'castDays', name }`).
 
 ## 5. Dependencies and constraints
 
@@ -138,15 +149,20 @@ as unscheduled.
   pass-through is in place.
 - **Offline and local-first.** Everything is computed and stored on the device, with no network.
 
-## 6. Open questions for Eric
+## 6. Decisions (November 2026)
 
-1. Schedule v1 scope: shooting days with drag and estimates only, or conflict flags too?
-2. Is schedule order separate from script order (recommended), or does reordering the Schedule ever reorder the
-   script? It never should, by default.
-3. Budget v1 scope: categories, lines and totals only, or scenarios too?
-4. Does Budget link to Schedule in v1 (rates × days), or does that come later?
-5. Does the Plan scene filter apply to Schedule and Budget?
-6. When Reports is showing without a tab, is "Plan · Reports" in the header enough, or should the ⋮ item show
-   "Showing"?
-7. Currency: one per project, or a global setting?
-8. Should Schedule and Budget have their own Snapshots-aware Compare, or is whole-project Snapshots enough for v1?
+| # | Question | Decision |
+|---|---|---|
+| 1 | Schedule v1 scope | Shooting days with drag and drop, estimates, **and conflict warnings** |
+| 2 | Schedule order vs script order | **Separate.** Rearranging shoot days never reorders the script. |
+| 3 | Budget scenarios in v1 | **Not in v1** (recommendation). One budget; the data shape is ready for scenarios later. |
+| 4 | Budget linked to Schedule in v1 | **Yes** (rates × scheduled days) |
+| 5 | Plan scene filter on Schedule and Budget | **Yes.** Filtered totals are labelled as filtered. |
+| 6 | Reports indicator when opened from ⋮ | **"Plan · Reports"** in the header only. No "Showing" hint. |
+| 7 | Currency | **A global default in Settings**, overridable per project |
+| 8 | Compare view for Schedule and Budget | **Not in v1** (recommendation). Whole-project Snapshots are enough. They already copy and restore `production` (`revisions.js` `createRevision`, `partsOf`), so Schedule and Budget data travel with them once stored there. Snapshot Compare stays script-only. A schedule or budget diff can come later if writers ask. |
+
+Still open, to settle at the start of the implementation session:
+- the exact conflict rules and thresholds for v1;
+- the budget's category list and units;
+- the CSV column layouts.

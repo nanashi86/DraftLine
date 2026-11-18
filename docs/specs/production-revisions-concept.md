@@ -6,6 +6,10 @@
 > **No existing DraftLine functionality may be removed, restricted, or transferred from the free browser application
 > to a paid product.** Everything here would be *added* beside the free Plan workspace, which keeps all of its
 > current production tools (Breakdowns, Stripboard, Reports, and the coming Schedule and Budget).
+>
+> **Pricing direction (not final):** about **$9.99/month**, **including everything in Pro: Co-Write**, plus the native
+> desktop and Android apps that come with any Pro subscription. Active Patreon supporters get a Production licence.
+> No accounts: a Pro purchase gives a licence token. See [`co-write.md`](co-write.md) §6.
 
 Feasibility assessment written November 2026 against DraftLine 0.11.0 (commit `4a72ac6`; references re-checked at
 `343c49a`). Line numbers drift, so use function names as the stable reference.
@@ -30,14 +34,20 @@ Advanced shooting-script workflows for scripts in production:
 - **A revision archive** of replaced pages.
 - **Production PDFs**, including revised pages only.
 
-**Future navigation concept, not to be built now:**
-- **Production** becomes a new workspace button next to **Board** in the Write workspace, using Lucide
-  `clapperboard`.
-- **Plan** changes to Lucide `clipboard-check`.
-- **Board** keeps its icon.
+**Future navigation (decided November 2026, not to be built now):**
+- A new **Shoot** button, Lucide `clapperboard`, goes **to the right of Board** in Write's view switch, which then has
+  four buttons: **Page | Split | Board | Shoot**.
+- **Plan** (beside Write in the workspace switch) changes from `Clapperboard` to Lucide `clipboard-check`
+  (`ClipboardCheck`).
+- **Page, Split and Board** keep their icons. Both icons are confirmed present in the pinned `lucide-react` 1.49.0.
 
-Today `App.jsx` has Write (`PenLine`) | Plan (`Clapperboard`) as workspaces and Page | Split | Board as Write's views.
-Where exactly Production sits needs a decision (§7, P1).
+Today `App.jsx` has `WORKSPACES` Write (`PenLine`) | Plan (`Clapperboard`) and `VIEWS` Page (`FileText`) | Split
+(`Columns2`) | Board (`SquareKanban`). Points to settle at implementation:
+- the four-button view switch must still fit, or collapse into ⋮ the way the views already do on narrow windows
+  (`toolbar.js` `writeViews`);
+- what the Shoot view shows for a script that isn't locked (likely an explanation and the lock action);
+- the Shoot button is visible only to Production subscribers, or visible to everyone as an introduction. This needs
+  care not to clutter Core (P11).
 
 ## 2. Q1: Can production page locking coexist safely with normal pagination?
 
@@ -194,9 +204,8 @@ locked pages → FDX interoperability, the last only once real Final Draft files
 
 ## 7. Open decisions
 
-- **P1. Navigation.** Is Production a third workspace (Write | Plan | Production) or a button beside Page | Split |
-  Board in Write's view switch? The brief says "next to Board in the Write workspace", but Board is a *view* and
-  Plan is a *workspace*.
+- **P1. Navigation: decided.** **Shoot** (`clapperboard`) goes to the right of Board (Page | Split | Board | Shoot),
+  and Plan's icon becomes `clipboard-check` (§1).
 - **P2. Scene suffixes.** US prefix (A12, AA12, B12) or suffix (12A, 12AA, 12B)? The mockups assume 12A.
 - **P3. Colours after Cherry.** Sources differ: Tan, Ivory, then Double White, or straight to Double White. Fixed or
   editable?
@@ -210,7 +219,10 @@ locked pages → FDX interoperability, the last only once real Final Draft files
   lock needs distinct words and a distinct icon.
 - **P9. Unknown data.** In apps that can't render Production data: preserve silently, or preserve and open
   read-only?
-- **P10. Licensing.** If it's ever paid, how does that square with MIT source (§5, trade-off 2)?
+- **P10. Licensing.** It is paid (about $9.99/month, direction only). How does that square with MIT source (§5,
+  trade-off 2)?
+- **P11. Shoot for Core users.** Hidden, shown as an introduction, or shown only once a script is opened that was
+  locked by a subscriber (read-only display, §5 trade-off 3)?
 
 ## 8. Deferred even when revisited
 
@@ -250,8 +262,8 @@ Secondary sources ([Wikipedia: Shooting script](https://en.wikipedia.org/wiki/Sh
 ## Appendix: mockups
 
 Conceptual images (November 2026, Editorial Light, an original sample script). **They show an earlier navigation
-idea: locking opens from "Plan → Revisions".** The current concept is a separate Production workspace (§1), and the
-final interface may differ.
+idea: locking opens from "Plan → Revisions", with no Shoot button.** The decided direction is a **Shoot** view to the
+right of Board (§1), and the final interface may differ.
 
 | | |
 |---|---|

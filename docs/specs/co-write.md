@@ -24,8 +24,10 @@ Optional real-time collaborative screenwriting for two or more writers:
 - optional comments and review;
 - a clean hand-off back to ordinary solo writing.
 
-Co-Write is a potential paid Pro offering. One candidate model: the **session owner pays and invited collaborators
-join free**. That is not decided (§6).
+Co-Write is a potential paid Pro offering. Direction (Nov 2026, prices not final): a **monthly subscription of
+around $4.99**. The subscriber invites collaborators, who **co-write free without paying**. **Pro: Production
+(around $9.99/month) includes Co-Write.** Any Pro subscription also includes the native desktop and Android apps
+(§6).
 
 ## 2. What the current code means for collaboration
 
@@ -95,15 +97,39 @@ C and D may be worth more per hour of work than A, and D could even be a Core fe
 - **Maintenance load** for a solo developer: a live service has uptime, abuse and support costs that a static app
   doesn't.
 
-## 6. Commercial questions
+## 6. Commercial model
 
-- One-time licence vs subscription: hosted relays are an **ongoing** cost, which favours a subscription or a
-  session- or seat-based model over a one-time licence.
-- Owner-pays with free guests: simple to explain, and it keeps Core writers free. Needs abuse limits (session size,
-  storage).
-- Self-hostable relay: open-source the relay so anyone can run their own for free, and sell the hosted one. This fits
-  DraftLine's MIT values and makes "Pro" about convenience rather than lock-in.
-- Accounts: hosted billing needs some identity for the owner. Guests could join by invite link alone.
+**Pro pricing model (direction, prices not final).**
+- **Pro is a monthly subscription to one of two tiers:**
+  - **Pro: Co-Write**, around **$4.99/month**. The subscriber can invite collaborators, who co-write free without
+    paying.
+  - **Pro: Production**, around **$9.99/month**, **including everything in Co-Write**.
+- **Any Pro subscription includes the native apps**: desktop (Windows, macOS, Linux) and Android (phones, tablets,
+  Chromebooks via Google Play). Each native app has everything Core has, plus the subscriber's tier.
+- **Core stays free in the browser, everywhere**, including installing it as an app (PWA) on a computer or Android,
+  which works today and stays free.
+
+Why a subscription fits: hosted relays are an **ongoing** cost that grows with use, and a monthly price covers it
+where a one-time licence wouldn't.
+
+Still open:
+- **Limits for free invitees**: how many per session, and per subscriber.
+- **Identity (decided): no accounts.** Paying for Pro gives the subscriber a **unique licence token**, which they
+  must save. The token unlocks Pro features and the native app downloads, and it authenticates the subscriber to the
+  relay. Invitees join by **invite link alone** and need no token. Still to design:
+  - recovering a lost token (for example re-sending it to the payment email, which the payment provider holds, not
+    DraftLine);
+  - limiting token sharing (for example concurrent sessions per token);
+  - a grace period for offline use and expired subscriptions;
+  - storing the token on the device without ever sending it anywhere but the licence check and the relay.
+- **Lapsed subscriptions**: what happens to a co-written project when the subscription ends? It must stay fully
+  editable as an ordinary solo Core project.
+- **Self-hosting**: should the relay be open source, so anyone can run their own? That fits MIT, but competes with
+  the paid hosted relay.
+- **Patreon (decided)**: active Patreon supporters get a **Pro: Production licence** (which includes Co-Write) and the
+  links to download the desktop and Android apps. Still open: which Patreon tier qualifies, and how tokens are issued
+  and expired as pledges start and stop.
+- **Payments**: provider, taxes and receipts, which a solo developer has to run.
 
 ## 7. Research plan (before any commitment)
 
@@ -119,7 +145,7 @@ C and D may be worth more per hour of work than A, and D could even be a Core fe
    partnerships?
 2. Is a dependency for collaborative editing acceptable, loaded only for Co-Write?
 3. Is end-to-end encryption a requirement, given DraftLine's privacy promise?
-4. Pricing model: subscription, owner-pays sessions, or a self-hostable relay plus a paid hosted one?
-5. Do guests need accounts, or are invite links enough?
+4. Pricing details: final prices, invitee limits, and whether the relay is also self-hostable (§6).
+5. *(Decided: no accounts. Subscribers hold a licence token; guests join by invite link.)*
 6. Which project parts sync in v1: the script only, or also the Scene Board, Story Bible and Plan?
 7. Should asynchronous merging of `.draftline` files (D) be a free Core feature regardless?

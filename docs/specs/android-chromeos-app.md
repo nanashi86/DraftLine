@@ -1,16 +1,23 @@
 # Android & ChromeOS App — phones, tablets and Chromebooks (future plan)
 
-Status: **independent, optional future consideration. Not started, not scheduled.** Written October 2026.
+Status: **future: Google Play app included with any Pro subscription. Not started, not scheduled.** Written October 2026.
 
-> **November 2026 update: pricing below is under review.** DraftLine Core (*Write Your Story*) is the complete,
-> free-forever app ([`../../ROADMAP.md`](../../ROADMAP.md)), so "reading and basic editing are free" understates it:
-> **all writing and planning is free**, in the browser and in any app. The "included with DraftLine Pro" lines assumed
-> Pro was the desktop app, which is no longer the plan ([`desktop-app.md`](desktop-app.md)). Whether Android-only
-> extras such as native folder sync (which the Android browser can't do today) cost anything is an open decision.
-> **Part B's community copy repeats the old pricing and must not be posted as is.** The technical plan in Part A
-> stands.
+> **November 2026 update: the Android app comes with Pro.** The Google Play app (phones, tablets, Chromebooks) is
+> bundled with the desktop app: **downloadable with either Pro subscription** (Co-Write about $4.99/month, or
+> Production about $9.99/month including Co-Write; direction, prices not final; see [`co-write.md`](co-write.md) §6).
+> - Active Patreon supporters get a Pro: Production licence, which includes the Android and desktop downloads. No
+>   accounts: a Pro purchase gives a unique licence token the subscriber saves.
+> - The Android app has **everything Core has, plus the subscriber's tier**. Native extras such as Drive folder sync
+>   on Android are part of the app, with no separate unlock.
+> - **Core stays free in the browser on Android and ChromeOS**, including installing it from Chrome as an app (PWA),
+>   which works today.
+> - The earlier pricing lines below ("reading and basic editing are free", the $9.99 one-time unlock, "free with
+>   DraftLine Pro" meaning the old desktop Pro) are **superseded**.
+>
+> **Part B's community copy repeats the old pricing and must not be posted as is.** Part A's technical plan stands.
+> The adaptive layout and touch work in Part A that benefits the browser app is Core and free.
 
-Pricing: tiered. Reading and basic editing are **free**, in the browser and in the app. The advanced companion
+*(Superseded pricing, kept for the record; see the update above.)* Pricing: tiered. Reading and basic editing are **free**, in the browser and in the app. The advanced companion
 workflow tools (keeping a Drive folder in sync with your computer, for example) are **included free with DraftLine
 Pro**, or unlocked on their own with a small **one-time $9.99 supporter unlock**.
 
@@ -213,6 +220,11 @@ whether a hardware keyboard has been seen.
 ---
 
 ## B. Community & Backer Brief
+
+> **Superseded (November 2026). Do not post.** This copy uses the old pricing ("reading and basic editing are
+> free", a one-time $9.99 unlock, "free with DraftLine Pro") and says "No accounts". Under the current plan the
+> Play app is **included with a Pro subscription** (or a Patreon supporter's Production licence) and has everything in
+> Core. It checks a saved **licence token**, with no account. Kept only as a draft to rewrite when the time comes.
 
 Copy ready to paste. No dates are promised; update the status line as phases land.
 

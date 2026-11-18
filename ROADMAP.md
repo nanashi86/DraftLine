@@ -11,8 +11,8 @@ Every script exports to open formats (Final Draft `.fdx`, Fountain and PDF), so 
 | Product | Tagline | What it is |
 |---|---|---|
 | **DraftLine Core** | **Write Your Story** | The complete, free-forever screenwriting app. Everything DraftLine does today, and everything it keeps gaining. |
-| **DraftLine Pro: Co-Write** | **Write Together** | Optional real-time collaboration for writing partners and rooms. *(future, exploring)* |
-| **DraftLine Pro: Production** | **Page to Production** | Optional advanced shooting-script tools: locked pages, A-pages, colored revisions. *(future, deferred)* |
+| **DraftLine Pro: Co-Write** | **Write Together** | Optional real-time collaboration for writing partners and rooms. Invited co-writers join free. *(future, exploring)* |
+| **DraftLine Pro: Production** | **Page to Production** | Optional advanced shooting-script tools: locked pages, A-pages, colored revisions. Includes Co-Write. *(future, deferred)* |
 
 **DraftLine Core is not a limited version of DraftLine Pro.** It is the whole app. Every feature DraftLine has today
 stays free, fully functional and unrestricted, forever: Write, the entire Plan workspace, the Scene Board and Live
@@ -21,8 +21,10 @@ Doctor, every import and export, offline use and folder sync. Nothing is ever mo
 Core keeps getting new features too: the next two, Schedule and Budget, are free.
 
 Pro is only for optional, specialised workflows that add something genuinely new. All three are planned as
-browser-based. You don't need to download anything, and you don't need an account to use Core. Until Pro exists,
-the app is simply called **DraftLine**.
+browser-based. You don't need to download anything, and you don't need an account to use Core. Pro would be an
+optional monthly subscription (pricing not final, no account needed: you get a licence token), and a Pro subscription would also include DraftLine's native
+desktop and Android apps, each with everything in Core plus your Pro tier. Core in the browser, including installing
+it as an app from your browser, stays free. Until Pro exists, the app is simply called **DraftLine**.
 
 ## Shipped
 
@@ -54,8 +56,9 @@ These are worth exploring, but are not on the critical path and are not tied to 
 
 - **Performance benchmarks** for very long scripts (Core).
 - **Tablet and touch layout** improvements (Core).
-- **Native desktop app** (Windows, macOS, Linux): a possible separate project, not a requirement for anything above.
-- **Android and Chromebook app on Google Play**: also a separate possibility.
+- **Native apps for Pro subscribers**: a desktop app (Windows, macOS, Linux) and an Android and Chromebook app on
+  Google Play, each with everything in Core plus the subscriber's Pro tier. Pro features themselves work in the
+  browser, so the native apps are an extra, not a requirement.
 
 Milestones are listed in order of intent, not with dates: each one ships when it's ready. Design notes live in
 [`docs/specs/`](docs/specs/).
@@ -64,7 +67,8 @@ Milestones are listed in order of intent, not with dates: each one ships when it
 
 DraftLine is built by one writer-developer, funded by the people who use it.
 
-- **Patreon:** [patreon.com/DraftLine](https://patreon.com/DraftLine)
+- **Patreon:** [patreon.com/DraftLine](https://patreon.com/DraftLine). When Pro launches, active supporters will get Pro: Production (which includes Co-Write) and the desktop
+  and Android apps.
 - **Ko-fi:** [ko-fi.com/draftline](https://ko-fi.com/draftline)
 - **Discord:** [discord.gg/8ytSsSWsPX](https://discord.gg/8ytSsSWsPX): the DraftLine Writers' Room, for
   feedback, bug reports and early builds
