@@ -139,10 +139,17 @@ Still open:
 - **Self-hosting**: should the relay be open source, so anyone can run their own? That fits MIT, but competes with
   the paid hosted relay.
 - **Patreon (decided)**: eligible active Patreon supporters get a **Pro: Production licence** (which includes
-  Co-Write). Still open: which Patreon tier qualifies, and how tokens are issued and expired as pledges start and stop.
-- **Early access (decided)**: supporters (Ko-fi and Patreon) get **early access to the native desktop and Android
-  apps** before public release, provided the Ko-fi goal ("DraftLine Native Desktop & Android/ChromeOS Builds") is
-  reached. Any early-access promise already made is kept. Early access is a head start, not a paywall: the apps are
+  Co-Write). Eligible tiers (proposed, to confirm when Pro launches): **The Writers' Room** ($10/month) and
+  **Executive Producer** ($25/month). **In the Credits** ($3/month) stays credits, a Discord role and the community.
+  When Pro launches, add "Pro: Production licence" to those tiers' perks on Patreon. Still open: how tokens are issued
+  and expired as pledges start and stop.
+- **Early access (decided)**: supporters get **early access to the native desktop and Android apps** before public
+  release, provided the Ko-fi goal ("DraftLine Native Desktop & Android/ChromeOS Builds") is reached.
+  - **Patreon, already advertised:** Patreon's **The Writers' Room** ($10/month) and **Executive Producer** ($25/month) tiers both list early access. The Writers' Room's description promises
+    "early beta access to standalone desktop (Windows, macOS, Linux) and Android/ChromeOS builds". These promises are
+    kept. In the Credits ($3) does not include early access.
+  - **Ko-fi:** supporters get early access too. This isn't stated on Ko-fi yet (as of November 2026), so add it to
+    the goal description when the apps get close. Early access is a head start, not a paywall: the apps are
   free for everyone once released.
 - **Payments**: provider, taxes and receipts, which a solo developer has to run.
 

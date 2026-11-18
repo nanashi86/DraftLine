@@ -9,7 +9,8 @@ Status: **future, free for everyone (Core free, Pro by licence). Not started, no
 > - **Pro is a licence tied to the writer** (Co-Write about $4.99/month, Production about $9.99/month including
 >   Co-Write; direction, prices not final; see [`co-write.md`](co-write.md) §6). The token goes in **Settings → Pro
 >   License**, the same field on every platform, with no account.
-> - **Early access:** Ko-fi and Patreon supporters get early access to the Android and desktop builds, provided the
+> - **Early access:** Ko-fi supporters and Patreon's **The Writers' Room** ($10) and **Executive Producer** ($25)
+>   tiers (as their tier perks already say) get early access to the Android and desktop builds, provided the
 >   Ko-fi goal ("DraftLine Native Desktop & Android/ChromeOS Builds") is reached. Existing promises are kept.
 > - The earlier pricing lines below ("reading and basic editing are free", the $9.99 one-time unlock, "free with
 >   DraftLine Pro") are **superseded**.

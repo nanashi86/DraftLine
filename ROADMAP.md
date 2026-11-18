@@ -57,8 +57,8 @@ These are worth exploring, but are not on the critical path and are not tied to 
 - **Performance benchmarks** for very long scripts (Core).
 - **Tablet and touch layout** improvements (Core).
 - **Native apps**: a desktop app (Windows, macOS, Linux) and an Android and Chromebook app on Google Play. They're
-  free, like the browser version: Core costs nothing on any platform, and a Pro licence works on all of them. Ko-fi
-  and Patreon supporters get early access once the Ko-fi goal is reached.
+  free, like the browser version: Core costs nothing on any platform, and a Pro licence works on all of them. Supporters (Patreon's
+  Writers' Room and Executive Producer tiers, and Ko-fi) get early access once the Ko-fi goal is reached.
 
 Milestones are listed in order of intent, not with dates: each one ships when it's ready. Design notes live in
 [`docs/specs/`](docs/specs/).
@@ -67,8 +67,8 @@ Milestones are listed in order of intent, not with dates: each one ships when it
 
 DraftLine is built by one writer-developer, funded by the people who use it.
 
-- **Patreon:** [patreon.com/DraftLine](https://patreon.com/DraftLine). When Pro launches, eligible active supporters will get a Pro: Production licence (which includes
-  Co-Write).
+- **Patreon:** [patreon.com/DraftLine](https://patreon.com/DraftLine). The Writers' Room and Executive Producer tiers include early access to the desktop and
+  Android builds, and when Pro launches they're planned to include a Pro: Production licence (which includes Co-Write).
 - **Ko-fi:** [ko-fi.com/draftline](https://ko-fi.com/draftline)
 - **Discord:** [discord.gg/8ytSsSWsPX](https://discord.gg/8ytSsSWsPX): the DraftLine Writers' Room, for
   feedback, bug reports and early builds

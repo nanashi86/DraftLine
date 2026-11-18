@@ -12,7 +12,8 @@ from the same code.
 > - **Pro is a licence tied to the writer** (a monthly subscription, prices not final; [`co-write.md`](co-write.md)
 >   §6). The writer enters their token in **Settings → Pro License**, the same field on every platform, with no
 >   account. One licence works across browser, desktop and Android.
-> - **Early access:** Ko-fi and Patreon supporters get early access to the desktop and Android builds, provided the
+> - **Early access:** Ko-fi supporters and Patreon's **The Writers' Room** ($10) and **Executive Producer** ($25)
+>   tiers (as their tier perks already say) get early access to the desktop and Android builds, provided the
 >   Ko-fi goal ("DraftLine Native Desktop & Android/ChromeOS Builds") is reached. Existing promises are kept.
 > - Pro features themselves are browser-based, so the desktop app is never a requirement for Pro.
 >
