@@ -15,7 +15,11 @@ from the same code.
 > - **Early access:** Ko-fi supporters and Patreon's **The Writers' Room** ($10) and **Executive Producer** ($25)
 >   tiers (as their tier perks already say) get early access to the desktop and Android builds, provided the
 >   Ko-fi goal ("DraftLine Native Desktop & Android/ChromeOS Builds") is reached. Existing promises are kept.
-> - Pro features themselves are browser-based, so the desktop app is never a requirement for Pro.
+> - Pro features themselves are browser-based, so the desktop app is never a requirement for Pro. How licences renew
+>   and expire: [`pro-license.md`](pro-license.md).
+> - **Platform scope: Windows only for now.** macOS and Linux are not planned at the moment. The research below
+>   covers all three and is kept for later. Skip the macOS and Linux steps (Apple notarization, WebKitGTK, AppImage,
+>   Flathub) until they're back in scope.
 >
 > **Superseded, kept for the record:**
 > - Earlier versions of this page priced the desktop app itself, first as "DraftLine Pro" for a one-time $49 (or

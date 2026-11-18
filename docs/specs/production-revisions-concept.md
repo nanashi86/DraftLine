@@ -10,7 +10,8 @@
 > **Pricing direction (not final):** about **$9.99/month**, **including everything in Pro: Co-Write**. The licence is
 > tied to the writer, not the platform: a token entered in Settings → Pro License unlocks Production in the browser,
 > the installed app and the planned desktop and Android apps. No accounts. Patreon's Writers' Room and Executive Producer
-> tiers are planned to include a Production licence. See [`co-write.md`](co-write.md) §6.
+> tiers are planned to include a Production licence. See [`co-write.md`](co-write.md) §6 and, for expiry (locked
+> scripts stay visible and printable, read-only), [`pro-license.md`](pro-license.md).
 
 Feasibility assessment written November 2026 against DraftLine 0.11.0 (commit `4a72ac6`; references re-checked at
 `343c49a`). Line numbers drift, so use function names as the stable reference.

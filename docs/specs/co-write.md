@@ -104,7 +104,7 @@ C and D may be worth more per hour of work than A, and D could even be a Core fe
   - **Pro: Co-Write**, around **$4.99/month**. The subscriber can invite collaborators, who co-write free without
     paying.
   - **Pro: Production**, around **$9.99/month**, **including everything in Co-Write**.
-- **Platforms are not paywalled.** The browser, the installed PWA, and the planned desktop (Windows, macOS, Linux)
+- **Platforms are not paywalled.** The browser, the installed PWA, and the planned desktop (Windows)
   and Android/ChromeOS apps are all just ways to use DraftLine. **Core is free on every one of them**, and a Pro
   licence unlocks its tier on every one of them. Subscribe once, enter the token on Windows, use the same licence
   on a Chromebook, with no second purchase.
@@ -113,11 +113,12 @@ C and D may be worth more per hour of work than A, and D could even be a Core fe
 |---|---|---|---|
 | Browser | Free | Unlocked | Unlocked |
 | Installed PWA | Free | Unlocked | Unlocked |
-| Desktop app (planned) | Free | Unlocked | Unlocked |
+| Windows app (planned) | Free | Unlocked | Unlocked |
 | Android/ChromeOS app (planned) | Free | Unlocked | Unlocked |
 
 - **Entering the licence:** a **"Pro License"** field in **Settings**, the same on every platform, where the writer
   pastes their token. No account.
+- **How licences are issued, renewed and expire:** [`pro-license.md`](pro-license.md).
 - **A licence unlocks features, not unlimited service.** Hosting, storage, concurrent sessions and devices per token
   get reasonable limits, defined before launch.
 
@@ -128,14 +129,11 @@ Still open:
 - **Limits for free invitees**: how many per session, and per subscriber.
 - **Identity (decided): no accounts.** Paying for Pro gives the subscriber a **unique licence token**, which they
   must save and enter in **Settings → Pro License** on any platform. The token unlocks the tier's features and
-  authenticates the subscriber to the relay. It is **not** needed to download or use any DraftLine app. Invitees join by **invite link alone** and need no token. Still to design:
-  - recovering a lost token (for example re-sending it to the payment email, which the payment provider holds, not
-    DraftLine);
-  - limiting token sharing (for example concurrent sessions per token);
-  - a grace period for offline use and expired subscriptions;
-  - storing the token on the device without ever sending it anywhere but the licence check and the relay.
-- **Lapsed subscriptions**: what happens to a co-written project when the subscription ends? It must stay fully
-  editable as an ordinary solo Core project.
+  authenticates the subscriber to the relay. It is **not** needed to download or use any DraftLine app. Invitees join by **invite link alone** and need no token. How keys, renewal, expiry, grace, device limits and lost keys work is in
+  [`pro-license.md`](pro-license.md).
+- **Lapsed subscriptions (decided)**: the licence simply stops renewing and runs out after the paid period plus a
+  grace period. The co-written project stays on the device, fully editable as an ordinary solo Core project. Live
+  sessions end. See [`pro-license.md`](pro-license.md) §3–4.
 - **Self-hosting**: should the relay be open source, so anyone can run their own? That fits MIT, but competes with
   the paid hosted relay.
 - **Patreon (decided)**: eligible active Patreon supporters get a **Pro: Production licence** (which includes
@@ -146,7 +144,8 @@ Still open:
 - **Early access (decided)**: supporters get **early access to the native desktop and Android apps** before public
   release, provided the Ko-fi goal ("DraftLine Native Desktop & Android/ChromeOS Builds") is reached.
   - **Patreon, already advertised:** Patreon's **The Writers' Room** ($10/month) and **Executive Producer** ($25/month) tiers both list early access. The Writers' Room's description promises
-    "early beta access to standalone desktop (Windows, macOS, Linux) and Android/ChromeOS builds". These promises are
+    "early beta access to standalone desktop (Windows, macOS, Linux) and Android/ChromeOS builds". *(Native apps are
+    now scoped to Windows and Android/ChromeOS; update that tier text so it only promises those.)* These promises are
     kept. In the Credits ($3) does not include early access.
   - **Ko-fi:** supporters get early access too. This isn't stated on Ko-fi yet (as of November 2026), so add it to
     the goal description when the apps get close. Early access is a head start, not a paywall: the apps are

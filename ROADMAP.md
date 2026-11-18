@@ -56,7 +56,8 @@ These are worth exploring, but are not on the critical path and are not tied to 
 
 - **Performance benchmarks** for very long scripts (Core).
 - **Tablet and touch layout** improvements (Core).
-- **Native apps**: a desktop app (Windows, macOS, Linux) and an Android and Chromebook app on Google Play. They're
+- **Native apps**: a Windows desktop app and an Android and Chromebook app on Google Play (macOS, Linux and iOS
+  aren't planned for now). They're
   free, like the browser version: Core costs nothing on any platform, and a Pro licence works on all of them. Supporters (Patreon's
   Writers' Room and Executive Producer tiers, and Ko-fi) get early access once the Ko-fi goal is reached.
 

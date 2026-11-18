@@ -522,8 +522,8 @@ Want to see where DraftLine is heading? Check out the [Public Roadmap](ROADMAP.m
 stays free, forever, and the next planned features, **Schedule** and **Budget** in Plan, are free too.
 
 Design notes for planned and possible features live in `docs/specs/`: Schedule & Budget, Co-Write (real-time
-collaboration), Production (colored revisions, locked pages and scene numbers), Table Read (local-first read-aloud),
-and the desktop and Android apps.
+collaboration), Production (colored revisions, locked pages and scene numbers), Pro licences, Table Read (local-first
+read-aloud), and the Windows and Android apps.
 
 ## Testing
 
