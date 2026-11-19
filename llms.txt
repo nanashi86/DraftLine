@@ -15,6 +15,7 @@
 
 ## Pages
 
+- [Welcome](https://draftlineapp.com/welcome/): a short introduction to DraftLine, with a screenshot of the real editor
 - [Features](https://draftlineapp.com/features/): every tool, including writing on a phone, the Scene Board, Format Doctor, Dialogue Tuner, Story Bible, snapshots, breakdowns, stripboard and reports
 - [How DraftLine compares](https://draftlineapp.com/compare/): DraftLine beside Final Draft, Fade In, WriterDuet, Celtx and Beat, including where each of those is the better choice
 - [Philosophy](https://draftlineapp.com/philosophy/): why DraftLine exists, its mission, and the five principles behind it
