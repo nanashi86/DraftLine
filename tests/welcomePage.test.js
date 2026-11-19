@@ -31,6 +31,8 @@ describe('The Welcome page', () => {
     assert.match(text, /The Slogan No subscriptions\. No distractions\. No compromises\. Just Write\./);
     assert.match(text, /The Philosophy Your Story\. Your Rules\./);
     assert.match(text, /The Promise Fast, Distraction-Free Screenwriting\./);
+    assert.match(html, /<span class="slogan-end">Just Write\.<\/span><\/dd>/);
+    assert.match(html, /\.slogan-end \{ display: block;/);
   });
   it('links to Core Philosophy, Explore Features and Compare DraftLine', () => {
     for (const [href, label] of [['/philosophy/', 'Core Philosophy'], ['/features/', 'Explore Features'], ['/compare/', 'Compare DraftLine']]) {
