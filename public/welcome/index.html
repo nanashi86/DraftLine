@@ -1,0 +1,271 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Welcome to DraftLine — Fast, Distraction-Free Screenwriting</title>
+    <meta name="description" content="Meet DraftLine: free, open-source screenwriting software with professional formatting, story planning tools and an uncluttered writing space. No account, works offline." />
+    <link rel="canonical" href="https://draftlineapp.com/welcome/" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=2" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png?v=2" />
+    <meta name="theme-color" content="#1c1d20" />
+    <!-- Settings → Appearance in the app (src/lib/userSettings.js): the same key and the same rule as
+         features/, compare/ and philosophy/, applied before the page paints. The editor screenshot follows
+         the theme too (editor-dark.webp / editor-light.webp, both captured from the real app). -->
+    <script>
+      (function () {
+        var KEY = 'draftline_user_settings';
+        var mq = window.matchMedia ? window.matchMedia('(prefers-color-scheme: light)') : null;
+        var choice = function () {
+          try {
+            var s = JSON.parse(localStorage.getItem(KEY) || 'null') || {};
+            return s.v === 2 ? s.theme : s.theme === 'light' ? 'light' : ''; // the first build's "dark" was never a choice
+          } catch (e) { return ''; }
+        };
+        var apply = function () {
+          var t = choice();
+          var light = t === 'light' || (t !== 'dark' && !!(mq && mq.matches));
+          if (light) document.documentElement.setAttribute('data-theme', 'light');
+          else document.documentElement.removeAttribute('data-theme');
+          var meta = document.querySelector('meta[name="theme-color"]');
+          if (meta) meta.setAttribute('content', light ? '#f4f0e8' : '#1c1d20');
+          var shot = document.getElementById('editor-shot');
+          if (shot) shot.src = light ? shot.getAttribute('data-light') : shot.getAttribute('data-dark');
+        };
+        window.draftlineApplyTheme = apply;
+        apply();
+        if (mq && mq.addEventListener) mq.addEventListener('change', apply);
+        window.addEventListener('storage', function (e) { if (e.key === KEY) apply(); });
+      })();
+    </script>
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="DraftLine" />
+    <meta property="og:title" content="Welcome to DraftLine — Just Write." />
+    <meta property="og:description" content="Free, open-source screenwriting software: professional formatting, story planning tools and an uncluttered writing space." />
+    <meta property="og:url" content="https://draftlineapp.com/welcome/" />
+    <meta property="og:image" content="https://draftlineapp.com/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="DraftLine: fast, distraction-free screenwriting. Free." />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Welcome to DraftLine — Just Write." />
+    <meta name="twitter:description" content="Free, open-source screenwriting software: professional formatting, story planning tools and an uncluttered writing space." />
+    <meta name="twitter:image" content="https://draftlineapp.com/og-image.png" />
+    <!-- Fonts ship with DraftLine (public/fonts/, the same files the app uses), so nothing from another
+         site holds up the first paint. SIL Open Font License: fonts/Inter-OFL.txt, fonts/CourierPrime-OFL.txt. -->
+    <link rel="preload" href="/fonts/inter-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/courier-prime-700.woff2" as="font" type="font/woff2" crossorigin />
+    <style>
+      @font-face { font-family: 'Inter'; font-style: normal; font-weight: 100 900; font-display: swap; src: url('/fonts/inter-latin-wght-normal.woff2') format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+      @font-face { font-family: 'Inter'; font-style: normal; font-weight: 100 900; font-display: swap; src: url('/fonts/inter-latin-ext-wght-normal.woff2') format('woff2'); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+      @font-face { font-family: 'Courier Prime'; font-style: normal; font-weight: 400; font-display: swap; src: url('/fonts/courier-prime-400.woff2') format('woff2'); }
+      @font-face { font-family: 'Courier Prime'; font-style: normal; font-weight: 700; font-display: swap; src: url('/fonts/courier-prime-700.woff2') format('woff2'); }
+    </style>
+    <style>
+      /* The same tokens, header and footer as features/, compare/ and philosophy/. */
+      :root {
+        --bg: #1c1d20; --panel: #232428; --text: #e9e7e2; --strong: #ffffff; --muted: #9a9890;
+        --accent: #c8553d; --line: rgba(255, 255, 255, 0.1);
+        --lid: #0e0f11; --lid-edge: #34353a; --deck-1: #3a3b40; --deck-2: #222327;
+      }
+      :root[data-theme='light'] { --bg: #f4f0e8; --panel: #f7f4ee; --text: #22201e; --strong: #1a1816; --muted: #6e6a64;
+        --accent: #b83a2c; --line: rgba(34, 32, 30, 0.13);
+        --lid: #1b1c1f; --lid-edge: #2c2d31; --deck-1: #d9d6cf; --deck-2: #b9b5ad; }
+      * { box-sizing: border-box; }
+      html { -webkit-text-size-adjust: 100%; }
+      body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.65 Inter, system-ui, sans-serif; }
+      a { color: var(--accent); }
+      a:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 2px; }
+      .wrap { max-width: 1072px; margin: 0 auto; padding: 0 16px; } /* a 1040px column, the width of compare/'s table */
+      header { border-bottom: 1px solid var(--line); }
+      .bar { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-top: 14px; padding-bottom: 14px; } /* keeps .wrap's 16px sides, so the logo and button line up with the text */
+      .brand { display: flex; align-items: center; gap: 10px; color: var(--strong); text-decoration: none;
+        font: 700 20px 'Courier Prime', 'Courier New', monospace; }
+      .brand img { width: 28px; height: 28px; border-radius: 6px; }
+      .cta { display: inline-block; background: var(--accent); color: #fff; text-decoration: none; font-weight: 600;
+        padding: 9px 16px; border-radius: 8px; white-space: nowrap; }
+      .cta:focus-visible, .brand:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+      footer { padding: 32px 0 48px; color: var(--muted); font-size: 14px; }
+      footer .next { margin: 0 0 18px; }
+
+      /* This page: the same type sizes as the other pages (40px title, 24px section titles, 16px text). */
+      .label { font: 600 12px/1.4 Inter, system-ui, sans-serif; letter-spacing: 0.14em; text-transform: uppercase;
+        color: var(--muted); margin: 0 0 8px; }
+      .statement { font: 700 20px/1.35 'Courier Prime', 'Courier New', monospace; color: var(--strong); margin: 0; text-wrap: balance; }
+      section { padding: 32px 0; border-top: 1px solid var(--line); }
+      h2.title { font: 700 24px/1.3 'Courier Prime', 'Courier New', monospace; color: var(--strong); margin: 0 0 16px; }
+      .nowrap { white-space: nowrap; }
+
+      .hero { padding: 48px 0 8px; }
+      .eyebrow { margin: 0 0 6px; }
+      .kicker { font: 600 15px/1.5 Inter, system-ui, sans-serif; color: var(--muted); margin: 0 0 6px; }
+      .kicker span { white-space: nowrap; } /* a phone wraps between the phrases, never inside one */
+      h1 { font: 700 clamp(28px, 6vw, 40px)/1.2 'Courier Prime', 'Courier New', monospace; color: var(--strong); margin: 0; }
+      .promise { font: 700 20px/1.4 'Courier Prime', 'Courier New', monospace; color: var(--strong); margin: 22px 0 8px; }
+      .lede { max-width: 640px; margin: 0; }
+      .actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; margin: 24px 0 0; }
+      .cta-lg { padding: 11px 20px; font-size: 16px; }
+      .link-arrow { font-weight: 600; text-decoration: none; }
+      .link-arrow:hover { text-decoration: underline; }
+
+      /* The laptop: a CSS frame around the real screenshot (2880×1800, 16:10), shown at its own proportions
+         and never stretched. Front-facing, no props: the screen is the point. */
+      .device { margin: 40px auto 8px; max-width: 980px; }
+      .lid { width: 88%; margin: 0 auto; padding: 2.4% 2.4% 3.2%; background: var(--lid); border: 1px solid var(--lid-edge);
+        border-radius: 18px 18px 4px 4px; position: relative; box-shadow: 0 30px 60px -30px rgba(0, 0, 0, 0.55); }
+      .lid::before { content: ''; position: absolute; top: 1.1%; left: 50%; width: 6px; height: 6px; margin-left: -3px;
+        border-radius: 50%; background: #2b2c30; } /* camera */
+      .screen { display: block; width: 100%; height: auto; aspect-ratio: 16 / 10; border-radius: 3px; background: #1b1c1f; }
+      .deck { height: 14px; background: linear-gradient(var(--deck-1), var(--deck-2)); border-radius: 0 0 14px 14px; position: relative; }
+      .deck::before { content: ''; position: absolute; top: 0; left: 50%; width: 15%; height: 6px; margin-left: -7.5%;
+        background: rgba(0, 0, 0, 0.18); border-radius: 0 0 8px 8px; } /* the lid's notch */
+      figure { margin: 0; }
+      figcaption { text-align: center; color: var(--muted); font-size: 13px; margin: 14px 0 0; }
+
+      .trio-wrap { border-top: 0; padding-top: 16px; } /* the three columns carry their own rules */
+      .trio { display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; margin: 0; }
+      .trio div { border-top: 1px solid var(--line); padding-top: 14px; }
+      .trio dd { margin: 0; }
+
+      .tools { display: grid; grid-template-columns: 1fr 1fr; gap: 0 40px; list-style: none; margin: 0; padding: 0; }
+      .tools li { padding: 16px 0; border-top: 1px solid var(--line); }
+      .tools h3 { font: 600 16px/1.5 Inter, system-ui, sans-serif; color: var(--strong); margin: 0 0 4px; }
+      .tools p { margin: 0; }
+
+      .more { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; list-style: none; margin: 0; padding: 0; }
+      .more a { display: block; height: 100%; padding: 16px 18px; border: 1px solid var(--line); border-radius: 10px;
+        background: var(--panel); color: var(--text); text-decoration: none; }
+      .more a:hover { border-color: var(--accent); }
+      .more strong { display: block; color: var(--strong); font: 700 18px/1.35 'Courier Prime', 'Courier New', monospace; margin: 0 0 4px; }
+      .more span { color: var(--muted); font-size: 14px; }
+
+      @media (max-width: 760px) {
+        .trio, .more { grid-template-columns: 1fr; gap: 16px; }
+        .tools { grid-template-columns: 1fr; }
+        .lid { width: 94%; border-radius: 12px 12px 3px 3px; }
+        .deck { height: 10px; }
+      }
+    </style>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebPage",
+        "@id": "https://draftlineapp.com/welcome/#page",
+        "name": "Welcome to DraftLine",
+        "url": "https://draftlineapp.com/welcome/",
+        "dateModified": "2026-11-19",
+        "isPartOf": { "@id": "https://draftlineapp.com/#website" },
+        "about": { "@type": "WebApplication", "@id": "https://draftlineapp.com/#app", "name": "DraftLine", "url": "https://draftlineapp.com/" }
+      }
+    </script>
+  </head>
+  <body>
+    <header>
+      <div class="wrap bar">
+        <a class="brand" href="/"><img src="/icon-192.png?v=2" alt="" width="28" height="28" />DraftLine</a>
+        <a class="cta" data-open-app href="/?from=welcome">Open DraftLine</a>
+      </div>
+    </header>
+    <main class="wrap">
+      <div class="hero">
+        <p class="label eyebrow">DraftLine</p>
+        <p class="kicker"><span>No subscriptions.</span> <span>No distractions.</span> <span>No compromises.</span></p>
+        <h1>Just Write.</h1>
+        <p class="promise">Fast, <span class="nowrap">distraction-free</span> screenwriting.</p>
+        <p class="lede">Professional screenplay formatting, creative planning tools, and an uncluttered writing space.
+          Free, open-source, and ready when you are.</p>
+        <p class="actions">
+          <a class="cta cta-lg" data-open-app href="/?from=welcome">Start Writing</a>
+          <a class="link-arrow" href="/features/">Explore Features →</a>
+        </p>
+      </div>
+
+      <figure class="device">
+        <div class="lid">
+          <img id="editor-shot" class="screen" width="2880" height="1800" fetchpriority="high"
+            data-dark="/welcome/editor-dark.webp" data-light="/welcome/editor-light.webp"
+            alt="The DraftLine editor with the sample script The Last Ferry open: the scene list on the left and a formatted screenplay page beside it." />
+          <script>window.draftlineApplyTheme && window.draftlineApplyTheme();</script>
+          <noscript><img class="screen" src="/welcome/editor-dark.webp" width="2880" height="1800" alt="The DraftLine editor with the sample script The Last Ferry open." /></noscript>
+        </div>
+        <div class="deck" aria-hidden="true"></div>
+        <figcaption>The real DraftLine editor, with the sample script <em>The Last Ferry</em>.</figcaption>
+      </figure>
+
+      <section id="what" class="trio-wrap" aria-label="The slogan, the philosophy and the promise">
+        <dl class="trio">
+          <div>
+            <dt class="label">The Slogan</dt>
+            <dd class="statement"><span class="nowrap">No subscriptions.</span> <span class="nowrap">No distractions.</span> <span class="nowrap">No compromises.</span> <span class="nowrap">Just Write.</span></dd>
+          </div>
+          <div>
+            <dt class="label">The Philosophy</dt>
+            <dd class="statement">Your Story. Your Rules.</dd>
+          </div>
+          <div>
+            <dt class="label">The Promise</dt>
+            <dd class="statement">Fast, <span class="nowrap">Distraction-Free</span> Screenwriting.</dd>
+          </div>
+        </dl>
+      </section>
+
+      <section id="inside" aria-labelledby="inside-title">
+        <h2 class="title" id="inside-title">What you get, free</h2>
+        <ul class="tools">
+          <li>
+            <h3>Professional formatting</h3>
+            <p>Tab and Enter move you through every screenplay element. Hollywood pagination with (MORE) and (CONT'D), and a page count that matches the PDF.</p>
+          </li>
+          <li>
+            <h3>Story planning</h3>
+            <p>A Scene Board of index cards in three or four acts, a Story Bible and character bios, beside the script whenever you want them.</p>
+          </li>
+          <li>
+            <h3>Polish and prep</h3>
+            <p>Format Doctor, Dialogue Tuner, snapshots you can compare, and scene breakdowns, a stripboard and reports from the script itself.</p>
+          </li>
+          <li>
+            <h3>Yours, everywhere</h3>
+            <p>No account. Works offline, on a computer or a phone. Final Draft (.fdx) and Fountain in and out, a ready-made PDF, and your scripts stay on your device.</p>
+          </li>
+        </ul>
+      </section>
+
+      <section id="more" aria-labelledby="more-title">
+        <h2 class="title" id="more-title">Learn more</h2>
+        <ul class="more">
+          <li><a href="/philosophy/"><strong>Our Philosophy</strong><span>Why a writer built a free screenwriting app.</span></a></li>
+          <li><a href="/features/"><strong>Explore Features</strong><span>Every tool, from formatting to reports.</span></a></li>
+          <li><a href="/compare/"><strong>Compare DraftLine</strong><span>Beside Final Draft, Fade In, WriterDuet and more.</span></a></li>
+        </ul>
+      </section>
+    </main>
+    <footer class="wrap">
+      <p class="next"><a class="cta" data-open-app href="/?from=welcome">Start Writing</a></p>
+      <p>DraftLine is free and open source under the MIT License. Source, issues and the full README are on
+        <a href="https://github.com/nanashi86/DraftLine">GitHub</a>.</p>
+    </footer>
+    <script>
+      // "Start Writing" / "Open DraftLine" carry the ad click's identifiers (gclid, utm_…) to the app, where
+      // Google Tag Manager reads them, and mark the visit with from=welcome.
+      (function () {
+        try {
+          var here = new URLSearchParams(window.location.search);
+          document.querySelectorAll('a[data-open-app]').forEach(function (a) {
+            var to = new URL(a.getAttribute('href'), window.location.href);
+            here.forEach(function (v, k) { if (/^(gclid|gbraid|wbraid|utm_[a-z]+)$/.test(k)) to.searchParams.set(k, v); });
+            a.href = to.pathname + to.search;
+          });
+        } catch (e) { /* old browser: the plain link still works */ }
+      })();
+      (function () {
+        try { if (localStorage.getItem('draftline_is_admin') === 'true') return; } catch (e) { /* no storage */ }
+        var beacon = document.createElement('script');
+        beacon.defer = true;
+        beacon.src = 'https://static.cloudflareinsights.com/beacon.min.js';
+        beacon.setAttribute('data-cf-beacon', '{"token": "12fb1a12f74a4632b8201f0cb4563745"}');
+        document.head.appendChild(beacon);
+      })();
+    </script>
+  </body>
+</html>

@@ -99,7 +99,7 @@ import FindBar from './components/FindBar.jsx';
 import FindStepper from './components/FindStepper.jsx';
 import { findMatches, hitsById, nearestMatch, replaceMatches } from './lib/findReplace.js';
 import { EXPORT_TIP, FORMAT_DOCTOR_TIP, claimTip, muteTip } from './lib/supportTips.js';
-import BrandMark from './components/BrandMark.jsx';
+import BrandMenu from './components/BrandMenu.jsx';
 import { MILESTONES, MILESTONE_TOAST_MS, finishedSentence, milestonesReached } from './lib/milestones.js';
 import BackupToast from './components/BackupToast.jsx';
 import { watchStatusFit } from './lib/statusFit.js';
@@ -2488,17 +2488,7 @@ function Workspace({ boot }) {
                 <line x1="6" y1="2.5" x2="6" y2="13.5" stroke="currentColor" />
               </svg>
             </button>
-            <button
-              type="button"
-              className={`brand${helpKind === 'about' ? ' is-open' : ''}`}
-              onClick={() => setHelpKind('about')}
-              title="About DraftLine"
-              aria-label="About DraftLine"
-              aria-haspopup="dialog"
-            >
-              <BrandMark />
-              <span className="brand-name">DraftLine</span>
-            </button>
+            <BrandMenu onAbout={() => setHelpKind('about')} aboutOpen={helpKind === 'about'} />
             <div className={`doc-meta${authorCramped ? ' is-cramped' : ''}`}>
               <div className={`doc-switch${drawerOpen ? ' is-open' : ''}`}>
                 {/* The wrapper sizes the field to its text (the hidden ::after copy), within its limits. */}

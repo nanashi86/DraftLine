@@ -23,7 +23,7 @@ describe('Top bar: three zones that can’t collide', () => {
     assert.ok(order.every((i) => i > 0), JSON.stringify(order));
     assert.deepEqual([...order].sort((a, b) => a - b), order);
     const left = header.slice(order[0], order[1]);
-    assert.match(left, /className=\{`brand/);
+    assert.match(left, /<BrandMenu onAbout=\{\(\) => setHelpKind\('about'\)\}/);
     assert.match(left, /className="doc-switch-btn"/);
     const right = header.slice(order[3]);
     assert.match(right, /className="seg view-seg" role="radiogroup"/);
@@ -196,9 +196,10 @@ describe('Top bar: narrow windows collapse in steps', () => {
     assert.equal(wide[0].label, 'View Snapshots');
     assert.match(header, /focusOnBar: inPlan \|\| focusShowing\(\),\s*onFocus: \(\) => setFocusMode\(true\),/, 'either Focus button counts: the bar’s or the writing row’s');
   });
-  it('the D opens About at every width — no breakpoint ever hides it', () => {
+  it('the D opens its menu (with About) at every width — no breakpoint ever hides it', () => {
     assert.ok(!/\.brand(-mark)?\s*\{[^}]*display: none/.test(css));
     assert.ok(!/\.brand(-mark)?,/.test(css.replace(/\.brand-name,/g, '')), 'not hidden as part of a selector list either');
-    assert.match(header, /className=\{`brand[^`]*`\}\s*onClick=\{\(\) => setHelpKind\('about'\)\}/);
+    assert.match(header, /<BrandMenu onAbout=\{\(\) => setHelpKind\('about'\)\}/);
+    assert.match(rule('.brand-menu'), /pointer-events: auto;.*position: relative;.*z-index: 30;/);
   });
 });

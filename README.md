@@ -483,7 +483,7 @@ end with a similar line at most every 30 days. Both are throttled and muted per 
   move projects between browsers, or between your local DraftLine and the published one.
 - **Theme** (**⋮ → Settings…**): **System Default**, the default, follows your device's light or dark setting and
   switches with it; **Espresso Noir** (deep roast and cinematic) and **Editorial Light** (warm linen) stay put once
-  picked. Remembered in this browser, and the website's Features, Compare and Philosophy pages use the same choice.
+  picked. Remembered in this browser, and the website's Welcome, Features, Compare and Philosophy pages use the same choice.
 - **Page colour** (status bar, or the top-right corner in Focus mode): **Paper** — the classic ivory page with black
   ink — or **Midnight**, a dark page (#1f1f22) with soft light text (#e4e4e7) that matches the app around it.
   Remembered in this browser (`draftline_canvas_theme`). Printing and PDFs are always black on white either way.
@@ -494,6 +494,8 @@ end with a similar line at most every 30 days. Both are throttled and muted per 
   **Export Breakdown** — and the **Spreadsheet**, **Markdown** and **Fountain Outline**) and **Backup** (**Backup Project** `.draftline`, **View Snapshots**).
 - The toolbar keeps **Story Bible** and **Characters** visible down to 1380px wide (about a laptop screen); below that,
   Story Bible moves into **⋮** (and stays on Alt+I). Below 1300px the toolbar scrolls sideways.
+- **The DraftLine logo** (top left) opens a small menu: **Welcome to DraftLine**, **Our Philosophy**, **Explore
+  Features** and **Compare DraftLine** (each opens in a new tab, so your script stays open), then **About DraftLine**.
 - **⋮** (far right of the toolbar): **Keyboard Shortcuts** (also Ctrl+/), **Load Sample** (*The Last Ferry*) and
   **About DraftLine** (version, where your draft is saved, its size and last save, and a **Backup Project
   (.draftline)** button). **Story Bible** and **Characters** appear at the top of ⋮ only when the toolbar can't show them

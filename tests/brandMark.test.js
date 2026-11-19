@@ -164,6 +164,6 @@ describe('Brand mark: the D is optically centred in every icon', () => {
     const [, transform, outline] = fav.match(/transform="(matrix\([^)]+\))" d="([^"]+)"/);
     assert.ok(mark.includes(`'${transform}'`) && mark.includes(`'${outline}'`), 'same transform and outline as favicon.svg');
     assert.match(mark, /viewBox="0 0 512 512"/);
-    for (const f of ['src/App.jsx', 'src/components/HelpModal.jsx']) assert.match(read(f), /<BrandMark \/>/, f);
+    for (const f of ['src/components/BrandMenu.jsx', 'src/components/HelpModal.jsx']) assert.match(read(f), /<BrandMark \/>/, f);
   });
 });

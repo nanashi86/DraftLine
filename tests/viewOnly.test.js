@@ -82,12 +82,11 @@ describe('Viewing mode: wiring', () => {
   });
 });
 
-describe('Header: the red D opens About DraftLine', () => {
+describe('Header: the red D opens the DraftLine menu, with About DraftLine', () => {
   const app = read('App.jsx');
-  const brand = app.slice(app.indexOf('className={`brand'), app.indexOf('<BrandMark />'));
-  it('clicking it opens the About modal, not Projects', () => {
-    assert.match(brand, /onClick=\{\(\) => setHelpKind\('about'\)\}/);
-    assert.match(brand, /aria-label="About DraftLine"/);
+  const brand = app.slice(app.indexOf('<BrandMenu'), app.indexOf('/>', app.indexOf('<BrandMenu')));
+  it('its About item opens the About modal, not Projects', () => {
+    assert.match(brand, /onAbout=\{\(\) => setHelpKind\('about'\)\}/);
     assert.ok(!/setDrawerOpen/.test(brand));
     assert.match(app, /\{helpKind && \(\s*<HelpModal/);
   });

@@ -243,7 +243,7 @@ describe('Theme names and the Settings shortcut', () => {
 });
 
 describe('The public pages follow the same theme rule as the app', () => {
-  const PAGES = ['public/features/index.html', 'public/compare/index.html', 'public/philosophy/index.html'];
+  const PAGES = ['public/features/index.html', 'public/compare/index.html', 'public/philosophy/index.html', 'public/welcome/index.html'];
   const scriptOf = (html) => html.match(/<script>\s*(\(function \(\) \{\s*var KEY = 'draftline_user_settings';[\s\S]*?\}\)\(\);)\s*<\/script>/);
   it('each reads the app\'s setting before it paints, and has the light palette only under data-theme', () => {
     for (const p of PAGES) {

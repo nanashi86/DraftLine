@@ -79,6 +79,12 @@
 }
 .brand:hover,
 .brand.is-open { background: var(--hover-bg); }
+/* The logo's menu (Welcome, Philosophy, Features, Compare · About): the D stays on top and clickable, and so does its menu. */
+.brand-menu { flex: none; pointer-events: auto; position: relative; z-index: 30; }
+.brand-menu-pop { min-width: 236px; }
+.brand-menu-pop .menu-item { align-items: center; text-decoration: none; }
+.menu-icon-label { display: inline-flex; align-items: center; gap: 9px; white-space: nowrap; }
+.menu-icon-label svg { flex: none; opacity: 0.85; }
 .brand:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 
 /* Title + ▾ : the project switcher */

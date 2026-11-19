@@ -74,6 +74,13 @@ describe('Service worker precache list', () => {
     for (const f of pub.filter((x) => x !== 'CNAME' && !x.startsWith('.'))) assert.ok(list.includes(`./${f}`), f);
   });
 
+  it('the Welcome page is precached, its two editor screenshots are not (web only, about 330 KB)', () => {
+    const list = precacheOf(buildServiceWorker(['welcome/index.html', 'welcome/editor-dark.webp', 'welcome/editor-light.webp', 'icon-192.png'], undefined, {}).source);
+    assert.ok(list.includes('./welcome/index.html'));
+    assert.ok(list.includes('./icon-192.png'));
+    assert.ok(!list.some((u) => u.endsWith('.webp')), JSON.stringify(list));
+  });
+
   it('a rebuild that changes one file gets a new version, so the old cache is dropped', () => {
     const a = fakeBuild({ 'index.html': 'x', 'assets/a.js': '1' });
     const b = fakeBuild({ 'index.html': 'x', 'assets/a.js': '2' });

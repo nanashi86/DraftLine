@@ -38,9 +38,15 @@ function publicFiles(dir) {
  */
 export const isServed = (f) => f !== 'CNAME' && !f.split('/').some((part) => part.startsWith('.'));
 
+/**
+ * Served, but not worth keeping offline in every installed copy: the Welcome page's editor screenshots
+ * (about 165 KB each). Offline, the Welcome page still opens from its precached HTML, just without them.
+ */
+export const isWebOnly = (f) => /^welcome\/[^/]+\.(webp|png|jpe?g)$/.test(f);
+
 export function buildServiceWorker(files, template = readFileSync(TEMPLATE, 'utf8'), contents = {}) {
   // index.html is always there (Vite writes it after this hook runs), so it's listed explicitly.
-  const names = [...new Set([...files, 'index.html'])].filter((f) => f !== 'sw.js' && !f.endsWith('.map') && isServed(f)).sort();
+  const names = [...new Set([...files, 'index.html'])].filter((f) => f !== 'sw.js' && !f.endsWith('.map') && isServed(f) && !isWebOnly(f)).sort();
   const list = ['./', ...names.map((f) => `./${f}`)];
   const h = createHash('sha256').update(`r${CACHE_REVISION}\n${list.join('\n')}`);
   for (const f of names) if (contents[f] !== undefined) h.update(`\n${f}:`).update(contents[f]);

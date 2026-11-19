@@ -7,7 +7,7 @@ import { readFileSync, existsSync, statSync } from 'node:fs';
 
 const read = (p) => readFileSync(new URL(`../${p}`, import.meta.url), 'utf8');
 const exists = (p) => existsSync(new URL(`../${p}`, import.meta.url));
-const PAGES = ['index.html', 'public/features/index.html', 'public/compare/index.html', 'public/philosophy/index.html'];
+const PAGES = ['index.html', 'public/features/index.html', 'public/compare/index.html', 'public/philosophy/index.html', 'public/welcome/index.html'];
 
 describe('self-hosted fonts', () => {
   it('no page loads Inter or Courier Prime from Google Fonts', () => {

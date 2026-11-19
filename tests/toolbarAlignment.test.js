@@ -38,7 +38,7 @@ describe('Header: the D badge opens About; the title ▾ opens the one Projects 
     assert.ok(!existsSync(new URL('../src/components/Breadcrumbs.jsx', import.meta.url)));
   });
   it('the title’s single chevron toggles the Projects drawer; the badge no longer does', () => {
-    assert.match(id, /className=\{`brand\$\{helpKind === 'about' \? ' is-open' : ''\}`\}\s*onClick=\{\(\) => setHelpKind\('about'\)\}/);
+    assert.match(id, /<BrandMenu onAbout=\{\(\) => setHelpKind\('about'\)\} aboutOpen=\{helpKind === 'about'\} \/>/);
     assert.equal((id.match(/setDrawerOpen\(\(o\) => !o\)/g) || []).length, 1, 'only the chevron opens Projects');
     assert.match(id, /className="doc-switch-btn"\s*data-projects-toggle\s*onClick=\{\(\) => setDrawerOpen\(\(o\) => !o\)\}/);
     assert.equal((id.match(/className="doc-switch-btn"/g) || []).length, 1);
