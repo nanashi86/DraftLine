@@ -39,6 +39,15 @@ describe('The Welcome page', () => {
       assert.match(html, new RegExp(`<a href="${href}"><strong>${label}</strong>`), label);
     }
   });
+  it('Everything you need to write: the four blocks, in the approved wording', () => {
+    assert.match(html, /<h2 class="title" id="inside-title">Everything you need to write<\/h2>/);
+    for (const line of [
+      "Tab and Enter guide you through screenplay elements. Hollywood pagination handles dialogue splits with (MORE) and (CONT'D), with page counts that match your PDF.",
+      'Organize your story with a Scene Board of index cards structured across three or four acts. A Story Bible and character bios, beside the script whenever you want them.',
+      'Refine your script with Format Doctor and Dialogue Tuner. Compare snapshots, organize scene breakdowns, and prepare stripboards and reports.',
+      'No account required. Write offline on your computer or phone. Import and export Final Draft (.fdx) and Fountain files, create PDFs, and keep control of your scripts.',
+    ]) assert.ok(html.includes(`<p>${line}</p>`), line);
+  });
   it('is about DraftLine Core: nothing unreleased or paid is advertised', () => {
     assert.doesNotMatch(text, /Table Read|Schedul|Budget|Shoot\b|Co-Write|DraftLine Pro|subscribe|sign in|log in/i);
   });
