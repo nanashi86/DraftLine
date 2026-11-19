@@ -33,3 +33,9 @@ recordings/
 # Admin & Monetization Plans
 admin_plans/
 .internal/
+
+# Local-only files (never commit)
+draftline_dump.txt
+DRAFTLINE_STATE_AUDIT.md
+screen_grabs/
+desktop.ini
