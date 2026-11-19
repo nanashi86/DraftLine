@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Welcome to DraftLine — Fast, Distraction-Free Screenwriting</title>
+    <title>DraftLine — Welcome — Free Screenwriting Software</title>
     <meta name="description" content="Meet DraftLine: free, open-source screenwriting software with professional formatting, story planning tools and an uncluttered writing space. No account, works offline." />
     <link rel="canonical" href="https://draftlineapp.com/welcome/" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=2" />
@@ -97,8 +97,9 @@
       .nowrap { white-space: nowrap; }
       .slogan-end { display: block; white-space: nowrap; } /* the payoff gets its own line */
 
-      .hero { padding: 48px 0 8px; }
-      .eyebrow { margin: 0 0 6px; }
+      .hero { padding: 48px 0 8px; } /* the laptop follows, with its own spacing */
+      .eyebrow { font: 600 12px/1.4 Inter, system-ui, sans-serif; letter-spacing: 0.14em; text-transform: uppercase;
+        color: var(--muted); margin: 0 0 10px; } /* the page's name, the same on all four pages */
       .kicker { font: 600 15px/1.5 Inter, system-ui, sans-serif; color: var(--muted); margin: 0 0 6px; }
       .kicker span { white-space: nowrap; } /* a phone wraps between the phrases, never inside one */
       h1 { font: 700 clamp(28px, 6vw, 40px)/1.2 'Courier Prime', 'Courier New', monospace; color: var(--strong); margin: 0; }
@@ -169,7 +170,7 @@
     </header>
     <main class="wrap">
       <div class="hero">
-        <p class="label eyebrow">DraftLine</p>
+        <p class="eyebrow">Welcome to DraftLine</p>
         <p class="kicker"><span>No subscriptions.</span> <span>No distractions.</span> <span>No compromises.</span></p>
         <h1>Just Write.</h1>
         <p class="promise">Fast, <span class="nowrap">distraction-free</span> screenwriting.</p>
@@ -235,7 +236,7 @@
       <section id="more" aria-labelledby="more-title">
         <h2 class="title" id="more-title">Learn more</h2>
         <ul class="more">
-          <li><a href="/philosophy/"><strong>Core Philosophy</strong><span>Why a writer built a free screenwriting app.</span></a></li>
+          <li><a href="/philosophy/"><strong>Core Philosophy</strong><span>The story and principles behind DraftLine.</span></a></li>
           <li><a href="/features/"><strong>Explore Features</strong><span>Every tool, from formatting to reports.</span></a></li>
           <li><a href="/compare/"><strong>Compare DraftLine</strong><span>Beside Final Draft, Fade In, WriterDuet and more.</span></a></li>
         </ul>

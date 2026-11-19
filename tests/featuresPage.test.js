@@ -7,7 +7,7 @@ const read = (p) => readFileSync(new URL(`../${p}`, import.meta.url), 'utf8');
 describe('features page: a static, crawlable description of every tool', () => {
   const html = read('public/features/index.html');
   it('has its own title, description and canonical on the domain', () => {
-    assert.match(html, /<title>DraftLine Features — Free Screenwriting Software<\/title>/);
+    assert.match(html, /<title>DraftLine — Explore Features — Screenwriting Tools<\/title>/);
     assert.match(html, /<meta name="description" content="[^"]{80,}"/);
     assert.match(html, /<link rel="canonical" href="https:\/\/draftlineapp\.com\/features\/" \/>/);
   });
