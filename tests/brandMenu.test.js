@@ -12,7 +12,7 @@ describe('The DraftLine logo menu', () => {
     const rows = BRAND_PAGES.map((p) => [p.label, p.path, p.icon]);
     assert.deepEqual(rows, [
       ['Welcome to DraftLine', 'welcome/', 'House'],
-      ['Our Philosophy', 'philosophy/', 'BookOpen'],
+      ['Core Philosophy', 'philosophy/', 'BookOpen'],
       ['Explore Features', 'features/', 'ListChecks'],
       ['Compare DraftLine', 'compare/', 'Columns2'],
     ]);

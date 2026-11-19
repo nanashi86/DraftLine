@@ -51,8 +51,10 @@ describe('features page → app, and About → features page', () => {
     const about = readFileSync(new URL('../src/components/HelpModal.jsx', import.meta.url), 'utf8');
     assert.match(about, /<p className="hm-features">\s*<a href=\{`\$\{import\.meta\.env\.BASE_URL\}philosophy\/`\} target="_blank" rel="noopener"\s*onClick=\{\(e\) => openInThemedTab\(e, e\.currentTarget\.href\)\}>\s*Core Philosophy\s*<ExternalLink size=\{12\} strokeWidth=\{1\.75\} aria-hidden \/>\s*<\/a>\s*<a href=\{`\$\{import\.meta\.env\.BASE_URL\}features\/`\}/);
   });
-  it('About has a "See All Features" link to the features page, in a new tab, with the external-link icon', () => {
+  it('About has "Explore Features" and "Compare DraftLine" links, in new tabs, with the external-link icon', () => {
     assert.match(read('src/components/HelpModal.jsx'),
-      /<a href=\{`\$\{import\.meta\.env\.BASE_URL\}features\/`\} target="_blank" rel="noopener"\s*onClick=\{\(e\) => openInThemedTab\(e, e\.currentTarget\.href\)\}>\s*See All Features\s*<ExternalLink size=\{12\} strokeWidth=\{1\.75\} aria-hidden \/>\s*<\/a>/);
+      /<a href=\{`\$\{import\.meta\.env\.BASE_URL\}features\/`\} target="_blank" rel="noopener"\s*onClick=\{\(e\) => openInThemedTab\(e, e\.currentTarget\.href\)\}>\s*Explore Features\s*<ExternalLink size=\{12\} strokeWidth=\{1\.75\} aria-hidden \/>\s*<\/a>/);
+    assert.match(read('src/components/HelpModal.jsx'),
+      /<a href=\{`\$\{import\.meta\.env\.BASE_URL\}compare\/`\} target="_blank" rel="noopener"\s*onClick=\{\(e\) => openInThemedTab\(e, e\.currentTarget\.href\)\}>\s*Compare DraftLine\s*<ExternalLink size=\{12\} strokeWidth=\{1\.75\} aria-hidden \/>\s*<\/a>/);
   });
 });

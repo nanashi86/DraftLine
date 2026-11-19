@@ -163,12 +163,12 @@ export default function HelpModal({ kind, storage, onClose, tipsFinished = 0, ti
             </a>
             <a href={`${import.meta.env.BASE_URL}features/`} target="_blank" rel="noopener"
               onClick={(e) => openInThemedTab(e, e.currentTarget.href)}>
-              See All Features
+              Explore Features
               <ExternalLink size={12} strokeWidth={1.75} aria-hidden />
             </a>
             <a href={`${import.meta.env.BASE_URL}compare/`} target="_blank" rel="noopener"
               onClick={(e) => openInThemedTab(e, e.currentTarget.href)}>
-              How It Compares
+              Compare DraftLine
               <ExternalLink size={12} strokeWidth={1.75} aria-hidden />
             </a>
           </p>

@@ -5,7 +5,7 @@
  */
 export const BRAND_PAGES = [
   { label: 'Welcome to DraftLine', path: 'welcome/', icon: 'House' },
-  { label: 'Our Philosophy', path: 'philosophy/', icon: 'BookOpen' },
+  { label: 'Core Philosophy', path: 'philosophy/', icon: 'BookOpen' },
   { label: 'Explore Features', path: 'features/', icon: 'ListChecks' },
   { label: 'Compare DraftLine', path: 'compare/', icon: 'Columns2' },
 ];

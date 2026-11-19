@@ -32,8 +32,8 @@ describe('The Welcome page', () => {
     assert.match(text, /The Philosophy Your Story\. Your Rules\./);
     assert.match(text, /The Promise Fast, Distraction-Free Screenwriting\./);
   });
-  it('links to Our Philosophy, Explore Features and Compare DraftLine', () => {
-    for (const [href, label] of [['/philosophy/', 'Our Philosophy'], ['/features/', 'Explore Features'], ['/compare/', 'Compare DraftLine']]) {
+  it('links to Core Philosophy, Explore Features and Compare DraftLine', () => {
+    for (const [href, label] of [['/philosophy/', 'Core Philosophy'], ['/features/', 'Explore Features'], ['/compare/', 'Compare DraftLine']]) {
       assert.match(html, new RegExp(`<a href="${href}"><strong>${label}</strong>`), label);
     }
   });

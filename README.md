@@ -494,7 +494,7 @@ end with a similar line at most every 30 days. Both are throttled and muted per 
   **Export Breakdown** — and the **Spreadsheet**, **Markdown** and **Fountain Outline**) and **Backup** (**Backup Project** `.draftline`, **View Snapshots**).
 - The toolbar keeps **Story Bible** and **Characters** visible down to 1380px wide (about a laptop screen); below that,
   Story Bible moves into **⋮** (and stays on Alt+I). Below 1300px the toolbar scrolls sideways.
-- **The DraftLine logo** (top left) opens a small menu: **Welcome to DraftLine**, **Our Philosophy**, **Explore
+- **The DraftLine logo** (top left) opens a small menu: **Welcome to DraftLine**, **Core Philosophy**, **Explore
   Features** and **Compare DraftLine** (each opens in a new tab, so your script stays open), then **About DraftLine**.
 - **⋮** (far right of the toolbar): **Keyboard Shortcuts** (also Ctrl+/), **Load Sample** (*The Last Ferry*) and
   **About DraftLine** (version, where your draft is saved, its size and last save, and a **Backup Project
