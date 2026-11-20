@@ -26,8 +26,10 @@ describe('The Welcome page', () => {
     assert.equal((html.match(/<p class="lede">/g) || []).length, 2, 'two paragraphs');
     assert.doesNotMatch(html, /eyebrow|class="kicker"/, 'no eyebrow or slogan line in the hero');
   });
-  it('Start Writing goes to the editor; Explore Features to /features/', () => {
-    assert.match(html, /<a class="cta cta-lg" data-open-app href="\/\?from=welcome">Start Writing<\/a>\s*<a class="link-arrow" href="\/features\/">Explore Features →<\/a>/);
+  it('the hero links to Explore Features only; Open DraftLine (footer) goes to the editor', () => {
+    assert.match(html, /<p class="actions">\s*<a class="link-arrow" href="\/features\/">Explore Features →<\/a>\s*<\/p>/);
+    assert.match(html, /<p class="next"><a class="cta" data-open-app href="\/\?from=welcome">Open DraftLine<\/a><\/p>/);
+    assert.doesNotMatch(html, />Start Writing</);
   });
   it('keeps the slogan, the philosophy and the promise as three distinct things', () => {
     assert.match(text, /The Slogan No subscriptions\. No distractions\. No compromises\. Just Write\./);
