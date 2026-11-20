@@ -57,10 +57,11 @@ const PRINCIPLES = [
 ];
 
 describe('the Philosophy page', () => {
-  it('opens on "Just Write." with the philosophy and the product promise, and no brand-development captions', () => {
-    const kicker = html.match(/<p class="kicker">([\s\S]*?)<\/p>\s*<h1>Just Write\.<\/h1>/);
-    assert.ok(kicker, 'the full slogan sits right above the headline');
-    assert.equal(text(kicker[1]), 'No subscriptions. No distractions. No compromises.');
+  it('opens on "Story & Principles", then the full slogan, the philosophy and the product promise, and no brand-development captions', () => {
+    const kicker = html.match(/<h1>Story &amp; Principles<\/h1>\s*<p class="kicker">([\s\S]*?)<\/p>\s*<dl class="pair">/);
+    assert.ok(kicker, 'the full slogan sits right under the heading, above the philosophy and the promise');
+    assert.equal(text(kicker[1]), 'No subscriptions. No distractions. No compromises. Just Write.');
+    assert.match(kicker[1], /<strong>Just Write\.<\/strong>/);
     assert.match(html, /<dt class="label">The Philosophy<\/dt>\s*<dd class="statement">Your Story\. Your Rules\.<\/dd>/);
     const promise = html.match(/<dt class="label">The Promise<\/dt>\s*<dd class="statement">([\s\S]*?)<\/dd>/)[1];
     assert.equal(text(promise), 'Fast, Distraction-Free Screenwriting.');
