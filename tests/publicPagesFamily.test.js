@@ -41,7 +41,7 @@ describe('The four public pages', () => {
       assert.doesNotMatch(html, /eyebrow/, `${page}: no eyebrow left (markup or CSS)`);
       assert.ok(html.includes(H1_CSS), `${page}: the shared heading style`);
     }
-    assert.match(read('philosophy'), /<h1>Story &amp; Principles<\/h1>\s*<p class="kicker">[\s\S]*?<strong>Just Write\.<\/strong><\/p>\s*<dl class="pair">/);
+    assert.match(read('philosophy'), /<h1>Story &amp; Principles<\/h1>\s*<dl class="pair">\s*<div class="pair-full">\s*<dt class="label">The Slogan<\/dt>/);
   });
   it('Welcome describes Core Philosophy as its story and principles', () => {
     assert.match(read('welcome'), /<strong>Core Philosophy<\/strong><span>The story and principles behind DraftLine\.<\/span>/);

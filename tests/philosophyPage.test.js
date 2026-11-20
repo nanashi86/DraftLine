@@ -58,15 +58,14 @@ const PRINCIPLES = [
 
 describe('the Philosophy page', () => {
   it('opens on "Story & Principles", then the full slogan, the philosophy and the product promise, and no brand-development captions', () => {
-    const kicker = html.match(/<h1>Story &amp; Principles<\/h1>\s*<p class="kicker">([\s\S]*?)<\/p>\s*<dl class="pair">/);
-    assert.ok(kicker, 'the full slogan sits right under the heading, above the philosophy and the promise');
-    assert.equal(text(kicker[1]), 'No subscriptions. No distractions. No compromises. Just Write.');
-    assert.match(kicker[1], /<strong>Just Write\.<\/strong>/);
+    const slogan = html.match(/<h1>Story &amp; Principles<\/h1>\s*<dl class="pair">\s*<div class="pair-full">\s*<dt class="label">The Slogan<\/dt>\s*<dd class="statement">([\s\S]*?)<\/dd>/);
+    assert.ok(slogan, 'The Slogan is the first row under the heading, above the philosophy and the promise');
+    assert.equal(text(slogan[1]), 'No subscriptions. No distractions. No compromises. Just Write.');
     assert.match(html, /<dt class="label">The Philosophy<\/dt>\s*<dd class="statement">Your Story\. Your Rules\.<\/dd>/);
     const promise = html.match(/<dt class="label">The Promise<\/dt>\s*<dd class="statement">([\s\S]*?)<\/dd>/)[1];
     assert.equal(text(promise), 'Fast, Distraction-Free Screenwriting.');
     assert.match(promise, /<span class="nowrap">Distraction-Free<\/span>/, 'never split at the hyphen');
-    assert.doesNotMatch(html, /The Slogan|The invitation\.|The belief\.|The experience\./);
+    assert.doesNotMatch(html, /The invitation\.|The belief\.|The experience\./);
     assert.equal(html.match(/<h1[ >]/g).length, 1, 'one h1');
   });
 
