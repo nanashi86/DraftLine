@@ -7,16 +7,16 @@ stays the flagship; a desktop app would be the same DraftLine in a native window
 > **Entitlement model (Option D, approved November 19, 2026).** ([`../../ROADMAP.md`](../../ROADMAP.md),
 > [`pro-license.md`](pro-license.md))
 > - **The Windows desktop app is free** and isn't a paid tier. **DraftLine Core is free in it**, as on every supported platform.
-> - **DraftLine Pro** ($29.99 **one-time**, planned) is a capability purchase, not an app purchase: bought once, it
+> - **DraftLine Pro** (a planned **one-time** purchase) is a capability purchase, not an app purchase: bought once, it
 >   unlocks Shoot and production revisions in the browser, the installed app and every native app.
-> - **DraftLine Co-Write** ($4.99/month, planned) is an independent optional subscription for hosting co-writing
+> - **DraftLine Co-Write** (planned) is an independent optional subscription for hosting co-writing
 >   sessions, with Core or Pro. Not required for Pro, not included in it.
 > - Pro and Co-Write entitlements are **portable across supported platforms**: one key each, entered in
 >   **Settings → Licenses & Access**, no account. There is **no separate desktop or mobile subscription**.
 > - **Supporters:** Ko-fi supporters and Patreon's **The Writers' Room** ($10) and **Executive Producer** ($25) tiers
 >   get early access to the native builds once the Ko-fi goal ("DraftLine Native Desktop & Android/ChromeOS Builds")
->   is reached; those tiers were also promised Pro and Co-Write, which Option D splits into two entitlements. How
->   patrons receive both is flagged for Eric in [`pro-license.md`](pro-license.md) §9.
+>   is reached; those two Patreon tiers are also planned to receive DraftLine Pro and Co-Write when they launch
+>   (see the ROADMAP).
 > - **No release dates or store availability are promised.**
 > - **To research before any build:** Microsoft Store and direct-download policies for activating a licence bought on the web
 >   (non-game apps may use their own payments in the Store; confirm current rules), offline licence checks inside the
@@ -24,14 +24,12 @@ stays the flagship; a desktop app would be the same DraftLine in a native window
 > - **Platform scope: Windows only for now.** macOS and Linux are not planned at the moment. The research below
 >   covers all three and is kept for later.
 >
-> **Superseded, kept for the record:** earlier versions priced the desktop app itself (a one-time $49 "DraftLine Pro",
-> or included with Patreon), then tied it to a monthly "DraftLine Pro: Co-Write / Production" subscription and a
-> "Settings → Pro License" field. All replaced: the app is free and Pro is a one-time capability purchase.
+> **Superseded:** earlier drafts sold the desktop app itself as a paid product. Replaced by the model above; this
+> update is authoritative.
 >
 > Part A's technical research (Tauri vs Electron, file system, windows, shortcuts, updater, signing costs, security)
 > remains valid. Pro unlocking in the app uses the shared Settings → Licenses & Access check (not a download gate),
-> working offline. **Part B's community copy is out of date and must not be posted as
-> is.**
+> working offline.
 
 ---
 
@@ -206,81 +204,11 @@ Shortcuts the browser takes for itself stop being a problem once there's no brow
 - **Unsigned builds** work but show OS warnings. Signing costs money every year (see the table above), which is what
   the backer milestone is for.
 - **The web app is not going away.** It stays 100% free and open source, forever. The desktop app is free too, and
-  never a requirement. *(The earlier "DraftLine Pro, one-time $49" pricing here is
-  superseded; see the update at the top.)*
+  never a requirement.
 
 ---
 
-## B. Community & Backer Brief
+## B. Community copy
 
-> **Superseded (November 2026). Do not post.** This copy presents the desktop app *as* "DraftLine Pro", sold for a
-> one-time $49 or included with Patreon. Under the current plan the desktop app is **free** (Core free, Pro unlocked
-> by a licence token), with **early access for supporters** once the Ko-fi goal is reached. The Ko-fi goal copy here
-> (the $99 Apple signing fee) is still accurate apart from calling the app "DraftLine Pro". Kept only as a draft to
-> rewrite when the time comes.
-
-Copy ready to paste. No dates are promised; update the status line as phases land.
-
-### One-line pitch
-
-> **DraftLine Pro (desktop):** zero browser sandboxing, native desktop stability, true file ownership, and distraction-free
-> writing. Windows, macOS and Linux.
-
-### Discord (#roadmap)
-
-```md
-**Roadmap: DraftLine Pro (desktop)**
-
-The same DraftLine you write in today, as a real app for your computer.
-
-**What you get**
-- **No browser.** No tabs, no permission prompts, no shortcuts fighting Chrome. Ctrl+N, Ctrl+H, Ctrl+S, Ctrl+P all just work.
-- **True file ownership.** Your scripts are `.draftline` files in a folder you choose. Double-click a `.draftline` or `.fdx` file and it opens in DraftLine.
-- **100% offline.** Everything is on your machine. The only thing it ever checks is whether there's an update, and you can switch that off.
-- **Native stability.** Its own window that remembers its size and place, a proper menu bar, and full-screen Focus mode.
-- **Tiny and fast.** A small download, not a 150 MB browser in disguise.
-
-**Platforms:** Windows 11 / 10 · macOS (Apple Silicon and Intel) · Linux (AppImage, .deb, .rpm)
-
-**The browser version stays 100% free and open source, forever.** DraftLine Pro is the native build: a one-time $49 licence (no subscription, updates included), or included while you're an active Patreon supporter. That covers the code-signing certificates and upkeep a trusted desktop app needs.
-
-Status: *planned. Design done, build not started.* Follow along here.
-```
-
-### Ko-fi goal
-
-**Goal title:** DraftLine Desktop: $99
-
-**Goal description:**
-
-> $99 is what Apple charges each year to sign and notarize a Mac app, so it opens without a "can't be verified"
-> warning. Reaching this goal lets DraftLine Pro, the desktop app, ship properly signed on macOS, alongside Windows
-> and Linux: the DraftLine you know, as a native app, offline, no browser, your files in your own folders. The browser
-> version stays free forever. Every coffee counts. Thank you.
-
-### Patreon post
-
-**Title:** What's next: DraftLine Desktop
-
-> DraftLine started as a web app so anyone could write with nothing to install. The next big step is a real desktop
-> app, and here's the plan.
->
-> **Same DraftLine, no browser.** The desktop app wraps the editor you already know: same pages, same shortcuts, same
-> PDF. It doesn't run inside Chrome or Safari. That means no permission prompts when you save, no browser shortcuts
-> getting in the way, and nothing between you and the page.
->
-> **Your files, your folders.** Scripts live as `.draftline` files wherever you keep them: Documents, Google Drive,
-> Dropbox. Open a Final Draft `.fdx` with a double-click.
->
-> **Offline, always.** It never needs the internet. It checks quietly for updates, every update is verified before it
-> installs, and you can turn the check off.
->
-> **Windows 11/10, macOS (Apple Silicon and Intel) and Linux.**
->
-> Your support covers the unglamorous parts that make an app trustworthy: code-signing certificates for Windows and
-> macOS, so your computer knows the app is really from DraftLine. Patrons will be the first to hear when beta builds
-> are ready to test.
->
-> **How it's priced:** the browser version stays 100% free and open source, forever. DraftLine Pro, the desktop app,
-> will be a one-time $49 licence (no subscription, updates included), or included for as long as you're an active
-> Patreon supporter.
+Launch and backer copy for this plan is not kept in the public repo. It will be written from the current plan
+([`../../ROADMAP.md`](../../ROADMAP.md)) when the app is ready.

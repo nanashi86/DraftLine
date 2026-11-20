@@ -2,7 +2,8 @@
 
 > **Status: future infrastructure, not approved for implementation.** Rewritten November 19, 2026 for the approved
 > **Option D** model. Needed only when Stage 3 (DraftLine Pro) or Stage 4 (DraftLine Co-Write) is approved
-> ([`../../ROADMAP.md`](../../ROADMAP.md)). Payments: [`payments.md`](payments.md).
+> ([`../../ROADMAP.md`](../../ROADMAP.md)). Payment integration: §10. **This document is the authoritative licensing
+> spec.**
 >
 > **No existing DraftLine functionality may be removed, restricted, or transferred from the free application to a
 > paid product.** A licence only ever unlocks Pro capabilities or Co-Write hosting. DraftLine Core never asks for one,
@@ -10,27 +11,24 @@
 
 ## 0. The model (Option D, approved November 2026)
 
-| Product | Planned price | What it gives |
+| Product | Access | What it gives |
 |---|---|---|
 | **DraftLine Core** | Free forever | Everything DraftLine does today, plus Table Read, Schedule and Budget when they ship |
-| **DraftLine Pro** | **$29.99 one-time** | Core plus **Shoot** and the advanced production-revision workflows. Owned, not rented. |
-| **DraftLine Co-Write** | **$4.99/month** | Hosting real-time co-writing sessions. Works with Core **or** Pro. |
+| **DraftLine Pro** | **Planned one-time purchase** | Core plus **Shoot** and the advanced production-revision workflows. Owned, not rented. |
+| **DraftLine Co-Write** | **Planned optional subscription** | Hosting real-time co-writing sessions. Works with Core **or** Pro. |
 
-Prices are plans for unreleased products, not offers. A writer can have:
+Pricing and availability will be announced when these features are ready. A writer can have:
 
 1. **Core only**: free.
-2. **Core + Co-Write**: $4.99/month while they want to host sessions.
-3. **Pro**: $29.99 once, no subscription.
-4. **Pro + Co-Write**: $29.99 once, plus $4.99/month while collaboration is active.
+2. **Core + Co-Write**: a subscription only while they want to host sessions.
+3. **Pro**: bought once, no subscription.
+4. **Pro + Co-Write**: Pro bought once, plus Co-Write while collaboration is active.
 
 **Pro and Co-Write are independent.** Pro never requires Co-Write; Co-Write never requires Pro; Co-Write is not part
 of Pro; there's no combined tier.
 
-*Superseded (kept for history): the November 2026 drafts described "DraftLine Pro: Co-Write" (about $4.99/month) and
-"DraftLine Pro: Production" (about $9.99/month, including Co-Write) as two monthly tiers of one Pro subscription, with
-a single **Settings → Pro License** screen and greyed-out Pro badges in the toolbar. All of that is replaced below.
-The earlier pricing alternatives (Options A–C) are historical only; [`co-write.md`](co-write.md) (History) keeps a
-short record of the superseded model.*
+*Superseded designs (history only): earlier November 2026 drafts had two monthly Pro tiers, a single
+**Settings → Pro License** screen and greyed-out Pro badges in the toolbar. All replaced by this document.*
 
 ## 1. Principles
 
@@ -65,7 +63,7 @@ small **revocation list** for refunds and leaked keys (§4). Both fit the same W
 ## 3. Lifecycle
 
 ```
-Purchase (Pro, one-time) or subscription (Co-Write) through the payment provider (payments.md)
+Purchase (Pro, one-time) or subscription (Co-Write) through the payment provider (§10)
         │  signed webhook
         ▼
 Licence Worker: create key → record { product, status, periodEnd? }
@@ -87,8 +85,8 @@ Settings → Licenses & Access: paste key → POST /activate { key, deviceId }
 | Resubscribed | n/a | same key, `active` again |
 | A newer paid major version ships | **Nothing changes.** Pro 1 stays owned and working. | n/a |
 
-**Grace** (Co-Write): about 7 days after the period ends, already inside the lease's `exp`, so an offline writer isn't
-cut off mid-session.
+**Grace** (Co-Write): a short period after the paid period ends (length to decide), already inside the lease's `exp`,
+so an offline writer isn't cut off mid-session.
 
 ## 4. Revocation without accounts
 
@@ -174,48 +172,57 @@ toolbar layout is identical in every licence state and that Core features never 
 
 ## 8. Device limits and sharing
 
-- Proposed: **3 active devices per key**, for each product. A device unseen for about 30 days frees its slot; **Remove
-  from this device** frees it at once.
+- A small number of **active devices per key**, for each product (the number is to be decided). A device unseen for a
+  while frees its slot; **Remove from this device** frees it at once.
 - The Co-Write relay checks the **host's** lease at every session start; guests join by invite link with no key.
 - **Honest limit:** DraftLine is MIT open source, so anyone can patch their own copy to skip the Pro check. That's
   accepted: Pro works largely on trust, like most indie software, while what costs money to run (Co-Write hosting) is
   enforced on the server.
 
-## 9. Supporters (Patreon, Ko-fi): needs Eric's decision
+## 9. Supporter licences (technical)
 
-Existing public promises (README, ROADMAP, Patreon tier text) say The Writers' Room ($10/month) and Executive
-Producer ($25/month) are "planned to include a Pro: Production licence (which includes Co-Write)". Under Option D,
-Pro no longer includes Co-Write. To keep the promise intact, one of:
+Licences can also be issued to supporters through the same Worker: a supporter platform's webhook (for example
+Patreon's) creates or extends a licence record, and a claim page uses that platform's own sign-in (not a DraftLine
+account) to show the key. A Pro certificate issued this way is the same perpetual certificate; a Co-Write lease can
+follow an active pledge. Which supporters receive what is a business decision, not part of this spec.
 
-- **A.** Eligible patrons get a **Pro key** (perpetual, kept even if they stop pledging) **and Co-Write hosting while
-  their pledge is active** (a Co-Write lease that follows the pledge). Closest to what was promised.
-- **B.** Eligible patrons get a **Pro key** only, and the "includes Co-Write" wording is retired with notice.
+## 10. Payment integration interface
 
-Recommended: **A**. Early access to the native apps (when the Ko-fi goal is reached) is unchanged and isn't a
-licence. Issuing: a Patreon webhook creates the key; a claim page signs in with Patreon (their existing login, not a
-DraftLine account) and shows it.
+Provider-agnostic, so the payment provider can change without touching the app or the licence format.
 
-## 10. Build order (when approved)
+- **Checkout, tax, refunds and disputes stay with the provider** (a Merchant of Record). DraftLine never sees card
+  details and stores no payment data.
+- **One webhook adapter in the licence Worker** turns provider events into a small internal set:
+  `purchase.completed { product, orderRef }`, `refund { orderRef }`, `chargeback { orderRef }`,
+  `subscription.started | renewed { orderRef, periodEnd }`, `subscription.payment_failed { orderRef }`,
+  `subscription.canceled { orderRef, periodEnd }`, `subscription.ended { orderRef }`.
+- **Every webhook is signature-verified and idempotent:** processed event ids are stored, so a retried or duplicated
+  delivery changes nothing.
+- **Key delivery:** on `purchase.completed` or `subscription.started` the Worker creates the key; the provider's success
+  page and receipt email show it. **Restore** re-sends a key by order reference, without an account.
+- **Stored per licence:** a hash of the key, product, status, period end (Co-Write), device ids and the provider's
+  order reference. No names, emails or addresses.
+- **Changing provider** means writing a second adapter; existing keys, certificates and leases stay valid.
 
-1. Payment provider sandbox + the Worker's webhook adapter ([`payments.md`](payments.md)).
+## 11. Build order (when approved)
+
+1. A payment provider's sandbox + the Worker's webhook adapter (§10).
 2. Licence Worker on Cloudflare (KV or D1): `/activate`, `/restore`, `/deactivate`, `/renew` (Co-Write), the
-   revocation list, provider and Patreon webhooks. Shares the $5/month Workers Paid plan with the relay.
+   revocation list, provider and supporter-platform webhooks. Shares the Cloudflare Workers plan with the relay.
 3. App: `entitlements.js`, the Licenses & Access section behind a hidden developer flag, then the first paid feature
    reads it. Licence data is stored per device (like `userSettings.js`), **never inside a project**, so backups and
    `.draftline` files never carry a licence.
 4. Tests: valid, tampered and revoked certificates; expired, grace and future-dated leases; clock skew; offline
    behaviour; device-limit messages; "Core never consults entitlements".
 
-## 11. Open questions
+## 12. Open questions (technical)
 
-1. **Major-version policy for Pro.** What a $29.99 purchase covers (for example "Pro 1.x, including all 1.x updates")
-   and whether a future Pro 2 is a paid upgrade. **Not decided; nothing should promise unlimited future major
-   versions.** Whatever is decided, Pro 1 keeps working forever.
-2. Device limit (3?) and whether browser + installed app on one computer count as one.
-3. Co-Write grace length (7 days proposed) and annual billing (see `payments.md` on fees at $4.99).
-4. Lost keys: receipt email and the provider's order lookup first; manual support as a fallback?
-5. Supporter option A or B (§9).
-6. Refund window for Pro (the provider's default, or DraftLine's own, such as 30 days).
+1. **Upgrade policy and the certificate.** Certificates carry `major` so any future upgrade policy can be enforced
+   without ever revoking an older version: Pro 1 keeps working forever. The policy itself is undecided, and nothing
+   should promise unlimited future major versions.
+2. Device limit, and whether the browser and the installed app on one computer count as one device.
+3. Co-Write grace length.
+4. Lost keys: the receipt email and the provider's order lookup first; manual support as a fallback?
 
 ---
 

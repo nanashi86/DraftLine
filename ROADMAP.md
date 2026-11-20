@@ -13,13 +13,13 @@ Every script exports to open formats (Final Draft `.fdx`, Fountain and PDF), so 
 **DraftLine** is the single name for the software, the GitHub repo, the domain ([draftlineapp.com](https://draftlineapp.com))
 and everything around it. Inside it there's a complete free core, and two optional extras planned for later:
 
-| Product | Planned price | What it is |
+| Product | Access | What it is |
 |---|---|---|
 | **DraftLine Core** | **Free forever** | Everything DraftLine does today: writing, the Scene Board, the Story Bible, Plan (Breakdowns, Stripboard, Reports), every import and export, offline use and folder sync. **Table Read, Schedule and Budget will be part of Core when they ship.** |
-| **DraftLine Pro** | **$29.99, one time** | Core plus **Shoot**: locked pages and scene numbers, revision rounds and revised pages for production. **A one-time purchase, not a subscription.** *(future, deferred)* |
-| **DraftLine Co-Write** | **$4.99/month** | Optional real-time co-writing, hosted by DraftLine. Works with **Core or Pro**. Only the writer hosting a session needs it; invited writers join free. *(long-term future)* |
+| **DraftLine Pro** | **Planned one-time purchase** | Core plus **Shoot**: locked pages and scene numbers, revision rounds and revised pages for production. **A one-time purchase, not a subscription.** *(future, deferred)* |
+| **DraftLine Co-Write** | **Planned optional subscription** | Optional real-time co-writing, hosted by DraftLine. Works with **Core or Pro**. Only the writer hosting a session needs it; invited writers join free. *(long-term future)* |
 
-These are planned prices for products that don't exist yet, not offers.
+Pro and Co-Write don't exist yet. **Pricing and availability will be announced when these features are ready.**
 
 - **Core is not a trial or a limited version.** It's the whole app, and it keeps getting new features.
 - **Pro is bought once.** No subscription, no expiry, and it never requires Co-Write.
@@ -79,7 +79,7 @@ These are separate from the stages above:
   once the Ko-fi goal is reached.
 - **Performance benchmarks** for very long scripts, and **tablet and touch layout** improvements (Core).
 - **Licences and payments** are built only when a paid stage is approved. Design notes:
-  [`docs/specs/pro-license.md`](docs/specs/pro-license.md), [`docs/specs/payments.md`](docs/specs/payments.md).
+  [`docs/specs/pro-license.md`](docs/specs/pro-license.md).
 
 Design notes for everything here live in [`docs/specs/`](docs/specs/).
 

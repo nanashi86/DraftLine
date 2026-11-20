@@ -6,31 +6,25 @@ not scheduled.** Written October 2026; entitlements updated November 19, 2026.
 > **Entitlement model (Option D, approved November 19, 2026).** ([`../../ROADMAP.md`](../../ROADMAP.md),
 > [`pro-license.md`](pro-license.md))
 > - **The Google Play app (Android and ChromeOS) is free** and isn't a paid tier. **DraftLine Core is free in it**, as on every supported platform.
-> - **DraftLine Pro** ($29.99 **one-time**, planned) is a capability purchase, not an app purchase: bought once, it
+> - **DraftLine Pro** (a planned **one-time** purchase) is a capability purchase, not an app purchase: bought once, it
 >   unlocks Shoot and production revisions in the browser, the installed app and every native app.
-> - **DraftLine Co-Write** ($4.99/month, planned) is an independent optional subscription for hosting co-writing
+> - **DraftLine Co-Write** (planned) is an independent optional subscription for hosting co-writing
 >   sessions, with Core or Pro. Not required for Pro, not included in it.
 > - Pro and Co-Write entitlements are **portable across supported platforms**: one key each, entered in
 >   **Settings → Licenses & Access**, no account. There is **no separate desktop or mobile subscription**.
 > - **Supporters:** Ko-fi supporters and Patreon's **The Writers' Room** ($10) and **Executive Producer** ($25) tiers
 >   get early access to the native builds once the Ko-fi goal ("DraftLine Native Desktop & Android/ChromeOS Builds")
->   is reached; those tiers were also promised Pro and Co-Write, which Option D splits into two entitlements. How
->   patrons receive both is flagged for Eric in [`pro-license.md`](pro-license.md) §9.
+>   is reached; those two Patreon tiers are also planned to receive DraftLine Pro and Co-Write when they launch
+>   (see the ROADMAP).
 > - **No release dates or store availability are promised.**
 > - **To research before any build:** Google Play's payments policy. Selling digital features inside a Play app
 >   generally has to use Google Play Billing, with regional and post-2025 US exceptions; confirm whether activating a
 >   key bought on the web is allowed and how the app may mention it. Also ChromeOS install paths and offline checks.
 > - Android-only extras such as Drive folder sync are Core and free.
 >
-> **Superseded, kept for the record:** "reading and basic editing are free", the one-time $9.99 unlock, "free with
-> DraftLine Pro", and the monthly "Pro: Co-Write / Production" tiers with a "Settings → Pro License" field.
->
-> **Part B's community copy repeats the old pricing and must not be posted as is.** Part A's technical plan stands.
-> The adaptive layout and touch work in Part A that benefits the browser app is Core and free.
-
-*(Superseded pricing, kept for the record; see the update above.)* Pricing: tiered. Reading and basic editing are **free**, in the browser and in the app. The advanced companion
-workflow tools (keeping a Drive folder in sync with your computer, for example) are **included free with DraftLine
-Pro**, or unlocked on their own with a small **one-time $9.99 supporter unlock**.
+> **Superseded:** earlier drafts of this plan used a paid tier inside the Android app. Replaced by the model above;
+> this update is authoritative. Part A's technical plan stands, and the adaptive layout and touch work in Part A that
+> benefits the browser app is Core and free.
 
 DraftLine already installs as a PWA on Android and ChromeOS: `public/manifest.json` and the service worker are in
 place. This plan makes it a first-class touch, keyboard and stylus app, and puts it on Google Play.
@@ -230,61 +224,7 @@ whether a hardware keyboard has been seen.
 
 ---
 
-## B. Community & Backer Brief
+## B. Community copy
 
-> **Superseded (November 2026). Do not post.** This copy uses the old pricing ("reading and basic editing are
-> free", a one-time $9.99 unlock, "free with DraftLine Pro"). Under the current plan the Play app is **free** with
-> everything in Core, Pro is unlocked by a licence token in Settings (still no accounts, so "No accounts" stays
-> true), and supporters get early access once the Ko-fi goal is reached. The $25 Google Play fee is accurate. Kept only as a draft to rewrite when the time comes.
-
-Copy ready to paste. No dates are promised; update the status line as phases land.
-
-### One-line pitch
-
-> **DraftLine on Android & Chromebook:** scriptwriting anywhere. Move from your desktop standing desk to your tablet
-> or Chromebook on the go, without missing a beat.
-
-### Discord (#roadmap)
-
-```md
-**Roadmap: DraftLine for Android, tablets & Chromebooks**
-
-Scriptwriting anywhere: seamlessly transition from your desktop standing desk to your tablet or Chromebook on the go.
-
-**Built for the hardware you actually use**
-- **Keyboards:** Bluetooth, docked, built-in. Plug one in and you get the full DraftLine keyboard flow: Tab/Enter elements, every shortcut, no mouse needed.
-- **Trackpads:** Chromebook trackpads work just like a laptop's.
-- **Touchscreens:** drag Scene Board cards with your finger, scrub through the script, and use big thumb-friendly element buttons.
-- **On-screen keyboard:** a slim row with Tab, Enter, Character and Scene Heading right above your keyboard, gone the moment you connect a real one.
-- **Stylus:** precise caret placement now, handwritten margin notes later.
-- **Any screen:** phones, foldables, 10"–14" tablets, split screen. The page always stays a real screenplay page.
-
-**Your files go where you go:** open scripts from Google Drive, your SD card or your device, share PDFs straight to Drive or email, and keep a Drive folder in sync with your computer (a companion tool: free with DraftLine Pro, or a one-time $9.99 unlock).
-
-**Free to read and write, always private.** Reading and basic editing are free. The advanced companion tools, like keeping a Drive folder in sync with your computer, come free with DraftLine Pro or as a one-time $9.99 supporter unlock. No accounts, no DraftLine servers: your scripts stay on your devices.
-
-Status: *planned. Design done, build not started.* You can already install DraftLine from Chrome on Android and ChromeOS today: open the site, then Install app.
-```
-
-### Ko-fi goal
-
-**Goal title:** DraftLine on Google Play: $25
-
-**Goal description:**
-
-> $25 is Google's one-time fee to publish on Google Play. Reaching this goal puts DraftLine in the Play Store for
-> Android phones, tablets and Chromebooks: touch-friendly, keyboard-ready, and private, with reading and basic
-> editing free (the advanced companion tools come with DraftLine Pro, or as a one-time $9.99 unlock).
-> Google also asks new apps for 12 testers over 14 days before launch, so if you've got an Android device or a
-> Chromebook, come say hi in the Discord.
-
-### Milestone summary (Discord and Ko-fi updates)
-
-```md
-**DraftLine Mobile & Chromebook: milestones**
-1. **Touch & tablet layout.** Bottom-sheet menus, thumb-friendly element buttons, keyboard shortcut row, touch-drag Scene Board. *(in the web app, for everyone)*
-2. **Share & open anywhere.** Share scripts in and out of DraftLine (Drive, Gmail, Files); open .fdx from the Chromebook Files app.
-3. **Google Play launch.** Closed test with 12 community testers for 14 days, then public.
-4. **Drive folder sync on Android.** The same folder your computer syncs to, kept up to date on your tablet. *(companion tool: free with DraftLine Pro, or a one-time $9.99 unlock)*
-5. **Stylus margin notes.** Write notes by hand in the margin.
-```
+Launch and backer copy for this plan is not kept in the public repo. It will be written from the current plan
+([`../../ROADMAP.md`](../../ROADMAP.md)) when the app is ready.

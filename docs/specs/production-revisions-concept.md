@@ -9,12 +9,12 @@
 > tools (Breakdowns, Stripboard, Reports, and the coming Schedule and Budget).
 >
 > **What it is:** the **Shoot** workspace (local shooting-script tools), part of **DraftLine Pro**, a planned
-> **one-time $29.99 purchase** (Option D, November 19, 2026). Not a subscription, and it does **not** include or
+> **one-time purchase** (Option D, November 19, 2026). Not a subscription, and it does **not** include or
 > require DraftLine Co-Write. The licence is tied to the writer, not the platform; no accounts. Purchased Pro stays
 > usable permanently, and locked scripts stay visible, printable and exportable without it. See
 > [`pro-license.md`](pro-license.md).
 >
-> *Superseded: earlier drafts called this "DraftLine Pro: Production" at about $9.99/month including Co-Write, with a
+> *Superseded: earlier drafts called this "DraftLine Pro: Production", a monthly tier including Co-Write, with a
 > greyed-out Shoot button. Both are replaced.*
 
 Feasibility assessment written November 2026 against DraftLine 0.11.0 (commit `4a72ac6`; references re-checked at
@@ -224,7 +224,7 @@ locked pages → FDX interoperability, the last only once real Final Draft files
   lock needs distinct words and a distinct icon.
 - **P9. Unknown data.** In apps that can't render Production data: preserve silently, or preserve and open
   read-only?
-- **P10. Licensing.** It is a one-time $29.99 purchase (DraftLine Pro, planned). How does that square with MIT source
+- **P10. Licensing.** It is a planned one-time purchase (DraftLine Pro). How does that square with MIT source
   (§5, trade-off 2)? Current answer: Pro works largely on trust ([`pro-license.md`](pro-license.md) §8).
 - **P11. Shoot for Core users: decided.** Always visible, looking like the other views, opening an explanation on
   click (today's preview). Locked scripts opened without Pro display read-only and stay printable and exportable. See

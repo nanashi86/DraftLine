@@ -4,7 +4,7 @@
 > Rewritten November 19, 2026 for the approved **Option D** model. No release date. See
 > [`../../ROADMAP.md`](../../ROADMAP.md).
 >
-> **DraftLine Co-Write is an optional subscription, planned at $4.99/month, that works alongside free DraftLine Core
+> **DraftLine Co-Write is a planned optional subscription that works alongside free DraftLine Core
 > or a purchased DraftLine Pro.** It is not part of Pro, doesn't require Pro, and Pro doesn't require it. Only the
 > writer **hosting** a session needs it; invited writers join free, with Core or Pro.
 >
@@ -14,7 +14,7 @@
 
 This is a feasibility and boundaries brief, not a design. It records what the current code means for collaboration,
 the decisions that shape the architecture, the operating responsibilities a live service brings, and what to
-prototype first. Licences: [`pro-license.md`](pro-license.md). Payments: [`payments.md`](payments.md). Data safety:
+prototype first. Licences and payment integration: [`pro-license.md`](pro-license.md). Data safety:
 [`data-integrity.md`](data-integrity.md).
 
 ---
@@ -32,7 +32,7 @@ to ordinary solo writing. Where it lives today: **Write → ⋮ → Co-Write…*
 |---|---|---|
 | Real-time relay | **Cloudflare Workers + Durable Objects over WebSockets**, one Durable Object per session, using the WebSocket Hibernation API | Usage-based, near-zero idle cost, single-threaded authority per session; the same Cloudflare account already runs the feedback Worker |
 | Licence checks | The licence Worker in [`pro-license.md`](pro-license.md): the host's Co-Write lease is checked at every session start | No accounts |
-| Payments | A Merchant of Record handling the monthly subscription ([`payments.md`](payments.md)) | No tax compliance to run |
+| Payments | A Merchant of Record handling the subscription ([`pro-license.md`](pro-license.md) §10) | No tax compliance to run |
 
 These are **preferred candidates, not a final architecture.** The **$5/month Workers Paid plan is the floor, not the
 total cost** (§9).
@@ -166,7 +166,7 @@ read-only, exactly as described in [`pro-license.md`](pro-license.md) §6. Pro i
 - **Hosting beyond $5/month**: Durable Object requests and duration above the included amounts, storage of session
   logs, the licence Worker's traffic, plus domain and email. Measure real cost per active session-hour in the spike
   (§10) before fixing the price.
-- **Payment fees**: about 15% of a $4.99 charge at 5% + 50¢ ([`payments.md`](payments.md)); annual billing helps.
+- **Payment fees** per charge, which weigh more on a small recurring charge than on a one-time purchase.
 - **Incident response**: an on-call reality for a solo developer. Status page or Discord channel, a documented
   "relay down" message in the app, and a rollback plan for relay deployments.
 - **Support**: lost keys, invite problems, "my co-writer's changes didn't arrive", refunds. Budget time for it.
@@ -195,15 +195,13 @@ read-only, exactly as described in [`pro-license.md`](pro-license.md) §6. Pro i
 1. Real-time typing (§4 A or B) for v1, or scene-level turn-taking (C)?
 2. A collaborative-editing dependency, loaded only for Co-Write: acceptable?
 3. End-to-end encryption: a requirement?
-4. Guest limits per session and per host; annual billing.
+4. Guest limits per session and per host.
 5. Which project parts sync in v1: script only, or also the Scene Board, Story Bible and Plan?
 6. Should asynchronous `.draftline` merging (§4 D) be a free Core feature regardless?
 7. Should the relay be open source and self-hostable?
 
 ## History (superseded)
 
-The November 2026 drafts named this **"DraftLine Pro: Co-Write"** (about $4.99/month) beside **"DraftLine Pro:
-Production"** (about $9.99/month, which included Co-Write), with Lemon Squeezy as the payment provider. Under the
-approved Option D, Co-Write is its own optional subscription, Pro is a one-time purchase that doesn't include it, and
-Lemon Squeezy is closing ([`payments.md`](payments.md)). Earlier pricing alternatives (Options A–C) are historical
-only.
+Earlier November 2026 drafts placed Co-Write inside a monthly "DraftLine Pro" subscription with a different payment
+provider. Superseded: Co-Write is its own optional subscription that works with Core or Pro, and this document is the
+authoritative Co-Write spec.

@@ -1,14 +1,36 @@
 # Data integrity: forward compatibility and unknown-field pass-through
 
-> **Status: investigation complete (November 2026); the fix is specified here and not yet approved for
-> implementation.** It is the **prerequisite for Stage 2 (Schedule & Budget)** and for anything later that stores new
-> project data (Stage 3 Shoot, Stage 4 Co-Write, Stage 1 Table Read's voice choices). It is engineering groundwork,
-> not a product stage. See [`../../ROADMAP.md`](../../ROADMAP.md).
+> **Status: core protections implemented (commit 43013af, November 19, 2026). This document is authoritative.** It
+> is the **prerequisite for Stage 2 (Schedule & Budget)** and for anything later that stores new project data (Stage 3
+> Shoot, Stage 4 Co-Write, Stage 1 Table Read's voice choices). Engineering groundwork, not a product stage. See
+> [`../../ROADMAP.md`](../../ROADMAP.md).
 >
-> **No code was changed by this investigation.** Experiments ran against the real storage functions with an
-> in-memory store only (no IndexedDB, no files, no folder).
+> §0 is what's built now. §1–3 are the November 2026 investigation that led to it (the **before** state); §4 was the
+> plan, now mostly done.
 
-## Summary
+## 0. What's implemented now
+
+| Protection | Where | Tests |
+|---|---|---|
+| **Unknown-field pass-through.** Fields this build doesn't know are kept on every save, duplicate, backup, restore, snapshot and folder write. Known fields always win; only plain JSON data is carried (no functions, cycles or prototype keys). | `lib/passThrough.js`; `projectStorage.js` `RECORD_FIELDS`, `toRecord` / `toDoc` (`extra`), `saveActiveProject` (merges the stored record's unknown fields); `productionData.js` `normalizeProduction` (unknown `production` and per-scene keys); `revisions.js` (snapshots capture `extra`) | `tests/dataIntegrity.test.js` cases 1–8 |
+| **Project format version.** Records carry `schemaVersion` (`PROJECT_SCHEMA_VERSION = 1`); records without it read as 1 and only gain the field on their next save. `PRODUCTION_VERSION` stays 1 and is never lowered. **No format bump was needed.** | `projectStorage.js` | case 6 |
+| **Newer-version guard.** A project with a higher `schemaVersion` or `production.version` opens **read-only** (status bar: Read-only, a plain message; reading, printing and exporting still work). The library refuses to save over it (`NewerProjectError`), no crash journal is written for it, and journal recovery skips it. | `projectStorage.js` `isNewerProject`, `saveActiveProject`, `bootLibrary`; `App.jsx` (`newerProject`); `LockBadge.jsx` | cases 9–10 |
+| **Linked-folder stale-write guard.** Before overwriting a script's file, DraftLine checks the copy there (only reading it when it changed since DraftLine last wrote it). It doesn't overwrite a **newer DraftLine's** file, or a file **saved elsewhere** since this browser was last in step with it (exact match, so a computer whose clock runs behind is still caught). The writer chooses **Keep this version** or **Use the folder's version**; the other becomes a snapshot. | `folderSync.js` `checkBeforeWrite`, `adopt`, `saveProjectEverywhere`; `App.jsx`; `SyncConflictModal.jsx` | folder-sync cases |
+
+### Still not protected (known limits)
+
+- **Copies of DraftLine from before 43013af** have none of this and still strip unknown fields when they save. Nothing
+  new can protect an old build. This is why the first feature that writes new data must ship at least one release
+  after these protections (§4.4), so installed apps have updated.
+- **Windows left open across a deploy.** The service worker loads the newest app whenever a window opens online, but
+  an already-open window keeps running the old code until it's reloaded, and an offline launch uses the cached app.
+  There's no "new version" notice yet. A quiet one in the status bar is a candidate improvement.
+- **Two tabs on the same script** in one browser still overwrite each other (last save wins). Candidate:
+  `BroadcastChannel` coordination (§4.6).
+- **Folder conflict detection** relies on the folder copy's `updatedAt` and file timestamps. A sync service that
+  delivers changes late can still produce a conflict after the fact; DraftLine then asks rather than overwriting.
+
+## Summary (investigation, before the fix)
 
 - **No urgent data-loss risk exists today.** Every field DraftLine writes now survives save, reload, backup, restore,
   duplicate, snapshots and folder sync. 141 existing storage, backup, snapshot and Plan tests pass.
@@ -87,7 +109,7 @@ the top level, `production.version: 2` with a `schedule` inside it and extra per
 | Co-Write (session id, collaborator ids) | top-level | Deleted (and it should never be in a backup anyway, see [`co-write.md`](co-write.md)) |
 | Table Read voice choices | `characters[].voice` | **Kept**: `bible.js` `normalizeCharacter` spreads the character's other properties (`...rest`). Stage 1 can store a voice per character without waiting for 4.1, but a narrator voice or reading settings stored elsewhere on the project would not survive. |
 
-## 4. Specification for the fix (when approved)
+## 4. Specification for the fix (§0 shows what's done)
 
 ### 4.1 Unknown-field pass-through
 
