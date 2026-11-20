@@ -50,11 +50,11 @@ describe('Planned-feature previews', () => {
 });
 
 describe('Write: Page | Split | Board | Shoot', () => {
-  it('Shoot follows Board, with the Lucide film icon, in the same switch', () => {
+  it('Shoot follows Board, with the Lucide file-check-2 icon (Import Scenes keeps film), in the same switch', () => {
     assert.equal(SHOOT_TAB.label, 'Shoot');
     const seg = app.slice(app.indexOf('className="seg view-seg"'), app.indexOf('{/* Workspace tools'));
     assert.ok(seg.indexOf('writeViewList.map') < seg.indexOf("openPlanned('shoot'"));
-    assert.match(seg, /<Film size=\{14\} strokeWidth=\{1\.75\} aria-hidden \/>/);
+    assert.match(seg, /<FileCheck2 size=\{14\} strokeWidth=\{1\.75\} aria-hidden \/>/);
     assert.match(seg, /aria-haspopup="dialog"/);
     assert.doesNotMatch(seg, /Pro<|LockBadge|Lock |disabled/);
   });

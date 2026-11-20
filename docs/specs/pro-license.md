@@ -155,7 +155,7 @@ the app** (decided November 19, 2026); they live only in the planning docs.
 
 ## 7. Feature entry points in the interface
 
-Today (November 2026, built): **Shoot** sits after Board in Write's view switch with the Lucide `film` icon;
+Today (November 2026, built): **Shoot** sits after Board in Write's view switch with the Lucide `file-check-2` icon;
 **Schedule** and **Budget** sit after Stripboard in Plan; **Table Read…** and **Co-Write…** are in Write's ⋮ menu.
 Each opens a short planned-feature preview (`components/PlannedFeatureModal.jsx`). Rules, now and when Pro ships:
 

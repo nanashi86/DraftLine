@@ -23,7 +23,7 @@ import { takeFeedbackLink } from './lib/feedback.js';
 import ExportFdxModal from './components/ExportFdxModal.jsx';
 import DeleteProjectModal from './components/DeleteProjectModal.jsx';
 import DialogueStepper from './components/DialogueStepper.jsx';
-import { Calculator, CalendarCheck, ChartColumn, Clapperboard, Columns2, FileText, Film, Flame, LayoutList, Moon, PenLine, Rows3, Scissors, SquareKanban } from 'lucide-react';
+import { Calculator, CalendarCheck, ChartColumn, Clapperboard, Columns2, FileCheck2, FileText, Flame, LayoutList, Moon, PenLine, Rows3, Scissors, SquareKanban } from 'lucide-react';
 import { addAsset, removeAsset, setSceneNotes } from './lib/productionData.js';
 import { csvOutlineFileName, outlineCsv } from './lib/exportCsvOutline.js';
 import FormatStepper from './components/FormatStepper.jsx';
@@ -2706,7 +2706,7 @@ function Workspace({ boot }) {
             ))}
             {/* Shoot: a preview of the planned DraftLine Pro workspace; never a view of its own (yet), and not in Alt+B. */}
             <button type="button" aria-haspopup="dialog" aria-label={SHOOT_TAB.label} className="seg-btn" onClick={(e) => openPlanned('shoot', e.currentTarget)} title={`${SHOOT_TAB.label}: ${SHOOT_TAB.title}`}>
-              <Film size={14} strokeWidth={1.75} aria-hidden />
+              <FileCheck2 size={14} strokeWidth={1.75} aria-hidden />
               <span className="seg-label">{SHOOT_TAB.label}</span>
             </button>
           </div>

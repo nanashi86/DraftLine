@@ -41,7 +41,7 @@ Advanced shooting-script workflows for scripts in production:
 - **Production PDFs**, including revised pages only.
 
 **Navigation (in place since November 19, 2026, as a preview):**
-- **Shoot** is the fourth button in Write's view switch: **Page | Split | Board | Shoot**, with the Lucide **`film`**
+- **Shoot** is the fourth button in Write's view switch: **Page | Split | Board | Shoot**, with the Lucide **`file-check-2`**
   icon. Today it opens a planned-feature preview ("From spec to shooting script.") and changes nothing else. It isn't
   a view yet, so Alt+B still cycles Page, Split and Board.
 - **Plan keeps its `Clapperboard` icon.** *(Superseded: an earlier idea gave Shoot the clapperboard and moved Plan to
@@ -209,7 +209,7 @@ locked pages → FDX interoperability, the last only once real Final Draft files
 
 ## 7. Open decisions
 
-- **P1. Navigation: decided and in place.** **Shoot** (`film`) is to the right of Board (Page | Split | Board |
+- **P1. Navigation: decided and in place.** **Shoot** (`file-check-2`) is to the right of Board (Page | Split | Board |
   Shoot); Plan keeps `Clapperboard` (§1).
 - **P2. Scene suffixes.** US prefix (A12, AA12, B12) or suffix (12A, 12AA, 12B)? The mockups assume 12A.
 - **P3. Colours after Cherry.** Sources differ: Tan, Ivory, then Double White, or straight to Double White. Fixed or
