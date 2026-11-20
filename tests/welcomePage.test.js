@@ -20,9 +20,11 @@ function webpSize(buf) {
 }
 
 describe('The Welcome page', () => {
-  it('opens with the slogan, Just Write., the promise and the approved introduction', () => {
-    assert.match(text, /DraftLine No subscriptions\. No distractions\. No compromises\. Just Write\. Fast, distraction-free screenwriting\./);
-    assert.match(text, /Professional screenplay formatting, creative planning tools, and an uncluttered writing space\. Free, open-source, and ready when you are\./);
+  it('opens with Welcome to DraftLine, the promise and the two approved paragraphs', () => {
+    assert.match(html, /<div class="hero">\s*<h1>Welcome to DraftLine<\/h1>\s*<p class="promise">/);
+    assert.match(text, /Welcome to DraftLine Fast, distraction-free screenwriting\. Our mission is to give every writer the freedom to focus on their story, not their software\. DraftLine brings together professional screenplay formatting, creative planning tools, and an uncluttered writing space\. Free, open-source, and built to keep the focus where it belongs: on your story\. Start Writing/);
+    assert.equal((html.match(/<p class="lede">/g) || []).length, 2, 'two paragraphs');
+    assert.doesNotMatch(html, /eyebrow|class="kicker"/, 'no eyebrow or slogan line in the hero');
   });
   it('Start Writing goes to the editor; Explore Features to /features/', () => {
     assert.match(html, /<a class="cta cta-lg" data-open-app href="\/\?from=welcome">Start Writing<\/a>\s*<a class="link-arrow" href="\/features\/">Explore Features →<\/a>/);

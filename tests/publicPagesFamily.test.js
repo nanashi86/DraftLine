@@ -1,13 +1,13 @@
 // The four public pages (welcome/, philosophy/, features/, compare/) read as one family: one title
-// pattern and the same spacing for major sections. Welcome keeps its own hero (a WELCOME TO DRAFTLINE
-// eyebrow over "Just Write."); the other three open straight on a heading in the same style.
+// pattern, the same spacing for major sections, and each opens straight on its heading, in the same style.
+// Welcome keeps its own promise line, introduction and laptop below that heading.
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 
 const read = (p) => readFileSync(new URL(`../public/${p}/index.html`, import.meta.url), 'utf8');
 const PAGES = {
-  welcome: { h1: 'Just Write.', title: 'DraftLine — Welcome — Free Screenwriting Software' },
+  welcome: { h1: 'Welcome to DraftLine', title: 'DraftLine — Welcome — Free Screenwriting Software' },
   philosophy: { h1: 'Story &amp; Principles', title: 'DraftLine — Core Philosophy — Story &amp; Principles' },
   features: { h1: 'DraftLine Features', title: 'DraftLine — Explore Features — Screenwriting Tools' },
   compare: { h1: 'How DraftLine Compares', title: 'DraftLine — Compare — vs Final Draft, Fade In &amp; More' },
@@ -33,9 +33,8 @@ describe('The four public pages', () => {
       assert.match(html, /<p class="next"><a class="cta"/);
     });
   }
-  it('Welcome keeps its eyebrow and Just Write.; the other three open on their heading, no eyebrow, same style', () => {
-    assert.match(read('welcome'), /<div class="hero">\s*<p class="eyebrow">Welcome to DraftLine<\/p>\s*<p class="kicker">[\s\S]*?<\/p>\s*<h1>Just Write\.<\/h1>/);
-    for (const page of ['philosophy', 'features', 'compare']) {
+  it('all four open on their heading, no eyebrow, in the same style', () => {
+    for (const page of ['welcome', 'philosophy', 'features', 'compare']) {
       const html = read(page);
       assert.match(html, new RegExp(`<div class="hero">\\s*<h1>${PAGES[page].h1}</h1>`), page);
       assert.doesNotMatch(html, /eyebrow/, `${page}: no eyebrow left (markup or CSS)`);

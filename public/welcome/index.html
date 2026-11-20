@@ -98,13 +98,10 @@
       .slogan-end { display: block; white-space: nowrap; } /* the payoff gets its own line */
 
       .hero { padding: 48px 0 8px; } /* the laptop follows, with its own spacing */
-      .eyebrow { font: 600 12px/1.4 Inter, system-ui, sans-serif; letter-spacing: 0.14em; text-transform: uppercase;
-        color: var(--muted); margin: 0 0 10px; } /* the page's name, the same on all four pages */
-      .kicker { font: 600 15px/1.5 Inter, system-ui, sans-serif; color: var(--muted); margin: 0 0 6px; }
-      .kicker span { white-space: nowrap; } /* a phone wraps between the phrases, never inside one */
-      h1 { font: 700 clamp(28px, 6vw, 40px)/1.2 'Courier Prime', 'Courier New', monospace; color: var(--strong); margin: 0; }
-      .promise { font: 700 20px/1.4 'Courier Prime', 'Courier New', monospace; color: var(--strong); margin: 22px 0 8px; }
+      h1 { font: 700 clamp(28px, 6vw, 40px)/1.2 'Courier Prime', 'Courier New', monospace; color: var(--strong); margin: 0 0 14px; } /* as the other three pages */
+      .promise { font: 700 20px/1.4 'Courier Prime', 'Courier New', monospace; color: var(--strong); margin: 0 0 16px; }
       .lede { max-width: 640px; margin: 0; }
+      .lede + .lede { margin-top: 12px; }
       .actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; margin: 24px 0 0; }
       .cta-lg { padding: 11px 20px; font-size: 16px; }
       .link-arrow { font-weight: 600; text-decoration: none; }
@@ -170,12 +167,11 @@
     </header>
     <main class="wrap">
       <div class="hero">
-        <p class="eyebrow">Welcome to DraftLine</p>
-        <p class="kicker"><span>No subscriptions.</span> <span>No distractions.</span> <span>No compromises.</span></p>
-        <h1>Just Write.</h1>
+        <h1>Welcome to DraftLine</h1>
         <p class="promise">Fast, <span class="nowrap">distraction-free</span> screenwriting.</p>
-        <p class="lede">Professional screenplay formatting, creative planning tools, and an uncluttered writing space.
-          Free, open-source, and ready when you are.</p>
+        <p class="lede">Our mission is to give every writer the freedom to focus on their story, not their software.</p>
+        <p class="lede">DraftLine brings together professional screenplay formatting, creative planning tools, and an uncluttered
+          writing space. Free, open-source, and built to keep the focus where it belongs: on your story.</p>
         <p class="actions">
           <a class="cta cta-lg" data-open-app href="/?from=welcome">Start Writing</a>
           <a class="link-arrow" href="/features/">Explore Features →</a>
