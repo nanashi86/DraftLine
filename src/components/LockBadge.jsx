@@ -1,8 +1,14 @@
 import { lockBadge } from '../lib/lock.js';
 
-/** Status bar: Editing ⇄ Viewing (Ctrl+Alt+L). Muted while editable; warm amber when locked. */
-export default function LockBadge({ locked, onToggle }) {
-  const b = lockBadge(locked);
+/**
+ * Status bar: Editing ⇄ Viewing (Ctrl+Alt+L). Muted while editable; warm amber when locked.
+ * `newer`: a project saved by a newer DraftLine, always read-only here ("Read-only"; a click explains).
+ */
+export default function LockBadge({ locked, onToggle, newer = false }) {
+  const base = lockBadge(locked || newer);
+  const b = newer
+    ? { ...base, label: 'Read-only', title: 'Saved by a newer version of DraftLine: read-only here. Reload or update DraftLine to edit it.' }
+    : base;
   return (
     <button
       type="button"
@@ -10,8 +16,8 @@ export default function LockBadge({ locked, onToggle }) {
       onClick={onToggle}
       title={b.title}
       aria-label={b.title}
-      aria-pressed={locked}
-      data-locked={locked ? 'true' : 'false'}
+      aria-pressed={locked || newer}
+      data-locked={locked || newer ? 'true' : 'false'}
     >
       <svg width="11" height="11" viewBox="0 0 12 12" aria-hidden="true">
         <rect x="2" y="5.5" width="8" height="5.5" rx="1.2" fill="currentColor" />

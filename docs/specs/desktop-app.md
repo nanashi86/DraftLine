@@ -1,35 +1,36 @@
-# Desktop App — native shell for Windows, macOS and Linux (future plan)
+# Desktop App — native shell for Windows (macOS and Linux later, if ever) (future plan)
 
-Status: **future, free for everyone (Core free, Pro by licence). Not started, not scheduled.** Written October 2026; repositioned
-November 2026. The web app stays the product; a desktop app would be the same DraftLine in a native window, built
-from the same code.
+Status: **future, free for everyone. A separate distribution workstream, not a numbered roadmap stage. Not started,
+not scheduled.** Written October 2026; repositioned November 2026; entitlements updated November 19, 2026. The web app
+stays the flagship; a desktop app would be the same DraftLine in a native window, built from the same code.
 
-> **November 2026 update: the desktop app is free, and Pro is a licence, not a platform.** DraftLine's products are
-> **DraftLine Core** (*Write Your Story*, free forever), **DraftLine Pro: Co-Write** (*Write Together*) and
-> **DraftLine Pro: Production** (*Page to Production*) ([`../../ROADMAP.md`](../../ROADMAP.md)).
-> - **The desktop app is not behind a paywall.** Like the browser and the installed PWA, it's just a way to use
->   DraftLine: **Core is free in it**, and a Pro licence unlocks its tier in it.
-> - **Pro is a licence tied to the writer** (a monthly subscription, prices not final; [`co-write.md`](co-write.md)
->   §6). The writer enters their token in **Settings → Pro License**, the same field on every platform, with no
->   account. One licence works across browser, desktop and Android.
-> - **Early access:** Ko-fi supporters and Patreon's **The Writers' Room** ($10) and **Executive Producer** ($25)
->   tiers (as their tier perks already say) get early access to the desktop and Android builds, provided the
->   Ko-fi goal ("DraftLine Native Desktop & Android/ChromeOS Builds") is reached. Existing promises are kept.
-> - Pro features themselves are browser-based, so the desktop app is never a requirement for Pro. How licences renew
->   and expire: [`pro-license.md`](pro-license.md).
+> **Entitlement model (Option D, approved November 19, 2026).** ([`../../ROADMAP.md`](../../ROADMAP.md),
+> [`pro-license.md`](pro-license.md))
+> - **The Windows desktop app is free** and isn't a paid tier. **DraftLine Core is free in it**, as on every supported platform.
+> - **DraftLine Pro** ($29.99 **one-time**, planned) is a capability purchase, not an app purchase: bought once, it
+>   unlocks Shoot and production revisions in the browser, the installed app and every native app.
+> - **DraftLine Co-Write** ($4.99/month, planned) is an independent optional subscription for hosting co-writing
+>   sessions, with Core or Pro. Not required for Pro, not included in it.
+> - Pro and Co-Write entitlements are **portable across supported platforms**: one key each, entered in
+>   **Settings → Licenses & Access**, no account. There is **no separate desktop or mobile subscription**.
+> - **Supporters:** Ko-fi supporters and Patreon's **The Writers' Room** ($10) and **Executive Producer** ($25) tiers
+>   get early access to the native builds once the Ko-fi goal ("DraftLine Native Desktop & Android/ChromeOS Builds")
+>   is reached; those tiers were also promised Pro and Co-Write, which Option D splits into two entitlements. How
+>   patrons receive both is flagged for Eric in [`pro-license.md`](pro-license.md) §9.
+> - **No release dates or store availability are promised.**
+> - **To research before any build:** Microsoft Store and direct-download policies for activating a licence bought on the web
+>   (non-game apps may use their own payments in the Store; confirm current rules), offline licence checks inside the
+>   app, and code-signing costs (Part A).
 > - **Platform scope: Windows only for now.** macOS and Linux are not planned at the moment. The research below
->   covers all three and is kept for later. Skip the macOS and Linux steps (Apple notarization, WebKitGTK, AppImage,
->   Flathub) until they're back in scope.
+>   covers all three and is kept for later.
 >
-> **Superseded, kept for the record:**
-> - Earlier versions of this page priced the desktop app itself, first as "DraftLine Pro" for a one-time $49 (or
->   included with Patreon), then as included with a Pro subscription. Both are replaced: the app is free.
-> - Revision tracking and locked pages are now **DraftLine Pro: Production**, browser-based and indefinitely deferred
->   ([`production-revisions-concept.md`](production-revisions-concept.md)).
+> **Superseded, kept for the record:** earlier versions priced the desktop app itself (a one-time $49 "DraftLine Pro",
+> or included with Patreon), then tied it to a monthly "DraftLine Pro: Co-Write / Production" subscription and a
+> "Settings → Pro License" field. All replaced: the app is free and Pro is a one-time capability purchase.
 >
 > Part A's technical research (Tauri vs Electron, file system, windows, shortcuts, updater, signing costs, security)
-> remains valid. Pro unlocking in the app uses the shared Settings → Pro License token check (not a download gate),
-> ideally working offline for a grace period. **Part B's community copy is out of date and must not be posted as
+> remains valid. Pro unlocking in the app uses the shared Settings → Licenses & Access check (not a download gate),
+> working offline. **Part B's community copy is out of date and must not be posted as
 > is.**
 
 ---

@@ -53,9 +53,9 @@ describe('Viewing mode: wiring', () => {
   const app = read('App.jsx');
   const editor = read('components/Editor.jsx');
   it('isLocked lives in the app, starting from the script’s saved viewOnly; the shortcut and the badge both toggle it', () => {
-    assert.match(app, /const \[isLocked, setIsLocked\] = useState\(initialDoc\.viewOnly === true\);/);
+    assert.match(app, /const \[isLocked, setIsLocked\] = useState\(initialDoc\.viewOnly === true \|\| isNewerProject\(boot\.project\)\);/);
     assert.match(app, /if \(isLockShortcut\(e\)\) \{\s*e\.preventDefault\(\);\s*toggleLock\(\);/);
-    assert.match(app, /<LockBadge locked=\{isLocked\} onToggle=\{toggleLock\} \/>/);
+    assert.match(app, /<LockBadge locked=\{isLocked\} newer=\{newerProject\} onToggle=\{toggleLock\} \/>/);
     // right after the save indicator
     assert.match(app, /\{saveStatus\.label\}<\/span>\s*<\/button>\s*<LockBadge/);
   });
@@ -140,13 +140,13 @@ describe('Viewing mode: saved with the script', () => {
 
   it('opening a script with viewOnly: true starts in Viewing (on load and on switching)', () => {
     assert.equal(toDoc({ id: 'x', script: [], viewOnly: true }).viewOnly, true);
-    assert.match(app, /const \[isLocked, setIsLocked\] = useState\(initialDoc\.viewOnly === true\);/);
-    assert.match(app, /setIsLocked\(doc\.viewOnly === true\); \/\/ each script opens in its own saved Viewing state/);
+    assert.match(app, /const \[isLocked, setIsLocked\] = useState\(initialDoc\.viewOnly === true \|\| isNewerProject\(boot\.project\)\);/);
+    assert.match(app, /setIsLocked\(doc\.viewOnly === true \|\| newer\); \/\/ each script opens in its own saved Viewing state/);
   });
 
   it('the app saves it like any edit: it makes the script unsaved and goes out with the next save', () => {
     assert.match(app, /\|\| saved\.viewOnly !== isLocked;/);
-    assert.match(app, /viewOnly: isLocked,\s*createdAt/);
+    assert.match(app, /viewOnly: isLocked,\s*newerProject,\s*extra: extraRef\.current,[^\n]*\n\s*createdAt/);
     assert.match(app, /production: s\.production, revisions: s\.revisions, viewOnly: s\.viewOnly,/);
     assert.match(app, /revisions, isLocked, saveNow\]\);/, 'the debounced auto-save runs on a toggle');
     assert.match(app, /production: s\.production, viewOnly: s\.viewOnly,\s*\}\);/, 'the crash journal carries it');

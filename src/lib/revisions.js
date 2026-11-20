@@ -9,6 +9,8 @@
 // Revisions live in the project's record (projectStorage.js), so they're saved to IndexedDB
 // with it, switch with it in Projects, and travel inside .draftline backups (backup.js).
 
+import { hasUnknownFields } from './passThrough.js';
+
 const clone = (v) => (v === undefined ? undefined : JSON.parse(JSON.stringify(v)));
 
 let counter = 0;
@@ -49,6 +51,8 @@ export function createRevision(doc, { label, now = Date.now(), pages, id } = {})
     characters: clone(doc.characters || []),
     storyNotes: clone(doc.storyNotes),
     ...(doc.production ? { production: clone(doc.production) } : {}),
+    // A newer DraftLine's project fields (projectStorage toDoc's `extra`), so restoring brings them back.
+    ...(hasUnknownFields(doc.extra) ? { extra: clone(doc.extra) } : {}),
     pages: Number.isFinite(pages) ? pages : null,
     scenes: blocks.filter((b) => b.type === 'scene' && (b.text || '').trim()).length,
     words: wordCount(blocks),

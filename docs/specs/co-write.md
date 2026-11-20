@@ -1,78 +1,48 @@
-# DraftLine Pro: Co-Write, Write Together
+# DraftLine Co-Write: real-time collaboration (optional subscription)
 
-> **Status: Future Pro concept — not approved for implementation.** Tentative exploration: 2027 (Q1–Q2), subject to
-> feasibility and priorities. Written November 2026 against DraftLine 0.11.0 (commit `343c49a`). The infrastructure
-> and business baseline below was decided in November 2026; the sync model (§3) is still open.
+> **Status: Stage 4 of 4: last in the development order, long-term future, not approved for implementation.**
+> Rewritten November 19, 2026 for the approved **Option D** model. No release date. See
+> [`../../ROADMAP.md`](../../ROADMAP.md).
 >
-> **No existing DraftLine functionality may be removed, restricted, or transferred from the free browser application
-> to a paid product.** DraftLine Core (*Write Your Story*) stays complete, local-first, offline-capable and
-> account-free. Writers who never use Co-Write see no change in how DraftLine works. The only visible addition is
-> a greyed-out Co-Write entry point that explains itself when clicked ([`pro-license.md`](pro-license.md) §4a).
+> **DraftLine Co-Write is an optional subscription, planned at $4.99/month, that works alongside free DraftLine Core
+> or a purchased DraftLine Pro.** It is not part of Pro, doesn't require Pro, and Pro doesn't require it. Only the
+> writer **hosting** a session needs it; invited writers join free, with Core or Pro.
+>
+> **No existing DraftLine functionality may be removed, restricted, or transferred to a paid product.** Solo writing
+> stays complete, local-first, offline-capable and account-free. Writers who never use Co-Write see one menu item
+> (⋮ → Co-Write…) that opens a short preview, and nothing else changes.
 
-This is a feasibility and boundaries brief, not a design. Its job is to say what the current code means for
-collaboration, which questions decide the architecture, and what to prototype first. The hosting, payments and
-licensing stack is decided (next section); how edits are merged (§3) is not. See also
-[`../../ROADMAP.md`](../../ROADMAP.md) (Phase 2) and [`pro-license.md`](pro-license.md).
+This is a feasibility and boundaries brief, not a design. It records what the current code means for collaboration,
+the decisions that shape the architecture, the operating responsibilities a live service brings, and what to
+prototype first. Licences: [`pro-license.md`](pro-license.md). Payments: [`payments.md`](payments.md). Data safety:
+[`data-integrity.md`](data-integrity.md).
 
 ---
 
-## Baseline decisions for Phase 2 (November 2026)
-
-The guiding constraint: **no fixed costs beyond about $5/month, nothing that scales with idle users, and nothing a
-solo developer has to run by hand.**
-
-| Area | Decision | Why |
-|---|---|---|
-| **Brand** | **DraftLine** is the one name for the software, repo, domain and ecosystem. There are no separate Co-Write apps, repos or brands. | Keeps brand authority, search ranking and AlternativeTo presence in one place. |
-| **Taxonomy** | **DraftLine (DL)**: the local-first software (web, PWA, Windows and Android apps): storage, offline use, pagination, FDX/Fountain/PDF export. **DraftLine Core (DLC)**: the free-forever tool suite. **DraftLine Pro: Co-Write (DLP:CO-W)**: an optional paid **cloud service**, real-time WebSocket relays for multi-writer rooms. **DraftLine Pro: Production (DLP:PROD)**: the **Shoot** workspace (local shooting-script tools) **bundled with the Co-Write service**. | Makes clear what's software (free) and what's a service (paid). |
-| **Tier names** | **DraftLine Pro: Co-Write** (*Write Together*) and **DraftLine Pro: Production** (*Page to Production*) are the official business tier names in all docs, the roadmap, checkout and receipts. In running text, "Co-Write" and "Production" are fine after the full name appears once. Short forms DL, DLC, DLP:CO-W and DLP:PROD are for internal docs only. | One consistent name everywhere a writer pays or reads. |
-| **Messaging** | "DraftLine is free" means the software and every Core writing, planning and export tool are free forever. Writers pay only if they opt into server infrastructure (Co-Write) or the studio-grade production suite (Production). | An honest, testable promise. |
-| **UI gating** | Pro entry points (for example the Co-Write session control) are always visible in the same place, greyed out without a licence. Clicking one opens a modal that explains the tier and links to Settings → Pro License. No layout shifts, no unprompted upsells. Full rules: [`pro-license.md`](pro-license.md) §4a. | Discoverable without cluttering or nagging. |
-| **Payments** | A **Merchant of Record** processes every Pro subscription. **Lemon Squeezy** is the named provider (5% + 50¢ per transaction, no monthly fee). The MoR is the legal seller and handles global sales tax/VAT, receipts, refunds and chargebacks. **No Stripe Billing, no custom tax logic, no base subscription fees.** | $0 fixed cost, and no tax compliance to run. |
-| **Licensing** | A **Cloudflare Worker + KV/D1** issues and renews licence keys from the MoR's webhooks. Apps verify short **leases** locally with a **Web Crypto public key**. **No user accounts and no user database**: only licence records (key hash, tier, status, period end, device ids). Offline grace period. Writers enter the key in **Settings → Pro License**. Full design: [`pro-license.md`](pro-license.md). | Fits "no accounts" and works offline. It runs within the same Workers plan as the relay. |
-| **Real-time relay** | **Cloudflare Workers + Durable Objects over WebSockets**, on the **$5/month Workers Paid plan**. One Durable Object per Co-Write session holds the connections and the session's update log, and uses the **WebSocket Hibernation API**. | Usage-based scaling with near-zero idle cost (below). The same Cloudflare account already runs the feedback Worker. |
-
-**Why the relay costs almost nothing when idle** (Cloudflare's published Durable Objects pricing, checked November
-2026; re-check before launch):
-- Durable Objects are billed by **requests** and **duration** (wall-clock time while running). With the
-  **Hibernation API**, a session whose writers are connected but quiet **hibernates and accrues no duration
-  charges**. Sessions nobody has open cost nothing.
-- **Workers Paid ($5/month) includes** 1 million Durable Object requests and 400,000 GB-s of duration a month. After
-  that it costs $0.15 per million requests and $12.50 per million GB-s.
-- **WebSocket traffic is cheap:** opening a connection counts as one request, **incoming messages count 20:1** (100
-  messages = 5 requests), and outgoing messages are free. Keystrokes should still be batched into small updates
-  rather than sent one per character.
-- **Storage:** the session log lives in the Durable Object's own SQLite storage, whose monthly allowance (5 GB,
-  millions of row writes) is included.
-- **Prototyping is $0:** Durable Objects (SQLite-backed) are also on Cloudflare's free plan, with daily limits. The
-  $5 plan is only needed for launch.
-
-**Provider risk (payments):** Stripe acquired Lemon Squeezy in 2024. Third-party reports in 2026 describe it as in
-maintenance mode and steering merchants toward Stripe Managed Payments. **The decision is the Merchant of Record
-model, not the brand.** To keep switching cheap:
-- licence keys are generated by DraftLine's own Worker, **not** by Lemon Squeezy's built-in key feature;
-- the Worker treats webhooks through one small adapter per provider.
-
-**Paddle** (also a Merchant of Record, same 5% + 50¢ structure) is the drop-in alternative. Check payout support for
-Eric's country of residence before signing up.
-
 ## 1. Concept
 
-Optional real-time collaborative screenwriting for two or more writers:
-- shared sessions;
-- live cursors and presence;
-- synchronized edits;
-- permissions (owner, editor, commenter or viewer);
-- conflict handling;
-- optional comments and review;
-- a clean hand-off back to ordinary solo writing.
+Optional real-time co-writing for two or more writers: shared sessions, live cursors and presence, synchronised edits,
+guest invitations and permissions (owner, editor, commenter, viewer), safe conflict handling, and a clean hand-off back
+to ordinary solo writing. Where it lives today: **Write → ⋮ → Co-Write…** opens the planned-feature preview
+("Write together, wherever you are."). Nothing behind it is built.
 
-**DraftLine Pro: Co-Write** is a paid Pro tier. Direction (Nov 2026, prices not final): a **monthly subscription of
-around $4.99**. The subscriber invites collaborators, who **co-write free without paying**. **DraftLine Pro:
-Production** (around $9.99/month) includes Co-Write. The native apps are free for everyone; a Pro licence unlocks the
-tier on any platform (§6).
+## 2. Infrastructure candidates (subject to feasibility testing)
 
-## 2. What the current code means for collaboration
+| Area | Candidate | Why |
+|---|---|---|
+| Real-time relay | **Cloudflare Workers + Durable Objects over WebSockets**, one Durable Object per session, using the WebSocket Hibernation API | Usage-based, near-zero idle cost, single-threaded authority per session; the same Cloudflare account already runs the feedback Worker |
+| Licence checks | The licence Worker in [`pro-license.md`](pro-license.md): the host's Co-Write lease is checked at every session start | No accounts |
+| Payments | A Merchant of Record handling the monthly subscription ([`payments.md`](payments.md)) | No tax compliance to run |
+
+These are **preferred candidates, not a final architecture.** The **$5/month Workers Paid plan is the floor, not the
+total cost** (§9).
+
+Durable Objects pricing as published by Cloudflare (checked November 2026; re-check before launch): billed by requests
+and duration; hibernating sessions accrue no duration; Workers Paid includes 1 million requests and 400,000 GB-s a
+month, then $0.15 per million requests and $12.50 per million GB-s; incoming WebSocket messages count 20:1; SQLite
+storage per object is included up to the plan's limits; prototyping works on the free plan.
+
+## 3. What the current code means for collaboration
 
 These findings are confirmed in code.
 
@@ -87,12 +57,12 @@ These findings are confirmed in code.
 | Folder sync | `folderSync.js` | Whole-file, newest `updatedAt` wins. That is not a merge. Co-Write must not depend on it. |
 | Other project parts | `beats`, `characters`, `storyNotes`, `storyDna`, `production`, `revisions` | The Scene Board (cards linked by `sceneId`), Story Bible, Plan data and Snapshots would each need a sync rule. v1 can sync only the script and the board. |
 | Mobile input | `Editor.jsx` phone view; `tests/browser/composition.browser.js` | A remote change landing in the element someone is composing in (IME, predictive text) is a known hazard class. DraftLine already had to fix doubled words at page seams. |
-| Forward compatibility | `projectStorage.js` `toRecord` | Unknown record fields are dropped on save. Any Co-Write metadata stored on a project needs the same pass-through fix described for Production and Schedule/Budget. |
+| Forward compatibility | `projectStorage.js` `toRecord` | Unknown record fields are dropped on save. Any Co-Write metadata stored on a project needs the pass-through fix in [`data-integrity.md`](data-integrity.md). |
 | Privacy promise | README, Philosophy page | The editor is telemetry-free and nothing is uploaded. Co-Write necessarily sends script content to other people through a relay. That must be **opt-in per project**, clearly disclosed, and ideally end-to-end encrypted. |
 | Dependencies | DraftLine's standing rule: no new dependencies | Mature collaborative-editing libraries are dependencies. Using one is a deliberate exception to decide, and could be loaded only when a session starts. The relay (Durable Objects) and licence checks (Web Crypto) need no new app dependencies. |
-| Existing hosting | Cloudflare Worker for feedback (`draftline-feedback`) | There is precedent and an account for small serverless infrastructure. Long-lived sessions need stateful relays, which is what Durable Objects provide (decided, see Baseline decisions). |
+| Existing hosting | Cloudflare Worker for feedback (`draftline-feedback`) | There is precedent and an account for small serverless infrastructure. Long-lived sessions need stateful relays, which is what Durable Objects provide (the preferred candidate, §5). |
 
-## 3. Sync model options (still open; all run on the decided Durable Objects relay)
+## 4. Synchronisation: CRDT or server-authoritative (not decided)
 
 - **A. CRDT-based sync.** The script becomes a shared list of elements, each with shared text and formatting. A
   relay forwards updates and stores the session log. This gives:
@@ -116,112 +86,124 @@ These findings are confirmed in code.
 
 C and D may be worth more per hour of work than A, and D could even be a Core feature. That is a product decision.
 
-How each fits the decided relay:
+How each fits the candidate relay:
 - **A:** the session's Durable Object forwards updates and stores the log, without reading the text, so E2E stays
   possible.
 - **B and C:** they map naturally onto it too, because each Durable Object is a single-threaded authority for its
   session, so it can order edits or grant scene claims.
 - **D:** needs no relay at all.
 
-## 4. Boundaries (non-negotiable)
+## 5. Session architecture questions
 
-- Solo writing stays exactly as it is: local-first, offline, no account, and the same undo.
-- Co-Write is **per project and opt-in**. Leaving a session returns the project to ordinary solo mode with all
-  content kept locally.
-- No mandatory cloud storage for anyone. Invited collaborators never need to buy anything and need no account
-  (decided).
-- The free app must at least **open and preserve** a project that was once co-written.
+### 5.1 Independent local undo and redo
+Today's undo (`hooks/useHistory.js`) is snapshot-based and would revert collaborators' edits. Co-Write needs per-writer,
+operation-based undo that reverts only that writer's changes; solo mode keeps today's undo exactly.
 
-## 5. Risks
+### 5.2 Concurrent screenplay and structural edits
+Element-type changes, Enter-splits and merges, Scene Board moves, Format Doctor fixes and character renames touch
+several elements at once. Each needs a defined merge rule (for example: a type change and a text edit to the same
+element both apply; a rename is one operation that touches every cue). Formatting ranges (`formatting.js`) must move
+with concurrent text edits.
 
-- **Undo semantics.** Users expect Ctrl+Z to undo *their* change only. This is the most visible correctness issue.
-- **Formatting ranges and element-type changes** under concurrent edits, for example one writer retyping a line as
-  Dialogue while another edits its text.
-- **Structural edits racing**: Enter-split, merge, Scene Board moves, Format Doctor fixes and character rename are
-  multi-element changes.
-- **IME composition** while remote edits arrive, especially on phones.
-- **Data loss at the edges**: leaving or rejoining sessions, offline merges, and old app versions dropping session
-  metadata.
-- **Privacy and trust**: relays, encryption keys, invite links and removing a collaborator.
-- **Running costs** that grow with usage, for a free-first project. Mitigated by the Baseline decisions: a fixed
-  $5/month, usage-based Durable Objects with hibernation, and percentage-only payment fees. Per-licence session and
-  invitee limits (§6) keep a single heavy user from dominating costs.
-- **Maintenance load** for a solo developer: a live service has uptime, abuse and support costs that a static app
-  doesn't.
+### 5.3 Mobile IME and offline reconnection
+A remote change must never land inside an element the local writer is composing in (IME, predictive text). Apply remote
+changes to that element after composition ends. Offline edits queue locally and merge on reconnect; a long offline
+period may need a "your changes and theirs" review instead of a silent merge.
 
-## 6. Commercial model
+### 5.4 Durable Object session recovery
+The session's Durable Object keeps its update log in its own storage, so a restart or eviction resumes from the log.
+Clients keep their own full copy and resend unacknowledged updates after reconnecting. The relay is never the only copy.
 
-**Pro pricing model (direction, prices not final).** One DraftLine, one licence, write anywhere.
-- **Pro is a licence tied to the writer, not to a platform.** It's a monthly subscription to one of two tiers:
-  - **DraftLine Pro: Co-Write**, around **$4.99/month**. The subscriber can invite collaborators, who co-write free without
-    paying.
-  - **DraftLine Pro: Production**, around **$9.99/month**, **including everything in Co-Write**.
-- **Platforms are not paywalled.** The browser, the installed PWA, and the planned desktop (Windows)
-  and Android/ChromeOS apps are all just ways to use DraftLine. **Core is free on every one of them**, and a Pro
-  licence unlocks its tier on every one of them. Subscribe once, enter the token on Windows, use the same licence
-  on a Chromebook, with no second purchase.
+### 5.5 Guest invitations, permissions and revocation
+- Invites are unguessable links (a capability), optionally with an expiry and a role.
+- The host can change a guest's role or remove them at any time; removal closes their connection and rotates the
+  session key so the old link stops working.
+- Guests need no account, no key and no purchase.
 
-| Platform | Core | Co-Write licence | Production licence |
-|---|---|---|---|
-| Browser | Free | Unlocked | Unlocked |
-| Installed PWA | Free | Unlocked | Unlocked |
-| Windows app (planned) | Free | Unlocked | Unlocked |
-| Android/ChromeOS app (planned) | Free | Unlocked | Unlocked |
+### 5.6 Session limits and abuse controls
+Per host: concurrent sessions, guests per session, message rate, update size and stored log size, with plain messages
+when a limit is reached. Rate-limit invite-link guessing and connection attempts. A licence unlocks hosting, not
+unlimited service.
 
-- **Entering the licence:** a **"Pro License"** field in **Settings**, the same on every platform, where the writer
-  pastes their token. No account.
-- **How licences are issued, renewed and expire:** [`pro-license.md`](pro-license.md).
-- **A licence unlocks features, not unlimited service.** Hosting, storage, concurrent sessions and devices per token
-  get reasonable limits, defined before launch.
+### 5.7 Privacy, authentication and encryption
+- Co-Write is **opt-in per project**, and the first time a project is shared DraftLine says plainly that the script
+  travels through DraftLine's relay to the invited writers.
+- Hosts authenticate with their Co-Write lease; guests with the invite capability.
+- **End-to-end encryption is the goal**: with a CRDT (§4 A) the relay only forwards encrypted updates and never reads
+  the script. A server-authoritative design (§4 B) needs to read text, which conflicts with E2E; that trade-off is the
+  central decision.
+- No analytics on session content; Worker logs off.
 
-Why a subscription fits: hosted relays are an **ongoing** cost that grows with use, and a monthly price covers it
-where a one-time licence wouldn't.
+## 6. Subscription status during and after sessions
 
-Still open:
-- **Limits for free invitees**: how many per session, and per subscriber.
-- **Identity (decided): no accounts.** Paying for Pro gives the subscriber a **unique licence token**, which they
-  must save and enter in **Settings → Pro License** on any platform. The token unlocks the tier's features and
-  authenticates the subscriber to the relay. It is **not** needed to download or use any DraftLine app. Invitees join by **invite link alone** and need no token. How keys, renewal, expiry, grace, device limits and lost keys work is in
-  [`pro-license.md`](pro-license.md).
-- **Lapsed subscriptions (decided)**: the licence simply stops renewing and runs out after the paid period plus a
-  grace period. The co-written project stays on the device, fully editable as an ordinary solo Core project. Live
-  sessions end. See [`pro-license.md`](pro-license.md) §3–4.
-- **Self-hosting**: should the relay be open source, so anyone can run their own? That fits MIT, but competes with
-  the paid hosted relay.
-- **Patreon (decided)**: eligible active Patreon supporters get a **Pro: Production licence** (which includes
-  Co-Write). Eligible tiers (proposed, to confirm when Pro launches): **The Writers' Room** ($10/month) and
-  **Executive Producer** ($25/month). **In the Credits** ($3/month) stays credits, a Discord role and the community.
-  When Pro launches, add "Pro: Production licence" to those tiers' perks on Patreon. Still open: how tokens are issued
-  and expired as pledges start and stop.
-- **Early access (decided)**: supporters get **early access to the native desktop and Android apps** before public
-  release, provided the Ko-fi goal ("DraftLine Native Desktop & Android/ChromeOS Builds") is reached.
-  - **Patreon, already advertised:** Patreon's **The Writers' Room** ($10/month) and **Executive Producer** ($25/month) tiers both list early access. The Writers' Room's description promises
-    "early beta access to standalone desktop (Windows, macOS, Linux) and Android/ChromeOS builds". *(Native apps are
-    now scoped to Windows and Android/ChromeOS; update that tier text so it only promises those.)* These promises are
-    kept. In the Credits ($3) does not include early access.
-  - **Ko-fi:** supporters get early access too. This isn't stated on Ko-fi yet (as of November 2026), so add it to
-    the goal description when the apps get close. Early access is a head start, not a paywall: the apps are
-  free for everyone once released.
-- **Payments (decided)**: a Merchant of Record (Lemon Squeezy; Paddle as the fallback) handles checkout, global
-  tax/VAT, receipts, refunds and chargebacks. See Baseline decisions.
+| Situation | What happens |
+|---|---|
+| Host's subscription active | Host can start and run sessions; guests join free |
+| Host cancels | Sessions keep working until the period ends ("Canceled, active until …") |
+| Payment fails | Retries by the provider; grace (about 7 days) keeps sessions working |
+| Expires during a live session | The session runs to its natural end (or a fixed cut-off, for example 24 hours), then can't be restarted; nobody loses typing in progress |
+| Expired | No new hosted sessions. Every participant keeps their local copy, editable as an ordinary solo project, with Core (and Pro, if owned) unchanged |
+| Pro owned, Co-Write expired | Pro is untouched |
+| Guest has no licence | Joins anyway; that's the design |
 
-## 7. Research plan (before any commitment)
+**No writer ever has to renew Co-Write to get a co-written screenplay back.**
 
-1. **Cross-tab sync prototype (local, no server).** Two tabs editing one project, merging live. Use it to test the
-   element-model bridge, per-user undo and IME behaviour, with zero hosting cost. Possibly worth shipping in Core.
-2. **Relay spike on Durable Objects** (free plan, $0). One Durable Object per session using the WebSocket
-   Hibernation API, with two browsers. Measure latency, reconnect, offline merge, hibernation behaviour, and real
-   requests and GB-s per active session-hour, to confirm the cost model above.
-3. **Decide A, B, C or D** from those results, then final prices and limits, then whether to build.
+## 7. If the service is unavailable
 
-## 8. Open questions for Eric
+- Every participant always holds a complete local copy in their own library; an outage pauses live sync, nothing else.
+- Writing continues offline; changes merge (or are offered for review) on reconnect.
+- Every export and backup works without the service.
+- If Co-Write were ever discontinued, sessions end, projects stay, and the shutdown is announced in advance.
 
-1. Is real-time typing (A or B) required for v1, or would scene-level turn-taking (C) satisfy most writing
-   partnerships?
-2. Is a dependency for collaborative editing acceptable, loaded only for Co-Write?
-3. Is end-to-end encryption a requirement, given DraftLine's privacy promise?
-4. Pricing details: final prices, invitee limits, and whether the relay is also self-hostable (§6). *(Payments via
-   a Merchant of Record and hosting on Cloudflare Durable Objects are decided.)*
-5. *(Decided: no accounts. Subscribers hold a licence token; guests join by invite link.)*
-6. Which project parts sync in v1: the script only, or also the Scene Board, Story Bible and Plan?
-7. Should asynchronous merging of `.draftline` files (D) be a free Core feature regardless?
+## 8. Works the same with Core and Pro
+
+Co-Write syncs Core data (script, Scene Board, optionally the Story Bible and Plan). If the host owns Pro and the
+project is locked for production, the Pro data (locked pages, revision rounds) syncs too; guests without Pro see it
+read-only, exactly as described in [`pro-license.md`](pro-license.md) §6. Pro is never required to join.
+
+## 9. Operating responsibilities and costs
+
+- **Hosting beyond $5/month**: Durable Object requests and duration above the included amounts, storage of session
+  logs, the licence Worker's traffic, plus domain and email. Measure real cost per active session-hour in the spike
+  (§10) before fixing the price.
+- **Payment fees**: about 15% of a $4.99 charge at 5% + 50¢ ([`payments.md`](payments.md)); annual billing helps.
+- **Incident response**: an on-call reality for a solo developer. Status page or Discord channel, a documented
+  "relay down" message in the app, and a rollback plan for relay deployments.
+- **Support**: lost keys, invite problems, "my co-writer's changes didn't arrive", refunds. Budget time for it.
+- **Security**: invite-link abuse, denial of service, dependency updates for any collaborative-editing library.
+- **Licence recovery and expiry**: covered by [`pro-license.md`](pro-license.md) §3–5.
+
+## 10. Research plan (before any commitment)
+
+1. **Cross-tab sync prototype (local, no server)** to test the element-model bridge, per-writer undo and IME behaviour
+   at zero cost. Possibly worth shipping in Core.
+2. **Relay spike on Durable Objects** (free plan): latency, reconnect, offline merge, hibernation and real usage per
+   session-hour.
+3. **Choose the sync approach** (§4) from those results, then limits, price and whether to build.
+4. The data-integrity groundwork ([`data-integrity.md`](data-integrity.md)) is in place before any Co-Write metadata
+   is stored on a project.
+
+## 11. Boundaries (non-negotiable)
+
+- Solo writing stays exactly as it is: local-first, offline, no account, the same undo.
+- Co-Write is per project and opt-in; leaving a session returns the project to solo mode with all content kept.
+- No mandatory cloud storage. Invited writers never pay and need no account.
+- Every copy of DraftLine opens and preserves a project that was once co-written.
+
+## 12. Open questions for Eric
+
+1. Real-time typing (§4 A or B) for v1, or scene-level turn-taking (C)?
+2. A collaborative-editing dependency, loaded only for Co-Write: acceptable?
+3. End-to-end encryption: a requirement?
+4. Guest limits per session and per host; annual billing.
+5. Which project parts sync in v1: script only, or also the Scene Board, Story Bible and Plan?
+6. Should asynchronous `.draftline` merging (§4 D) be a free Core feature regardless?
+7. Should the relay be open source and self-hostable?
+
+## History (superseded)
+
+The November 2026 drafts named this **"DraftLine Pro: Co-Write"** (about $4.99/month) beside **"DraftLine Pro:
+Production"** (about $9.99/month, which included Co-Write), with Lemon Squeezy as the payment provider. Under the
+approved Option D, Co-Write is its own optional subscription, Pro is a one-time purchase that doesn't include it, and
+Lemon Squeezy is closing ([`payments.md`](payments.md)). Earlier pricing alternatives (Options A–C) are historical
+only.

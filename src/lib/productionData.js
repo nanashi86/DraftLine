@@ -15,7 +15,14 @@
 // planning existed simply have no `production` and load with empty breakdowns.
 
 
+import { addUnknownFields } from './passThrough.js';
+
 export const PRODUCTION_VERSION = 1;
+
+// Forward compatibility (lib/passThrough.js, docs/specs/data-integrity.md): a newer DraftLine may store
+// more in `production` (a schedule, a budget) or in a scene's entry. Those keys are carried through
+// unchanged, and a higher `version` is never lowered, so an older copy saving the project loses nothing.
+const PRODUCTION_KEYS = new Set(['version', 'scenes']);
 
 /** The tag lists on every scene's breakdown (Production Notes is free text beside them). */
 export const PRODUCTION_BUCKETS = [
@@ -25,6 +32,7 @@ export const PRODUCTION_BUCKETS = [
   { id: 'vehicles', label: 'Vehicles & Stunts', placeholder: 'e.g. The ferry SAINTE-ROSE' },
 ];
 const BUCKET_IDS = PRODUCTION_BUCKETS.map((b) => b.id);
+const SCENE_KEYS = new Set([...BUCKET_IDS, 'notes']);
 
 export const emptyProduction = () => ({ version: PRODUCTION_VERSION, scenes: {} });
 const emptyScene = () => ({ extras: [], props: [], wardrobe: [], vehicles: [], notes: '' });
@@ -43,19 +51,24 @@ function cleanList(list) {
   }
   return out;
 }
-const sceneIsEmpty = (s) => BUCKET_IDS.every((k) => !s[k].length) && !s.notes.trim();
+const sceneIsEmpty = (s) => BUCKET_IDS.every((k) => !s[k].length) && !s.notes.trim()
+  && !Object.keys(s).some((k) => !SCENE_KEYS.has(k)); // a newer build's data keeps the entry
 
 /** Anything stored (or nothing) → a clean production object. Unreadable parts are dropped, never thrown on. */
 export function normalizeProduction(raw) {
   const out = emptyProduction();
-  const scenes = raw && typeof raw === 'object' && raw.scenes && typeof raw.scenes === 'object' && !Array.isArray(raw.scenes) ? raw.scenes : {};
+  const obj = raw && typeof raw === 'object' && !Array.isArray(raw) ? raw : null;
+  if (obj && Number.isInteger(obj.version) && obj.version > PRODUCTION_VERSION) out.version = obj.version;
+  const scenes = obj && obj.scenes && typeof obj.scenes === 'object' && !Array.isArray(obj.scenes) ? obj.scenes : {};
   for (const [id, s] of Object.entries(scenes)) {
-    if (!id || !s || typeof s !== 'object') continue;
+    if (!id || !s || typeof s !== 'object' || Array.isArray(s) || id === '__proto__') continue;
     const scene = emptyScene();
     for (const k of BUCKET_IDS) scene[k] = cleanList(s[k]);
     scene.notes = typeof s.notes === 'string' ? s.notes : '';
+    addUnknownFields(scene, s, SCENE_KEYS);
     if (!sceneIsEmpty(scene)) out.scenes[id] = scene;
   }
+  if (obj) addUnknownFields(out, obj, PRODUCTION_KEYS);
   return out;
 }
 

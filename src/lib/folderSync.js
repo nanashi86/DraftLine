@@ -17,10 +17,19 @@
 // renaming a script, two scripts with the same title, or the same script edited on two
 // computers through Drive all resolve by id, and the newest `updatedAt` wins.
 //
+// Before overwriting a script's file, DraftLine looks at the copy that's there (cheaply: only when
+// the file changed since DraftLine last wrote it). It doesn't overwrite it when:
+//   • a newer DraftLine saved it in a format this build doesn't know ('newer'), or
+//   • it was saved somewhere else after this browser's copy was last in step with it ('conflict':
+//     another computer, through Drive). The browser copy is safe either way; App asks the writer
+//     which version to keep (both are kept: the other one as a snapshot), then calls adopt().
+// docs/specs/data-integrity.md has the limits (clock differences between computers, two tabs).
+//
 // Browsers without showDirectoryPicker (Safari, Firefox, phones) never see the folder option.
 
 import { BACKUP_EXT, createBackup, parseBackup, serializeBackup, backupFileName } from './backup.js';
 import { revisionRecord } from './revisions.js';
+import { isNewerProject } from './projectStorage.js';
 
 /** Settings keys (in the library's IndexedDB settings store). */
 export const HANDLE_KEY = 'draftline_synced_directory_handle';
@@ -226,9 +235,11 @@ export function folderOnlyFallback(local = [], folder = [], id) {
  * written to the folder (it throws, as the library does).
  */
 export async function saveProjectEverywhere({ store, sync, data, options, onLocal }) {
+  // The browser copy this save starts from: the folder's copy may not be newer than it (see above).
+  const prev = data?.id && store.getProject ? await store.getProject(data.id).catch(() => null) : null;
   const record = await store.saveActiveProject(data);
   onLocal?.(record);
-  const folder = sync ? await sync.writeProject(record, options) : 'skipped';
+  const folder = sync ? await sync.writeProject(record, { ...options, baseUpdatedAt: prev?.updatedAt ?? null }) : 'skipped';
   return { record, folder };
 }
 
@@ -278,6 +289,8 @@ export function createFolderSync({ settings, win = globalThis, now = () => Date.
   const index = new Map(); // top-level file name → project id
   const cache = new Map(); // file name → { lastModified, size, record | null }
   let owned = {}; // projectId → file name DraftLine wrote (so a renamed script's old file can go)
+  const known = new Map(); // projectId → updatedAt of the folder copy this browser last wrote or took in
+  const wrote = new Map(); // file name → { lastModified, size } right after DraftLine wrote it
 
   const derive = (s) => {
     const linked = !!handle;
@@ -376,6 +389,37 @@ export function createFolderSync({ settings, win = globalThis, now = () => Date.
     draining ??= drain();
   });
 
+  /**
+   * Is it safe to overwrite `name` with `record`? null when it is; 'newer' or 'conflict' when not.
+   * The file is only read when it changed since DraftLine last wrote it.
+   */
+  async function checkBeforeWrite(name, record, { baseUpdatedAt = null } = {}) {
+    let f;
+    try {
+      f = await (await handle.getFileHandle(name)).getFile();
+    } catch (e) {
+      if (e?.name === 'NotFoundError') return null; // no file yet
+      throw e;
+    }
+    const last = wrote.get(name);
+    if (last && last.lastModified === f.lastModified && last.size === f.size) return null; // ours, unchanged
+    let there;
+    try {
+      there = parseBackup(await f.text()).record;
+    } catch {
+      return null; // not readable as a script: the ownership check above already decided it's ours
+    }
+    if (!there || there.id !== record.id) return null;
+    if (isNewerProject(there)) return 'newer';
+    const theirs = there.updatedAt || 0;
+    if (theirs === record.updatedAt) return null; // the same save
+    // Compared with the copy this browser last wrote or took in: any other value means it was
+    // replaced from elsewhere (an exact match, so a computer whose clock runs behind still counts).
+    if (known.has(record.id)) return theirs !== known.get(record.id) ? 'conflict' : null;
+    // First write this session: only a copy newer than the one this save started from is a conflict.
+    return baseUpdatedAt != null && theirs > baseUpdatedAt ? 'conflict' : null;
+  }
+
   async function writeProjectNow(record, options) {
     if (!isActive()) return 'skipped';
     emit({ syncing: true });
@@ -389,7 +433,22 @@ export function createFolderSync({ settings, win = globalThis, now = () => Date.
       index.set(name, owner === FOREIGN ? null : owner);
       name = projectFileName(record.title, record.id, ownerOf);
     }
+    const guard = await checkBeforeWrite(name, record, options);
+    if (guard) {
+      emit({
+        syncing: false,
+        error: guard === 'newer'
+          ? `a newer version of DraftLine saved “${record.title?.trim() || 'Untitled'}” there`
+          : `“${record.title?.trim() || 'Untitled'}” was changed there from somewhere else`,
+      });
+      return guard;
+    }
     await writeText(handle, name, serializeBackup(record, options));
+    known.set(record.id, record.updatedAt);
+    try {
+      const f = await (await handle.getFileHandle(name)).getFile();
+      wrote.set(name, { lastModified: f.lastModified, size: f.size });
+    } catch { /* unreadable right after writing: the next write reads it in full */ }
     index.set(name, record.id);
     cache.delete(name);
     // Renamed: the file DraftLine wrote under the old title goes (only that one, and only if it's still this script).
@@ -535,7 +594,18 @@ export function createFolderSync({ settings, win = globalThis, now = () => Date.
       emit({ destination: 'browser', folderName: null, permission: null, error: null, syncing: false });
     },
 
-    /** Write a stored project record to its file. Resolves 'written' | 'skipped' | 'error'. */
+    /**
+     * This browser has taken in the folder's copy of project `id` (saved at `updatedAt`), or the writer
+     * chose which version to keep after a conflict: writes are in step with that copy from now on.
+     */
+    adopt(id, updatedAt) {
+      if (id && Number.isFinite(updatedAt)) known.set(id, updatedAt);
+    },
+
+    /**
+     * Write a stored project record to its file. Resolves 'written' | 'skipped' | 'error', or 'newer' /
+     * 'conflict' when the folder's copy mustn't be overwritten (checkBeforeWrite).
+     */
     writeProject(record, options) {
       if (!isActive() || !record?.id) return Promise.resolve('skipped');
       return enqueue(`p:${record.id}`, () => writeProjectNow(record, options));

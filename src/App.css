@@ -877,7 +877,7 @@
   .ws-label { display: none; }                     /* Write | Plan: icons only (names on hover) — never hidden */
   .plan-seg .seg-label,
   .view-seg .seg-label { display: none; }          /* both view switches go icons-only together (names on hover): */
-  .plan-seg .seg-btn,                              /* Breakdowns | Stripboard | Reports and Page | Split | Board */
+  .plan-seg .seg-btn,                              /* Breakdowns | Stripboard | Schedule | Budget and Page | Split | Board | Shoot */
   .view-seg .seg-btn { padding: 4px 8px; }
   .ws-btn { padding: 0 9px; }
   .seg-btn { padding: 4px 7px; }
@@ -902,8 +902,8 @@
   .bar { padding: 0 8px; }
 }
 @media (max-width: 439.98px) {
-  .zone-right .plan-seg { display: none; }         /* ⋮ → Breakdowns / Stripboard */
-  .zone-right .view-seg { display: none; }         /* ⋮ → Page / Split / Board (and Alt+B), like Plan's */
+  .zone-right .plan-seg { display: none; }         /* ⋮ → Breakdowns / Stripboard / Schedule / Budget */
+  .zone-right .view-seg { display: none; }         /* ⋮ → Page / Split / Board / Shoot (Alt+B: the three views), like Plan's */
 }
 @media (max-width: 374.98px) {
   .zone-left > .btn-icon { display: none; }        /* the scene list stays on Alt+S */

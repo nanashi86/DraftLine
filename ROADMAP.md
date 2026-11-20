@@ -1,41 +1,36 @@
 # DraftLine™ Roadmap
 
-> **DraftLine is and will always remain 100% free, private, and local-first in the browser.
+> **DraftLine Core is and will always remain free, private and local-first.
 > No user surveillance, no third-party ad tracking, no locked formats, and no feature you have today will ever be paywalled.**
 
 Your scripts live on your machine: in your browser, or as `.draftline` files in a folder you choose.
 Every script exports to open formats (Final Draft `.fdx`, Fountain and PDF), so you're never locked in.
 
-## One name: DraftLine
+**No subscriptions. No distractions. No compromises. Just Write.**
+
+## One product: DraftLine
 
 **DraftLine** is the single name for the software, the GitHub repo, the domain ([draftlineapp.com](https://draftlineapp.com))
-and everything around it. There are no separate apps, repos or brands for the tiers below. They're names for what's
-free and what's an optional paid service, all inside the same DraftLine.
+and everything around it. Inside it there's a complete free core, and two optional extras planned for later:
 
-| Name | Short | What it is | Price |
-|---|---|---|---|
-| **DraftLine** | DL | The local-first software itself: the web app, the installed app (PWA), and the planned Windows and Android/ChromeOS apps. It stores your scripts locally, works offline, paginates, and exports Final Draft (`.fdx`), Fountain and PDF. | Free |
-| **DraftLine Core** · *Write Your Story* | DLC | The complete set of tools inside DraftLine: everything you need to write, structure, develop, schedule and budget a script. | **Free forever.** No subscriptions, no paywalls. |
-| **DraftLine Pro: Co-Write** · *Write Together* | DLP:CO-W | An optional **cloud service**: real-time relays for multi-writer rooms. Invited co-writers join free. *(future, exploring)* | Paid (monthly) |
-| **DraftLine Pro: Production** · *Page to Production* | DLP:PROD | An optional professional suite: the **Shoot** workspace for shooting scripts (locked pages, A-pages, revision rounds), which runs locally, **bundled with the Co-Write service**. *(future, deferred)* | Paid (monthly) |
+| Product | Planned price | What it is |
+|---|---|---|
+| **DraftLine Core** | **Free forever** | Everything DraftLine does today: writing, the Scene Board, the Story Bible, Plan (Breakdowns, Stripboard, Reports), every import and export, offline use and folder sync. **Table Read, Schedule and Budget will be part of Core when they ship.** |
+| **DraftLine Pro** | **$29.99, one time** | Core plus **Shoot**: locked pages and scene numbers, revision rounds and revised pages for production. **A one-time purchase, not a subscription.** *(future, deferred)* |
+| **DraftLine Co-Write** | **$4.99/month** | Optional real-time co-writing, hosted by DraftLine. Works with **Core or Pro**. Only the writer hosting a session needs it; invited writers join free. *(long-term future)* |
 
-**What "DraftLine is free" means.** The software and every core writing, planning and export tool (DraftLine Core)
-are free forever: Write, the entire Plan workspace, the Scene Board and Live Act Pacing, the Story Bible and
-character tools, Breakdowns, Stripboard and Reports, Snapshots and Compare, Format Doctor, every import and export,
-offline use and folder sync, and the coming Schedule and Budget. Nothing that's free today is ever moved behind a
-paywall or held back. You only pay if you opt into **server infrastructure** (Co-Write) or a **studio-grade production
-pipeline** (Production).
+These are planned prices for products that don't exist yet, not offers.
 
-**DraftLine Core is not a limited version of DraftLine Pro.** It's the whole app, and it keeps getting new features.
-
-**How Pro works.** Pro is an optional monthly subscription (pricing not final) tied to you, not to a device. You get a
-licence key, enter it in **Settings → Pro License**, and it works wherever you use DraftLine. No account needed.
-Where you write is never paywalled: the browser, the installed app, and the planned Windows and Android apps all run
-Core free.
-
-**What you'll see.** Pro features show up in every copy of DraftLine in the same place, greyed out until a licence
-unlocks them, so the layout never jumps around. Clicking one explains what it does and how to add a licence. You'll
-never get pop-ups or reminders you didn't click for.
+- **Core is not a trial or a limited version.** It's the whole app, and it keeps getting new features.
+- **Pro is bought once.** No subscription, no expiry, and it never requires Co-Write.
+- **Co-Write is the only subscription**, because it's a live hosted service. It never requires Pro, and letting it
+  lapse never touches Core, Pro or your scripts.
+- **Your work is always yours.** With or without Pro or Co-Write, you can open, edit, print, export, back up and
+  recover everything you've written.
+- **Licences unlock capabilities, not platforms.** The browser, the installed app and the planned Windows and
+  Android/ChromeOS apps are all free; Pro and Co-Write work on all of them. No accounts.
+- **What you'll see.** Shoot sits after Page, Split and Board; Schedule and Budget sit in Plan; Table Read and
+  Co-Write are in ⋮. Each opens a short note about what's planned. No pop-ups, badges or reminders you didn't click for.
 
 ## Shipped
 
@@ -45,45 +40,56 @@ never get pop-ups or reminders you didn't click for.
 
 ## What's next
 
-- [ ] **Phase 1 · Core: Schedule & Budget** (*next, free*)
-  Plan grows to four tabs: **Breakdowns · Stripboard · Schedule · Budget**. Reports moves into Plan's ⋮ menu, right
-  after Format Doctor, and works exactly as it does now.
-  - **Schedule** (ideas, not final): turn the stripboard into shooting days, group scenes by location, set tentative
-    dates, estimate shoot time, and flag scheduling conflicts.
-  - **Budget** (ideas, not final): an approachable estimate built from your breakdowns and schedule, covering cast,
-    crew, locations, props and equipment, with categories, totals, side-by-side scenarios and export. Made for writers
-    and independent filmmakers, not studio accounting.
-- [ ] **Phase 2 · DraftLine Pro: Co-Write, Write Together** (*exploring, 2027*)
-  Optional real-time co-writing: shared sessions, live cursors and synced edits, with solo writing unchanged, still
-  local-first and still free. Planned to run on low-overhead infrastructure: a Cloudflare-hosted relay that costs
-  almost nothing when idle, licence keys checked on your device (no accounts), and payments handled by a merchant of
-  record. How edits are merged is still being researched.
-- [ ] **Phase 3 · DraftLine Pro: Production, Page to Production** (*deferred*)
-  A **Shoot** workspace beside Page, Split and Board.
-  Locked pages and scene numbers, A-pages, colored revision rounds, revision marks and revised-pages PDFs. These add
-  to the free Plan workspace and replace nothing in it. They will be revisited only if DraftLine finds real traction
-  and writers ask for them.
+The order below is the plan of priority and expected effort, **not release dates**. Each stage needs its own approval
+before work starts, and ships when it's ready.
+
+- [ ] **Stage 1 · DraftLine Core: Table Read** (*next planned feature, free*)
+  Hear your script read aloud with your computer's own voices: Play, Pause, Stop and speed, starting from the top, a
+  scene or where you are. Character voices and a "Rehearse as…" mode later. Nothing is sent anywhere by default, no
+  AI, no account. Voice quality and offline voices depend on your system and browser.
+- [ ] **Stage 2 · DraftLine Core: Schedule & Budget** (*free*)
+  Plan becomes **Breakdowns · Stripboard · Schedule · Budget**; Reports is in ⋮ and works as it does now.
+  - **Schedule**: scenes into shooting days, in an order separate from the script, with page-eighths, pages per day,
+    grouping by location, cast, INT/EXT and time of day, practical conflict warnings and CSV export.
+  - **Budget**: cast, crew, locations, props, wardrobe, equipment, vehicles, post and your own lines; costs linked to
+    breakdown and schedule quantities, totals, contingency, your currency and CSV export.
+  - **Before this ships:** data-safety groundwork so newer project data can never be lost by an older copy of
+    DraftLine (unknown-field preservation, a schema update, compatibility tests). Details:
+    [`docs/specs/data-integrity.md`](docs/specs/data-integrity.md).
+- [ ] **Stage 3 · DraftLine Pro: Shoot & Production Revisions** (*future, deferred; one-time purchase*)
+  Locked pages and A-pages, omitted pages and scenes, locked and suffixed scene numbers, revision rounds and colours,
+  changed-line asterisks, a revision archive and comparison, revised-pages-only PDFs and Final Draft revision
+  interoperability. Locked pagination stays separate from ordinary pagination so Core is never slowed or changed.
+  Revisited when there's demand and it's technically ready; being Stage 3 doesn't mean it starts right after Stage 2.
+- [ ] **Stage 4 · DraftLine Co-Write** (*long-term future; optional subscription*)
+  Shared sessions, live cursors, synchronised edits, guest invitations and permissions, per-writer undo, offline
+  reconnection and reliable local copies for everyone. It has the most technical and operational complexity, so it
+  comes last, and only once real hosting and support costs are understood.
+
+**Data safety comes first.** If a risk to existing writers' data is found, fixing it takes priority over any feature,
+including Table Read.
 
 ## Also on the table
 
-These are worth exploring, but are not on the critical path and are not tied to Pro:
+These are separate from the stages above:
 
-- **Performance benchmarks** for very long scripts (Core).
-- **Tablet and touch layout** improvements (Core).
-- **Native apps**: a Windows desktop app and an Android and Chromebook app on Google Play (macOS, Linux and iOS
-  aren't planned for now). They're
-  free, like the browser version: Core costs nothing on any platform, and a Pro licence works on all of them. Supporters (Patreon's
-  Writers' Room and Executive Producer tiers, and Ko-fi) get early access once the Ko-fi goal is reached.
+- **Native apps**: a Windows desktop app and an Android and Chromebook app on Google Play (macOS, Linux and iOS aren't
+  planned for now). They're free, like the browser version: Core costs nothing on any platform, and Pro and Co-Write
+  work on all of them. Supporters (Patreon's Writers' Room and Executive Producer tiers, and Ko-fi) get early access
+  once the Ko-fi goal is reached.
+- **Performance benchmarks** for very long scripts, and **tablet and touch layout** improvements (Core).
+- **Licences and payments** are built only when a paid stage is approved. Design notes:
+  [`docs/specs/pro-license.md`](docs/specs/pro-license.md), [`docs/specs/payments.md`](docs/specs/payments.md).
 
-Milestones are listed in order of intent, not with dates: each one ships when it's ready. Design notes live in
-[`docs/specs/`](docs/specs/).
+Design notes for everything here live in [`docs/specs/`](docs/specs/).
 
 ## How to support
 
 DraftLine is built by one writer-developer, funded by the people who use it.
 
-- **Patreon:** [patreon.com/DraftLine](https://patreon.com/DraftLine). The Writers' Room and Executive Producer tiers include early access to the desktop and
-  Android builds, and when Pro launches they're planned to include a Pro: Production licence (which includes Co-Write).
+- **Patreon:** [patreon.com/DraftLine](https://patreon.com/DraftLine). The Writers' Room and Executive Producer tiers
+  include early access to the desktop and Android builds, and are planned to include DraftLine Pro and Co-Write when
+  they launch, as promised.
 - **Ko-fi:** [ko-fi.com/draftline](https://ko-fi.com/draftline)
 - **Discord:** [discord.gg/8ytSsSWsPX](https://discord.gg/8ytSsSWsPX): the DraftLine Writers' Room, for
   feedback, bug reports and early builds

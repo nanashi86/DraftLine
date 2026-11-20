@@ -23,7 +23,7 @@ import { takeFeedbackLink } from './lib/feedback.js';
 import ExportFdxModal from './components/ExportFdxModal.jsx';
 import DeleteProjectModal from './components/DeleteProjectModal.jsx';
 import DialogueStepper from './components/DialogueStepper.jsx';
-import { ChartColumn, Clapperboard, Columns2, FileText, Flame, LayoutList, Moon, PenLine, Rows3, Scissors, SquareKanban } from 'lucide-react';
+import { Calculator, CalendarCheck, ChartColumn, Clapperboard, Columns2, FileText, Film, Flame, LayoutList, Moon, PenLine, Rows3, Scissors, SquareKanban } from 'lucide-react';
 import { addAsset, removeAsset, setSceneNotes } from './lib/productionData.js';
 import { csvOutlineFileName, outlineCsv } from './lib/exportCsvOutline.js';
 import FormatStepper from './components/FormatStepper.jsx';
@@ -65,7 +65,7 @@ import { mergeDictionary } from './lib/structureDictionary.js';
 import { characterTabFromPrefs, closeDock, openDock, startingPanels, toggleDock } from './lib/dock.js';
 import { ACT_STRUCTURES, DEFAULT_ACT_STRUCTURE, DEFAULT_BIBLE_TAB, convertNotesActs, defaultStoryNotes, realignActs } from './lib/bible.js';
 import {
-  DICTIONARY_KEY, EMPTY_META, bootLibrary, clearJournal, projects, revisionToDoc, toDoc, toRecord, writeJournal,
+  DICTIONARY_KEY, EMPTY_META, bootLibrary, clearJournal, isNewerProject, projects, revisionToDoc, toDoc, toRecord, writeJournal,
 } from './lib/projectStorage.js';
 import {
   BACKUP_MIME, backupFileName, isBackupFile, mergeBackupDictionary, parseBackup, serializeBackup,
@@ -84,6 +84,9 @@ import {
 } from './lib/screenplay.js';
 import { DUAL_SHORTCUT, ELEMENT_MENU } from './lib/shortcuts.js';
 import { fileMenuItems, isOnBar, moreMenuItems } from './lib/toolbar.js';
+import PlannedFeatureModal from './components/PlannedFeatureModal.jsx';
+import SyncConflictModal from './components/SyncConflictModal.jsx';
+import { PLAN_PLANNED_TABS, SHOOT_TAB } from './lib/plannedFeatures.js';
 import { newProjectMeta, rememberAuthorDefaults } from './lib/authorDefaults.js';
 import { parseFountain, toFountain } from './lib/fountain.js';
 import { parseFDX, toFDX } from './lib/fdx.js';
@@ -153,10 +156,14 @@ async function localCopy(id) {
   const rec = await projects.getProject(id);
   if (rec) return rec;
   const there = await folderSync.readProject(id).catch(() => null);
-  return there ? projects.importRecord(there) : null;
+  if (!there) return null;
+  folderSync.adopt(there.id, there.updatedAt); // in step with the folder's copy from here
+  return projects.importRecord(there);
 }
 /** Each milestone toast's icon (in the accent, like the tips' lightbulb): gasoline, the small hours, the film, the producer's cuts. */
 const MILESTONE_ICONS = { words500: Flame, lateNight: Moon, page90: Clapperboard, page120: Scissors };
+/** A project saved by a newer DraftLine, opened read-only (projectStorage isNewerProject). */
+const NEWER_PROJECT_MESSAGE = 'This script was saved by a newer version of DraftLine, so it’s open read-only and won’t be saved here. Reload or update DraftLine to edit it. You can still read, print and export it.';
 const ZOOM_STEPS = [0.75, 0.9, 1, 1.1, 1.25, 1.5, 1.75, 2];
 /** The top-level switch: writing the script, or planning its production (derived from the script). */
 const WORKSPACES = [
@@ -168,6 +175,10 @@ const PLAN_VIEWS = [
   { id: 'stripboard', label: 'Stripboard', title: 'One colour-coded strip per scene, in script order', Icon: Rows3 },
   { id: 'reports', label: 'Reports', title: 'Scenes, characters, locations and the script in numbers — each as a .csv too', Icon: ChartColumn },
 ];
+/** Plan's own tabs: Breakdowns | Stripboard (Reports opens from ⋮ → Reports, in Write and Plan alike). */
+const PLAN_TABS = PLAN_VIEWS.filter((v) => v.id !== 'reports');
+/** After them, planned tabs that open a preview (lib/plannedFeatures.js): Schedule | Budget. */
+const PLAN_PLANNED_ICONS = { schedule: CalendarCheck, budget: Calculator };
 const VIEWS = [
   { id: 'page', label: 'Page', title: 'Script only', Icon: FileText },
   { id: 'split', label: 'Split', title: 'Script + Scene Board side by side', Icon: Columns2 },
@@ -524,7 +535,7 @@ function Workspace({ boot }) {
     storyDna: initialDoc.storyDna,
     production: initialDoc.production,
     revisions: initialDoc.revisions,
-    viewOnly: initialDoc.viewOnly === true,
+    viewOnly: initialDoc.viewOnly === true || isNewerProject(boot.project),
     at: initialDoc.updatedAt,
     ok: boot.persistent,
   }));
@@ -545,6 +556,10 @@ function Workspace({ boot }) {
   // or scrolled is lost; switching back puts the page where it was.
   const [workspace, setWorkspace] = useState('write');
   const [planView, setPlanView] = useState('breakdowns');
+  // A planned feature's preview (Shoot, Schedule, Budget, Table Read, Co-Write): opened only by its tab
+  // or menu item, and nothing else changes while it's open. Focus goes back to what opened it.
+  const [planned, setPlanned] = useState(null);
+  const openPlanned = (id, from = null) => setPlanned({ id, from: from || barRef.current?.querySelector('.btn-kebab') || null });
   // Plan's scene filter (lib/planFilter.js): one setting for Breakdowns and Stripboard, cleared when
   // another script opens; the count ("4 of 53") comes back from the workspace, which builds the rows.
   const [planFilter, setPlanFilter] = useState(EMPTY_PLAN_FILTER);
@@ -676,12 +691,21 @@ function Workspace({ boot }) {
   // ---- Viewing mode (Ctrl+Alt+L or the status bar badge; lib/lock.js) ----
   // Saved with the script (its record's `viewOnly`), so it survives reloads and travels to the synced
   // folder and backups; switching scripts takes each one's own setting (applyProject).
-  const [isLocked, setIsLocked] = useState(initialDoc.viewOnly === true);
+  // A project saved by a newer DraftLine (projectStorage isNewerProject) opens in Viewing and stays
+  // there: this build can't save it without losing what it doesn't understand, so saves are skipped
+  // (and refused by the library). Reading, printing and exporting all still work.
+  const [newerProject, setNewerProject] = useState(() => isNewerProject(boot.project));
+  const [isLocked, setIsLocked] = useState(initialDoc.viewOnly === true || isNewerProject(boot.project));
+  const notifyNewer = useCallback(() => notify(NEWER_PROJECT_MESSAGE, 8000), [notify]);
   const toggleLock = useCallback(() => {
+    if (newerProject) {
+      notifyNewer();
+      return;
+    }
     setIsLocked(!isLocked);
     notify(isLocked ? 'Editing' : `Viewing — the script can’t be changed · ${LOCK_COMBO} to edit`);
-  }, [isLocked, notify]);
-  const notifyLocked = useCallback(() => notify(`Viewing · ${LOCK_COMBO} or the Viewing badge to edit`), [notify]);
+  }, [isLocked, notify, newerProject, notifyNewer]);
+  const notifyLocked = useCallback(() => (newerProject ? notifyNewer() : notify(`Viewing · ${LOCK_COMBO} or the Viewing badge to edit`)), [notify, newerProject, notifyNewer]);
   useEffect(() => {
     if (!toast || toast !== bootMessage(boot)) return undefined;
     const t = setTimeout(() => setToast(null), boot.persistent ? 3200 : 8000);
@@ -705,10 +729,15 @@ function Workspace({ boot }) {
     || saved.revisions !== revisions
     || saved.viewOnly !== isLocked;
   const latest = useRef(null);
+  const extraRef = useRef(initialDoc.extra || {});
+  const onFolderGuardRef = useRef(null); // saveNow → the folder-conflict handler below
+  const conflictQuiet = useRef(new Set()); // folder conflicts: project ids asked about already (open, or "Decide later")
   useLayoutEffect(() => {
     latest.current = {
       projectId, meta, blocks, beats, characters, storyNotes, storyDna, production, revisions, pages: layout.pageCount, scenes: analysis.sceneCount, dirty,
       viewOnly: isLocked,
+      newerProject,
+      extra: extraRef.current, // a newer DraftLine's fields (toDoc), handed back on save and kept in snapshots
       createdAt: saved.createdAt,
       savedAt: saved.at,
       // What a synced .draftline file carries beside the project (same as Backup Project).
@@ -721,6 +750,7 @@ function Workspace({ boot }) {
   /** Save the open project now. Resolves with the stored record (or null on failure). */
   const saveNow = useCallback(() => {
     const s = latest.current;
+    if (s.newerProject) return Promise.resolve(null); // never written by this build (see newerProject)
     const snap = {
       meta: s.meta, blocks: s.blocks, beats: s.beats, characters: s.characters, storyNotes: s.storyNotes, storyDna: s.storyDna,
       production: s.production, revisions: s.revisions, viewOnly: s.viewOnly,
@@ -736,12 +766,14 @@ function Workspace({ boot }) {
     return saveProjectEverywhere({
       store: projects,
       sync: folderSync,
-      data: { id: s.projectId, ...snap, pages: s.pages, scenes: s.scenes },
+      data: { id: s.projectId, ...snap, extra: s.extra, pages: s.pages, scenes: s.scenes },
       options: s.fileOptions,
       onLocal: (rec) => { marked = markSaved(rec); },
     })
-      .then(async ({ record }) => {
+      .then(async ({ record, folder }) => {
         await marked;
+        // The folder's copy changed somewhere else (or a newer DraftLine saved it): not overwritten.
+        if ((folder === 'conflict' || folder === 'newer') && latest.current.projectId === s.projectId) onFolderGuardRef.current?.(folder, s.projectId);
         return record;
       })
       .catch(() => {
@@ -799,7 +831,7 @@ function Workspace({ boot }) {
   useEffect(() => {
     const flush = () => {
       const s = latest.current;
-      if (!s.dirty) return;
+      if (!s.dirty || s.newerProject) return;
       writeJournal(LOCAL, {
         id: s.projectId, meta: s.meta, blocks: s.blocks, beats: s.beats, characters: s.characters, storyNotes: s.storyNotes, storyDna: s.storyDna,
         production: s.production, viewOnly: s.viewOnly,
@@ -1061,7 +1093,11 @@ function Workspace({ boot }) {
     setProjectLocked(doc.isLocked === true);
     setPlanFilter(EMPTY_PLAN_FILTER); // a scene filter belongs to the script it was set on
     setPlanFoldDue(true); // Breakdowns' fold is decided again for this script the next time Plan opens
-    setIsLocked(doc.viewOnly === true); // each script opens in its own saved Viewing state
+    const newer = isNewerProject(rec);
+    setNewerProject(newer);
+    conflictQuiet.current.delete(rec.id); // reopening a script may ask about a folder conflict again
+    extraRef.current = doc.extra || {};
+    setIsLocked(doc.viewOnly === true || newer); // each script opens in its own saved Viewing state
     noteSession.current = null;
     setNoteId(null);
     setRestoreId(null);
@@ -1073,10 +1109,11 @@ function Workspace({ boot }) {
     setProjectId(rec.id);
     setSaved({
       meta: m, blocks: bl, beats: doc.beats, characters: doc.characters, storyNotes: doc.storyNotes, storyDna: doc.storyDna,
-      production: doc.production, revisions: doc.revisions, viewOnly: doc.viewOnly, at: rec.updatedAt, ok: true,
+      production: doc.production, revisions: doc.revisions, viewOnly: doc.viewOnly === true || newer, at: rec.updatedAt, ok: true,
     });
     projects.setActiveProjectId(rec.id);
-  }, [reset]);
+    if (newer) setTimeout(() => notify(NEWER_PROJECT_MESSAGE, 8000), 0);
+  }, [reset, notify]);
 
   /** Save what's open, then switch to project `id`. */
   const switchProject = useCallback(async (id) => {
@@ -1089,7 +1126,10 @@ function Workspace({ boot }) {
     // Synced folder: a copy there that's newer (or the only copy) is the one to open.
     const there = await folderSync.readProject(id).catch(() => null);
     const fromFolder = !!there && (!rec || (there.updatedAt || 0) > (rec.updatedAt || 0));
-    if (fromFolder) rec = await projects.importRecord(there);
+    if (fromFolder) {
+      folderSync.adopt(there.id, there.updatedAt);
+      rec = await projects.importRecord(there);
+    }
     if (!rec) {
       askPurgeRef.current?.(id); // not in this browser, and its file is gone from the folder
       return;
@@ -1103,11 +1143,55 @@ function Workspace({ boot }) {
   // A newer copy of the open script turned up in the folder at start-up (see the folder-sync effect).
   useLayoutEffect(() => {
     pullNewer.current = async (there) => {
+      folderSync.adopt(there.id, there.updatedAt);
       const rec = await projects.importRecord(there);
       applyProject(rec);
       notify(`Loaded the newer copy of “${rec.title?.trim() || 'Untitled'}” from ${folderSync.getState().folderName}`);
     };
   });
+
+  // ---- Folder sync: the folder's copy changed elsewhere, or a newer DraftLine saved it ----
+  // folderSync didn't overwrite it (checkBeforeWrite); this browser's copy is saved. A conflict asks
+  // which version to keep (the other becomes a snapshot); "Decide later" leaves the folder untouched
+  // and doesn't ask again until the script is reopened.
+  const [syncConflict, setSyncConflict] = useState(null); // { id, there }
+  useLayoutEffect(() => {
+    onFolderGuardRef.current = async (kind, id) => {
+      if (conflictQuiet.current.has(id)) return;
+      conflictQuiet.current.add(id);
+      if (kind === 'newer') {
+        notify(`A newer version of DraftLine saved this script in ${folderSync.getState().folderName || 'your folder'}, so it wasn’t overwritten. Your changes are saved in this browser; update DraftLine to bring the two together.`, 9000);
+        return;
+      }
+      const there = await folderSync.readProject(id).catch(() => null);
+      if (!there || latest.current.projectId !== id) {
+        conflictQuiet.current.delete(id);
+        return;
+      }
+      setSyncConflict({ id, there });
+    };
+  });
+  const keepMyVersion = () => {
+    const { there } = syncConflict;
+    const theirs = createRevision(toDoc(there), { label: `Folder copy from ${new Date(there.updatedAt || Date.now()).toLocaleString()}`, pages: there.pages });
+    folderSync.adopt(there.id, there.updatedAt); // the next save writes this version over it
+    setRevisions((list) => addRevision(list, theirs)); // …and that save carries the folder's version as a snapshot
+    setSyncConflict(null);
+    conflictQuiet.current.delete(there.id);
+    notify('Kept this version · the folder’s version is saved as a snapshot');
+  };
+  const useFolderVersion = async () => {
+    const { there } = syncConflict;
+    const s = latest.current;
+    const mine = createRevision(s, { label: 'This browser’s version, before using the folder copy', pages: s.pages });
+    const theirsList = Array.isArray(there.revisions) ? there.revisions : [];
+    folderSync.adopt(there.id, there.updatedAt);
+    const rec = await projects.importRecord({ ...there, revisions: [...theirsList, mine] });
+    setSyncConflict(null);
+    conflictQuiet.current.delete(there.id);
+    applyProject(rec);
+    notify('Opened the folder’s version · this browser’s version is saved as a snapshot');
+  };
 
   /** Save what's open, store `doc` as a new project and open it. */
   const openAsNewProject = useCallback(async (doc, message) => {
@@ -2571,13 +2655,14 @@ function Workspace({ boot }) {
           </div>
 
           {/* 3 · Right zone, the same slots in both workspaces:
-                 Write: [ Page | Split | Board ]  Focus · Story Bible · Characters   · Snapshot · ⋮
-                 Plan:  [ Breakdowns | Stripboard ]  Collapse All · Export Breakdown · Snapshot · ⋮ */}
+                 Write: [ Page | Split | Board | Shoot ]  Focus · Story Bible · Characters   · Snapshot · ⋮
+                 Plan:  [ Breakdowns | Stripboard | Schedule | Budget ]  Collapse All · Export Breakdown · Snapshot · ⋮
+                 (Shoot, Schedule and Budget open a planned-feature preview; Reports is in ⋮.) */}
           <div className="bar-zone zone-right">
           <span className="bar-sep" aria-hidden="true" />
           {inPlan ? (
             <div className="seg plan-seg" role="radiogroup" aria-label="Plan view" ref={planSegRef}>
-              {PLAN_VIEWS.map(({ id, label, title, Icon }) => (
+              {PLAN_TABS.map(({ id, label, title, Icon }) => (
                 <button
                   key={id}
                   type="button"
@@ -2592,6 +2677,15 @@ function Workspace({ boot }) {
                   <span className="seg-label">{label}</span>
                 </button>
               ))}
+              {PLAN_PLANNED_TABS.map(({ id, label, title }) => {
+                const Icon = PLAN_PLANNED_ICONS[id];
+                return (
+                  <button key={id} type="button" aria-haspopup="dialog" aria-label={label} className="seg-btn" onClick={(e) => openPlanned(id, e.currentTarget)} title={`${label}: ${title}`}>
+                    <Icon size={14} strokeWidth={1.75} aria-hidden />
+                    <span className="seg-label">{label}</span>
+                  </button>
+                );
+              })}
             </div>
           ) : (
           <div className="seg view-seg" role="radiogroup" aria-label="Workspace view (Alt+B cycles)" ref={viewSegRef}>
@@ -2610,6 +2704,11 @@ function Workspace({ boot }) {
                 <span className="seg-label">{label}</span>
               </button>
             ))}
+            {/* Shoot: a preview of the planned DraftLine Pro workspace; never a view of its own (yet), and not in Alt+B. */}
+            <button type="button" aria-haspopup="dialog" aria-label={SHOOT_TAB.label} className="seg-btn" onClick={(e) => openPlanned('shoot', e.currentTarget)} title={`${SHOOT_TAB.label}: ${SHOOT_TAB.title}`}>
+              <Film size={14} strokeWidth={1.75} aria-hidden />
+              <span className="seg-label">{SHOOT_TAB.label}</span>
+            </button>
           </div>
           )}
 
@@ -2697,7 +2796,10 @@ function Workspace({ boot }) {
                 noteCount,
                 onShortcuts: () => setHelpKind('shortcuts'),
                 onFormatDoctor: openDoctor,
-                onReports: inPlan ? null : openReports,
+                onReports: openReports,
+                // Table Read and Co-Write: planned, Write only for now (previews)
+                onTableRead: inPlan ? null : () => openPlanned('tableRead'),
+                onCoWrite: inPlan ? null : () => openPlanned('coWrite'),
                 issueCount: issues.length,
                 onAbout: () => setHelpKind('about'),
                 onFeedback: () => setFeedbackOpen(true),
@@ -2712,11 +2814,17 @@ function Workspace({ boot }) {
                 touch: touchUi, // no Keyboard Shortcuts item on a touch screen
                 writeViews: inPlan ? null : {
                   onBar: isOnBar(viewSegRef.current, barRef.current),
-                  views: writeViewList.map((v) => ({ label: v.label, on: view === v.id, onSelect: () => setView(v.id) })),
+                  views: [
+                    ...writeViewList.map((v) => ({ label: v.label, on: view === v.id, onSelect: () => setView(v.id) })),
+                    { label: SHOOT_TAB.label, on: false, onSelect: () => openPlanned('shoot') },
+                  ],
                 },
                 planTools: inPlan ? {
                   viewsOnBar: isOnBar(planSegRef.current, barRef.current),
-                  views: PLAN_VIEWS.map((v) => ({ label: v.label, on: planView === v.id, onSelect: () => setPlanView(v.id) })),
+                  views: [
+                    ...PLAN_TABS.map((v) => ({ label: v.label, on: planView === v.id, onSelect: () => setPlanView(v.id) })),
+                    ...PLAN_PLANNED_TABS.map((v) => ({ label: v.label, on: false, onSelect: () => openPlanned(v.id) })),
+                  ],
                   hasScenes: scenes.length > 0,
                   foldOnBar: planView !== 'breakdowns' || isOnBar(planFoldBtnRef.current, barRef.current),
                   foldLabel: planAllFolded ? 'Expand All' : 'Collapse All',
@@ -2919,7 +3027,7 @@ function Workspace({ boot }) {
               <span className="save-dot" aria-hidden="true" />
               <span className="status-save-label">{saveStatus.label}</span>
             </button>
-            <LockBadge locked={isLocked} onToggle={toggleLock} />
+            <LockBadge locked={isLocked} newer={newerProject} onToggle={toggleLock} />
             {/* Counts: the first thing to give way when the bar is short of room (also in Scenes and Reports). */}
             <span className="status-counts">
             {settings.showCounts && <span>{analysis.sceneCount} scenes</span>}
@@ -3048,6 +3156,18 @@ function Workspace({ boot }) {
             <button type="button" className="focus-exit" onClick={() => setFocusMode(false)}>Exit focus<span className="focus-exit-key"> · Esc</span></button>
           </div>
         )}
+        {syncConflict && (
+          <SyncConflictModal
+            title={syncConflict.there.title}
+            folderName={folderSync.getState().folderName}
+            theirsAt={syncConflict.there.updatedAt}
+            oursAt={saved.at}
+            onKeepMine={keepMyVersion}
+            onUseTheirs={useFolderVersion}
+            onLater={() => setSyncConflict(null)}
+          />
+        )}
+        {planned && <PlannedFeatureModal id={planned.id} returnFocus={planned.from} onClose={() => setPlanned(null)} />}
         {feedbackOpen && (
           <Suspense fallback={null}>
             <FeedbackModal

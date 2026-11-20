@@ -1,20 +1,21 @@
-# DraftLine Pro: Production, Page to Production
+# DraftLine Pro: Shoot & Production Revisions
 
-> **Status: Indefinitely deferred — revisit only after demonstrated product traction and community support.**
-> Not approved for implementation. No timeline.
+> **Status: Stage 3 — future, deferred, not approved for implementation.** Revisit only when user demand,
+> technical readiness, maintenance cost and priorities justify it; being Stage 3 doesn't mean work starts right after
+> Stage 2. No timeline. See [`../../ROADMAP.md`](../../ROADMAP.md).
 >
-> **No existing DraftLine functionality may be removed, restricted, or transferred from the free browser application
-> to a paid product.** Everything here would be *added* beside the free Plan workspace, which keeps all of its
-> current production tools (Breakdowns, Stripboard, Reports, and the coming Schedule and Budget).
+> **No existing DraftLine functionality may be removed, restricted, or transferred from the free application to a
+> paid product.** Everything here would be *added* beside the free Plan workspace, which keeps all of its production
+> tools (Breakdowns, Stripboard, Reports, and the coming Schedule and Budget).
 >
-> **What it is:** **DraftLine Pro: Production (DLP:PROD)**, the **Shoot** workspace (heavy-duty *local* shooting-script
-> tools) **bundled with the DraftLine Pro: Co-Write** collaboration service. One DraftLine, not a separate app.
+> **What it is:** the **Shoot** workspace (local shooting-script tools), part of **DraftLine Pro**, a planned
+> **one-time $29.99 purchase** (Option D, November 19, 2026). Not a subscription, and it does **not** include or
+> require DraftLine Co-Write. The licence is tied to the writer, not the platform; no accounts. Purchased Pro stays
+> usable permanently, and locked scripts stay visible, printable and exportable without it. See
+> [`pro-license.md`](pro-license.md).
 >
-> **Pricing direction (not final):** about **$9.99/month**, **including everything in Pro: Co-Write**. The licence is
-> tied to the writer, not the platform: a token entered in Settings → Pro License unlocks Production in the browser,
-> the installed app and the planned desktop and Android apps. No accounts. Patreon's Writers' Room and Executive Producer
-> tiers are planned to include a Production licence. See [`co-write.md`](co-write.md) §6 and, for expiry (locked
-> scripts stay visible and printable, read-only), [`pro-license.md`](pro-license.md).
+> *Superseded: earlier drafts called this "DraftLine Pro: Production" at about $9.99/month including Co-Write, with a
+> greyed-out Shoot button. Both are replaced.*
 
 Feasibility assessment written November 2026 against DraftLine 0.11.0 (commit `4a72ac6`; references re-checked at
 `343c49a`). Line numbers drift, so use function names as the stable reference.
@@ -25,7 +26,7 @@ Feasibility assessment written November 2026 against DraftLine 0.11.0 (commit `4
 Related:
 - [`revision-mode.md`](revision-mode.md): the October 2026 design, kept for its UX sketch and the "computed marks"
   idea. Where the two disagree, this document wins.
-- [`../../ROADMAP.md`](../../ROADMAP.md) (Phase 3).
+- [`../../ROADMAP.md`](../../ROADMAP.md) (Stage 3).
 - Mockups: [Appendix](#appendix-mockups).
 
 ---
@@ -39,21 +40,19 @@ Advanced shooting-script workflows for scripts in production:
 - **A revision archive** of replaced pages.
 - **Production PDFs**, including revised pages only.
 
-**Future navigation (decided November 2026, not to be built now):**
-- A new **Shoot** button, Lucide `clapperboard`, goes **to the right of Board** in Write's view switch, which then has
-  four buttons: **Page | Split | Board | Shoot**.
-- **Plan** (beside Write in the workspace switch) changes from `Clapperboard` to Lucide `clipboard-check`
-  (`ClipboardCheck`).
-- **Page, Split and Board** keep their icons. Both icons are confirmed present in the pinned `lucide-react` 1.49.0.
-
-Today `App.jsx` has `WORKSPACES` Write (`PenLine`) | Plan (`Clapperboard`) and `VIEWS` Page (`FileText`) | Split
-(`Columns2`) | Board (`SquareKanban`). Points to settle at implementation:
-- the four-button view switch must still fit, or collapse into ⋮ the way the views already do on narrow windows
-  (`toolbar.js` `writeViews`);
-- what the Shoot view shows for a script that isn't locked (likely an explanation and the lock action);
-- **visibility (decided):** Shoot is present for **everyone**, in the same place in every copy, and greyed out with a
-  small "Pro" badge without a Production licence. Clicking it opens the explanation modal with a path to Settings →
-  Pro License. It never appears or disappears with licence status. See [`pro-license.md`](pro-license.md) §4a.
+**Navigation (in place since November 19, 2026, as a preview):**
+- **Shoot** is the fourth button in Write's view switch: **Page | Split | Board | Shoot**, with the Lucide **`film`**
+  icon. Today it opens a planned-feature preview ("From spec to shooting script.") and changes nothing else. It isn't
+  a view yet, so Alt+B still cycles Page, Split and Board.
+- **Plan keeps its `Clapperboard` icon.** *(Superseded: an earlier idea gave Shoot the clapperboard and moved Plan to
+  `clipboard-check`. Not doing that.)*
+- On narrow windows Shoot collapses into ⋮ with the other views (`toolbar.js` `writeViews`).
+- **Visibility (decided):** Shoot is present for everyone, in the same place in every copy, styled like Page, Split
+  and Board: **no padlock, no greyed-out state, no "Pro" badge or price on the toolbar.** When Pro exists, Shoot
+  without Pro opens the same compact explanation (with a way to enter a licence key); with Pro it opens the workspace.
+  See [`pro-license.md`](pro-license.md) §7.
+- To settle at implementation: what Shoot shows for a script that isn't locked (likely an explanation and the lock
+  action).
 
 ## 2. Q1: Can production page locking coexist safely with normal pagination?
 
@@ -210,8 +209,8 @@ locked pages → FDX interoperability, the last only once real Final Draft files
 
 ## 7. Open decisions
 
-- **P1. Navigation: decided.** **Shoot** (`clapperboard`) goes to the right of Board (Page | Split | Board | Shoot),
-  and Plan's icon becomes `clipboard-check` (§1).
+- **P1. Navigation: decided and in place.** **Shoot** (`film`) is to the right of Board (Page | Split | Board |
+  Shoot); Plan keeps `Clapperboard` (§1).
 - **P2. Scene suffixes.** US prefix (A12, AA12, B12) or suffix (12A, 12AA, 12B)? The mockups assume 12A.
 - **P3. Colours after Cherry.** Sources differ: Tan, Ivory, then Double White, or straight to Double White. Fixed or
   editable?
@@ -225,11 +224,11 @@ locked pages → FDX interoperability, the last only once real Final Draft files
   lock needs distinct words and a distinct icon.
 - **P9. Unknown data.** In apps that can't render Production data: preserve silently, or preserve and open
   read-only?
-- **P10. Licensing.** It is paid (about $9.99/month, direction only). How does that square with MIT source (§5,
-  trade-off 2)?
-- **P11. Shoot for Core users: decided.** Always visible and greyed out without a licence, opening an explanation
-  modal on click. Locked scripts opened without a licence display read-only. See [`pro-license.md`](pro-license.md)
-  §4a.
+- **P10. Licensing.** It is a one-time $29.99 purchase (DraftLine Pro, planned). How does that square with MIT source
+  (§5, trade-off 2)? Current answer: Pro works largely on trust ([`pro-license.md`](pro-license.md) §8).
+- **P11. Shoot for Core users: decided.** Always visible, looking like the other views, opening an explanation on
+  click (today's preview). Locked scripts opened without Pro display read-only and stay printable and exportable. See
+  [`pro-license.md`](pro-license.md) §6–7.
 
 ## 8. Deferred even when revisited
 
@@ -250,7 +249,8 @@ Reopen this only when several of these are true:
 - The free-app protections in §6 step 1 have shipped.
 - Real Final Draft files with revisions and locked pages are available.
 - A production user agrees to test a prototype.
-- Core (Schedule and Budget) and Co-Write work are in a stable place.
+- Core's Stage 1 (Table Read) and Stage 2 (Schedule & Budget) are in a stable place. (Co-Write is Stage 4 and isn't
+  a condition for this.)
 
 ## Appendix: industry conventions
 
@@ -278,6 +278,6 @@ right of Board (§1), and the final interface may differ.
 | ![Editor on a revised A-page](production-revisions-mockups/editor.png) | **Writing in a revision.** Page 12A with "Blue Rev. (11/17/26)", a thin blue tab on the page, asterisks on changed lines, 12A scene tags, and one status chip. Its padlock icon clashes with the Editing/Viewing badge (P8). |
 | ![Revisions panel and archive](production-revisions-mockups/archive.png) | **Revisions and Archive.** The current Blue set, the White archive with page 12 as it was, Compare, Start Pink Revision, and Print Revised Pages. |
 
-Principles they follow: apart from the always-present (greyed-out until licensed) Shoot entry point, nothing appears
+Principles they follow: apart from the always-present Shoot entry point, nothing appears
 until a script is locked, a single status chip, marks in the margins only,
 and colour as a small tab rather than tinted paper.

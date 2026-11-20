@@ -381,7 +381,7 @@ describe('Folder sync: wired into the app', async () => {
   });
   it('Projects lists folder scripts too and opens the newest copy', () => {
     assert.match(app, /const folder = await folderSync\.listProjects\(\);\s*const list = mergeProjectLists\(await projects\.getAllProjects\(\), folder, \{ owned: folderSync\.ownedFiles\(\) \}\);/);
-    assert.match(app, /if \(fromFolder\) rec = await projects\.importRecord\(there\);/);
+    assert.match(app, /if \(fromFolder\) \{\s*folderSync\.adopt\(there\.id, there\.updatedAt\);\s*rec = await projects\.importRecord\(there\);\s*\}/);
     assert.doesNotMatch(drawer, /<StorageDestination/, 'storage lives in Settings now, not Projects');
     assert.match(drawer, /Newer in folder/);
   });
@@ -557,7 +557,7 @@ describe('Folder sync: the missing-file prompt in the app', () => {
   });
 
   it('every card action finds the script in this browser or the folder; when it is in neither, the prompt opens instead of an error', () => {
-    assert.match(app, /async function localCopy\(id\) \{\s*const rec = await projects\.getProject\(id\);\s*if \(rec\) return rec;\s*const there = await folderSync\.readProject\(id\)\.catch\(\(\) => null\);\s*return there \? projects\.importRecord\(there\) : null;/);
+    assert.match(app, /async function localCopy\(id\) \{\s*const rec = await projects\.getProject\(id\);\s*if \(rec\) return rec;\s*const there = await folderSync\.readProject\(id\)\.catch\(\(\) => null\);\s*if \(!there\) return null;\s*folderSync\.adopt\(there\.id, there\.updatedAt\);[^\n]*\n\s*return projects\.importRecord\(there\);/);
     assert.doesNotMatch(app, /That script no longer exists/);
     const body = (name) => new RegExp(`const ${name} = async \\([^)]*\\) => \\{([\\s\\S]*?)\\n {2}\\};`).exec(app)[1];
     for (const fn of ['toggleProjectLock', 'renameProject', 'duplicateProject', 'exportProject']) {

@@ -27,7 +27,8 @@ import { normalizeBeats, validBeats } from './beats.js';
 import { normalizeRevisions, revisionRecord } from './revisions.js';
 import { migrateStoryBible, normalizeCharacters, normalizeStoryNotes, validCharacters } from './bible.js';
 import { normalizeStoryDna } from './storyDna.js';
-import { normalizeProduction } from './productionData.js';
+import { PRODUCTION_VERSION, normalizeProduction } from './productionData.js';
+import { addUnknownFields, unknownFields } from './passThrough.js';
 import { newProjectMeta } from './authorDefaults.js';
 import { DEFAULT_CREDIT, DEFAULT_TITLE_BOLD, DEFAULT_TITLE_FONT, DEFAULT_TITLE_SIZE } from './titleFonts.js';
 
@@ -49,6 +50,44 @@ export const META_FIELDS = [
   'showSceneNumbers', // export setting: scene numbers in the PDF and printout (off = spec, on = production)
   'fdxIncludeNotes', // export setting: margin notes go into .fdx files as Final Draft Script Notes (off = private)
 ];
+
+/**
+ * The project format this build writes. Records saved before the field existed read as 1; nothing
+ * about their content changes. A newer DraftLine that changes the format in a way an older copy must
+ * not edit raises it, and this build then opens such a project read-only and never saves over it
+ * (isNewerProject, saveActiveProject). Additive changes don't need a raise: unknown fields are
+ * carried through every save (lib/passThrough.js). docs/specs/data-integrity.md.
+ */
+export const PROJECT_SCHEMA_VERSION = 1;
+
+/** Every top-level record field this build understands; anything else is carried through untouched. */
+export const RECORD_FIELDS = new Set([
+  'id', ...META_FIELDS, 'script', 'beats', 'characters', 'storyNotes', 'storyDna', 'production', 'revisions',
+  'isLocked', 'viewOnly', 'pages', 'scenes', 'createdAt', 'updatedAt', 'schemaVersion',
+]);
+
+/** The record's project format (1 for records from before `schemaVersion` existed). */
+export const projectSchemaOf = (rec) => (Number.isInteger(rec?.schemaVersion) && rec.schemaVersion > 0 ? rec.schemaVersion : 1);
+
+/**
+ * Was this project saved by a newer DraftLine in a format this build mustn't write? Then it opens
+ * read-only (view, print and export still work) and saves are refused.
+ */
+export function isNewerProject(rec) {
+  if (!rec || typeof rec !== 'object') return false;
+  if (projectSchemaOf(rec) > PROJECT_SCHEMA_VERSION) return true;
+  const v = rec.production?.version;
+  return Number.isInteger(v) && v > PRODUCTION_VERSION;
+}
+
+/** Thrown by saveActiveProject instead of overwriting a newer DraftLine's project. */
+export class NewerProjectError extends Error {
+  constructor(title = '') {
+    super(`“${title || 'Untitled'}” was saved by a newer version of DraftLine. Update DraftLine to edit it.`);
+    this.name = 'NewerProjectError';
+    this.code = 'NEWER_PROJECT';
+  }
+}
 
 export const EMPTY_META = {
   title: '',
@@ -87,7 +126,7 @@ export function projectStats(blocks) {
 
 /** Editor document ({ meta, blocks, beats }) → stored record. */
 export function toRecord({
-  id, meta = {}, blocks = [], beats = [], characters = [], storyNotes, storyDna, production, revisions, pages, scenes, isLocked, viewOnly,
+  id, meta = {}, blocks = [], beats = [], characters = [], storyNotes, storyDna, production, revisions, pages, scenes, isLocked, viewOnly, extra,
 }, now = Date.now()) {
   const rec = { id: id || newProjectId() };
   for (const k of META_FIELDS) rec[k] = meta[k] ?? EMPTY_META[k];
@@ -111,6 +150,9 @@ export function toRecord({
   rec.scenes = scenes ?? est.scenes;
   rec.createdAt = now;
   rec.updatedAt = now;
+  rec.schemaVersion = PROJECT_SCHEMA_VERSION;
+  // A newer DraftLine's fields, as the document carried them in (toDoc's `extra`). Never over a known field.
+  addUnknownFields(rec, extra, RECORD_FIELDS);
   return rec;
 }
 
@@ -132,6 +174,8 @@ export function toDoc(rec) {
     revisions: normalizeRevisions(rec.revisions),
     isLocked: rec.isLocked === true,
     viewOnly: rec.viewOnly === true, // scripts from before the Viewing setting was saved open editable
+    // Fields from a newer DraftLine: kept beside the document and handed back on save, untouched.
+    extra: unknownFields(rec, RECORD_FIELDS),
     createdAt: rec.createdAt,
     updatedAt: rec.updatedAt,
   };
@@ -140,6 +184,8 @@ export function toDoc(rec) {
 /** A snapshot → the editor document it restores (migrated like any stored project). */
 export function revisionToDoc(rev) {
   const { revisions, id, createdAt, updatedAt, ...doc } = toDoc(revisionRecord(rev)); // eslint-disable-line no-unused-vars
+  // A newer DraftLine's fields captured with the snapshot come back too (never as known fields).
+  doc.extra = unknownFields(rev?.extra, RECORD_FIELDS);
   return doc;
 }
 
@@ -262,6 +308,11 @@ export function createProjectStore({ indexedDB = globalThis.indexedDB, now = Dat
         const rec = toRecord(projectData, t);
         if (projectData.id) {
           const prev = await b.get(projectData.id);
+          // Never write over a project a newer DraftLine saved in a format this build doesn't know.
+          if (isNewerProject(prev)) throw new NewerProjectError(prev.title);
+          // Fields this build doesn't know (a newer DraftLine's) survive the save, even when the caller
+          // didn't carry them (the crash journal, older call sites). The document's own copy wins.
+          addUnknownFields(rec, unknownFields(prev, RECORD_FIELDS), RECORD_FIELDS);
           if (prev?.createdAt) rec.createdAt = prev.createdAt;
           // A save that doesn't carry snapshots (crash-recovery journal, older callers) keeps them.
           if (projectData.revisions === undefined && prev?.revisions) rec.revisions = prev.revisions;
@@ -474,7 +525,8 @@ export async function bootLibrary({ store, storage, makeFirstDoc }) {
   const journal = readJSON(storage, JOURNAL_KEY);
   if (journal?.id && validBlocks(journal.blocks)) {
     const target = all.find((p) => p.id === journal.id);
-    if (target && (journal.journaledAt || 0) > (target.updatedAt || 0)) {
+    // Not over a project a newer DraftLine saved since (it would refuse anyway): the journal is dropped.
+    if (target && !isNewerProject(target) && (journal.journaledAt || 0) > (target.updatedAt || 0)) {
       await store.saveActiveProject(journal);
       recovered = true;
     }

@@ -98,7 +98,7 @@ describe('Reports: spreadsheets', () => {
 
 describe('Reports in the app', () => {
   const app = read('src/App.jsx');
-  it('a third Plan view beside Breakdowns and Stripboard', () => {
+  it('a Plan view of its own (opened from ⋮ → Reports)', () => {
     assert.match(app, /\{ id: 'reports', label: 'Reports', title: '[^']+', Icon: ChartColumn \}/);
     assert.match(read('src/components/planning/PlanningWorkspace.jsx'), /view === 'reports' \? \(\s*<Reports /);
   });
@@ -109,10 +109,13 @@ describe('Reports in the app', () => {
     assert.match(r, /onClick=\{\(\) => setOpenLoc\(open \? null : l\.location\)\}/);
     assert.match(app, /const openCharacterInWrite = \(name\) => \{[\s\S]*?setCharacterTab\('dialogue'\);[\s\S]*?selectCharacter\(name\)/);
   });
-  it('⋮ → Reports from Write; not repeated in Plan (it is on Plan\'s bar)', () => {
+  it('⋮ → Reports in Write and in Plan alike (not a Plan tab any more), opening the same Reports view', () => {
     const items = moreMenuItems({ onReports() {}, bibleOnBar: true, charactersOnBar: true });
     assert.ok(items.some((i) => i.label === 'Reports' && i.hint === 'Plan'));
     assert.ok(!moreMenuItems({ onReports: null, bibleOnBar: true, charactersOnBar: true }).some((i) => i.label === 'Reports'));
-    assert.match(app, /onReports: inPlan \? null : openReports,/);
+    assert.match(app, /\n {16}onReports: openReports,\n/);
+    assert.match(app, /const openReports = \(\) => \{\s*setWorkspace\('plan'\);\s*setPlanView\('reports'\);\s*\};/);
+    assert.match(app, /const PLAN_TABS = PLAN_VIEWS\.filter\(\(v\) => v\.id !== 'reports'\);/);
+    assert.match(app, /inPlan \? `Plan · \$\{PLAN_VIEWS\.find\(\(v\) => v\.id === planView\)\.label\}`/, 'still "Plan · Reports"');
   });
 });

@@ -6,6 +6,8 @@ All notable changes to DraftLine are recorded here. The format follows [Keep a C
 
 ### Added
 
+- **Previews of what's planned.** **Shoot** (Lucide `film`) now follows Page | Split | Board; **Schedule** (`calendar-check`) and **Budget** (`calculator`) follow Breakdowns | Stripboard in Plan; and Write's ⋮ menu has **Table Read…** and **Co-Write…** after Reports. Each opens a short note about the planned feature and a **Close** button, and nothing else: your view, script and project stay exactly as they were, and focus goes back to what you clicked. Nothing is built behind them yet, there's nothing to buy, and no badges or prices sit on the toolbar. Plan keeps its clapperboard.
+- **Roadmap: the approved plan.** DraftLine Core stays free forever and gains Table Read (next), then Schedule & Budget; **DraftLine Pro** is planned as a one-time purchase with Shoot and production revisions (deferred); **DraftLine Co-Write** is planned as an optional subscription that works with Core or Pro (last). New design notes: `docs/specs/data-integrity.md` (what has to be in place before new project data ships) and `docs/specs/payments.md`.
 - **A Welcome page: draftlineapp.com/welcome/.** A short introduction for people discovering DraftLine: the slogan, *Just Write.*, the promise, what you get free, and links to Philosophy, Features and Compare, with **Start Writing** straight into the editor. The editor in its laptop frame is a real screenshot of DraftLine with the sample script *The Last Ferry*, in the dark or light version to match your theme. The root address still opens the editor straight away; nobody is sent to the Welcome page.
 - **The DraftLine logo opens a menu.** **Welcome to DraftLine**, **Core Philosophy**, **Explore Features** and **Compare DraftLine** (each in a new tab, so your script stays open), then **About DraftLine**. About is still in **⋮** too.
 - **System Default theme, now the default.** Settings → Appearance offers **System Default**, **Espresso Noir** and **Editorial Light**, three across the same width as the Paper and Midnight page choices (stacked on a narrow screen). System Default follows the device's light or dark setting, and switches with it while DraftLine is open. A theme you pick stays on that device until you change it. Writers who had chosen Editorial Light keep it; everyone else moves to System Default.
@@ -99,6 +101,7 @@ All notable changes to DraftLine are recorded here. The format follows [Keep a C
 
 ### Changed
 
+- **Reports moved into ⋮, in Plan as well as Write.** It opens the same Reports, still shown as **Plan · Reports**; Plan's tabs are now Breakdowns | Stripboard | Schedule | Budget.
 - **The same three names everywhere:** **Core Philosophy**, **Explore Features** and **Compare DraftLine**, in About DraftLine (which said See All Features and How It Compares), the logo's menu and the Welcome page.
 - **Features, Compare and Philosophy follow the app's theme.** They read the same Settings choice before they draw, so a writer on Editorial Light sees light pages and System Default follows the device there too. They used to follow only the device's setting.
 - **Features, Compare and Philosophy share one wider column** (1,040 px on a computer, the comparison table's width), so the table no longer reaches past the text. Philosophy uses the same type sizes as the other two.

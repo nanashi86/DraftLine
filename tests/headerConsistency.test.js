@@ -45,7 +45,7 @@ describe('Write: Element ▾ and B I U S move, like Plan’s scene filter', () =
   });
 });
 
-describe('Page | Split | Board and Breakdowns | Stripboard | Reports behave alike', () => {
+describe('Page | Split | Board | Shoot and Breakdowns | Stripboard | Schedule | Budget behave alike', () => {
   it('both go icons-only below 900px, in one rule', () => {
     assert.match(media('899.98'), /\.plan-seg \.seg-label,\s*\.view-seg \.seg-label \{ display: none; \}/);
     assert.match(media('899.98'), /\.plan-seg \.seg-btn,\s*\.view-seg \.seg-btn \{ padding: 4px 8px; \}/);
@@ -60,7 +60,7 @@ describe('Page | Split | Board and Breakdowns | Stripboard | Reports behave alik
     assert.deepEqual(tucked.slice(0, 4).map((i) => (i.divider ? '---' : `${i.label}${i.hint ? ` [${i.hint}]` : ''}`)), ['Page', 'Split [Showing]', 'Board', '---']);
     const onBar = moreMenuItems({ bibleOnBar: true, charactersOnBar: true, writeViews: { onBar: true, views } });
     assert.equal(onBar[0].label, 'View Snapshots', 'not repeated while the switch is on the bar');
-    assert.match(app, /writeViews: inPlan \? null : \{\s*onBar: isOnBar\(viewSegRef\.current, barRef\.current\),\s*views: writeViewList\.map\(\(v\) => \(\{ label: v\.label, on: view === v\.id, onSelect: \(\) => setView\(v\.id\) \}\)\),/);
+    assert.match(app, /writeViews: inPlan \? null : \{\s*onBar: isOnBar\(viewSegRef\.current, barRef\.current\),\s*views: \[\s*\.\.\.writeViewList\.map\(\(v\) => \(\{ label: v\.label, on: view === v\.id, onSelect: \(\) => setView\(v\.id\) \}\)\),\s*\{ label: SHOOT_TAB\.label, on: false, onSelect: \(\) => openPlanned\('shoot'\) \},/);
     assert.match(app, /className="seg view-seg" role="radiogroup" aria-label="Workspace view \(Alt\+B cycles\)" ref=\{viewSegRef\}/);
   });
 });

@@ -1,8 +1,8 @@
 # Revision Mode — design plan (for review)
 
 Status: **historical design (October 2026), superseded.** The current, authoritative assessment is
-[`production-revisions-concept.md`](production-revisions-concept.md) (**DraftLine Pro: Production**, *Page to
-Production*, indefinitely deferred). This page is kept for its UX sketch and the "computed marks" idea. Some of its
+[`production-revisions-concept.md`](production-revisions-concept.md) (**DraftLine Pro: Shoot & Production
+Revisions**, Stage 3, deferred). This page is kept for its UX sketch and the "computed marks" idea. Some of its
 assumptions were corrected there: the editor and PDF do **not** share line counts, and FDX round-trips are unproven.
 Originally: *opted out for now; design kept for review* (October 2026). Written to be read on its own, for example by
 another reviewer or AI, without the rest of the codebase.

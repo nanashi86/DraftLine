@@ -1,19 +1,29 @@
 # Android & ChromeOS App — phones, tablets and Chromebooks (future plan)
 
-Status: **future, free for everyone (Core free, Pro by licence). Not started, not scheduled.** Written October 2026.
+Status: **future, free for everyone. A separate distribution workstream, not a numbered roadmap stage. Not started,
+not scheduled.** Written October 2026; entitlements updated November 19, 2026.
 
-> **November 2026 update: the Android app is free, and Pro is a licence, not a platform.**
-> - **The Google Play app is not behind a paywall.** Like the browser and the installed PWA, it's a way to use
->   DraftLine: **Core is free in it**, including Android-only extras such as Drive folder sync, and a Pro licence
->   unlocks its tier in it.
-> - **Pro is a licence tied to the writer** (Co-Write about $4.99/month, Production about $9.99/month including
->   Co-Write; direction, prices not final; see [`co-write.md`](co-write.md) §6). The token goes in **Settings → Pro
->   License**, the same field on every platform, with no account.
-> - **Early access:** Ko-fi supporters and Patreon's **The Writers' Room** ($10) and **Executive Producer** ($25)
->   tiers (as their tier perks already say) get early access to the Android and desktop builds, provided the
->   Ko-fi goal ("DraftLine Native Desktop & Android/ChromeOS Builds") is reached. Existing promises are kept.
-> - The earlier pricing lines below ("reading and basic editing are free", the $9.99 one-time unlock, "free with
->   DraftLine Pro") are **superseded**.
+> **Entitlement model (Option D, approved November 19, 2026).** ([`../../ROADMAP.md`](../../ROADMAP.md),
+> [`pro-license.md`](pro-license.md))
+> - **The Google Play app (Android and ChromeOS) is free** and isn't a paid tier. **DraftLine Core is free in it**, as on every supported platform.
+> - **DraftLine Pro** ($29.99 **one-time**, planned) is a capability purchase, not an app purchase: bought once, it
+>   unlocks Shoot and production revisions in the browser, the installed app and every native app.
+> - **DraftLine Co-Write** ($4.99/month, planned) is an independent optional subscription for hosting co-writing
+>   sessions, with Core or Pro. Not required for Pro, not included in it.
+> - Pro and Co-Write entitlements are **portable across supported platforms**: one key each, entered in
+>   **Settings → Licenses & Access**, no account. There is **no separate desktop or mobile subscription**.
+> - **Supporters:** Ko-fi supporters and Patreon's **The Writers' Room** ($10) and **Executive Producer** ($25) tiers
+>   get early access to the native builds once the Ko-fi goal ("DraftLine Native Desktop & Android/ChromeOS Builds")
+>   is reached; those tiers were also promised Pro and Co-Write, which Option D splits into two entitlements. How
+>   patrons receive both is flagged for Eric in [`pro-license.md`](pro-license.md) §9.
+> - **No release dates or store availability are promised.**
+> - **To research before any build:** Google Play's payments policy. Selling digital features inside a Play app
+>   generally has to use Google Play Billing, with regional and post-2025 US exceptions; confirm whether activating a
+>   key bought on the web is allowed and how the app may mention it. Also ChromeOS install paths and offline checks.
+> - Android-only extras such as Drive folder sync are Core and free.
+>
+> **Superseded, kept for the record:** "reading and basic editing are free", the one-time $9.99 unlock, "free with
+> DraftLine Pro", and the monthly "Pro: Co-Write / Production" tiers with a "Settings → Pro License" field.
 >
 > **Part B's community copy repeats the old pricing and must not be posted as is.** Part A's technical plan stands.
 > The adaptive layout and touch work in Part A that benefits the browser app is Core and free.

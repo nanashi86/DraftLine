@@ -59,3 +59,19 @@
   .sr-row { grid-template-columns: 1fr; gap: 4px; }
   .sr-info { text-align: left; }
 }
+
+/* Planned-feature previews (PlannedFeatureModal): the same dialog, a status line and a short description. */
+.pf-modal { width: min(440px, calc(100vw - 32px)); }
+.sr-head .pf-status { font-style: italic; }
+.pf-desc { padding: 6px 22px 0; font-size: 13.5px; line-height: 1.55; }
+.pf-desc p { margin: 0 0 8px; }
+.pf-desc .pf-headline { font-size: 15px; font-weight: 650; color: var(--text); }
+.pf-desc .pf-note { margin-top: 12px; font-size: 12.5px; font-style: italic; color: var(--muted); }
+
+/* Folder sync conflict (SyncConflictModal): the two versions' save times. */
+.sc-modal { width: min(500px, calc(100vw - 32px)); }
+.sc-versions { display: grid; gap: 4px; margin: 4px 22px 0; padding: 10px 12px; border-radius: 7px; background: var(--field); font-size: 12.5px; }
+.sc-versions div { display: flex; justify-content: space-between; gap: 12px; }
+.sc-versions dt { color: var(--muted); }
+.sc-versions dd { margin: 0; }
+@media (max-width: 480px) { .sc-modal .sr-foot { flex-wrap: wrap; } }

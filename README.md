@@ -393,7 +393,7 @@ On screens under 1500px it sits at the top of the Plan page, lined up with the l
 
 ## Plan → Reports
 
-The Plan workspace's third view, beside Breakdowns and Stripboard (also **⋮ → Reports** from Write): quiet tables
+A Plan view opened from **⋮ → Reports**, in Write or Plan (the status bar shows **Plan · Reports**): quiet tables
 worked out from the script each time, nothing stored. **Scenes** (number, slugline, INT/EXT, time, page, length in
 eighths, speaking cast) · **Characters** (speeches, printed dialogue lines, words, scenes, pages, share of dialogue) ·
 **Locations** (grouped by place: INT/EXT, times, scenes, screen time) · **Script** (pages, scenes, words, speakers,
@@ -522,15 +522,22 @@ end with a similar line at most every 30 days. Both are throttled and muted per 
 
 Want to see where DraftLine is heading? Check out the [Public Roadmap](ROADMAP.md).
 
-**DraftLine is free.** The software and every core writing, planning and export tool (**DraftLine Core**) are free
-forever, with no subscriptions and no paywalls. That includes the next planned features, **Schedule** and **Budget**
-in Plan. Two optional paid services are planned for later: **DraftLine Pro: Co-Write** (real-time co-writing rooms on
-a hosted relay) and **DraftLine Pro: Production** (a Shoot workspace for locked pages and revision rounds, bundled
-with Co-Write). You'd only pay if you opt into one of them. See the roadmap for how they fit.
+**DraftLine Core is free, forever,** with no subscriptions and no paywalls, and nothing you can do today will ever be
+moved behind one. The planned order of what's next ([ROADMAP.md](ROADMAP.md)), with no dates promised:
 
-Design notes for planned and possible features live in `docs/specs/`: Schedule & Budget, Co-Write (real-time
-collaboration), Production (colored revisions, locked pages and scene numbers), Pro licences, Table Read (local-first
-read-aloud), and the Windows and Android apps.
+1. **Table Read** (Core, free): hear your script read aloud with your computer's own voices.
+2. **Schedule & Budget** (Core, free): shooting days and production estimates in Plan.
+3. **DraftLine Pro** (planned as a one-time purchase, not a subscription): a **Shoot** workspace for locked pages,
+   scene numbers and revision rounds. Deferred.
+4. **DraftLine Co-Write** (planned as an optional subscription for hosting live co-writing sessions, with Core or Pro;
+   invited writers join free). Last and long-term.
+
+In the app today, **Shoot** (after Board), **Schedule** and **Budget** (in Plan) and **⋮ → Table Read…** and
+**⋮ → Co-Write…** each open a short note about what's planned; none of them is built yet.
+
+Design notes for planned and possible features live in `docs/specs/`: Table Read, Schedule & Budget, data integrity
+(forward compatibility), Shoot & production revisions, Co-Write, licences and access, payments, and the Windows and
+Android apps.
 
 ## Testing
 

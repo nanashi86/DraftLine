@@ -10,7 +10,7 @@ Press {{key:F1}} at any time to open this guide. {{key:Ctrl+/}} shows every keyb
 
 The top bar holds your script's title, the **Write | Plan** switch, the **File ▾** menu, the Element picker and the B / I / U / S formatting buttons (only while you're on the page: **Page**, **Split** or Focus), the view switch (**Page**, **Split**, **Board**) and **Snapshot**. Story Bible and Characters open as panels on the right.
 
-On a smaller screen the top bar makes room the same way in Write and Plan. A workspace's own tools move to a row at the top of the workspace instead of disappearing: Write's Element picker and B / I / U / S sit just above the script (under 1200px wide), as Plan's scene filter sits above the scenes. **Page | Split | Board** and **Breakdowns | Stripboard | Reports** both turn to icons at the same width (point at one for its name), and on a phone-sized screen, where the switch leaves the bar, **⋮** lists the views.
+On a smaller screen the top bar makes room the same way in Write and Plan. A workspace's own tools move to a row at the top of the workspace instead of disappearing: Write's Element picker and B / I / U / S sit just above the script (under 1200px wide), as Plan's scene filter sits above the scenes. **Page | Split | Board | Shoot** and **Breakdowns | Stripboard | Schedule | Budget** both turn to icons at the same width (point at one for its name), and on a phone-sized screen, where the switch leaves the bar, **⋮** lists the views.
 
 The status bar at the bottom shows the current element, where your work is saved, scene and word counts, page count, page colour, undo / redo and zoom.
 
@@ -357,10 +357,14 @@ The Scene Board's **Export Outline** downloads the board as a **Fountain Outline
 
 ### Write and Plan
 
-- **Write** is the screenplay editor, with **Page**, **Split** and **Board**, **Focus**, **Story Bible** and **Characters** on the right of the top bar. In **Plan** those same places hold **Breakdowns | Stripboard**, **Collapse All / Expand All** and **Export Breakdown**; the title, **Write | Plan**, **File ▾**, **Snapshot** and **⋮** stay put. On a smaller screen Plan's tools shorten (Export Breakdown becomes **Export**, the view switch turns to icons) and then move into **⋮**, the same way Write's do; the scene filter moves above the scenes, as Write's Element picker and B / I / U / S move above the script.
+- **Write** is the screenplay editor, with **Page**, **Split** and **Board** (and **Shoot**, a preview of a planned feature), **Focus**, **Story Bible** and **Characters** on the right of the top bar. In **Plan** those same places hold **Breakdowns | Stripboard** (and **Schedule** and **Budget**, previews of planned features), **Collapse All / Expand All** and **Export Breakdown**; the title, **Write | Plan**, **File ▾**, **Snapshot** and **⋮** stay put. On a smaller screen Plan's tools shorten (Export Breakdown becomes **Export**, the view switch turns to icons) and then move into **⋮**, the same way Write's do; the scene filter moves above the scenes, as Write's Element picker and B / I / U / S move above the script.
 - The title, the Projects library, **File ▾**, **Snapshot** and the ⋮ menu (About, User Guide) stay in both.
 - Switching never loses anything. Your script stays exactly as it was, unsaved typing included, and it keeps saving. Coming back to Write puts the script and the Scene Board where you'd scrolled them.
 - **Write** on a breakdown card, or a click on a strip, takes you back to Write at that scene.
+
+### Planned features
+
+A few places in the app show what's planned next. **Shoot** (after Board), **Schedule** and **Budget** (in Plan) and **⋮ → Table Read…** and **⋮ → Co-Write…** (in Write) each open a short note about the planned feature and a **Close** button. Nothing is built behind them yet: opening one doesn't change your view, your script or your project. Schedule, Budget and Table Read are planned for free DraftLine Core; Shoot for DraftLine Pro, a future optional upgrade; Co-Write as a future optional hosted service. Everything DraftLine does today stays free.
 
 ### Finding scenes
 
@@ -392,7 +396,7 @@ Every scene as one strip, in script order, coloured the standard way: **INT. DAY
 
 ### Reports
 
-**Reports**, the third view in Plan (or **⋮ → Reports** from Write), shows your script in numbers, worked out fresh each time:
+**Reports** (**⋮ → Reports**, in Write or Plan; the status bar shows **Plan · Reports**) shows your script in numbers, worked out fresh each time:
 
 - **Scenes**: every scene with its INT/EXT, time of day, page, length in eighths and who speaks in it.
 - **Characters**: speeches, dialogue lines as printed, words, how many scenes, which pages, and their share of all the dialogue.

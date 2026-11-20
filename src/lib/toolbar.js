@@ -13,14 +13,15 @@ export function isOnBar(el, bar) {
 }
 
 /**
- * The ⋮ menu, top to bottom: View Snapshots · Margin Notes · Format Doctor — Keyboard Shortcuts —
+ * The ⋮ menu, top to bottom: View Snapshots · Margin Notes · Format Doctor · Reports — Table Read… · Co-Write…
+ * (Write only: planned-feature previews) — Keyboard Shortcuts —
  * Settings… · User Guide · Send Feedback… · Cookie Settings… · About DraftLine (Sample… is in File ▾), plus Scenes, Focus, Story Bible and/or Characters first (toolbar order), but only while
  * the toolbar can't show them itself (narrow windows). Snapshots and Notes show their counts.
  * On a touch screen (`touch`) Keyboard Shortcuts is left out: there's no keyboard to use them with.
  */
 export function moreMenuItems({
   bibleOnBar, charactersOnBar, onBible, onCharacters, onSnapshots, snapshotCount = 0, onNotes, noteCount = 0,
-  onShortcuts, onAbout, onSettings, focusOnBar = true, onFocus, onGuide, onFormatDoctor, issueCount = 0, planTools = null, onReports = null,
+  onShortcuts, onAbout, onSettings, focusOnBar = true, onFocus, onGuide, onFormatDoctor, issueCount = 0, planTools = null, onReports = null, onTableRead = null, onCoWrite = null,
   onFeedback = null, onCookies = null, writeViews = null, scenesOnBar = true, onScenes = null, touch = false,
 }) {
   const panels = [
@@ -41,9 +42,15 @@ export function moreMenuItems({
     { label: 'Margin Notes', hint: String(noteCount), onSelect: onNotes },
     // Format Doctor's status-bar stepper only shows while it has findings; this opens it any time.
     ...(onFormatDoctor ? [{ label: 'Format Doctor', hint: issueCount ? String(issueCount) : 'Clean', onSelect: onFormatDoctor }] : []),
-    // Plan → Reports, from Write (Plan has it on its own bar).
+    // Reports (shown in Plan as "Plan · Reports"): the same item in Write and in Plan.
     ...(onReports ? [{ label: 'Reports', hint: 'Plan', onSelect: onReports }] : []),
     { divider: true },
+    // Planned features (lib/plannedFeatures.js): each opens a short preview; Write only for now.
+    ...(onTableRead || onCoWrite ? [
+      ...(onTableRead ? [{ label: 'Table Read…', onSelect: onTableRead }] : []),
+      ...(onCoWrite ? [{ label: 'Co-Write…', onSelect: onCoWrite }] : []),
+      { divider: true },
+    ] : []),
     ...(touch ? [] : [{ label: 'Keyboard Shortcuts', hint: 'Ctrl+/', onSelect: onShortcuts }, { divider: true }]),
     // Settings: global configuration, just above Help and About (Appearance, Storage & Backup, Drafting).
     ...(onSettings ? [{ label: 'Settings…', hint: 'Ctrl+,', onSelect: onSettings }] : []),

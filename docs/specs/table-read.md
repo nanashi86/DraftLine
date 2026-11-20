@@ -1,6 +1,13 @@
-# Table Read — local-first read-aloud (future plan)
+# DraftLine Core: Table Read (local-first read-aloud)
 
-Status: **planned, not started.** Written October 2026 after the competitive review; build after Find & Replace and Reports.
+> **Status: Stage 1 — the next planned free Core feature; not yet approved for implementation.** Updated November 19,
+> 2026 (first written October 2026). See [`../../ROADMAP.md`](../../ROADMAP.md).
+>
+> **Table Read is free in DraftLine Core and never requires DraftLine Pro or DraftLine Co-Write.** No hosted speech
+> service, no generative AI, no account.
+>
+> **Placement:** Write → ⋮ → **Table Read…** (today it opens the planned-feature preview, "Hear your story come to
+> life."; that placeholder is separate from this spec and changes when the feature is built).
 
 ## Goal
 
@@ -24,7 +31,7 @@ with a different voice for each character, and a **Rehearse as…** mode that re
 
 | Piece | Where | Existing pattern reused |
 |---|---|---|
-| Start | ⋮ → **Table Read** · shortcut (a free Alt+letter; check `shortcuts.js`) | ⋮ menu items |
+| Start | Write → ⋮ → **Table Read…** (already in place as a preview) · shortcut (a free Alt+letter; check `shortcuts.js`) | ⋮ menu items |
 | Transport | A small pill, bottom-centre, in the toast zone: `▶ ❚❚ ■ · Scene 3 · THEO · 1.0× · From cursor ▾` | Export toast / milestone toast |
 | Current line | The active-line accent rule, plus gentle auto-scroll | Editor's active line |
 | Voices | Characters → Bios: a small voice picker on each bio card; a Narrator voice (Action, headings) at the top of Bios | Bio cards |
@@ -60,3 +67,46 @@ with a different voice for each character, and a **Rehearse as…** mode that re
 - Voice quality depends on the operating system. macOS and Windows on-device voices are decent; ChromeOS on-device
   voices are more robotic. Firefox on Linux may have few or none.
 - No emotion or direction from parentheticals; this is a listening tool, not a performance.
+
+## Platform and reliability notes (to verify in a spike)
+
+- **Browser/OS compatibility.** `speechSynthesis` exists in Chrome, Edge, Safari and Firefox, but voices, events and
+  pause/resume differ: Chrome on some systems stops long utterances after about 15 seconds (hence one element per
+  utterance); Safari and Chrome on Android have had unreliable `pause()`; Firefox on Linux may have no voices.
+- **Offline voices.** Only `localService === true` voices are guaranteed to work offline, and not every system has
+  one. With none, Table Read says so plainly instead of silently using an online voice.
+- **Long scripts.** Build the queue lazily (a scene or two ahead), keep memory flat on a 120-page script, and never
+  block typing; measure on the longest sample.
+- **Mobile interruptions.** Phone calls, other audio, locking the screen or switching apps can stop speech without an
+  `onend`. On `visibilitychange` (hidden), pause and remember the position; resume only when the writer presses Play.
+  Background playback is not a goal for v1.
+- **Privacy.** On-device voices by default; an online voice needs a one-time, plainly worded opt-in and a visible
+  marker while speaking. Nothing about what's read is logged or sent by DraftLine.
+- **Storage.** A voice per character fits on `characters[].voice`, which today's code already preserves
+  ([`data-integrity.md`](data-integrity.md)); anything stored elsewhere on the project waits for the pass-through fix.
+
+## Minimal MVP (Stage 1, first release)
+
+- ⋮ → Table Read… starts reading **from the cursor**; a small transport with **Play / Pause / Stop** and **speed**
+  (0.75×–1.5×); range: from the beginning, this scene, or the current position.
+- Narration of **scene headings, action and dialogue** in one narrator voice plus one voice for all dialogue (or a
+  simple rotation), on-device voices only by default.
+- The current element highlighted and kept in view; stops on Esc, typing, switching project or workspace.
+- No character voice mapping UI and no Rehearse as… yet (next increments).
+
+### Acceptance criteria
+
+1. Reading a 120-page script from page 1 completes without stalling in Chrome and Edge on Windows and ChromeOS, and
+   in Safari on macOS.
+2. Pause/Resume and Stop work within half a second; Stop leaves the cursor and the script exactly as they were.
+3. Starting from a scene or the cursor begins at the right element.
+4. Nothing is sent over the network with on-device voices (verified with the network panel).
+5. No change to the project's stored data unless the writer chooses a voice.
+6. With no on-device voices, a clear message and no silent fallback to an online voice.
+7. Typing is never slowed while reading.
+
+## Next increments
+
+1. Character voice mapping (Characters → Bios voice picker; narrator voice).
+2. Rehearse as… (read everyone but one character, pausing on their lines).
+3. Optional reading of parentheticals and transitions.

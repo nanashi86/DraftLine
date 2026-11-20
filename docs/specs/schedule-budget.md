@@ -1,57 +1,48 @@
 # DraftLine Core: Schedule & Budget (Plan workspace)
 
-> **Status: next Core candidate. Not yet approved for implementation.** Written November 2026 against
-> DraftLine 0.11.0 (commit `343c49a`). Eric approves the start of work, and the scope at that time.
+> **Status: Stage 2 — after Table Read, subject to reassessment; not yet approved for implementation.** Written
+> November 2026 against DraftLine 0.11.0 (commit `343c49a`); updated November 19, 2026. Eric approves the start of
+> work, and the scope at that time.
 >
-> **Product:** DraftLine Core, *Write Your Story*. **Schedule and Budget are free Core features, not Pro.**
+> **Product:** DraftLine Core. **Schedule and Budget are free Core features**, never Pro or Co-Write.
+>
+> **Mandatory prerequisite: data integrity.** Before any Schedule or Budget data is stored, the unknown-field
+> pass-through, schema v2 migration and compatibility tests in [`data-integrity.md`](data-integrity.md) ship first
+> (one release ahead), so an older copy of DraftLine can never silently delete a schedule or a budget.
 
-This is a planning brief for a future implementation session. It records the intended navigation change, the
-functional direction, what the current code already provides, and the questions to settle first. It is not a
+This is a planning brief for a future implementation session. It records the navigation (now in place as previews),
+the functional direction, what the current code already provides, and the questions to settle first. It is not a
 finished specification: the feature lists below are ideas to scope, not commitments.
 
-See also [`../../ROADMAP.md`](../../ROADMAP.md) (Phase 1).
+See also [`../../ROADMAP.md`](../../ROADMAP.md) (Stage 2).
 
 ---
 
-## 1. Navigation change
+## 1. Navigation (done November 19, 2026, as previews)
 
-**Today** (`src/App.jsx`):
-- `WORKSPACES` is Write (`PenLine`) and Plan (`Clapperboard`).
-- `PLAN_VIEWS` holds three primary tabs:
-  - Breakdowns (`LayoutList`)
-  - Stripboard (`Rows3`)
-  - Reports (`ChartColumn`)
+The navigation is already in place; Schedule and Budget open a planned-feature preview until they're built.
 
-**Planned**: exactly four primary Plan tabs, in this order:
+| # | Plan tab | Icon | Today |
+|---|---|---|---|
+| 1 | Breakdowns | `LayoutList` | Unchanged |
+| 2 | Stripboard | `Rows3` | Unchanged |
+| 3 | Schedule | Lucide `calendar-check` (`CalendarCheck`) | Opens the preview ("Plan your shooting days.") |
+| 4 | Budget | Lucide `calculator` (`Calculator`) | Opens the preview ("Know what your story could cost.") |
 
-| # | Tab | Icon |
-|---|---|---|
-| 1 | Breakdowns | keep `LayoutList` |
-| 2 | Stripboard | keep `Rows3` |
-| 3 | Schedule | Lucide `calendar-check` (`CalendarCheck`) |
-| 4 | Budget | Lucide `calculator` (`Calculator`) |
+**Reports left the tab row and is in ⋮, in both Write and Plan,** right after Format Doctor:
+View Snapshots → Margin Notes → Format Doctor → **Reports** → … It opens the same Reports view as before, the header
+still says **"Plan · Reports"**, and nothing about Reports changed. In code: `PLAN_TABS` (Breakdowns, Stripboard) drives
+the tab row, `PLAN_VIEWS` still includes Reports for the view itself and the label, and `onReports: openReports` is
+passed in both workspaces. The planned tabs come from `lib/plannedFeatures.js`.
 
-**Reports leaves the tab row and moves into Plan's ⋮ menu, immediately after Format Doctor.** Its functionality is
-unchanged. This is a relocation, not a removal or a downgrade.
-
-What the code already does, which makes this small:
-- **The Write workspace's ⋮ menu already lists Reports right after Format Doctor.** `src/lib/toolbar.js` builds the
-  menu in this order: View Snapshots → Margin Notes → Format Doctor → Reports → Keyboard Shortcuts → … The Reports
-  item calls `openReports()`, which switches to Plan → Reports.
-- In Plan, `App.jsx` passes `onReports: inPlan ? null : openReports`, so the item is hidden there because Reports is
-  a tab. The change is to pass a Plan-side handler (`setPlanView('reports')`) instead of `null`, which gives Plan's
-  menu the same order as Write's:
-  1. View Snapshots
-  2. Margin Notes
-  3. Format Doctor
-  4. **Reports**
-  5. the rest, in their current order
+When Schedule and Budget are built, they replace their preview handlers with `setPlanView('schedule' | 'budget')` and
+join `PLAN_TABS`; the tab row doesn't move.
 
 Details to handle during implementation:
 - **Reports as a view without a tab (decided).** While Reports is showing, no tab is lit, and the header label
   **"Plan · Reports"** (already in `App.jsx`) is the only indicator. The ⋮ item gets no "Showing" hint.
-- **The narrow-window fallback.** When the tab segment doesn't fit, `planTools.views` (built from `PLAN_VIEWS`) is
-  listed in ⋮. Reports must come out of `PLAN_VIEWS` so it isn't listed twice.
+- **The narrow-window fallback (done).** When the tab segment doesn't fit, ⋮ lists Breakdowns, Stripboard,
+  Schedule and Budget; Reports appears once, in its usual place.
 - **Filtering (decided).** The Plan scene filter (`lib/planFilter.js`) **applies to Schedule and Budget too**, as it
   does to Breakdowns and Stripboard. It stays hidden on Reports (`planView !== 'reports'`), which always covers the
   whole script. Budget totals should say when they're filtered (as the Plan summary line already does with
@@ -130,15 +121,10 @@ v1 writes exactly one scenario. `link` points at a schedule-derived quantity (fo
 
 ## 5. Dependencies and constraints
 
-- **Forward compatibility (confirmed risk).** `normalizeProduction()` rebuilds `production` with only
-  `version` and `scenes`, and `toRecord()` in `projectStorage.js` keeps only the fields it knows. A project saved
-  with Schedule or Budget data, then opened and saved by an older cached DraftLine, a second computer on an older
-  build through folder sync, or a `.draftline` backup restored into an older version, **would lose that data
-  silently**. Before this ships:
-  - `normalizeProduction` and `toRecord` should keep unknown keys;
-  - `PRODUCTION_VERSION` should be bumped to `2`, with a migration test.
-
-  This is the same prerequisite the Production concept needs.
+- **Forward compatibility (confirmed risk, prerequisite).** `normalizeProduction()` keeps only `version: 1` and the
+  scene lists, and `toRecord()` keeps only known fields, so today an older copy of DraftLine would delete Schedule and
+  Budget data on its first save (confirmed by experiment). The fix, migration, ship order and tests are specified in
+  [`data-integrity.md`](data-integrity.md) and must ship first.
 - **No new dependencies** (DraftLine's standing rule). Drag-and-drop uses native HTML5 drag, as the Scene Board
   already does. Dates use the built-in `Intl` and `Date`.
 - **Lucide icons only.** `CalendarCheck` and `Calculator` are confirmed present in the pinned `lucide-react`
