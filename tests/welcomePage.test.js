@@ -22,7 +22,7 @@ function webpSize(buf) {
 describe('The Welcome page', () => {
   it('opens with Welcome to DraftLine, the promise and the two approved paragraphs', () => {
     assert.match(html, /<div class="hero">\s*<h1>Welcome to DraftLine<\/h1>\s*<p class="promise">/);
-    assert.match(text, /Welcome to DraftLine Fast, distraction-free screenwriting\. Our mission is to give every writer the freedom to focus on their story, not their software\. DraftLine brings together professional screenplay formatting, creative planning tools, and an uncluttered writing space\. Free, open-source, and built to keep the focus where it belongs: on your story\. Start Writing/);
+    assert.match(text, /Welcome to DraftLine Fast, distraction-free screenwriting\. Our mission is to give every writer the freedom to focus on their story, not their software\. DraftLine brings together professional screenplay formatting, creative planning tools, and an uncluttered writing space\. Free, open-source, and built to keep the focus where it belongs: on your story\. Explore Features →/);
     assert.equal((html.match(/<p class="lede">/g) || []).length, 2, 'two paragraphs');
     assert.doesNotMatch(html, /eyebrow|class="kicker"/, 'no eyebrow or slogan line in the hero');
   });
