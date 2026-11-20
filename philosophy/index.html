@@ -90,12 +90,10 @@
       section { padding: 32px 0; border-top: 1px solid var(--line); }
 
       .hero { padding: 48px 0 32px; }
-      .kicker { font: 600 15px/1.5 Inter, system-ui, sans-serif; color: var(--muted); margin: 0; } /* the slogan, under the heading */
-      .kicker strong { color: var(--strong); }
-      .kicker span { white-space: nowrap; } /* a phone wraps between the phrases, never inside one */
       h1 { font: 700 clamp(28px, 6vw, 40px)/1.2 'Courier Prime', 'Courier New', monospace; color: var(--strong); margin: 0 0 14px; } /* as features/ and compare/ */
       .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; margin: 32px 0 0; }
       .pair div { border-top: 1px solid var(--line); padding-top: 14px; }
+      .pair .pair-full { grid-column: 1 / -1; } /* The Slogan: its own row above The Philosophy and The Promise */
       .pair dd { margin: 0; }
       .nowrap { white-space: nowrap; }
 
@@ -145,8 +143,11 @@
     <main class="wrap">
       <div class="hero">
         <h1>Story &amp; Principles</h1>
-        <p class="kicker"><span>No subscriptions.</span> <span>No distractions.</span> <span>No compromises.</span> <strong>Just Write.</strong></p>
         <dl class="pair">
+          <div class="pair-full">
+            <dt class="label">The Slogan</dt>
+            <dd class="statement"><span class="nowrap">No subscriptions.</span> <span class="nowrap">No distractions.</span> <span class="nowrap">No compromises.</span> <span class="nowrap">Just Write.</span></dd>
+          </div>
           <div>
             <dt class="label">The Philosophy</dt>
             <dd class="statement">Your Story. Your Rules.</dd>
