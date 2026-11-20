@@ -2,18 +2,16 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { createFakeIndexedDB, createFakeStorage } from './helpers/fakeIndexedDB.js';
 import {
-  AUTHOR_KEY, AUTHOR_PLACEHOLDER, CONTACT_KEY, CONTACT_PLACEHOLDER, ERIC_CONTACT, authorDefaults, newProjectMeta, rememberAuthorDefaults, titlePageSeed,
+  AUTHOR_KEY, AUTHOR_PLACEHOLDER, CONTACT_KEY, CONTACT_PLACEHOLDER, authorDefaults, newProjectMeta, rememberAuthorDefaults, titlePageSeed,
 } from '../src/lib/authorDefaults.js';
 import { EMPTY_META, createProjectStore, toDoc } from '../src/lib/projectStorage.js';
 
 const CONTACT = 'Chili Palmer\n555-012-3456\ngetshorty@palmerfilms.com';
-const CREATOR = 'Eric Lemaire\n339-545-0929 (Mobile)\n617-549-5955 (WhatsApp)\nelemaire86@gmail.com';
 
 describe('author & contact defaults', () => {
-  it('Chili Palmer (Get Shorty) and his 555 block are placeholders only; the creator’s block is kept for the easter egg', () => {
+  it('Chili Palmer (Get Shorty) and his 555 block are placeholders only', () => {
     assert.equal(AUTHOR_PLACEHOLDER, 'Chili Palmer');
     assert.equal(CONTACT_PLACEHOLDER, CONTACT);
-    assert.equal(ERIC_CONTACT, CREATOR);
     assert.equal(AUTHOR_KEY, 'draftline_user_author');
     assert.equal(CONTACT_KEY, 'draftline_user_contact');
   });

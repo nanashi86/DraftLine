@@ -7,10 +7,11 @@
 // imported or opened from a file) is never touched.
 //
 // The contact block follows the author, so personal details never land on someone else's script.
-// Every change replaces the whole block — it is never spliced, merged line by line or appended to:
-//   • author "Eric Lemaire" / "Eric Lemaire Jr." (exactly, any case) → ERIC_CONTACT;
-//   • author cleared                                                 → '' (Chili's placeholder shows);
-//   • the writer's own remembered author                             → their remembered contact;
+// No contact details are built into the app: the only contact ever filled in is one the writer saved
+// themselves, in their own browser. Every change replaces the whole block — it is never spliced,
+// merged line by line or appended to:
+//   • author cleared                     → '' (Chili's placeholder shows);
+//   • the writer's own remembered author → their remembered contact;
 //   • any other author: a contact the form filled in itself is cleared; one the writer typed stays.
 
 export const AUTHOR_KEY = 'draftline_user_author';
@@ -20,9 +21,6 @@ export const CONTACT_KEY = 'draftline_user_contact';
 export const AUTHOR_PLACEHOLDER = 'Chili Palmer';
 export const CHILI_CONTACT = `Chili Palmer\n555-012-3456\ngetshorty@palmerfilms.com`;
 export const CONTACT_PLACEHOLDER = CHILI_CONTACT;
-export const ERIC_CONTACT = `Eric Lemaire\n339-545-0929 (Mobile)\n617-549-5955 (WhatsApp)\nelemaire86@gmail.com`;
-
-const ERIC_NAMES = ['eric lemaire', 'eric lemaire jr.'];
 const norm = (s) => String(s ?? '').trim().toLowerCase();
 const sameName = (a, b) => norm(a) === norm(b);
 
@@ -43,21 +41,17 @@ function read(storage, key) {
   }
 }
 
-/** True when `author` is exactly "Eric Lemaire" or "Eric Lemaire Jr." (any case, spaces around ignored). */
-export const isEricLemaire = (author) => ERIC_NAMES.includes(norm(author));
-
 /**
  * The contact block to fill in for `author` ('' for none):
  *   • the contact the writer last saved, when `author` is the author saved with it;
- *   • otherwise ERIC_CONTACT, for exactly "Eric Lemaire" / "Eric Lemaire Jr.";
- *   • otherwise blank.
+ *   • otherwise blank. No name ever brings a built-in contact.
  */
 export function contactForAuthor(author, storage = browserStorage()) {
   if (!String(author ?? '').trim()) return '';
   const savedAuthor = read(storage, AUTHOR_KEY);
   const savedContact = read(storage, CONTACT_KEY);
   if (savedContact && savedAuthor && sameName(savedAuthor, author)) return savedContact;
-  return isEricLemaire(author) ? ERIC_CONTACT : '';
+  return '';
 }
 
 /** { author, contact } for a new script: what the Title Page last saved, else both empty. */
@@ -70,14 +64,12 @@ export function authorDefaults(storage = browserStorage()) {
  * The Title Page form after the Author field changes → { contact, contactAuto }. `contactAuto` is
  * the contact the form last filled in by itself (null if none); `contactTouched` is true once the
  * writer has typed in or cleared the contact themselves. The contact is always replaced whole:
- *   • "Eric Lemaire" / "Eric Lemaire Jr."  → ERIC_CONTACT, whatever was there;
- *   • author cleared                       → '', whatever was there (the placeholder shows again);
+ *   • author cleared → '', whatever was there (the placeholder shows again);
  *   • another author: their remembered contact if the box holds nothing of the writer's; a contact
  *     the form filled in itself is cleared; anything the writer typed is left exactly as it is.
  */
 export function contactAfterAuthorChange({ author, contact = '', contactAuto = null, contactTouched = false }, storage = browserStorage()) {
   const name = norm(author);
-  if (ERIC_NAMES.includes(name)) return { contact: ERIC_CONTACT, contactAuto: ERIC_CONTACT };
   if (!name) return { contact: '', contactAuto: null };
   // Still exactly what the form put there (even if the writer typed in the box at some point): the
   // form's to replace. Anything else in the box is the writer's own and stays exactly as it is.

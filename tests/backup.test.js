@@ -21,7 +21,7 @@ function richDoc() {
   return {
     meta: {
       title: 'What Happened to Haiti?', credit: 'Written by', author: 'Eric Lemaire', basedOn: '',
-      draftVersion: 'Sixth & Final Draft', draftDate: 'October 19, 2026', contact: 'Eric Lemaire\nelemaire86@gmail.com',
+      draftVersion: 'Sixth & Final Draft', draftDate: 'October 19, 2026', contact: 'Eric Lemaire\nwriter@example.com',
       titleFont: 'playfair-display', titleSize: 40, titleBold: false,
     },
     blocks: [

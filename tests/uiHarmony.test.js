@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { createFakeStorage } from './helpers/fakeIndexedDB.js';
 import {
-  AUTHOR_KEY, AUTHOR_PLACEHOLDER, CHILI_CONTACT, CONTACT_KEY, CONTACT_PLACEHOLDER, ERIC_CONTACT, contactAfterAuthorChange, contactForAuthor, isEricLemaire, newProjectMeta,
+  AUTHOR_KEY, AUTHOR_PLACEHOLDER, CHILI_CONTACT, CONTACT_KEY, CONTACT_PLACEHOLDER, contactAfterAuthorChange, contactForAuthor, newProjectMeta,
 } from '../src/lib/authorDefaults.js';
 import { emptyStoryDna, normalizeStoryDna } from '../src/lib/storyDna.js';
 import { CENTRAL_QUESTION_PREFIX, migrateStoryBible } from '../src/lib/bible.js';
@@ -11,74 +11,64 @@ import { CENTRAL_QUESTION_PREFIX, migrateStoryBible } from '../src/lib/bible.js'
 const read = (p) => readFileSync(new URL(`../src/${p}`, import.meta.url), 'utf8');
 
 describe('Title Page: the contact follows the author', () => {
-  it('the two blocks, exactly', () => {
+  const MINE = 'Jane Doe\njane@example.com';
+  const remembered = () => {
+    const st = createFakeStorage();
+    st.setItem(AUTHOR_KEY, 'Jane Doe');
+    st.setItem(CONTACT_KEY, MINE);
+    return st;
+  };
+  it('the placeholder block, exactly; no contact details are built into the app', () => {
     assert.equal(CHILI_CONTACT, 'Chili Palmer\n555-012-3456\ngetshorty@palmerfilms.com');
-    assert.equal(ERIC_CONTACT, 'Eric Lemaire\n339-545-0929 (Mobile)\n617-549-5955 (WhatsApp)\nelemaire86@gmail.com');
     assert.equal(CONTACT_PLACEHOLDER, CHILI_CONTACT);
+    const src = read('lib/authorDefaults.js');
+    assert.doesNotMatch(src, /ERIC_CONTACT|isEricLemaire|@gmail\.com|\(Mobile\)|\(WhatsApp\)/);
+    assert.deepEqual(src.match(/\d{3}-\d{3}-\d{4}/g), ['555-012-3456'], 'the only phone number is the 555 placeholder');
   });
-  it('"eric lemaire" / "eric lemaire jr." exactly (any case, outer spaces ignored) — nothing looser', () => {
-    for (const a of ['Eric Lemaire', 'eric lemaire', 'ERIC LEMAIRE JR.', '  Eric Lemaire  ']) {
-      assert.ok(isEricLemaire(a), a);
-      assert.equal(contactForAuthor(a, createFakeStorage()), ERIC_CONTACT);
+  it('no author name brings a contact on its own: new projects and the form start blank', () => {
+    for (const a of ['Eric Lemaire', 'eric lemaire jr.', 'ERIC LEMAIRE', 'Jane Doe', AUTHOR_PLACEHOLDER, '']) {
+      assert.equal(contactForAuthor(a, createFakeStorage()), '', a);
+      assert.equal(newProjectMeta({ author: a }, createFakeStorage()).contact, '', a);
+      assert.deepEqual(contactAfterAuthorChange({ author: a, contact: '' }, createFakeStorage()), { contact: '', contactAuto: null }, a);
     }
-    for (const a of ['Eric Lemaire & Co.', 'By Eric Lemaire', 'Eric Lemaire Jr', 'Jane Doe', 'E. Lemaire', 'Eric', '']) assert.equal(isEricLemaire(a), false, a);
-  });
-  it('any other author gets a blank contact — personal details never land on someone else’s script', () => {
-    for (const a of ['Jane Doe', 'Eric Lemaire & Co.', '']) assert.equal(contactForAuthor(a, createFakeStorage()), '', a);
-    assert.equal(newProjectMeta({ author: 'Jane Doe' }, createFakeStorage()).contact, '');
-    assert.equal(newProjectMeta({ author: 'Eric Lemaire' }, createFakeStorage()).contact, ERIC_CONTACT);
-    assert.equal(contactForAuthor(AUTHOR_PLACEHOLDER, createFakeStorage()), '', 'typing Chili Palmer fills nothing: his block is a placeholder');
   });
   it('a writer’s own saved contact comes back only for that same author', () => {
-    const storage = createFakeStorage();
-    storage.setItem(AUTHOR_KEY, 'Jane Doe');
-    storage.setItem(CONTACT_KEY, 'jane@example.com');
-    assert.equal(contactForAuthor('jane doe', storage), 'jane@example.com');
+    const storage = remembered();
+    assert.equal(contactForAuthor('jane doe', storage), MINE);
     assert.equal(contactForAuthor('John Roe', storage), '');
-    assert.equal(contactForAuthor('Eric Lemaire', storage), ERIC_CONTACT);
-  });
-  it('atomic: Eric’s name replaces the whole contact with ERIC_CONTACT, whatever was there — never merged', () => {
-    const s = createFakeStorage();
-    const blended = 'Chili Palmer\n339-545-0929 (Mobile)\ngetshorty@palmerfilms.com';
-    for (const contact of ['', CHILI_CONTACT, 'My agent: K. Moss', blended, `${CHILI_CONTACT}\n${ERIC_CONTACT}`]) {
-      for (const contactTouched of [false, true]) {
-        for (const author of ['Eric Lemaire', 'eric lemaire jr.']) {
-          assert.deepEqual(contactAfterAuthorChange({ author, contact, contactTouched }, s), { contact: ERIC_CONTACT, contactAuto: ERIC_CONTACT });
-        }
-      }
-    }
+    assert.equal(contactForAuthor('Eric Lemaire', storage), '');
+    assert.equal(newProjectMeta({}, storage).contact, MINE, 'a new script starts with the writer’s own saved block');
   });
   it('clearing the author resets the contact to "" (the Chili Palmer placeholder shows again), whatever was there', () => {
-    const s = createFakeStorage();
+    const s = remembered();
     for (const author of ['', '   ']) {
-      for (const contact of ['', ERIC_CONTACT, 'Something typed', `${ERIC_CONTACT}\nextra`]) {
+      for (const contact of ['', MINE, 'Something typed', `${MINE}\nextra`]) {
         for (const contactTouched of [false, true]) {
           assert.deepEqual(contactAfterAuthorChange({ author, contact, contactTouched }, s), { contact: '', contactAuto: null });
         }
       }
     }
   });
-  it('Eric ⇄ cleared round trips: always exactly ERIC_CONTACT or "" — never blended', () => {
-    const s = createFakeStorage();
+  it('remembered author ⇄ cleared round trips: always exactly the saved block or "" — never blended', () => {
+    const s = remembered();
     let st = { contact: '', contactAuto: null };
-    for (const [author, want] of [['Eric Lemaire', ERIC_CONTACT], ['', ''], ['eric lemaire jr.', ERIC_CONTACT], ['  ', ''], ['Eric Lemaire', ERIC_CONTACT]]) {
+    for (const [author, want] of [['Jane Doe', MINE], ['', ''], ['jane doe', MINE], ['  ', ''], ['Jane Doe', MINE]]) {
       st = contactAfterAuthorChange({ author, ...st }, s);
       assert.equal(st.contact, want, author);
     }
   });
   it('any other author: what the form filled in is cleared; what the writer typed stays exactly', () => {
-    const s = createFakeStorage();
-    let st = contactAfterAuthorChange({ author: 'Eric Lemaire', contact: '' }, s);
-    st = contactAfterAuthorChange({ author: 'Jane Doe', contact: st.contact, contactAuto: st.contactAuto }, s);
+    const s = remembered();
+    let st = contactAfterAuthorChange({ author: 'Jane Doe', contact: '' }, s);
+    assert.equal(st.contact, MINE);
+    st = contactAfterAuthorChange({ author: 'John Roe', contact: st.contact, contactAuto: st.contactAuto }, s);
     assert.deepEqual(st, { contact: '', contactAuto: null });
-    assert.deepEqual(contactAfterAuthorChange({ author: 'Jane Doe', contact: '' }, s), { contact: '', contactAuto: null });
-    assert.equal(contactAfterAuthorChange({ author: 'Jane', contact: 'My agent: K. Moss' }, s).contact, 'My agent: K. Moss');
-    assert.equal(contactAfterAuthorChange({ author: 'Jane', contact: 'Typed by me', contactAuto: CHILI_CONTACT, contactTouched: true }, s).contact, 'Typed by me');
-    assert.equal(contactAfterAuthorChange({ author: 'Jane', contact: '', contactAuto: null, contactTouched: true }, s).contact, '');
+    assert.equal(contactAfterAuthorChange({ author: 'John', contact: 'My agent: K. Moss' }, s).contact, 'My agent: K. Moss');
+    assert.equal(contactAfterAuthorChange({ author: 'John', contact: 'Typed by me', contactAuto: CHILI_CONTACT, contactTouched: true }, s).contact, 'Typed by me');
+    assert.equal(contactAfterAuthorChange({ author: 'John', contact: '', contactAuto: null, contactTouched: true }, s).contact, '');
     assert.equal(contactAfterAuthorChange({ author: 'Chili Palmer', contact: '' }, s).contact, '', 'his name fills nothing');
-    // A block the form filled in gives way even after the writer once typed in the box (no Chili on Jane's script).
-    assert.deepEqual(contactAfterAuthorChange({ author: 'Jane', contact: CHILI_CONTACT, contactAuto: CHILI_CONTACT, contactTouched: true }, s), { contact: '', contactAuto: null });
-    assert.deepEqual(contactAfterAuthorChange({ author: 'Jane', contact: ERIC_CONTACT, contactAuto: ERIC_CONTACT, contactTouched: true }, s), { contact: '', contactAuto: null });
+    // A block the form filled in gives way even after the writer once typed in the box.
+    assert.deepEqual(contactAfterAuthorChange({ author: 'John', contact: MINE, contactAuto: MINE, contactTouched: true }, s), { contact: '', contactAuto: null });
   });
   it('the modal wires it to the Author field and marks the contact as yours once you edit it', () => {
     const modal = read('components/TitlePageModal.jsx');
