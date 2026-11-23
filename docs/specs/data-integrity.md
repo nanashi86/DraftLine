@@ -2,7 +2,7 @@
 
 > **Status: core protections implemented (commit 43013af, November 19, 2026). This document is authoritative.** It
 > is the **prerequisite for Stage 2 (Schedule & Budget)** and for anything later that stores new project data (Stage 3
-> Shoot, Stage 4 Co-Write, Stage 1 Table Read's voice choices). Engineering groundwork, not a product stage. See
+> Shoot, Stage 4 Co-Write). (Stage 1 Table Read shipped storing its voice choices on the device, not in the project.) Engineering groundwork, not a product stage. See
 > [`../../ROADMAP.md`](../../ROADMAP.md).
 >
 > §0 is what's built now. §1–3 are the November 2026 investigation that led to it (the **before** state); §4 was the
@@ -107,7 +107,7 @@ the top level, `production.version: 2` with a `schedule` inside it and extra per
 | Budget (lines, rates, currency override) | `production.budget` or top-level | Deleted |
 | Shoot (locked pages, scene numbers, revision rounds, archive) | top-level `shoot` / per-element marks | Top-level data deleted; per-element marks kept |
 | Co-Write (session id, collaborator ids) | top-level | Deleted (and it should never be in a backup anyway, see [`co-write.md`](co-write.md)) |
-| Table Read voice choices | `characters[].voice` | **Kept**: `bible.js` `normalizeCharacter` spreads the character's other properties (`...rest`). Stage 1 can store a voice per character without waiting for 4.1, but a narrator voice or reading settings stored elsewhere on the project would not survive. |
+| Table Read voice choices *(as shipped: kept on the device in localStorage, not in the project; see `table-read.md`)* | `characters[].voice` | **Kept**: `bible.js` `normalizeCharacter` spreads the character's other properties (`...rest`). Stage 1 can store a voice per character without waiting for 4.1, but a narrator voice or reading settings stored elsewhere on the project would not survive. |
 
 ## 4. Specification for the fix (§0 shows what's done)
 

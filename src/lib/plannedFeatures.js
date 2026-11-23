@@ -1,10 +1,10 @@
 // Planned features: where each one will live, and the short preview that opens there today.
+// (Table Read has shipped: Write → ⋮ → Table Read… opens the player, components/TableRead.jsx.)
 // Nothing here is built: each entry point opens PlannedFeatureModal with this wording and nothing else
 // (no project data is read or written, no view changes, no network). ROADMAP.md has the plan.
 //
 //   Shoot              Write → Page | Split | Board | Shoot          DraftLine Pro (optional upgrade)
 //   Schedule, Budget   Plan  → Breakdowns | Stripboard | Schedule | Budget   DraftLine Core (free)
-//   Table Read         Write → ⋮ → Table Read…                       DraftLine Core (free)
 //   Co-Write           Write → ⋮ → Co-Write…                         DraftLine Co-Write (optional hosted service)
 //
 // No prices in the app: these are unreleased, and there is nothing to buy (ROADMAP.md has the plan).
@@ -28,12 +28,6 @@ export const PLANNED_FEATURES = {
     status: 'Planned for DraftLine Core · Free',
     headline: 'Know what your story could cost.',
     body: 'Build practical production estimates using your scene breakdowns, shooting schedule, and customizable expenses.',
-  },
-  tableRead: {
-    title: 'Table Read',
-    status: 'Planned for DraftLine Core · Free',
-    headline: 'Hear your story come to life.',
-    body: 'Listen to your screenplay using available system voices, with playback controls and a future rehearsal mode.',
   },
   coWrite: {
     title: 'Co-Write',

@@ -1,0 +1,121 @@
+/* Table Read (TableRead.jsx): a small floating card above the status bar, like the Find bar and the
+   export toast — never a dialog, so the script stays visible and editable while it reads. */
+.tr-player {
+  position: fixed;
+  left: 50%;
+  bottom: calc(var(--status-h) + 12px);
+  transform: translateX(-50%);
+  z-index: 45;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: max-content;
+  max-width: calc(100vw - 24px);
+  padding: 6px 6px 5px 8px;
+  border: 1px solid var(--line-soft);
+  border-radius: 9px;
+  background: var(--card);
+  color: var(--text);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+  font-size: 12.5px;
+  animation: tr-in 140ms ease-out;
+}
+.tr-player:focus { outline: none; }
+.tr-player:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.focus-mode .tr-player { bottom: 16px; }
+@keyframes tr-in {
+  from { opacity: 0; transform: translate(-50%, 4px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}
+.tr-row { display: flex; align-items: center; flex-wrap: wrap; gap: 4px; }
+.tr-scope { flex: none; }
+.tr-scope .seg-btn { padding: 3px 9px; font-size: 12px; }
+.tr-scope .seg-btn:disabled { opacity: 0.4; cursor: default; }
+.tr-sep { width: 1px; height: 18px; margin: 0 2px; background: var(--line-soft); }
+
+.tr-icon {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: var(--muted);
+  cursor: pointer;
+  flex: none;
+}
+.tr-icon:hover:not(:disabled) { background: var(--hover-bg); color: var(--text); }
+.tr-icon:disabled { opacity: 0.35; cursor: default; }
+.tr-play { color: var(--text); background: var(--chip); }
+.tr-player :is(button, input):focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+.tr-rate { min-width: 64px; }
+.tr-voices-btn { height: 28px; padding: 0 10px; font-size: 12.5px; }
+.tr-voices-btn.is-on { background: var(--accent-soft); }
+
+.tr-check { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); cursor: pointer; white-space: nowrap; }
+.tr-check input { margin: 0; accent-color: var(--accent); }
+.tr-here { margin-left: 4px; }
+
+.tr-info {
+  margin: 0;
+  padding: 0 4px;
+  min-height: 16px;
+  color: var(--muted);
+  font-size: 11.5px;
+  line-height: 16px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+/* Voices…: a compact list above the player */
+.tr-voices {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc(100% + 6px);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px;
+  border: 1px solid var(--line-soft);
+  border-radius: 9px;
+  background: var(--card);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+  min-width: 340px;
+}
+.tr-v-list { display: flex; flex-direction: column; gap: 4px; max-height: min(320px, 45vh); overflow-y: auto; }
+.tr-v-row { display: grid; grid-template-columns: minmax(70px, 120px) 1fr auto; align-items: center; gap: 6px; }
+.tr-v-name {
+  font: 700 12px/1.4 'Courier Prime', 'Courier New', monospace;
+  text-transform: uppercase;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.tr-v-select { min-width: 0; width: 100%; }
+.tr-v-empty { margin: 2px 0; color: var(--muted); font-size: 12px; }
+.tr-v-foot { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 14px; padding-top: 8px; border-top: 1px solid var(--line-soft); }
+.tr-auto { margin-left: auto; height: 26px; padding: 0 10px; font-size: 12px; }
+.tr-v-note { margin: 0; color: var(--muted); font-size: 11px; }
+
+/* The one-time online-voice question: the Voices card's look, two buttons */
+.tr-consent { gap: 6px; }
+.tr-consent-title { margin: 0; font-weight: 600; font-size: 12.5px; }
+.tr-consent-actions { display: flex; justify-content: flex-end; gap: 6px; }
+.tr-consent-actions .btn { height: 26px; padding: 0 10px; font-size: 12px; }
+
+/* Toasts step up while the player is open, so they never sit on it. */
+:root:has(.tr-player) .toast { bottom: calc(var(--status-h) + 92px); }
+:root:has(.tr-player) :is(.export-toast, .milestone-toast) { bottom: calc(var(--status-h) + 92px); }
+
+@media (max-width: 720px) {
+  .tr-voices { min-width: 0; }
+  .tr-v-row { grid-template-columns: minmax(60px, 90px) 1fr auto; }
+}
+@media (prefers-reduced-motion: reduce) { .tr-player { animation: none; } }
+@media print { .tr-player { display: none !important; } }

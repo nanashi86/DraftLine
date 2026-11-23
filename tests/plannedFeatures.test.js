@@ -1,6 +1,7 @@
 // Planned features in the interface (ROADMAP.md): Shoot after Board, Schedule and Budget after
-// Stripboard, Table Read… and Co-Write… in Write's ⋮. Each opens a short preview and nothing else:
-// no view change, no project data, no purchase, no network.
+// Stripboard, Co-Write… in Write's ⋮. Each opens a short preview and nothing else: no view change,
+// no project data, no purchase, no network. Table Read… (also in Write's ⋮) is built: it opens the
+// floating player instead (tests/tableRead.test.js).
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
@@ -25,8 +26,7 @@ describe('Planned-feature previews', () => {
     assert.equal(PLANNED_FEATURES.schedule.headline, 'Plan your shooting days.');
     assert.equal(PLANNED_FEATURES.budget.status, 'Planned for DraftLine Core · Free');
     assert.equal(PLANNED_FEATURES.budget.headline, 'Know what your story could cost.');
-    assert.equal(PLANNED_FEATURES.tableRead.status, 'Planned for DraftLine Core · Free');
-    assert.equal(PLANNED_FEATURES.tableRead.headline, 'Hear your story come to life.');
+    assert.equal(PLANNED_FEATURES.tableRead, undefined, 'Table Read is built: no preview');
     assert.equal(PLANNED_FEATURES.coWrite.status, 'Planned optional collaboration');
     assert.equal(PLANNED_FEATURES.coWrite.note, 'A future optional hosted service. Solo writing stays free.');
     assert.doesNotMatch(JSON.stringify(PLANNED_FEATURES), /\$|price|purchase|subscription|\/month/i, 'no prices in the app');
@@ -91,7 +91,8 @@ describe('⋮ in Write and Plan', () => {
     assert.deepEqual(plan.slice(0, 5), ['View Snapshots', 'Margin Notes', 'Format Doctor', 'Reports', '---']);
     assert.equal(plan.filter((l) => l === 'Reports').length, 1);
     assert.ok(!plan.includes('Table Read…') && !plan.includes('Co-Write…'));
-    assert.match(app, /onTableRead: inPlan \? null : \(\) => openPlanned\('tableRead'\),/);
+    assert.match(app, /onTableRead: inPlan \? null : openTableRead,/, 'Table Read opens the real player');
+    assert.doesNotMatch(app, /openPlanned\('tableRead'\)/, 'never the preview');
     assert.match(app, /onCoWrite: inPlan \? null : \(\) => openPlanned\('coWrite'\),/);
   });
   it('no prices or badges beside the menu items themselves', () => {

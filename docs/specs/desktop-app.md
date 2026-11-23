@@ -69,7 +69,7 @@ The editor is not rewritten: the desktop app wraps the existing Vite/React bundl
 We use Tauri because it fits DraftLine's speed and minimalism. Electron stays the documented fallback if WebKitGTK on
 Linux turns out to be unworkable. The only engine-sensitive pieces are pagination measurement (Courier Prime is
 bundled, so line breaks match), the PDF worker and Snapshot Compare's diff worker, which are plain Web Workers, and
-Table Read's speech, which is planned and not built yet.
+Table Read's speech (the Web Speech API: voices differ by engine and operating system).
 
 ### Project layout
 

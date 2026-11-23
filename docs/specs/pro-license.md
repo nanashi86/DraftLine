@@ -13,7 +13,7 @@
 
 | Product | Access | What it gives |
 |---|---|---|
-| **DraftLine Core** | Free forever | Everything DraftLine does today, plus Table Read, Schedule and Budget when they ship |
+| **DraftLine Core** | Free forever | Everything DraftLine does today (Table Read included), plus Schedule and Budget when they ship |
 | **DraftLine Pro** | **Planned one-time purchase** | Core plus **Shoot** and the advanced production-revision workflows. Owned, not rented. |
 | **DraftLine Co-Write** | **Planned optional subscription** | Hosting real-time co-writing sessions. Works with Core **or** Pro. |
 
@@ -154,8 +154,8 @@ the app** (decided November 19, 2026); they live only in the planning docs.
 ## 7. Feature entry points in the interface
 
 Today (November 2026, built): **Shoot** sits after Board in Write's view switch with the Lucide `file-check-2` icon;
-**Schedule** and **Budget** sit after Stripboard in Plan; **Table Read…** and **Co-Write…** are in Write's ⋮ menu.
-Each opens a short planned-feature preview (`components/PlannedFeatureModal.jsx`). Rules, now and when Pro ships:
+**Schedule** and **Budget** sit after Stripboard in Plan; **Co-Write…** is in Write's ⋮ menu. (**Table Read…**, also
+there, shipped in Core and opens the player.) Each of the others opens a short planned-feature preview (`components/PlannedFeatureModal.jsx`). Rules, now and when Pro ships:
 
 1. **Static layout.** Entry points are in every copy of DraftLine, in the same place and size, whatever the licence
    state. Nothing appears, disappears or shifts.

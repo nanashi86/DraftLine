@@ -6,6 +6,7 @@ import Editor from './components/Editor.jsx';
 import ElementBar from './components/ElementBar.jsx';
 import CharactersDrawer from './components/CharactersDrawer.jsx';
 import Navigator from './components/Navigator.jsx';
+import { sceneActs } from './lib/sceneActs.js';
 import TitlePageModal from './components/TitlePageModal.jsx';
 import ExportPdfModal from './components/ExportPdfModal.jsx';
 import Select from './components/Select.jsx';
@@ -99,6 +100,8 @@ import { actionDensity, riskLocations, stepRisk } from './lib/pacing.js';
 import DensityStepper from './components/DensityStepper.jsx';
 import { DoctorSupportFooter, ExportToast } from './components/SupportCallouts.js';
 import FindBar from './components/FindBar.jsx';
+import TableRead from './components/TableRead.jsx';
+import { renameVoice } from './lib/tableReadPrefs.js';
 import FindStepper from './components/FindStepper.jsx';
 import { findMatches, hitsById, nearestMatch, replaceMatches } from './lib/findReplace.js';
 import { EXPORT_TIP, FORMAT_DOCTOR_TIP, claimTip, muteTip } from './lib/supportTips.js';
@@ -556,10 +559,24 @@ function Workspace({ boot }) {
   // or scrolled is lost; switching back puts the page where it was.
   const [workspace, setWorkspace] = useState('write');
   const [planView, setPlanView] = useState('breakdowns');
-  // A planned feature's preview (Shoot, Schedule, Budget, Table Read, Co-Write): opened only by its tab
+  // A planned feature's preview (Shoot, Schedule, Budget, Co-Write): opened only by its tab
   // or menu item, and nothing else changes while it's open. Focus goes back to what opened it.
   const [planned, setPlanned] = useState(null);
   const openPlanned = (id, from = null) => setPlanned({ id, from: from || barRef.current?.querySelector('.btn-kebab') || null });
+  // Table Read (Write → ⋮ → Table Read…; components/TableRead.jsx): the floating read-aloud player.
+  // `from` is where focus goes back when it closes: the script element the caret was in, else ⋮.
+  const [tableRead, setTableRead] = useState(null);
+  const [readingId, setReadingId] = useState(null);
+  // Where Table Read starts next: the element the caret moves to, the scene picked in the Scenes sidebar,
+  // or null for the Title Page (read as the first scene). `n` counts choices, so re-picking a scene counts.
+  const [readTarget, setReadTarget] = useState({ id: null, n: 0 });
+  const aimRead = useCallback((id, again = false) => {
+    setReadTarget((t) => (!again && t.id === id ? t : { id, n: t.n + 1 }));
+  }, []);
+  const onActiveChange = useCallback((id) => {
+    setActiveId(id);
+    if (id) aimRead(id);
+  }, [aimRead]);
   // Plan's scene filter (lib/planFilter.js): one setting for Breakdowns and Stripboard, cleared when
   // another script opens; the count ("4 of 53") comes back from the workspace, which builds the rows.
   const [planFilter, setPlanFilter] = useState(EMPTY_PLAN_FILTER);
@@ -584,6 +601,10 @@ function Workspace({ boot }) {
   const planSegRef = useRef(null);
   const inPlan = workspace === 'plan' && !focusMode;
   const showEditor = (view !== 'board' || focusMode) && !inPlan;
+  // Plan has no script to follow: Table Read closes there (it pauses on Board and keeps its place).
+  useEffect(() => {
+    if (inPlan) setTableRead(null);
+  }, [inPlan]);
   const formatBarShown = showEditor; // Element ▾ and B I U S: Page and Split (and Focus), never Board or Plan
   const showBoard = view !== 'page' && !focusMode;
 
@@ -631,6 +652,8 @@ function Workspace({ boot }) {
       };
     });
   }, [items, layout, analysis]);
+  // The Scene Board's acts for each scene (lib/sceneActs.js): the Scenes sidebar's act labels and Table Read's Act range.
+  const acts = useMemo(() => sceneActs(scenes.map((sc) => sc.id), beats, actMode), [scenes, beats, actMode]);
   // Plan opened for this script for the first time: long scripts start with every breakdown folded.
   // A layout effect, so a long script never paints open for a frame before folding.
   useLayoutEffect(() => {
@@ -1103,6 +1126,8 @@ function Workspace({ boot }) {
     setRestoreId(null);
     setCompareId(null);
     setFind((f) => ({ ...f, open: false, query: '' }));
+    setTableRead(null); // another script: reading stops (the player unmounts and silences the speech)
+    setReadingId(null);
     setLineMap({});
     setSelectedChar(null);
     setActiveId(null);
@@ -1286,6 +1311,7 @@ function Workspace({ boot }) {
     setStoryNotes(after.storyNotes);
     setStoryDna(after.storyDna);
     const oldCue = oldName.trim().toUpperCase();
+    renameVoice(latest.current.projectId, oldCue, newName); // Table Read's voice choice follows the name (this device)
     setSelectedChar((c) => (c && c.toUpperCase() === oldCue ? newName.trim().toUpperCase() : c));
     setRenameFrom(null);
     notify(`Renamed ${oldName.trim()} → ${newName.trim()} · ${total} ${total === 1 ? 'change' : 'changes'} · Ctrl+Z to undo`);
@@ -1779,13 +1805,14 @@ function Workspace({ boot }) {
 
   // ---- Title page as Page 0 ----
   const showCover = useCallback(() => {
+    aimRead(null, true); // the Title Page: Table Read starts at the first scene, never a stale one
     setCoverVisible(true);
     setFocusMode(false);
     if (view === 'board') setView('page');
     requestAnimationFrame(() => requestAnimationFrame(() => {
       document.querySelector('.cover-wrap')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }));
-  }, [view]);
+  }, [view, aimRead]);
 
   const backToScript = useCallback(() => {
     document.querySelector('.sheet')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -1794,13 +1821,14 @@ function Workspace({ boot }) {
   }, []);
 
   const jumpTo = useCallback((id) => {
+    aimRead(id, true); // a scene picked in the sidebar is Table Read's next start
     if (view === 'board') {
       setView(viewOnPhone('split', phoneWidth)); // the script beside the board; on a phone, the script
       requestAnimationFrame(() => requestAnimationFrame(() => editorRef.current?.focusBlock(id)));
     } else {
       editorRef.current?.focusBlock(id);
     }
-  }, [view, phoneWidth]);
+  }, [view, phoneWidth, aimRead]);
 
   const cycleView = useCallback(() => {
     setView((v) => writeViewList[(writeViewList.findIndex((x) => x.id === v) + 1) % writeViewList.length].id);
@@ -1963,6 +1991,19 @@ function Workspace({ boot }) {
 
   const hints = activeBlock ? flowHints(activeBlock.type) : null;
   const currentSceneId = activeId ? analysis.sceneOfBlock[activeId] : null;
+  // Table Read: speakers by number of lines (voices go to the busiest first), and Bio genders as a hint.
+  const speakerNames = useMemo(() => analysis.characterList.map((c) => c.name), [analysis]);
+  const bioGenders = useMemo(() => Object.fromEntries(
+    characters.filter((c) => c.name?.trim() && c.gender).map((c) => [c.name.trim().toUpperCase(), c.gender]),
+  ), [characters]);
+  const openTableRead = () => {
+    const inScript = activeId ? scrollerEl.current?.querySelector(`textarea[data-id="${CSS.escape(activeId)}"]`) : null;
+    setTableRead({ from: inScript || barRef.current?.querySelector('.btn-kebab') || null });
+  };
+  const closeTableRead = useCallback(() => {
+    setTableRead(null);
+    setReadingId(null);
+  }, []);
   const currentPage = activeId ? layout.pageOfBlock[activeId] : null;
   const navVisible = navOpen && !focusMode && showEditor;
   const elementControlsEnabled = !!activeBlock && showEditor;
@@ -2797,8 +2838,8 @@ function Workspace({ boot }) {
                 onShortcuts: () => setHelpKind('shortcuts'),
                 onFormatDoctor: openDoctor,
                 onReports: openReports,
-                // Table Read and Co-Write: planned, Write only for now (previews)
-                onTableRead: inPlan ? null : () => openPlanned('tableRead'),
+                // Table Read (the player) and Co-Write (a preview): Write only
+                onTableRead: inPlan ? null : openTableRead,
                 onCoWrite: inPlan ? null : () => openPlanned('coWrite'),
                 issueCount: issues.length,
                 onAbout: () => setHelpKind('about'),
@@ -2841,6 +2882,7 @@ function Workspace({ boot }) {
         <Navigator
           open={navVisible}
           scenes={scenes}
+          acts={acts}
           pageCount={layout.pageCount}
           currentSceneId={currentSceneId}
           onJump={jumpTo}
@@ -2848,6 +2890,24 @@ function Workspace({ boot }) {
           coverVisible={coverVisible}
           onShowCover={showCover}
         />
+
+        {tableRead && (
+          <TableRead
+            key={projectId}
+            blocks={blocks}
+            target={readTarget}
+            acts={acts}
+            speakers={speakerNames}
+            genders={bioGenders}
+            sceneNumbers={analysis.sceneNumbers}
+            projectId={projectId}
+            hidden={!showEditor}
+            scrollerRef={scrollerEl}
+            onReading={setReadingId}
+            onClose={closeTableRead}
+            returnFocus={tableRead.from}
+          />
+        )}
 
         <div className="workspace">
           {/* The writing pane: under 1200px, Element and B I U S move here from the top bar (formatTools). */}
@@ -2906,6 +2966,7 @@ function Workspace({ boot }) {
               findHits={findHits}
               activeId={activeId}
               highlightId={hoverId}
+              readingId={tableRead ? readingId : null}
               spotlight={filter?.ids ?? null}
               dense={densityMode && density.dense ? density.ids : null}
               zoom={effectiveZoom}
@@ -2917,7 +2978,7 @@ function Workspace({ boot }) {
               onOpenNote={openNote}
               onUndo={undo}
               onRedo={redo}
-              onActiveChange={setActiveId}
+              onActiveChange={onActiveChange}
               onMeasure={onMeasure}
               reflow={phoneView}
               onNotice={notify}

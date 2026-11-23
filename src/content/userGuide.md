@@ -16,7 +16,7 @@ The status bar at the bottom shows the current element, where your work is saved
 
 - **Page** shows the script. **Split** shows the script beside the Scene Board. **Board** shows the Scene Board alone. {{key:Alt+B}} cycles through them.
 - **Focus** hides everything but the page. Press {{key:Esc}} to come back, or **Exit focus** at the top right (on a touch screen it stays in plain view). On a tablet or a narrower window, Focus sits at the right end of the row above the script, beside B / I / U / S; on a phone it's in the **⋮** menu.
-- The **Scenes** sidebar ({{key:Alt+S}}) lists every scene with its length in eighths of a page. Click one to jump to it, or type to find a scene.
+- The **Scenes** sidebar ({{key:Alt+S}}) lists every scene with its length in eighths of a page. Click one to jump to it, or type to find a scene. Once scenes are linked to cards on the Scene Board, quiet **ACT 1**, **ACT 2** (or **ACT 2A** and **ACT 2B**) and **ACT 3** labels show where each act starts, following the board's 3 Acts / 4 Acts switch and every card you move, as you move it. A scene without a card stays under the act above it. The labels never reorder or change the script, and while you search, a label shows only above a matching scene.
 - **Write | Plan** switches between writing the script and planning the shoot (see Production & Planning). Write is where you start.
 - The status bar's steppers (**Format · 1 of 7**, **Density · 1 of 9**, a character's **MARIE · 1 of 8**) all work the same way: before your first step they show just how many there are (**Format · 7**), then ‹ › step through, clicking the name lists every one, and ✕ closes it.
 - On a narrower window the status bar makes room by giving up the least important things first, one at a time: the keyboard hints (shown only on wide windows with no stepper open), then the scene and word counts, then the page colour's name (its icon stays), then undo / redo, then zoom's − and + (the percentage stays). If it's still tight, steppers drop their names down to ‹ ›, the count and ✕, and the save status and **Editing / Viewing** badge show just their icons (hover for the words). The current element, the save status, **Editing / Viewing**, the page count and every open stepper never disappear.
@@ -169,6 +169,20 @@ Select text and press {{key:Ctrl+B}} (bold), {{key:Ctrl+I}} (italic), {{key:Ctrl
 ### Margin notes
 
 {{key:Alt+N}} opens a private margin note for the current line. Selected words are quoted into the note. Notes open in the Notes drawer (**⋮ → Margin Notes**) and are never printed or exported.
+
+### Table Read
+
+**⋮ → Table Read…** (in Write) reads your script aloud with your computer's own voices: the narrator reads scene headings and action, and each speaking character gets a voice of their own. A small player appears above the status bar; nothing plays until you press **Play**, and you can keep writing while it reads.
+
+- The player's line shows what **Play** will read (for example **Ready · Scene 5**). Click into the script or pick a scene in the Scenes sidebar to choose it, even while paused; clicking around while it's playing never interrupts it. From the Title Page it starts at the first scene.
+- **Scene** (the default) reads the scene you've chosen, from its heading. **Act** reads the act it's in, as the Scene Board places it (Act is unavailable until the scene is on a card). **Script** reads from the top, or with **From here**, from wherever the caret is when you press Play.
+- **⏮** and **⏭** move to the previous or next element, **▶ / ❚❚** plays and pauses, and **1×**, **1.25×** or **1.5×** sets the speed. With the player focused, the space bar plays and pauses; {{key:Esc}} closes it, and the caret goes back where it was.
+- The element being read is tinted in the script and kept in view; while you're typing in the script it stays where you are. The tint never prints or exports.
+- **Voices…** lists the narrator and every speaking character with their voice. Pick another, or **Automatic**; the speaker button plays a short sample. **Auto-Assign** gives everyone automatic voices again. Characters with the most lines get different voices first; with more characters than voices, voices are shared, each at a slightly different pitch. Your own choices are kept each time you open Table Read. A character's Bio gender is used as a hint when a voice's name suggests one.
+- **Read Action & Headings** off reads dialogue only; **Read Parentheticals** reads them in the character's voice. Character names, (V.O.), (O.S.) and (CONT'D), transitions and THE END are never read aloud.
+- Voice choices are kept **on this device**, for each script. They aren't part of the script, its backups or snapshots, because the voices themselves belong to your computer: on another computer, everyone simply gets automatic voices. Renaming a character keeps their voice.
+
+Voices come from your operating system and browser, so what you hear depends on them. In Chrome, DraftLine picks **Google voices** automatically, because they sound best. They are **online voices**: Chrome sends the text being read to Google to speak it, so they need a connection. They're marked "online" in **Voices…**, and the player shows **Online voice** while one is speaking. Before an online voice reads anything for the first time (a sample included), Table Read asks once: **Use Online Voice** or **Use On-Device Voice**. Nothing is sent until you answer; it remembers your answer on this device. With **Use On-Device Voice**, it reads with your computer's own voices and keeps your saved voice choices for later; choosing an online voice yourself in **Voices…** asks again at the next Play. **On-device voices** (Microsoft voices on Windows, and most macOS, ChromeOS and Android voices) work offline, and the text never leaves your computer. Choose one in **Voices…** to keep a character on the device. Without Google voices (Edge, Safari, Firefox), or offline, or if an online voice fails, Table Read uses on-device voices and carries on where it was. If a browser has no voices, or none for read-aloud, the player says so. Pausing restarts the current sentence when you resume.
 
 ### Editing and Viewing
 
@@ -364,7 +378,7 @@ The Scene Board's **Export Outline** downloads the board as a **Fountain Outline
 
 ### Planned features
 
-A few places in the app show what's planned next. **Shoot** (after Board), **Schedule** and **Budget** (in Plan) and **⋮ → Table Read…** and **⋮ → Co-Write…** (in Write) each open a short note about the planned feature and a **Close** button. Nothing is built behind them yet: opening one doesn't change your view, your script or your project. Schedule, Budget and Table Read are planned for free DraftLine Core; Shoot for DraftLine Pro, a future optional upgrade; Co-Write as a future optional hosted service. Everything DraftLine does today stays free.
+A few places in the app show what's planned next. **Shoot** (after Board), **Schedule** and **Budget** (in Plan) and **⋮ → Co-Write…** (in Write) each open a short note about the planned feature and a **Close** button. Nothing is built behind them yet: opening one doesn't change your view, your script or your project. Schedule and Budget are planned for free DraftLine Core; Shoot for DraftLine Pro, a future optional upgrade; Co-Write as a future optional hosted service. Everything DraftLine does today stays free. (**Table Read**, once a preview here, is now part of DraftLine Core: see Table Read.)
 
 ### Finding scenes
 

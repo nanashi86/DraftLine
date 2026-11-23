@@ -6,6 +6,17 @@ All notable changes to DraftLine are recorded here. The format follows [Keep a C
 
 ### Added
 
+- **Table Read (DraftLine Core, free).** ⋮ → Table Read… reads the script aloud: a narrator for scene headings and
+  action and a voice for each speaking character, busiest characters first (voices are shared at slightly different
+  pitches when there are more characters than voices). Read the current **Scene**, **Act** (as the Scene Board places
+  it) or **Script** (from the top or **From here**), with previous / play-pause / next and 1× / 1.25× / 1.5×; the line
+  being read is tinted and kept in view, never printed. **Voices…** lets you change any voice, hear a sample,
+  Auto-Assign, and choose whether action, headings and parentheticals are read. In Chrome, Google's voices are
+  preferred; they're online, so Table Read asks once per device before sending any text to Google, and uses on-device
+  voices offline or if you'd rather. Voice choices are saved on the device, never in the project. It replaces the
+  Table Read preview. Uses the browser's Web Speech API: no AI, no account, no new dependency.
+- **Act labels in the Scenes sidebar.** Quiet ACT 1 / ACT 2 (2A, 2B) / ACT 3 labels, read live from the Scene Board's
+  cards and its 3 Acts / 4 Acts switch.
 - **Previews of what's planned.** **Shoot** (Lucide `file-check-2`) now follows Page | Split | Board; **Schedule** (`calendar-check`) and **Budget** (`calculator`) follow Breakdowns | Stripboard in Plan; and Write's ⋮ menu has **Table Read…** and **Co-Write…** after Reports. Each opens a short note about the planned feature and a **Close** button, and nothing else: your view, script and project stay exactly as they were, and focus goes back to what you clicked. Nothing is built behind them yet, there's nothing to buy, and no badges or prices sit on the toolbar. Plan keeps its clapperboard.
 - **Roadmap: the approved plan.** DraftLine Core stays free forever and gains Table Read (next), then Schedule & Budget; **DraftLine Pro** is planned as a one-time purchase with Shoot and production revisions (deferred); **DraftLine Co-Write** is planned as an optional subscription that works with Core or Pro (last). New design note: `docs/specs/data-integrity.md` (what has to be in place before new project data ships).
 - **A Welcome page: draftlineapp.com/welcome/.** A short introduction for people discovering DraftLine: the slogan, *Just Write.*, the promise, what you get free, and links to Philosophy, Features and Compare, with **Start Writing** straight into the editor. The editor in its laptop frame is a real screenshot of DraftLine with the sample script *The Last Ferry*, in the dark or light version to match your theme. The root address still opens the editor straight away; nobody is sent to the Welcome page.

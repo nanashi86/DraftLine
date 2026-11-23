@@ -13,7 +13,7 @@ describe('features page: a static, crawlable description of every tool', () => {
   });
   it('one h2 per tool, each with an anchor the table of contents links to', () => {
     const ids = [...html.matchAll(/<section id="([a-z-]+)">\s*<h2>/g)].map((m) => m[1]);
-    for (const id of ['writing', 'pagination', 'files', 'scene-board', 'format-doctor', 'dialogue', 'characters', 'story-bible', 'snapshots', 'plan', 'storage', 'privacy']) {
+    for (const id of ['writing', 'pagination', 'files', 'scene-board', 'format-doctor', 'dialogue', 'table-read', 'characters', 'story-bible', 'snapshots', 'plan', 'storage', 'privacy']) {
       assert.ok(ids.includes(id), id);
       assert.match(html, new RegExp(`href="#${id}"`));
     }
@@ -26,7 +26,7 @@ describe('features page: a static, crawlable description of every tool', () => {
   it('the structured data feature list names the tools', () => {
     const ld = JSON.parse(read('index.html').match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)[1]);
     const list = ld['@graph'][0].featureList.join(' | ');
-    for (const tool of ['Format Doctor', 'Dialogue Tuner', 'Story Bible', 'stripboard', 'Scene Board']) assert.ok(list.includes(tool), tool);
+    for (const tool of ['Format Doctor', 'Dialogue Tuner', 'Story Bible', 'stripboard', 'Scene Board', 'Table Read']) assert.ok(list.includes(tool), tool);
   });
 });
 

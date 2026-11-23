@@ -1,13 +1,87 @@
 # DraftLine Core: Table Read (local-first read-aloud)
 
-> **Status: Stage 1 — the next planned free Core feature; not yet approved for implementation.** Updated November 19,
-> 2026 (first written October 2026). See [`../../ROADMAP.md`](../../ROADMAP.md).
+> **Status: Stage 1 — shipped (approved November 23, 2026).** First written October 2026. See
+> [`../../ROADMAP.md`](../../ROADMAP.md). "As built" below is authoritative; the "Earlier plan" section is kept for
+> reference, and "Next increments" (Rehearse as…) is still to come.
 >
 > **Table Read is free in DraftLine Core and never requires DraftLine Pro or DraftLine Co-Write.** No hosted speech
 > service, no generative AI, no account.
 >
-> **Placement:** Write → ⋮ → **Table Read…** (today it opens the planned-feature preview, "Hear your story come to
-> life."; that placeholder is separate from this spec and changes when the feature is built).
+> **Placement:** Write → ⋮ → **Table Read…** opens the player (the planned-feature preview is retired).
+
+## As built (Stage 1)
+
+| Piece | Where | Code |
+|---|---|---|
+| Start | Write → ⋮ → **Table Read…** (not in Plan; closes on entering Plan or switching project) | `App.jsx` `openTableRead` |
+| Player | Floating card above the status bar, centred; never a dialog; never autoplays (focus lands on Play) | `components/TableRead.jsx`, `TableRead.css` |
+| Scopes | **Scene** (default) · **Act** · **Script** (+ **From here**) | `lib/tableRead.js` `scopeRange` |
+| Acts | Read from the Scene Board's cards; the same function labels the Scenes sidebar | `lib/sceneActs.js` |
+| Controls | ⏮ previous element · ▶/❚❚ · ⏭ next element · 1× / 1.25× / 1.5× · Voices… · ✕ | Lucide icons, `Select` |
+| Current element | Soft accent tint + accent margin rule; kept in view, but never scrolled while the caret is in the script; never printed | `Editor` `readingId` → `.el.is-reading` |
+| Voices | Voices… popover: Narrator + speaking characters, each a `Select` and a short preview; Auto-Assign; Read Action & Headings; Read Parentheticals | `TableRead.jsx` |
+| Storage | **On this device only**: `localStorage["draftline:tableRead:v1"]`, per project, by cue name | `lib/tableReadPrefs.js` |
+
+### Scenes sidebar act labels
+
+- The Scene Board is the only source: each card's underlying act (`beat.act`: 1, 2A, 2B, 3) and its `sceneId`. The
+  board's 3 Acts / 4 Acts switch only changes the labels (2A + 2B → ACT 2), so switching back and forth keeps every
+  manual placement; dragging a card or redistributing updates the labels at once (nothing is stored).
+- A label is drawn above the first scene of each act, between dashed rules in the sidebar's existing style, below the
+  Title Page. A scene without a card stays under the act above it (no boundary is invented); scenes before the first
+  carded scene, or a board with no scene cards, get no label. The script's order is kept: if an act comes back later
+  in the script, it is labelled again rather than regrouped.
+- While searching, a label shows above the first matching scene of its act; acts with no match show nothing.
+
+### Decisions that differ from the earlier plan below
+
+- **Voice storage is per device, not `characters[].voice`.** A `voiceURI` names a voice installed on one computer, so
+  it is meaningless elsewhere; storing it in the project would also require a Bio for every speaking character. Kept in
+  `localStorage` per project and cue name, the project record, `.draftline` files, backups, snapshots, folder sync and
+  Bios never change. Trade-off: choices don't travel with a backup; elsewhere every character gets automatic voices.
+  Rename (Characters → Rename) carries the choice to the new name. At most 100 projects are remembered.
+- **Pause = stop and remember.** Native `pause()`/`resume()` is unreliable (Chrome, Safari, Android), so Pause cancels
+  and Play restarts the current piece (≤ 200 characters, usually a sentence).
+- **Playback doesn't stop on typing.** Each element is looked up again by id when it's spoken, so edits are picked up;
+  a deleted element is skipped. Auto-scroll pauses while the caret is in the script. It pauses when the script is
+  hidden (Board) or the tab is hidden, and stops on closing, entering Plan or switching project.
+- **Google voices are preferred for automatic voices** (Eric's decision after testing Chrome on Windows, November 23:
+  they sound clearly better than the Microsoft voices). They're online (`localService === false`): Chrome sends the
+  text to Google. The pool for automatic voices is the Google voices when any exist, otherwise the on-device voices;
+  other voices are never mixed in just to have more distinct ones (reuse with a modest pitch nudge, 0.86–1.14,
+  instead). Other online voices are never chosen automatically. Offline (`navigator.onLine === false`), or after an
+  online voice errors or never starts within 5 s, only on-device voices are used (the writer's choices are kept and
+  come back online). Voices… marks online voices ("· online", and the "Online · text is sent to the provider" group);
+  the player shows "Online voice" while one speaks. **This changes the original "on-device voices by default"
+  principle above: in Chrome, Google voices are the default — but only after a one-time consent.**
+- **Online-voice consent (one time, per device).** Before any utterance with `localService === false` is created
+  (playback or a voice sample), the player asks: "Use an online voice? Online voices send the screenplay text being
+  read to Google (or "the voice provider") for speech synthesis. On-device voices keep it on this computer."
+  **Use Online Voice** / **Use On-Device Voice**. Stored as `onlineConsent` (`'online' | 'device'`) in
+  `draftline:tableRead:v1`. Unanswered (Esc) sends nothing and asks again at the next Play. "On-device" assigns
+  on-device voices only (`assignVoices({ online: false })`) without changing saved voice choices; picking an online
+  voice in Voices… afterwards clears the answer so it's asked again. The same gate covers the offline fallback: with
+  consent given, an online voice that fails still falls back to on-device voices in place.
+- **Reading target.** App keeps `readTarget { id, n }`: set when the caret moves to another element, when a scene is
+  picked in the Scenes sidebar (always, even the same one), and to `null` for the Title Page (= the first scene; a
+  target that no longer exists also means the first scene, never a stale one). A new target while stopped or paused
+  resets the player, so Play starts there; while playing, it's remembered but nothing is interrupted. Scope and From
+  here changes reset too, and the range is resolved when Play is pressed. The player's line names the target:
+  "Ready · Scene 5", "Ready · Act 2B · Scenes 7–9", "Ready · Script from Scene 7".
+- **Character cues are never read** (as at a real table read); (V.O.), (O.S.), (CONT'D) only identify the speaker.
+  Transitions, Format Cues and Centered text are not read in Stage 1.
+- **Voice assignment:** narrator = the system's default on-device voice; characters by number of lines get the other
+  on-device voices first, then voices are reused in the same order with a pitch nudge (the narrator's voice last).
+  Bio gender is a best-effort hint matched against voice names only. Assignments are fixed while the player is open;
+  new speakers join at the end.
+- **Shortcut:** none. Space plays/pauses only while the player itself has focus; Esc closes an open list, then
+  Voices…, then the player.
+
+### Needs real-browser verification (not covered by automated tests)
+
+Actual speech, voice lists and timing on Chrome/Edge (Windows, ChromeOS), Safari (macOS), Firefox, Android; offline
+playback with on-device voices (and the network panel staying empty); a 120-page read without stalling; the ~15-second
+Chrome cut-off with long pieces; behaviour on phone interruptions.
 
 ## Goal
 
@@ -27,7 +101,9 @@ with a different voice for each character, and a **Rehearse as…** mode that re
 - **No new dependencies.** The Web Speech API (`speechSynthesis`) is built into every supported browser.
 - **Works offline** (on-device voices need no network).
 
-## Where it lives (keeping the minimal look)
+## Earlier plan (October 2026, kept for reference)
+
+### Where it lives (keeping the minimal look)
 
 | Piece | Where | Existing pattern reused |
 |---|---|---|

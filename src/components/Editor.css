@@ -240,6 +240,16 @@
   box-shadow: 0 0 0 4px var(--highlight);
   border-radius: 2px;
 }
+/* Table Read: the element being read aloud — a soft tint and the accent rule in the margin.
+   Never printed (the print view is its own markup; this is belt and braces). */
+.sheet .el.is-reading {
+  background: color-mix(in srgb, var(--accent) 9%, transparent);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 9%, transparent);
+  border-radius: 2px;
+  transition: background 160ms ease, box-shadow 160ms ease;
+}
+.sheet .el.is-reading::before { background: var(--accent); }
+@media print { .sheet .el.is-reading { background: none; box-shadow: none; } .sheet .el.is-reading::before { background: none; } }
 
 /* ---- Autocomplete dropdown ---- */
 .ac {

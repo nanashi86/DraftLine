@@ -15,7 +15,7 @@ and everything around it. Inside it there's a complete free core, and two option
 
 | Product | Access | What it is |
 |---|---|---|
-| **DraftLine Core** | **Free forever** | Everything DraftLine does today: writing, the Scene Board, the Story Bible, Plan (Breakdowns, Stripboard, Reports), every import and export, offline use and folder sync. **Table Read, Schedule and Budget will be part of Core when they ship.** |
+| **DraftLine Core** | **Free forever** | Everything DraftLine does today: writing, the Scene Board, the Story Bible, Plan (Breakdowns, Stripboard, Reports), every import and export, offline use and folder sync. **Table Read is part of Core now; Schedule and Budget will be when they ship.** |
 | **DraftLine Pro** | **Planned one-time purchase** | Core plus **Shoot**: locked pages and scene numbers, revision rounds and revised pages for production. **A one-time purchase, not a subscription.** *(future, deferred)* |
 | **DraftLine Co-Write** | **Planned optional subscription** | Optional real-time co-writing, hosted by DraftLine. Works with **Core or Pro**. Only the writer hosting a session needs it; invited writers join free. *(long-term future)* |
 
@@ -29,24 +29,26 @@ Pro and Co-Write don't exist yet. **Pricing and availability will be announced w
   recover everything you've written.
 - **Licences unlock capabilities, not platforms.** The browser, the installed app and the planned Windows and
   Android/ChromeOS apps are all free; Pro and Co-Write work on all of them. No accounts.
-- **What you'll see.** Shoot sits after Page, Split and Board; Schedule and Budget sit in Plan; Table Read and
-  Co-Write are in ⋮. Each opens a short note about what's planned. No pop-ups, badges or reminders you didn't click for.
+- **What you'll see.** Shoot sits after Page, Split and Board; Schedule and Budget sit in Plan; Co-Write is in ⋮.
+  Each opens a short note about what's planned. No pop-ups, badges or reminders you didn't click for.
 
 ## Shipped
 
 - [x] **Core Web Engine**: Final Draft (`.fdx`) and Fountain import and export, a compiled PDF built right in
   DraftLine, Format Doctor, the Density Risk meter, and an offline library that keeps working without a connection.
 - [x] **In-app feedback**: ⋮ → Send Feedback… goes straight to the developer, anonymous unless you add your email.
+- [x] **Stage 1 · DraftLine Core: Table Read** (*free*): hear your script read aloud (⋮ → Table Read…), with a
+  narrator for headings and action and a voice for each character, reading the current scene, act or the whole script,
+  with previous / next, pause and speed. Act reading follows the Scene Board, and the Scenes sidebar shows the board's
+  act labels. In Chrome it prefers Google's voices, which are online: it asks once before sending the text being read
+  to Google, and uses your computer's own voices offline or if you'd rather. No AI, no account. Voice quality depends on
+  your system and browser. A "Rehearse as…" mode may come later.
 
 ## What's next
 
 The order below is the plan of priority and expected effort, **not release dates**. Each stage needs its own approval
 before work starts, and ships when it's ready.
 
-- [ ] **Stage 1 · DraftLine Core: Table Read** (*next planned feature, free*)
-  Hear your script read aloud with your computer's own voices: Play, Pause, Stop and speed, starting from the top, a
-  scene or where you are. Character voices and a "Rehearse as…" mode later. Nothing is sent anywhere by default, no
-  AI, no account. Voice quality and offline voices depend on your system and browser.
 - [ ] **Stage 2 · DraftLine Core: Schedule & Budget** (*free*)
   Plan becomes **Breakdowns · Stripboard · Schedule · Budget**; Reports is in ⋮ and works as it does now.
   - **Schedule**: scenes into shooting days, in an order separate from the script, with page-eighths, pages per day,
@@ -66,8 +68,7 @@ before work starts, and ships when it's ready.
   reconnection and reliable local copies for everyone. It has the most technical and operational complexity, so it
   comes last, and only once real hosting and support costs are understood.
 
-**Data safety comes first.** If a risk to existing writers' data is found, fixing it takes priority over any feature,
-including Table Read.
+**Data safety comes first.** If a risk to existing writers' data is found, fixing it takes priority over any feature.
 
 ## Also on the table
 

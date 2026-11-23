@@ -1,17 +1,24 @@
-import { useEffect, useRef, useState } from 'react';
+import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
+import { actHeaders } from '../lib/sceneActs.js';
 import './Navigator.css';
 
 /**
  * Left sidebar listing every scene in order with its number, start page and length
  * in eighths. Clicking a scene scrolls the editor to it.
+ *
+ * `acts` (lib/sceneActs.js sceneActs) labels the scenes with the Scene Board's acts: a quiet
+ * ACT 1 / ACT 2A… label between dashed rules above the first scene of each act. Labels only: the
+ * scenes' order, numbers and pages are the script's own. While searching, a label shows above the
+ * first match in its act, so no empty act is drawn.
  */
-export default function Navigator({ open, scenes, pageCount, currentSceneId, onJump, onClose, coverVisible, onShowCover }) {
+export default function Navigator({ open, scenes, acts = null, pageCount, currentSceneId, onJump, onClose, coverVisible, onShowCover }) {
   const [query, setQuery] = useState('');
   const listRef = useRef(null);
   const q = query.trim().toLowerCase();
   const visible = q
     ? scenes.filter((s) => s.heading.toLowerCase().includes(q) || s.snippet.toLowerCase().includes(q))
     : scenes;
+  const headers = useMemo(() => (acts ? actHeaders(acts, visible.map((s) => s.id)) : null), [acts, visible]);
 
   // Keep the current scene in view as the writer moves through the script.
   useEffect(() => {
@@ -46,7 +53,7 @@ export default function Navigator({ open, scenes, pageCount, currentSceneId, onJ
 
       <ol className="nav-list" ref={listRef}>
         {!q && (
-          <li>
+          <li className="nav-cover-row">
             <button className="nav-item nav-cover" onClick={onShowCover} title="Show the title page above Page 1">
               <span className="nav-num">0</span>
               <span className="nav-body">
@@ -60,7 +67,9 @@ export default function Navigator({ open, scenes, pageCount, currentSceneId, onJ
         {scenes.length === 0 && <li className="nav-empty">No scene headings yet.</li>}
         {scenes.length > 0 && visible.length === 0 && <li className="nav-empty">No matches.</li>}
         {visible.map((s) => (
-          <li key={s.id}>
+          <Fragment key={s.id}>
+          {headers?.has(s.id) && <li className="nav-act">{headers.get(s.id).toUpperCase()}</li>}
+          <li>
             <button
               data-scene={s.id}
               className={`nav-item${s.id === currentSceneId ? ' is-current' : ''}`}
@@ -77,6 +86,7 @@ export default function Navigator({ open, scenes, pageCount, currentSceneId, onJ
               </span>
             </button>
           </li>
+          </Fragment>
         ))}
       </ol>
     </aside>

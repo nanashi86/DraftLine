@@ -244,7 +244,7 @@ function FindMarks({ text, hits }) {
 }
 
 const Block = memo(function Block({
-  block, sceneNumber, isActive, isHighlighted, isDim, isDense, marginLines, marginGaps,
+  block, sceneNumber, isActive, isReading, isHighlighted, isDim, isDense, marginLines, marginGaps,
   register, observe, onText, onKey, onFocusBlock,
   noteOpen, onOpenNote, locked = false,
   piece = null, split = false, partIndex = 0, hits = null,
@@ -264,7 +264,7 @@ const Block = memo(function Block({
   const own = primary || !!span; // a span view is a real, focusable part of the script
   return (
     <div
-      className={`el el-${block.type}${isActive ? ' is-active' : ''}${isHighlighted ? ' is-highlighted' : ''}${isDim ? ' is-dim' : ''}${isDense ? ' is-dense' : ''}${hasNote(block) ? ' has-note' : ''}${noteOpen ? ' is-note-open' : ''}${hasMarks(marks) ? ' has-fmt' : ''}${split ? ' is-split' : ''}`}
+      className={`el el-${block.type}${isActive ? ' is-active' : ''}${isHighlighted ? ' is-highlighted' : ''}${isReading ? ' is-reading' : ''}${isDim ? ' is-dim' : ''}${isDense ? ' is-dense' : ''}${hasNote(block) ? ' has-note' : ''}${noteOpen ? ' is-note-open' : ''}${hasMarks(marks) ? ' has-fmt' : ''}${split ? ' is-split' : ''}`}
       style={observe || !primary ? marginStyle(marginLines, marginGaps) : undefined}
     >
       {piece?.cont ? <div className="el-seam el-contd" aria-hidden="true">{piece.cont}</div> : null}
@@ -322,7 +322,7 @@ const Block = memo(function Block({
 });
 
 const DualRow = memo(function DualRow({
-  item, activeId, highlightId, spotlight, dense, marginLines, marginGaps, register, observe, onText, onKey, onFocusBlock,
+  item, activeId, highlightId, readingId, spotlight, dense, marginLines, marginGaps, register, observe, onText, onKey, onFocusBlock,
   openNoteId, onOpenNote, locked, findHits = null,
 }) {
   const col = (bs) => bs.map((b) => (
@@ -331,6 +331,7 @@ const DualRow = memo(function DualRow({
       block={b}
       isActive={b.id === activeId}
       isHighlighted={b.id === highlightId}
+      isReading={b.id === readingId}
       isDim={!!spotlight && !spotlight.has(b.id)}
       isDense={!!dense && dense.has(b.id)}
       hits={findHits?.get(b.id) || null}
@@ -405,6 +406,7 @@ export default function Editor({
   sceneNumbers,
   activeId,
   highlightId,
+  readingId = null, // Table Read: the element being read aloud (a quiet tint, never printed)
   cast = NO_CAST, // Story Bible character names, offered by Character autocomplete
   findHits = null, // Find & Replace: Map id → [[start, end, isCurrent]] (lib/findReplace.js hitsById)
   dense = null, // Density Mode: Set of dense action block ids to mark in the gutter (lib/pacing.js)
@@ -1328,6 +1330,7 @@ export default function Editor({
           item={it}
           activeId={activeId}
           highlightId={highlightId}
+          readingId={readingId}
           spotlight={spotlight}
           dense={dense}
           marginLines={reflow ? lead(it.blocks[0]) : real.marginLines}
@@ -1373,6 +1376,7 @@ export default function Editor({
           sceneNumber={i === 0 ? sceneNumbers[b.id] : undefined}
           isActive={b.id === activeId}
           isHighlighted={b.id === highlightId}
+          isReading={b.id === readingId}
           isDim={!!spotlight && !spotlight.has(b.id)}
           isDense={!!dense && dense.has(b.id)}
           marginLines={reflow ? (i ? 0 : lead(b)) : (pc ? pc.marginLines : real.marginLines)}

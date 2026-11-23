@@ -26,7 +26,8 @@ locked into one app.
   act's pacing against its target.
 - **Local-first privacy with IndexedDB persistence (zero telemetry, zero remote database storage).** Scripts are saved
   in your browser's own database, or in a folder you link (Google Drive, Dropbox, OneDrive or a local disk). The editor
-  sends nothing about you or your writing anywhere. The website counts page views with Cloudflare Web Analytics (no
+  sends nothing about you or your writing anywhere (the one exception: Table Read with an online voice, and only after
+  you agree to it). The website counts page views with Cloudflare Web Analytics (no
   cookies) and uses Google Tag Manager to measure our ad campaigns, which sets Google advertising cookies. Visitors in
   the EU, the UK and Switzerland are asked first, and anyone can change their choice under ⋮ → Cookie Settings… at any time.
   Send Feedback sends only what you type, when you choose to.
@@ -41,6 +42,9 @@ locked into one app.
   speech split across a page stays editable with (MORE) / (CONT'D). See [Writing on a phone](#writing-on-a-phone).
 - **Built for rewriting.** Format Doctor, dialogue spotlight, snapshots, a Story Bible with character bios, and Plan
   (breakdowns, stripboard and reports) for when the script is ready to shoot.
+- **Table Read.** Hear the script read aloud (⋮ → Table Read…): a narrator for scene headings and action and a voice
+  for each character, reading the current scene, the current act (as the Scene Board places it) or the whole script.
+  See [Table Read](#table-read).
 
 ## How DraftLine compares
 
@@ -244,6 +248,30 @@ the page auto-fits its half) and **Board** (full-width).
   (no scene) move on the board only, `FADE IN:` stays first and a closing `FADE OUT.` / `THE END` stays last. One
   **Ctrl+Z** puts back both the board and the script.
 - Cards autosave with the script, in the project's record.
+- **Act labels in the Scenes list.** Once scenes are on cards, the Scenes sidebar shows quiet **ACT 1 / ACT 2 (2A,
+  2B) / ACT 3** labels where each act starts, following the 3 Acts / 4 Acts switch and every card you move. A scene
+  without a card stays under the act above it; the labels never reorder or change the script.
+
+## Table Read
+
+**⋮ → Table Read…** (Write) reads the script aloud with the browser's speech voices (the Web Speech API: no AI, no
+account, no extra download). A small player sits above the status bar; nothing plays until you press Play, and you
+can keep writing while it reads.
+
+- **Scene** (default), **Act** (the act the Scene Board puts the scene in) or **Script** (from the top, or **From
+  here**). The player shows what Play will read; clicking into the script or picking a scene in the Scenes list sets it.
+- **⏮ / ▶ ❚❚ / ⏭** step through elements, play and pause; speed **1× / 1.25× / 1.5×**. The element being read is
+  tinted and kept in view (never printed or exported).
+- **Voices…**: a narrator plus a voice per speaking character (busiest characters first; with more characters than
+  voices, voices are shared at slightly different pitches), a short sample for each, **Auto-Assign**, and **Read
+  Action & Headings** / **Read Parentheticals**. Character cues, (V.O.) / (O.S.) / (CONT'D), transitions and THE END
+  are never read aloud. Voice choices are saved on this device, per script; they're not part of the project file.
+- **Online and on-device voices.** In Chrome, Google's voices are preferred because they sound best. They're online:
+  the browser sends the text being read to Google to speak it. Before one first speaks, Table Read asks once per
+  device (**Use Online Voice** / **Use On-Device Voice**), and nothing is sent until you answer. On-device voices
+  (Microsoft voices on Windows, most macOS, ChromeOS and Android voices) work offline and keep the text on your
+  computer; offline, or if an online voice fails, Table Read switches to them and carries on. Available voices and
+  their quality depend on your system and browser.
 
 ## The right dock: Story Bible and Characters
 
@@ -525,17 +553,17 @@ Want to see where DraftLine is heading? Check out the [Public Roadmap](ROADMAP.m
 **DraftLine Core is free, forever,** with no subscriptions and no paywalls, and nothing you can do today will ever be
 moved behind one. The planned order of what's next ([ROADMAP.md](ROADMAP.md)), with no dates promised:
 
-1. **Table Read** (Core, free): hear your script read aloud with your computer's own voices.
-2. **Schedule & Budget** (Core, free): shooting days and production estimates in Plan.
+1. **Table Read** (Core, free): ✅ shipped. See [Table Read](#table-read).
+2. **Schedule & Budget** (Core, free): shooting days and production estimates in Plan. Next.
 3. **DraftLine Pro** (planned as a one-time purchase, not a subscription): a **Shoot** workspace for locked pages,
    scene numbers and revision rounds. Deferred.
 4. **DraftLine Co-Write** (planned as an optional subscription for hosting live co-writing sessions, with Core or Pro;
    invited writers join free). Last and long-term.
 
-In the app today, **Shoot** (after Board), **Schedule** and **Budget** (in Plan) and **⋮ → Table Read…** and
-**⋮ → Co-Write…** each open a short note about what's planned; none of them is built yet.
+In the app today, **Shoot** (after Board), **Schedule** and **Budget** (in Plan) and **⋮ → Co-Write…** each open a
+short note about what's planned; none of them is built yet.
 
-Design notes for planned and possible features live in `docs/specs/`: Table Read, Schedule & Budget, data integrity
+Design notes for shipped, planned and possible features live in `docs/specs/`: Table Read, Schedule & Budget, data integrity
 (forward compatibility), Shoot & production revisions, Co-Write, licences and access, payments, and the Windows and
 Android apps.
 
