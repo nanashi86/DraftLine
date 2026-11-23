@@ -1,0 +1,893 @@
+{
+  "summary": "14 scenes · 4 3/8 pages · cast, sluglines and lengths come from the script",
+  "legend": [
+    {
+      "text": "INT. DAY · 4",
+      "swatch": "strip-swatch strip-int-day"
+    },
+    {
+      "text": "EXT. DAY · 1",
+      "swatch": "strip-swatch strip-ext-day"
+    },
+    {
+      "text": "INT. NIGHT · 2",
+      "swatch": "strip-swatch strip-int-night"
+    },
+    {
+      "text": "EXT. NIGHT · 5",
+      "swatch": "strip-swatch strip-ext-night"
+    },
+    {
+      "text": "No day / night · 2",
+      "swatch": "strip-swatch strip-unknown"
+    }
+  ],
+  "table": {
+    "role": "table",
+    "label": "Stripboard, in script order"
+  },
+  "strips": [
+    {
+      "tag": "div",
+      "className": "strip strip-head",
+      "role": "row",
+      "title": null,
+      "cells": [
+        {
+          "className": "",
+          "role": "columnheader",
+          "text": "Sc.",
+          "title": null,
+          "html": "Sc."
+        },
+        {
+          "className": "",
+          "role": "columnheader",
+          "text": "I/E",
+          "title": null,
+          "html": "I/E"
+        },
+        {
+          "className": "",
+          "role": "columnheader",
+          "text": "Slugline",
+          "title": null,
+          "html": "Slugline"
+        },
+        {
+          "className": "",
+          "role": "columnheader",
+          "text": "D/N",
+          "title": null,
+          "html": "D/N"
+        },
+        {
+          "className": "",
+          "role": "columnheader",
+          "text": "Pages",
+          "title": null,
+          "html": "Pages"
+        },
+        {
+          "className": "",
+          "role": "columnheader",
+          "text": "Cast",
+          "title": null,
+          "html": "Cast"
+        }
+      ]
+    },
+    {
+      "tag": "button",
+      "className": "strip strip-ext-day",
+      "role": "row",
+      "title": "EXT. DAY — open scene 1 in Write",
+      "cells": [
+        {
+          "className": "strip-num",
+          "role": "cell",
+          "text": "1",
+          "title": null,
+          "html": "1"
+        },
+        {
+          "className": "strip-ie",
+          "role": "cell",
+          "text": "EXT",
+          "title": null,
+          "html": "EXT"
+        },
+        {
+          "className": "strip-slug",
+          "role": "cell",
+          "text": "HARBOR",
+          "title": null,
+          "html": "<span class=\"strip-loc\">HARBOR</span>"
+        },
+        {
+          "className": "",
+          "role": "cell",
+          "text": "DAY",
+          "title": "DAWN → DAY",
+          "html": "DAY"
+        },
+        {
+          "className": "strip-len",
+          "role": "cell",
+          "text": "2/8",
+          "title": null,
+          "html": "2/8"
+        },
+        {
+          "className": "strip-cast",
+          "role": "cell",
+          "text": "1, 2",
+          "title": "1. MARIE, 2. THEO",
+          "html": "1, 2"
+        }
+      ]
+    },
+    {
+      "tag": "button",
+      "className": "strip strip-int-day",
+      "role": "row",
+      "title": "INT. DAY — open scene 2 in Write",
+      "cells": [
+        {
+          "className": "strip-num",
+          "role": "cell",
+          "text": "2",
+          "title": null,
+          "html": "2"
+        },
+        {
+          "className": "strip-ie",
+          "role": "cell",
+          "text": "INT",
+          "title": null,
+          "html": "INT"
+        },
+        {
+          "className": "strip-slug",
+          "role": "cell",
+          "text": "FERRY - PASSENGER DECK",
+          "title": null,
+          "html": "<span class=\"strip-loc\">FERRY - PASSENGER DECK</span>"
+        },
+        {
+          "className": "",
+          "role": "cell",
+          "text": "DAY",
+          "title": null,
+          "html": "DAY"
+        },
+        {
+          "className": "strip-len",
+          "role": "cell",
+          "text": "3/8",
+          "title": null,
+          "html": "3/8"
+        },
+        {
+          "className": "strip-cast",
+          "role": "cell",
+          "text": "1, 2",
+          "title": "1. MARIE, 2. THEO",
+          "html": "1, 2"
+        }
+      ]
+    },
+    {
+      "tag": "button",
+      "className": "strip strip-int-day",
+      "role": "row",
+      "title": "INT. DAY — open scene 3 in Write",
+      "cells": [
+        {
+          "className": "strip-num",
+          "role": "cell",
+          "text": "3",
+          "title": null,
+          "html": "3"
+        },
+        {
+          "className": "strip-ie",
+          "role": "cell",
+          "text": "INT",
+          "title": null,
+          "html": "INT"
+        },
+        {
+          "className": "strip-slug",
+          "role": "cell",
+          "text": "FERRY - PASSENGER DECK",
+          "title": null,
+          "html": "<span class=\"strip-loc\">FERRY - PASSENGER DECK</span>"
+        },
+        {
+          "className": "",
+          "role": "cell",
+          "text": "DAY",
+          "title": "CONTINUOUS → DAY",
+          "html": "DAY"
+        },
+        {
+          "className": "strip-len",
+          "role": "cell",
+          "text": "2/8",
+          "title": null,
+          "html": "2/8"
+        },
+        {
+          "className": "strip-cast",
+          "role": "cell",
+          "text": "2, 3",
+          "title": "2. THEO, 3. AUGUSTIN",
+          "html": "2, 3"
+        }
+      ]
+    },
+    {
+      "tag": "button",
+      "className": "strip strip-ext-night",
+      "role": "row",
+      "title": "EXT. NIGHT — open scene 4 in Write",
+      "cells": [
+        {
+          "className": "strip-num",
+          "role": "cell",
+          "text": "4",
+          "title": null,
+          "html": "4"
+        },
+        {
+          "className": "strip-ie",
+          "role": "cell",
+          "text": "EXT",
+          "title": null,
+          "html": "EXT"
+        },
+        {
+          "className": "strip-slug",
+          "role": "cell",
+          "text": "HIGHWAY - MARIE'S CARMOVING",
+          "title": null,
+          "html": "<span class=\"strip-loc\">HIGHWAY - MARIE'S CAR</span><span class=\"strip-mod\">MOVING</span>"
+        },
+        {
+          "className": "",
+          "role": "cell",
+          "text": "NIGHT",
+          "title": null,
+          "html": "NIGHT"
+        },
+        {
+          "className": "strip-len",
+          "role": "cell",
+          "text": "2/8",
+          "title": null,
+          "html": "2/8"
+        },
+        {
+          "className": "strip-cast",
+          "role": "cell",
+          "text": "1",
+          "title": "1. MARIE",
+          "html": "1"
+        }
+      ]
+    },
+    {
+      "tag": "button",
+      "className": "strip strip-int-day",
+      "role": "row",
+      "title": "INT. DAY — open scene 5 in Write",
+      "cells": [
+        {
+          "className": "strip-num",
+          "role": "cell",
+          "text": "5",
+          "title": null,
+          "html": "5"
+        },
+        {
+          "className": "strip-ie",
+          "role": "cell",
+          "text": "INT",
+          "title": null,
+          "html": "INT"
+        },
+        {
+          "className": "strip-slug",
+          "role": "cell",
+          "text": "CHILDHOOD HOME - KITCHENFLASHBACK",
+          "title": null,
+          "html": "<span class=\"strip-loc\">CHILDHOOD HOME - KITCHEN</span><span class=\"strip-mod\">FLASHBACK</span>"
+        },
+        {
+          "className": "",
+          "role": "cell",
+          "text": "DAY",
+          "title": null,
+          "html": "DAY"
+        },
+        {
+          "className": "strip-len",
+          "role": "cell",
+          "text": "2/8",
+          "title": null,
+          "html": "2/8"
+        },
+        {
+          "className": "strip-cast",
+          "role": "cell",
+          "text": "4",
+          "title": "4. GRANDMÈRE",
+          "html": "4"
+        }
+      ]
+    },
+    {
+      "tag": "button",
+      "className": "strip strip-int-night",
+      "role": "row",
+      "title": "INT. NIGHT — open scene 6 in Write",
+      "cells": [
+        {
+          "className": "strip-num",
+          "role": "cell",
+          "text": "6",
+          "title": null,
+          "html": "6"
+        },
+        {
+          "className": "strip-ie",
+          "role": "cell",
+          "text": "INT/EXT",
+          "title": null,
+          "html": "INT/EXT"
+        },
+        {
+          "className": "strip-slug",
+          "role": "cell",
+          "text": "FERRY - WHEELHOUSE",
+          "title": null,
+          "html": "<span class=\"strip-loc\">FERRY - WHEELHOUSE</span>"
+        },
+        {
+          "className": "",
+          "role": "cell",
+          "text": "NIGHT",
+          "title": null,
+          "html": "NIGHT"
+        },
+        {
+          "className": "strip-len",
+          "role": "cell",
+          "text": "2/8",
+          "title": null,
+          "html": "2/8"
+        },
+        {
+          "className": "strip-cast",
+          "role": "cell",
+          "text": "3",
+          "title": "3. AUGUSTIN",
+          "html": "3"
+        }
+      ]
+    },
+    {
+      "tag": "button",
+      "className": "strip strip-ext-night",
+      "role": "row",
+      "title": "EXT. NIGHT — open scene 7 in Write",
+      "cells": [
+        {
+          "className": "strip-num",
+          "role": "cell",
+          "text": "7",
+          "title": null,
+          "html": "7"
+        },
+        {
+          "className": "strip-ie",
+          "role": "cell",
+          "text": "EXT/INT",
+          "title": null,
+          "html": "EXT/INT"
+        },
+        {
+          "className": "strip-slug",
+          "role": "cell",
+          "text": "PIER",
+          "title": null,
+          "html": "<span class=\"strip-loc\">PIER</span>"
+        },
+        {
+          "className": "",
+          "role": "cell",
+          "text": "NIGHT",
+          "title": "MOMENTS LATER → NIGHT",
+          "html": "NIGHT"
+        },
+        {
+          "className": "strip-len",
+          "role": "cell",
+          "text": "1/8",
+          "title": null,
+          "html": "1/8"
+        },
+        {
+          "className": "strip-cast",
+          "role": "cell",
+          "text": "–",
+          "title": "",
+          "html": "–"
+        }
+      ]
+    },
+    {
+      "tag": "button",
+      "className": "strip strip-int-day",
+      "role": "row",
+      "title": "INT. DAY — open scene 8 in Write",
+      "cells": [
+        {
+          "className": "strip-num",
+          "role": "cell",
+          "text": "8",
+          "title": null,
+          "html": "8"
+        },
+        {
+          "className": "strip-ie",
+          "role": "cell",
+          "text": "INT/EXT",
+          "title": null,
+          "html": "INT/EXT"
+        },
+        {
+          "className": "strip-slug",
+          "role": "cell",
+          "text": "VAN",
+          "title": null,
+          "html": "<span class=\"strip-loc\">VAN</span>"
+        },
+        {
+          "className": "",
+          "role": "cell",
+          "text": "DAY",
+          "title": null,
+          "html": "DAY"
+        },
+        {
+          "className": "strip-len",
+          "role": "cell",
+          "text": "1/8",
+          "title": null,
+          "html": "1/8"
+        },
+        {
+          "className": "strip-cast",
+          "role": "cell",
+          "text": "–",
+          "title": "",
+          "html": "–"
+        }
+      ]
+    },
+    {
+      "tag": "button",
+      "className": "strip strip-ext-night",
+      "role": "row",
+      "title": "EXT. NIGHT — open scene 9 in Write",
+      "cells": [
+        {
+          "className": "strip-num",
+          "role": "cell",
+          "text": "9",
+          "title": null,
+          "html": "9"
+        },
+        {
+          "className": "strip-ie",
+          "role": "cell",
+          "text": "EXT",
+          "title": null,
+          "html": "EXT"
+        },
+        {
+          "className": "strip-slug",
+          "role": "cell",
+          "text": "PORT-AU-PRINCE",
+          "title": null,
+          "html": "<span class=\"strip-loc\">PORT-AU-PRINCE</span>"
+        },
+        {
+          "className": "",
+          "role": "cell",
+          "text": "NIGHT",
+          "title": null,
+          "html": "NIGHT"
+        },
+        {
+          "className": "strip-len",
+          "role": "cell",
+          "text": "1/8",
+          "title": null,
+          "html": "1/8"
+        },
+        {
+          "className": "strip-cast",
+          "role": "cell",
+          "text": "–",
+          "title": "",
+          "html": "–"
+        }
+      ]
+    },
+    {
+      "tag": "button",
+      "className": "strip strip-unknown",
+      "role": "row",
+      "title": "No day / night — open scene 10 in Write",
+      "cells": [
+        {
+          "className": "strip-num",
+          "role": "cell",
+          "text": "10",
+          "title": null,
+          "html": "10"
+        },
+        {
+          "className": "strip-ie",
+          "role": "cell",
+          "text": "–",
+          "title": null,
+          "html": "–"
+        },
+        {
+          "className": "strip-slug",
+          "role": "cell",
+          "text": "FERRY BAR",
+          "title": null,
+          "html": "<span class=\"strip-loc\">FERRY BAR</span>"
+        },
+        {
+          "className": "",
+          "role": "cell",
+          "text": "NIGHT",
+          "title": null,
+          "html": "NIGHT"
+        },
+        {
+          "className": "strip-len",
+          "role": "cell",
+          "text": "2/8",
+          "title": null,
+          "html": "2/8"
+        },
+        {
+          "className": "strip-cast",
+          "role": "cell",
+          "text": "2",
+          "title": "2. THEO",
+          "html": "2"
+        }
+      ]
+    },
+    {
+      "tag": "button",
+      "className": "strip strip-unknown",
+      "role": "row",
+      "title": "No day / night — open scene 11 in Write",
+      "cells": [
+        {
+          "className": "strip-num",
+          "role": "cell",
+          "text": "11",
+          "title": null,
+          "html": "11"
+        },
+        {
+          "className": "strip-ie",
+          "role": "cell",
+          "text": "INT",
+          "title": null,
+          "html": "INT"
+        },
+        {
+          "className": "strip-slug",
+          "role": "cell",
+          "text": "LIGHTHOUSE",
+          "title": null,
+          "html": "<span class=\"strip-loc\">LIGHTHOUSE</span>"
+        },
+        {
+          "className": "",
+          "role": "cell",
+          "text": "–",
+          "title": null,
+          "html": "–"
+        },
+        {
+          "className": "strip-len",
+          "role": "cell",
+          "text": "1/8",
+          "title": null,
+          "html": "1/8"
+        },
+        {
+          "className": "strip-cast",
+          "role": "cell",
+          "text": "–",
+          "title": "",
+          "html": "–"
+        }
+      ]
+    },
+    {
+      "tag": "button",
+      "className": "strip strip-ext-night",
+      "role": "row",
+      "title": "EXT. NIGHT — open scene 12 in Write",
+      "cells": [
+        {
+          "className": "strip-num",
+          "role": "cell",
+          "text": "12",
+          "title": null,
+          "html": "12"
+        },
+        {
+          "className": "strip-ie",
+          "role": "cell",
+          "text": "EXT",
+          "title": null,
+          "html": "EXT"
+        },
+        {
+          "className": "strip-slug",
+          "role": "cell",
+          "text": "CROIX-DES-BOSSALESDREAM",
+          "title": null,
+          "html": "<span class=\"strip-loc\">CROIX-DES-BOSSALES</span><span class=\"strip-mod\">DREAM</span>"
+        },
+        {
+          "className": "",
+          "role": "cell",
+          "text": "NIGHT",
+          "title": null,
+          "html": "NIGHT"
+        },
+        {
+          "className": "strip-len",
+          "role": "cell",
+          "text": "1/8",
+          "title": null,
+          "html": "1/8"
+        },
+        {
+          "className": "strip-cast",
+          "role": "cell",
+          "text": "–",
+          "title": "",
+          "html": "–"
+        }
+      ]
+    },
+    {
+      "tag": "button",
+      "className": "strip strip-int-night",
+      "role": "row",
+      "title": "INT. NIGHT — open scene 13 in Write",
+      "cells": [
+        {
+          "className": "strip-num",
+          "role": "cell",
+          "text": "13",
+          "title": null,
+          "html": "13"
+        },
+        {
+          "className": "strip-ie",
+          "role": "cell",
+          "text": "INT",
+          "title": null,
+          "html": "INT"
+        },
+        {
+          "className": "strip-slug",
+          "role": "cell",
+          "text": "FERRY - CABIN",
+          "title": null,
+          "html": "<span class=\"strip-loc\">FERRY - CABIN</span>"
+        },
+        {
+          "className": "",
+          "role": "cell",
+          "text": "NIGHT",
+          "title": "LATER → NIGHT",
+          "html": "NIGHT"
+        },
+        {
+          "className": "strip-len",
+          "role": "cell",
+          "text": "3/8",
+          "title": null,
+          "html": "3/8"
+        },
+        {
+          "className": "strip-cast",
+          "role": "cell",
+          "text": "1, 2",
+          "title": "1. MARIE, 2. THEO",
+          "html": "1, 2"
+        }
+      ]
+    },
+    {
+      "tag": "button",
+      "className": "strip strip-ext-night",
+      "role": "row",
+      "title": "EXT. NIGHT — open scene 14 in Write",
+      "cells": [
+        {
+          "className": "strip-num",
+          "role": "cell",
+          "text": "14",
+          "title": null,
+          "html": "14"
+        },
+        {
+          "className": "strip-ie",
+          "role": "cell",
+          "text": "EXT",
+          "title": null,
+          "html": "EXT"
+        },
+        {
+          "className": "strip-slug",
+          "role": "cell",
+          "text": "BEACH",
+          "title": null,
+          "html": "<span class=\"strip-loc\">BEACH</span>"
+        },
+        {
+          "className": "",
+          "role": "cell",
+          "text": "NIGHT",
+          "title": "SUNSET → NIGHT",
+          "html": "NIGHT"
+        },
+        {
+          "className": "strip-len",
+          "role": "cell",
+          "text": "1 4/8",
+          "title": null,
+          "html": "1 4/8"
+        },
+        {
+          "className": "strip-cast",
+          "role": "cell",
+          "text": "1, 2, 3",
+          "title": "1. MARIE, 2. THEO, 3. AUGUSTIN",
+          "html": "1, 2, 3"
+        }
+      ]
+    }
+  ],
+  "colors": {
+    "strip-head": {
+      "strip": {
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(154, 152, 144)",
+        "font": "600 10.5px Inter, system-ui, -apple-system, \"Segoe UI\", Roboto, sans-serif",
+        "minHeight": "26px",
+        "radius": "6px"
+      },
+      "num": null,
+      "loc": null,
+      "mod": null
+    },
+    "strip-ext-day": {
+      "strip": {
+        "background": "rgb(245, 196, 81)",
+        "color": "rgb(22, 23, 26)",
+        "font": "600 12px Inter, system-ui, -apple-system, \"Segoe UI\", Roboto, sans-serif",
+        "minHeight": "34px",
+        "radius": "6px"
+      },
+      "num": "700 13px / 13px \"Courier Prime\", \"Courier New\", monospace",
+      "loc": "700 12.5px / 15px \"Courier Prime\", \"Courier New\", monospace",
+      "mod": null
+    },
+    "strip-int-day": {
+      "strip": {
+        "background": "rgb(244, 241, 232)",
+        "color": "rgb(22, 23, 26)",
+        "font": "600 12px Inter, system-ui, -apple-system, \"Segoe UI\", Roboto, sans-serif",
+        "minHeight": "34px",
+        "radius": "6px"
+      },
+      "num": "700 13px / 13px \"Courier Prime\", \"Courier New\", monospace",
+      "loc": "700 12.5px / 15px \"Courier Prime\", \"Courier New\", monospace",
+      "mod": null
+    },
+    "strip-ext-night": {
+      "strip": {
+        "background": "rgb(63, 138, 92)",
+        "color": "rgb(244, 246, 251)",
+        "font": "600 12px Inter, system-ui, -apple-system, \"Segoe UI\", Roboto, sans-serif",
+        "minHeight": "34px",
+        "radius": "6px"
+      },
+      "num": "700 13px / 13px \"Courier Prime\", \"Courier New\", monospace",
+      "loc": "700 12.5px / 15px \"Courier Prime\", \"Courier New\", monospace",
+      "mod": {
+        "font": "600 9.5px / 13.3px Inter, system-ui, -apple-system, \"Segoe UI\", Roboto, sans-serif",
+        "border": "solid",
+        "opacity": "0.6"
+      }
+    },
+    "strip-int-night": {
+      "strip": {
+        "background": "rgb(91, 127, 180)",
+        "color": "rgb(244, 246, 251)",
+        "font": "600 12px Inter, system-ui, -apple-system, \"Segoe UI\", Roboto, sans-serif",
+        "minHeight": "34px",
+        "radius": "6px"
+      },
+      "num": "700 13px / 13px \"Courier Prime\", \"Courier New\", monospace",
+      "loc": "700 12.5px / 15px \"Courier Prime\", \"Courier New\", monospace",
+      "mod": null
+    },
+    "strip-unknown": {
+      "strip": {
+        "background": "rgb(100, 116, 139)",
+        "color": "rgb(244, 246, 251)",
+        "font": "600 12px Inter, system-ui, -apple-system, \"Segoe UI\", Roboto, sans-serif",
+        "minHeight": "34px",
+        "radius": "6px"
+      },
+      "num": "700 13px / 13px \"Courier Prime\", \"Courier New\", monospace",
+      "loc": "700 12.5px / 15px \"Courier Prime\", \"Courier New\", monospace",
+      "mod": null
+    }
+  },
+  "geometry": {
+    "board": 1384,
+    "strip": {
+      "width": 1100,
+      "height": 34
+    },
+    "columns": [
+      {
+        "x": 14,
+        "width": 52
+      },
+      {
+        "x": 76,
+        "width": 76
+      },
+      {
+        "x": 162,
+        "width": 554
+      },
+      {
+        "x": 726,
+        "width": 110
+      },
+      {
+        "x": 846,
+        "width": 70
+      },
+      {
+        "x": 926,
+        "width": 160
+      }
+    ],
+    "gap": 3
+  }
+}

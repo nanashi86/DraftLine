@@ -1,0 +1,303 @@
+{
+  "summary": "3 of 14 scenes · 7/8 of 4 3/8 pages · filtered",
+  "legend": [
+    {
+      "text": "INT. DAY · 0",
+      "swatch": "strip-swatch strip-int-day"
+    },
+    {
+      "text": "EXT. DAY · 0",
+      "swatch": "strip-swatch strip-ext-day"
+    },
+    {
+      "text": "INT. NIGHT · 2",
+      "swatch": "strip-swatch strip-int-night"
+    },
+    {
+      "text": "EXT. NIGHT · 0",
+      "swatch": "strip-swatch strip-ext-night"
+    },
+    {
+      "text": "No day / night · 1",
+      "swatch": "strip-swatch strip-unknown"
+    }
+  ],
+  "table": {
+    "role": "table",
+    "label": "Stripboard, in script order"
+  },
+  "strips": [
+    {
+      "tag": "div",
+      "className": "strip strip-head",
+      "role": "row",
+      "title": null,
+      "cells": [
+        {
+          "className": "",
+          "role": "columnheader",
+          "text": "Sc.",
+          "title": null,
+          "html": "Sc."
+        },
+        {
+          "className": "",
+          "role": "columnheader",
+          "text": "I/E",
+          "title": null,
+          "html": "I/E"
+        },
+        {
+          "className": "",
+          "role": "columnheader",
+          "text": "Slugline",
+          "title": null,
+          "html": "Slugline"
+        },
+        {
+          "className": "",
+          "role": "columnheader",
+          "text": "D/N",
+          "title": null,
+          "html": "D/N"
+        },
+        {
+          "className": "",
+          "role": "columnheader",
+          "text": "Pages",
+          "title": null,
+          "html": "Pages"
+        },
+        {
+          "className": "",
+          "role": "columnheader",
+          "text": "Cast",
+          "title": null,
+          "html": "Cast"
+        }
+      ]
+    },
+    {
+      "tag": "button",
+      "className": "strip strip-int-night",
+      "role": "row",
+      "title": "INT. NIGHT — open scene 6 in Write",
+      "cells": [
+        {
+          "className": "strip-num",
+          "role": "cell",
+          "text": "6",
+          "title": null,
+          "html": "6"
+        },
+        {
+          "className": "strip-ie",
+          "role": "cell",
+          "text": "INT/EXT",
+          "title": null,
+          "html": "INT/EXT"
+        },
+        {
+          "className": "strip-slug",
+          "role": "cell",
+          "text": "FERRY - WHEELHOUSE",
+          "title": null,
+          "html": "<span class=\"strip-loc\">FERRY - WHEELHOUSE</span>"
+        },
+        {
+          "className": "",
+          "role": "cell",
+          "text": "NIGHT",
+          "title": null,
+          "html": "NIGHT"
+        },
+        {
+          "className": "strip-len",
+          "role": "cell",
+          "text": "2/8",
+          "title": null,
+          "html": "2/8"
+        },
+        {
+          "className": "strip-cast",
+          "role": "cell",
+          "text": "3",
+          "title": "3. AUGUSTIN",
+          "html": "3"
+        }
+      ]
+    },
+    {
+      "tag": "button",
+      "className": "strip strip-unknown",
+      "role": "row",
+      "title": "No day / night — open scene 10 in Write",
+      "cells": [
+        {
+          "className": "strip-num",
+          "role": "cell",
+          "text": "10",
+          "title": null,
+          "html": "10"
+        },
+        {
+          "className": "strip-ie",
+          "role": "cell",
+          "text": "–",
+          "title": null,
+          "html": "–"
+        },
+        {
+          "className": "strip-slug",
+          "role": "cell",
+          "text": "FERRY BAR",
+          "title": null,
+          "html": "<span class=\"strip-loc\">FERRY BAR</span>"
+        },
+        {
+          "className": "",
+          "role": "cell",
+          "text": "NIGHT",
+          "title": null,
+          "html": "NIGHT"
+        },
+        {
+          "className": "strip-len",
+          "role": "cell",
+          "text": "2/8",
+          "title": null,
+          "html": "2/8"
+        },
+        {
+          "className": "strip-cast",
+          "role": "cell",
+          "text": "2",
+          "title": "2. THEO",
+          "html": "2"
+        }
+      ]
+    },
+    {
+      "tag": "button",
+      "className": "strip strip-int-night",
+      "role": "row",
+      "title": "INT. NIGHT — open scene 13 in Write",
+      "cells": [
+        {
+          "className": "strip-num",
+          "role": "cell",
+          "text": "13",
+          "title": null,
+          "html": "13"
+        },
+        {
+          "className": "strip-ie",
+          "role": "cell",
+          "text": "INT",
+          "title": null,
+          "html": "INT"
+        },
+        {
+          "className": "strip-slug",
+          "role": "cell",
+          "text": "FERRY - CABIN",
+          "title": null,
+          "html": "<span class=\"strip-loc\">FERRY - CABIN</span>"
+        },
+        {
+          "className": "",
+          "role": "cell",
+          "text": "NIGHT",
+          "title": "LATER → NIGHT",
+          "html": "NIGHT"
+        },
+        {
+          "className": "strip-len",
+          "role": "cell",
+          "text": "3/8",
+          "title": null,
+          "html": "3/8"
+        },
+        {
+          "className": "strip-cast",
+          "role": "cell",
+          "text": "1, 2",
+          "title": "1. MARIE, 2. THEO",
+          "html": "1, 2"
+        }
+      ]
+    }
+  ],
+  "colors": {
+    "strip-head": {
+      "strip": {
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(110, 106, 100)",
+        "font": "600 10.5px Inter, system-ui, -apple-system, \"Segoe UI\", Roboto, sans-serif",
+        "minHeight": "26px",
+        "radius": "6px"
+      },
+      "num": null,
+      "loc": null,
+      "mod": null
+    },
+    "strip-int-night": {
+      "strip": {
+        "background": "rgb(91, 127, 180)",
+        "color": "rgb(244, 246, 251)",
+        "font": "600 12px Inter, system-ui, -apple-system, \"Segoe UI\", Roboto, sans-serif",
+        "minHeight": "34px",
+        "radius": "6px"
+      },
+      "num": "700 13px / 13px \"Courier Prime\", \"Courier New\", monospace",
+      "loc": "700 12.5px / 15px \"Courier Prime\", \"Courier New\", monospace",
+      "mod": null
+    },
+    "strip-unknown": {
+      "strip": {
+        "background": "rgb(100, 116, 139)",
+        "color": "rgb(244, 246, 251)",
+        "font": "600 12px Inter, system-ui, -apple-system, \"Segoe UI\", Roboto, sans-serif",
+        "minHeight": "34px",
+        "radius": "6px"
+      },
+      "num": "700 13px / 13px \"Courier Prime\", \"Courier New\", monospace",
+      "loc": "700 12.5px / 15px \"Courier Prime\", \"Courier New\", monospace",
+      "mod": null
+    }
+  },
+  "geometry": {
+    "board": 1384,
+    "strip": {
+      "width": 1100,
+      "height": 34
+    },
+    "columns": [
+      {
+        "x": 14,
+        "width": 52
+      },
+      {
+        "x": 76,
+        "width": 76
+      },
+      {
+        "x": 162,
+        "width": 554
+      },
+      {
+        "x": 726,
+        "width": 110
+      },
+      {
+        "x": 846,
+        "width": 70
+      },
+      {
+        "x": 926,
+        "width": 160
+      }
+    ],
+    "gap": 3
+  }
+}
