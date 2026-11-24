@@ -73,8 +73,9 @@ import { mergeDictionary } from './lib/structureDictionary.js';
 import { characterTabFromPrefs, closeDock, openDock, startingPanels, toggleDock } from './lib/dock.js';
 import { ACT_STRUCTURES, DEFAULT_ACT_STRUCTURE, DEFAULT_BIBLE_TAB, convertNotesActs, defaultStoryNotes, realignActs } from './lib/bible.js';
 import {
-  DICTIONARY_KEY, EMPTY_META, bootLibrary, clearJournal, isNewerProject, projects, revisionToDoc, toDoc, toRecord, writeJournal,
+  DICTIONARY_KEY, EMPTY_META, bootLibrary, clearJournal, isNewerProject, projects, revisionOf, revisionToDoc, toDoc, toRecord, writeJournal,
 } from './lib/projectStorage.js';
+import { createTabSync, holdTabLock, newTabId, openTabs } from './lib/tabSync.js';
 import {
   BACKUP_MIME, backupFileName, isBackupFile, mergeBackupDictionary, parseBackup, serializeBackup,
 } from './lib/backup.js';
@@ -158,6 +159,14 @@ const SAVE_DEBOUNCE_MS = 500;
 // that gets a .draftline copy of each script after every browser save. Its settings (the folder
 // handle, Browser vs Synced Folder) live in the library's IndexedDB settings store.
 const folderSync = createFolderSync({ settings: { get: (k) => projects.getSetting(k), set: (k, v) => projects.setSetting(k, v) } });
+// A folder write goes ahead only for the browser's current version of its script: an older save from
+// any tab, finishing late, never replaces a newer file (folderSync writeProjectNow).
+folderSync.setCurrentCheck(async (record) => revisionOf(await projects.getProject(record.id)) === revisionOf(record));
+
+// This tab (or window), among others on the same computer (lib/tabSync.js): its id names its crash
+// journal, and the lock it holds while open tells a new tab that journal isn't from a closed tab.
+const TAB_ID = newTabId();
+holdTabLock(TAB_ID);
 
 /**
  * The browser's copy of project `id`, brought in from the synced folder when the script is only there
@@ -303,7 +312,12 @@ function blockExtras(b) {
 let bootPromise = null;
 /** Once per page load (StrictMode runs effects twice; migration must not). */
 function bootOnce() {
-  bootPromise ??= bootLibrary({ store: projects, storage: LOCAL, makeFirstDoc: () => blankDoc() });
+  bootPromise ??= openTabs()
+    .then((live) => bootLibrary({ store: projects, storage: LOCAL, makeFirstDoc: () => blankDoc(), liveTabs: live || new Set() }))
+    .then((b) => {
+      projects.track(b.project); // this tab's version of the script it opens with
+      return b;
+    });
   return bootPromise;
 }
 
@@ -327,6 +341,7 @@ export default function App() {
 function bootMessage(boot) {
   if (!boot.persistent) return 'This browser is blocking storage — nothing will be kept. Use Export to save files.';
   if (boot.recovered) return 'Recovered changes from your last session';
+  if (boot.preserved) return 'Unsaved changes from a closed tab were kept as a snapshot (⋮ → View Snapshots)';
   if (boot.migrated) return 'Your script is now in Projects — open the library from its title';
   return null;
 }
@@ -774,6 +789,9 @@ function Workspace({ boot }) {
     || saved.viewOnly !== isLocked;
   const latest = useRef(null);
   const extraRef = useRef(initialDoc.extra || {});
+  const savingRef = useRef(0); // saves in flight (a tab mid-save isn't "clean": see adoptFromOtherTab)
+  const tabConflictRef = useRef(null); // the open tab conflict ({ id, … }): this tab doesn't save that script meanwhile
+  const onTabConflictRef = useRef(null); // saveNow → the tab-conflict handler below
   const onFolderGuardRef = useRef(null); // saveNow → the folder-conflict handler below
   const conflictQuiet = useRef(new Set()); // folder conflicts: project ids asked about already (open, or "Decide later")
   useLayoutEffect(() => {
@@ -795,6 +813,8 @@ function Workspace({ boot }) {
   const saveNow = useCallback(() => {
     const s = latest.current;
     if (s.newerProject) return Promise.resolve(null); // never written by this build (see newerProject)
+    // Changed or deleted in another tab, and the writer hasn't chosen yet: nothing is saved over it.
+    if (tabConflictRef.current?.id === s.projectId) return Promise.resolve(null);
     const snap = {
       meta: s.meta, blocks: s.blocks, beats: s.beats, characters: s.characters, storyNotes: s.storyNotes, storyDna: s.storyDna,
       production: s.production, revisions: s.revisions, viewOnly: s.viewOnly,
@@ -803,10 +823,11 @@ function Workspace({ boot }) {
     // "Saving…" clears as soon as the browser copy is safe; the folder write follows on its own.
     const markSaved = async (rec) => {
       const ok = await projects.isPersistent();
-      clearJournal(LOCAL);
+      clearJournal(LOCAL, TAB_ID);
       if (latest.current.projectId === s.projectId) setSaved({ ...snap, at: rec.updatedAt, createdAt: rec.createdAt, ok });
     };
     let marked = null;
+    savingRef.current += 1;
     return saveProjectEverywhere({
       store: projects,
       sync: folderSync,
@@ -820,9 +841,17 @@ function Workspace({ boot }) {
         if ((folder === 'conflict' || folder === 'newer') && latest.current.projectId === s.projectId) onFolderGuardRef.current?.(folder, s.projectId);
         return record;
       })
-      .catch(() => {
+      .catch((e) => {
+        // Saved in another tab since this one last had it (or deleted there): nothing was written.
+        if (e?.name === 'ConflictError') {
+          if (latest.current.projectId === s.projectId) onTabConflictRef.current?.(e, s.projectId);
+          return null;
+        }
         if (latest.current.projectId === s.projectId) setSaved((prev) => ({ ...prev, ok: false }));
         return null;
+      })
+      .finally(() => {
+        savingRef.current -= 1;
       });
   }, []);
 
@@ -878,8 +907,8 @@ function Workspace({ boot }) {
       if (!s.dirty || s.newerProject) return;
       writeJournal(LOCAL, {
         id: s.projectId, meta: s.meta, blocks: s.blocks, beats: s.beats, characters: s.characters, storyNotes: s.storyNotes, storyDna: s.storyDna,
-        production: s.production, viewOnly: s.viewOnly,
-      });
+        production: s.production, viewOnly: s.viewOnly, extra: s.extra, // snapshots stay in the library (too big for this)
+      }, { tabId: TAB_ID, base: projects.baseOf(s.projectId) });
       saveNow();
     };
     const onVis = () => document.visibilityState === 'hidden' && flush();
@@ -1121,6 +1150,7 @@ function Workspace({ boot }) {
   // ---- Projects ----
   /** Show a stored project: script, title page, beats, Bible; fresh undo history; nothing unsaved. */
   const applyProject = useCallback((rec) => {
+    projects.track(rec); // this tab's version of it: saves check it's still the stored one
     hintClock.current.openedAt = Date.now(); // a script just opened or imported: hints wait a minute
     const doc = toDoc(rec);
     hintClock.current.openedBlank = scriptIsBlank(doc.blocks);
@@ -1249,6 +1279,241 @@ function Workspace({ boot }) {
     if (message) notify(message);
     return rec;
   }, [applyProject, flushSave, notify]);
+
+  // ---- Another tab or window saved (or deleted) the open script ----
+  // Nothing here can save over newer work: the library refuses a save whose version isn't the stored
+  // one (projectStorage ConflictError), in the same transaction as the write. This part only reacts:
+  //   nothing unsaved here → take the newer version in place (view, scroll and caret kept, no undo step);
+  //   unsaved changes → ask which to keep (SyncConflictModal 'tab'); the other becomes a snapshot, and
+  //     the choice is written only if the stored version is still the one shown (else: ask again);
+  //   deleted there → Restore it, or let it go (said plainly when that drops unsaved changes);
+  //   a closed tab's unsaved changes to a script deleted since (boot.orphans) → the same choice.
+  const firstOrphan = (list) => (list?.length ? { kind: 'orphan', id: list[0].journal.id, title: list[0].journal.meta?.title, orphan: list[0], rest: list.slice(1) } : null);
+  const [tabConflict, setTabConflict] = useState(() => firstOrphan(boot.orphans));
+  const [tabBusy, setTabBusy] = useState(false);
+  tabConflictRef.current = tabConflict;
+  const composingRef = useRef(false); // an IME / phone keyboard is composing a word
+  useEffect(() => {
+    const on = () => { composingRef.current = true; };
+    const off = () => { composingRef.current = false; };
+    document.addEventListener('compositionstart', on, true);
+    document.addEventListener('compositionend', off, true);
+    return () => {
+      document.removeEventListener('compositionstart', on, true);
+      document.removeEventListener('compositionend', off, true);
+    };
+  }, []);
+  /** Nothing in this tab that a newer version could replace: no unsaved change, save, word or field in progress. */
+  const tabIsClean = () => {
+    if (latest.current.dirty || savingRef.current > 0 || composingRef.current) return false;
+    const a = document.activeElement;
+    // A field outside the script (a production note, a day's note, a title) may hold typing not yet committed.
+    return !(a && a !== document.body && a.matches?.('input, textarea, select, [contenteditable="true"]') && !a.closest('.sheet'));
+  };
+  /** The open document as the library takes it. */
+  const currentDoc = () => {
+    const s = latest.current;
+    return {
+      id: s.projectId, meta: s.meta, blocks: s.blocks, beats: s.beats, characters: s.characters, storyNotes: s.storyNotes, storyDna: s.storyDna,
+      production: s.production, revisions: s.revisions, viewOnly: s.viewOnly, extra: s.extra, pages: s.pages, scenes: s.scenes,
+    };
+  };
+  const adoptNoted = useRef(0);
+  /** Show `rec` (another tab's newer save of the open script) in place: same view, scroll, zoom and caret. */
+  const adoptFromOtherTab = useCallback((rec, { quiet = false } = {}) => {
+    if (isNewerProject(rec)) {
+      applyProject(rec); // a newer DraftLine's format: opened read-only, as any time
+      return;
+    }
+    const a = document.activeElement;
+    const caret = a?.matches?.('.sheet textarea[data-id]')
+      ? { id: a.dataset.id, part: a.dataset.part ?? null, start: a.selectionStart, end: a.selectionEnd } : null;
+    projects.track(rec);
+    folderSync.adopt(rec.id, rec.updatedAt); // the folder copy that tab wrote is in step, not a conflict
+    const doc = toDoc(rec);
+    const m = { ...EMPTY_META, ...doc.meta };
+    const bl = doc.blocks.length ? doc.blocks : [makeBlock('scene')];
+    setMeta(m);
+    reset(bl); // the other tab's version replaces the history here too: no undo back into the older one
+    setBeats(relinkSceneCards(doc.beats, bl));
+    setCharacters(doc.characters);
+    setStoryNotes(doc.storyNotes);
+    setStoryDna(doc.storyDna);
+    setProduction(doc.production);
+    setRevisions(doc.revisions);
+    setProjectLocked(doc.isLocked === true);
+    extraRef.current = doc.extra || {};
+    setIsLocked(doc.viewOnly === true);
+    setSaved({
+      meta: m, blocks: bl, beats: doc.beats, characters: doc.characters, storyNotes: doc.storyNotes, storyDna: doc.storyDna,
+      production: doc.production, revisions: doc.revisions, viewOnly: doc.viewOnly === true, at: rec.updatedAt, ok: true,
+    });
+    clearJournal(LOCAL, TAB_ID);
+    if (caret) {
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        const el = document.querySelector(`.sheet textarea[data-id="${CSS.escape(caret.id)}"]${caret.part != null ? `[data-part="${CSS.escape(caret.part)}"]` : ''}`);
+        if (!el) return;
+        el.focus({ preventScroll: true });
+        const n = el.value.length;
+        el.setSelectionRange(Math.min(caret.start, n), Math.min(caret.end, n));
+      }));
+    }
+    // One quiet note, however many saves arrive in a row.
+    if (!quiet && Date.now() - adoptNoted.current > 10000) notify('Updated with changes from another tab');
+    if (!quiet) adoptNoted.current = Date.now();
+  }, [applyProject, notify, reset]);
+
+  /** Has another tab saved or deleted the open script since this tab last had it? React to it. */
+  const checking = useRef(false);
+  const checkOtherTabs = async () => {
+    if (checking.current) return;
+    checking.current = true;
+    let again = false;
+    try {
+      const id = latest.current.projectId;
+      const stored = await projects.getProject(id).catch(() => undefined);
+      if (stored === undefined || latest.current.projectId !== id) return; // storage unreadable, or switched away
+      const open = tabConflictRef.current;
+      if (open && open.id === id) {
+        // A choice is on screen: keep it about what's stored now (a third tab may have saved meanwhile).
+        if (!stored && open.kind === 'changed') setTabConflict({ kind: 'deleted', id, title: open.title });
+        else if (stored && open.kind === 'changed' && revisionOf(stored) !== open.seen) setTabConflict({ ...open, stored, seen: revisionOf(stored) });
+        else if (stored && open.kind === 'deleted') setTabConflict({ kind: 'changed', id, stored, seen: revisionOf(stored), title: stored.title });
+        return;
+      }
+      const base = projects.baseOf(id);
+      if (!stored) {
+        if (base) setTabConflict({ kind: 'deleted', id, title: latest.current.meta.title });
+        return;
+      }
+      if (revisionOf(stored) === base) return;
+      if (tabIsClean()) adoptFromOtherTab(stored);
+      else if (latest.current.dirty) setTabConflict({ kind: 'changed', id, stored, seen: revisionOf(stored), title: stored.title });
+      else again = true; // a field mid-edit, a word mid-composition or a save in flight: look again shortly
+    } finally {
+      checking.current = false;
+    }
+    if (again) setTimeout(() => checkRef.current?.(), 400);
+  };
+  const checkRef = useRef(null);
+  checkRef.current = checkOtherTabs;
+  useLayoutEffect(() => {
+    onTabConflictRef.current = (e, id) => {
+      if (tabConflictRef.current?.id === id) return;
+      if (e.kind === 'deleted') setTabConflict({ kind: 'deleted', id, title: latest.current.meta.title });
+      else setTabConflict({ kind: 'changed', id, stored: e.stored, seen: revisionOf(e.stored), title: e.stored?.title });
+    };
+  });
+  // Hear other tabs' saves (and tell them ours: every write the library makes), and look again
+  // whenever this tab comes back into view, in case a message was missed.
+  useEffect(() => {
+    const tabs = createTabSync({
+      tabId: TAB_ID,
+      onMessage: (m) => {
+        if (m.id === latest.current.projectId) checkRef.current?.();
+        setLibraryRev((n) => n + 1); // an open Projects list shows the change
+      },
+    });
+    const off = projects.subscribe((m) => tabs.announce(m.type, m.id, m.revision));
+    const onShow = () => {
+      if (document.visibilityState === 'visible') checkRef.current?.();
+    };
+    document.addEventListener('visibilitychange', onShow);
+    window.addEventListener('focus', onShow);
+    return () => {
+      off();
+      tabs.close();
+      document.removeEventListener('visibilitychange', onShow);
+      window.removeEventListener('focus', onShow);
+    };
+  }, []);
+
+  /** After a choice is saved: this is the open document, and nothing is unsaved. */
+  const markResolved = (rec, doc) => {
+    setRevisions(rec.revisions);
+    setSaved({
+      meta: doc.meta, blocks: doc.blocks, beats: doc.beats, characters: doc.characters, storyNotes: doc.storyNotes, storyDna: doc.storyDna,
+      production: doc.production, revisions: rec.revisions, viewOnly: doc.viewOnly, at: rec.updatedAt, ok: true,
+    });
+    clearJournal(LOCAL, TAB_ID);
+    folderSync.writeProject(rec, latest.current.fileOptions);
+  };
+  /** A choice couldn't be written: why, and the dialog stays (both versions are still where they were). */
+  const resolveFailed = (e, c) => {
+    if (e?.name === 'ConflictError') {
+      if (e.kind === 'deleted') setTabConflict({ kind: 'deleted', id: c.id, title: c.title });
+      else setTabConflict({ kind: 'changed', id: c.id, stored: e.stored, seen: revisionOf(e.stored), title: e.stored?.title || c.title });
+      notify('It changed again in another tab, so nothing was overwritten. Choose again.', 6000);
+    } else {
+      notify('Couldn’t save that choice, so nothing was changed. Both versions are still here.', 6000);
+    }
+  };
+  const resolveTabKeepMine = async () => {
+    const c = tabConflict;
+    if (!c || tabBusy) return;
+    setTabBusy(true);
+    try {
+      if (c.kind === 'orphan') {
+        const j = c.orphan.journal;
+        await projects.restoreDeleted({ ...j, id: j.id });
+        try { LOCAL?.removeItem(c.orphan.key); } catch { /* ignore */ }
+        setTabConflict(firstOrphan(c.rest));
+        setLibraryRev((n) => n + 1);
+        notify(`Restored “${j.meta?.title?.trim() || 'Untitled'}” with the closed tab’s changes · it’s in Projects`);
+        return;
+      }
+      const doc = currentDoc();
+      if (c.kind === 'deleted') {
+        const rec = await projects.restoreDeleted(doc);
+        setTabConflict(null);
+        markResolved(rec, doc);
+        notify(`Restored “${rec.title?.trim() || 'Untitled'}”`);
+        return;
+      }
+      const label = `Other tab’s version · ${new Date(c.stored?.updatedAt || Date.now()).toLocaleString()}`;
+      const rec = await projects.saveActiveProject(doc, { expect: c.seen, snapshotPrevious: label });
+      setTabConflict(null);
+      markResolved(rec, doc);
+      notify('Kept this version · the other tab’s version is saved as a snapshot');
+    } catch (e) {
+      resolveFailed(e, c);
+    } finally {
+      setTabBusy(false);
+    }
+  };
+  const resolveTabUseTheirs = async () => {
+    const c = tabConflict;
+    if (!c || tabBusy) return;
+    setTabBusy(true);
+    try {
+      if (c.kind === 'orphan') {
+        try { LOCAL?.removeItem(c.orphan.key); } catch { /* ignore */ }
+        setTabConflict(firstOrphan(c.rest));
+        notify('Discarded the closed tab’s changes');
+        return;
+      }
+      if (c.kind === 'deleted') {
+        // Let it go: open another script (or a new one); nothing is written for the deleted one.
+        const next = (await projects.getAllProjects())[0];
+        projects.forget(c.id);
+        setTabConflict(null);
+        if (next) applyProject(next);
+        else applyProject(await projects.saveActiveProject(blankDoc()));
+        notify(`“${c.title?.trim() || 'Untitled'}” is gone · opened “${(next?.title || 'Untitled').trim() || 'Untitled'}”`);
+        return;
+      }
+      const doc = currentDoc();
+      const label = `This tab’s version, before using the other tab’s · ${new Date().toLocaleString()}`;
+      const rec = await projects.keepStoredWithSnapshot(c.id, doc, { expect: c.seen, label });
+      setTabConflict(null);
+      adoptFromOtherTab(rec, { quiet: true });
+      notify('Opened the other tab’s version · this tab’s version is saved as a snapshot');
+    } catch (e) {
+      resolveFailed(e, c);
+    } finally {
+      setTabBusy(false);
+    }
+  };
 
   const newScript = async (title = 'Untitled') => {
     await openAsNewProject(blankDoc(title), `New script “${title}” · your other scripts are in Projects`);
@@ -3373,6 +3638,20 @@ function Workspace({ boot }) {
             onKeepMine={keepMyVersion}
             onUseTheirs={useFolderVersion}
             onLater={() => setSyncConflict(null)}
+          />
+        )}
+        {tabConflict && (
+          <SyncConflictModal
+            key={tabConflict.kind}
+            source={tabConflict.kind === 'changed' ? 'tab' : 'deleted'}
+            closedTab={tabConflict.kind === 'orphan'}
+            title={tabConflict.title}
+            theirsAt={tabConflict.stored?.updatedAt}
+            dirty={tabConflict.kind === 'orphan' || dirty}
+            busy={tabBusy}
+            onKeepMine={resolveTabKeepMine}
+            onUseTheirs={resolveTabUseTheirs}
+            onLater={() => {}}
           />
         )}
         {renumberOpen && (

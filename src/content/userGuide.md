@@ -75,6 +75,7 @@ From then on, every save goes to the browser first (instant and offline-safe) an
 - **Change Folder…** links a different folder. **Disconnect** stops syncing and leaves the files where they are. Choosing **App Storage (Zero Setup)** pauses syncing but remembers the folder.
 - **Deleting a script** in DraftLine also takes its file out of the linked folder, so it doesn't come back. The file isn't erased: it's moved into a **Trash** folder inside the linked folder, renamed with the date it was deleted, so you can recover it there. If it can't be moved, DraftLine leaves it where it is and asks whether to delete it permanently.
 - **Two computers, one script:** the most recent save wins. DraftLine doesn't merge edits made on two computers at the same time.
+- **Two tabs or windows, one script** (on one computer) never save over each other. A tab with nothing unsaved quietly shows the other tab's newer version (**Updated with changes from another tab**). If both have unsaved changes, the one that didn't save first asks: **Keep this version** or **Use the other tab's version**, and the other is kept as a snapshot. A script deleted in another tab isn't brought back unless you choose **Restore it**. Changes from a tab that closed before saving come back the next time DraftLine opens, as the script or, if it was saved since, as a snapshot. Different scripts in different tabs don't affect each other at all.
 
 Safari, Firefox and phone browsers can't link folders. There, DraftLine uses browser storage only, so keep a backup file now and then (**File → Backup Project**, reopened with **File → Open**):
 
@@ -422,7 +423,7 @@ The Stripboard is also where you plan the shoot. Until you add a shooting day it
 - **Cast numbers stay put.** The first shooting day fixes everyone's cast number. A character who appears later gets the next free number, and **Rename** keeps a character's number. Nothing is renumbered unless you ask: on the Stripboard, **⋮ → Renumber Cast…** asks first, then numbers everyone again by lines (it's for the whole project, not one day). {{key:Ctrl+Z}} undoes it.
 - **Undo.** Every schedule change is a step in the same undo history as your writing: {{key:Ctrl+Z}} takes back one move at a time. The schedule never changes your script: it's an order of scenes kept beside it, saved with the project.
 - If a scene on a day leaves the script (its heading deleted or turned into action), it stays on its day, hidden, in case you undo. The summary line says so, with **Remove from the schedule** to clear it on purpose.
-- One project open in two tabs: the tab that saves last wins. Schedule in one tab at a time.
+- The same project open in two tabs or windows is safe: see Storage, sync & offline.
 
 ### Reports
 

@@ -15,7 +15,13 @@
 | **Unknown-field pass-through.** Fields this build doesn't know are kept on every save, duplicate, backup, restore, snapshot and folder write. Known fields always win; only plain JSON data is carried (no functions, cycles or prototype keys). | `lib/passThrough.js`; `projectStorage.js` `RECORD_FIELDS`, `toRecord` / `toDoc` (`extra`), `saveActiveProject` (merges the stored record's unknown fields); `productionData.js` `normalizeProduction` (unknown `production` and per-scene keys); `revisions.js` (snapshots capture `extra`) | `tests/dataIntegrity.test.js` cases 1–8 |
 | **Project format version.** Records carry `schemaVersion` (`PROJECT_SCHEMA_VERSION = 1`); records without it read as 1 and only gain the field on their next save. `PRODUCTION_VERSION` stays 1 and is never lowered. **No format bump was needed.** | `projectStorage.js` | case 6 |
 | **Newer-version guard.** A project with a higher `schemaVersion` or `production.version` opens **read-only** (status bar: Read-only, a plain message; reading, printing and exporting still work). The library refuses to save over it (`NewerProjectError`), no crash journal is written for it, and journal recovery skips it. | `projectStorage.js` `isNewerProject`, `saveActiveProject`, `bootLibrary`; `App.jsx` (`newerProject`); `LockBadge.jsx` | cases 9–10 |
+| **Two tabs or windows, one project (Phase 1.5).** Every write gives the record a new `writeId`; its version is `updatedAt:writeId`. Each tab's library remembers the version it has of each project (`track`, its own writes); a save is refused with a `ConflictError` (nothing written) unless the stored version is still that one. The check and the write are **one IndexedDB readwrite transaction**, and browsers run those one at a time across tabs, so two near-simultaneous saves can't both win. Rename, lock, folder import and delete make new versions too. | `projectStorage.js` `revisionOf`, `saveActiveProject`, `update` (backend), `ConflictError` | `tests/tabSafety.test.js`; `tests/browser/multiTab.browser.js` |
+| **Conflict choices are checked too.** **Keep this version** writes only if the stored version is still the one shown, and the replaced version becomes a snapshot *in the same transaction* (`snapshotPrevious`); **Use the other tab's version** adds this tab's document as a snapshot to the stored record, under the same check (`keepStoredWithSnapshot`). If a third tab saved meanwhile, nothing is written and the dialog asks again with the newer version. A failed write changes nothing, and the dialog stays. | `projectStorage.js`; `App.jsx` (`resolveTabKeepMine` / `resolveTabUseTheirs`); `SyncConflictModal.jsx` (`source="tab"`) | same |
+| **Clean tabs follow; busy tabs ask.** A `BroadcastChannel` message after every write (and a re-check whenever a tab comes back into view) lets a tab with nothing unsaved (no unsaved change, save in flight, word mid-composition or field being typed in) take the newer version in place: view, scroll, zoom and caret kept, undo history replaced (no undo back into the older version), one quiet toast however many saves arrive. A tab with unsaved changes stops saving that script and asks. These messages only speed things up: the transaction is the guarantee. | `lib/tabSync.js`; `App.jsx` (`checkOtherTabs`, `adoptFromOtherTab`) | same |
+| **Deleted in another tab.** Never brought back by an autosave (the save is refused); the writer chooses **Restore it** (`restoreDeleted`, only while it's still gone) or lets it go, told plainly when that drops unsaved changes. | `projectStorage.js` `restoreDeleted`; `App.jsx` | same |
+| **Crash journals, one per tab.** `draftline:journal:v2:<tabId>`, carrying the version the tab started from. At start-up: nothing saved since → restored (marked `recoveredJournal`, so never twice); saved since → kept as a snapshot ("Unsaved changes from a closed tab", id `journal-<jid>`, so never twice); script deleted since → kept and offered (Restore or discard). A journal is removed only after its state is in the library; one whose tab is still open (it holds a Web Lock for its lifetime) is left alone. The shared v1 journal of older builds keeps its old rule. | `projectStorage.js` `writeJournal`, `reconcileJournals`, `bootLibrary`; `tabSync.js` `holdTabLock`, `openTabs` | same |
 | **Linked-folder stale-write guard.** Before overwriting a script's file, DraftLine checks the copy there (only reading it when it changed since DraftLine last wrote it). It doesn't overwrite a **newer DraftLine's** file, or a file **saved elsewhere** since this browser was last in step with it (exact match, so a computer whose clock runs behind is still caught). The writer chooses **Keep this version** or **Use the folder's version**; the other becomes a snapshot. | `folderSync.js` `checkBeforeWrite`, `adopt`, `saveProjectEverywhere`; `App.jsx`; `SyncConflictModal.jsx` | folder-sync cases |
+| **Folder writes across tabs.** Each script's check-and-write holds a browser-wide Web Lock (`draftline-folder:<id>`), and writes only if the record is still the library's current version, so an older save finishing late is skipped, never written over a newer file. Files written by any tab of this browser are recognised by their exact version (`draftline_folder_written`), so a tab that took another tab's version doesn't see a false "changed somewhere else". | `folderSync.js` `withFileLock`, `setCurrentCheck`, `WRITTEN_KEY` | `tests/tabSafety.test.js` folder cases |
 
 ### Still not protected (known limits)
 
@@ -25,8 +31,17 @@
 - **Windows left open across a deploy.** The service worker loads the newest app whenever a window opens online, but
   an already-open window keeps running the old code until it's reloaded, and an offline launch uses the cached app.
   There's no "new version" notice yet. A quiet one in the status bar is a candidate improvement.
-- **Two tabs on the same script** in one browser still overwrite each other (last save wins). Candidate:
-  `BroadcastChannel` coordination (§4.6).
+- **Two tabs: an older DraftLine still open.** Builds from before Phase 1.5 don't check versions: an old tab can still
+  save over a newer version. New tabs notice (its save changes `updatedAt`) and keep their own unsaved work, but if no
+  new tab has unsaved changes at that moment, the old tab's save wins. Old windows reload onto the new version when
+  they next open a panel (the stale-build reload), which keeps the window short.
+- **Two tabs without IndexedDB** (some private windows): storage is in memory per tab, so nothing is shared and
+  nothing is kept anyway. Without `BroadcastChannel` a tab notices later (when it tries to save, or comes back into
+  view); without Web Locks a journal from a hidden-but-open tab may be reconciled early (lossless: at worst a false
+  "changed in another tab" when that tab next saves) and folder writes aren't serialised across tabs (folder sync
+  itself needs Chrome or Edge, which have Web Locks).
+- **The browser dies before the journal is written** (power loss, a killed process): the last half-second of typing can
+  be lost, as before. The journal is a backstop, not a guarantee.
 - **Folder conflict detection** relies on the folder copy's `updatedAt` and file timestamps. A sync service that
   delivers changes late can still produce a conflict after the fact; DraftLine then asks rather than overwriting.
 
@@ -86,9 +101,8 @@ the top level, `production.version: 2` with a `schedule` inside it and extra per
 
 ### Untested or unresolved
 
-- **Two tabs, one project.** There is no cross-tab coordination (no `BroadcastChannel` or Web Locks), so two tabs
-  editing the same script overwrite each other and the last save wins. This is existing behaviour, not new risk;
-  [`co-write.md`](co-write.md) lists cross-tab sync as a possible stepping stone.
+- **Two tabs, one project.** *(Resolved in Phase 1.5: see §0.)* Before it, two tabs editing the same script
+  overwrote each other and the last save won.
 - **Two computers editing at the same time through a synced folder.** A newer copy is pulled only when sync turns on
   (start-up, permission granted, the tab coming back); a save writes the file without first checking whether the
   copy on disk has become newer. The public pages already say "the latest save wins"; a pre-write check is a
@@ -160,8 +174,8 @@ the top level, `production.version: 2` with a `schedule` inside it and extra per
 
 - Before a folder write, compare the file's `updatedAt` on disk; if it's newer than the copy this tab loaded, don't
   overwrite: keep both and tell the writer.
-- Coordinate tabs with `BroadcastChannel` (free, local): a second tab opening the same script becomes read-only or
-  follows the first.
+- Coordinate tabs with `BroadcastChannel` (free, local). *Done in Phase 1.5, without making a second tab read-only: a
+  version check in the write, with messages so clean tabs follow and busy ones ask (§0).*
 
 ## 5. How the experiment was run
 

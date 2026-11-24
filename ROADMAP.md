@@ -57,6 +57,8 @@ before work starts, and ships when it's ready.
     location, cast, INT/EXT, time of day).
   - **Budget**: cast, crew, locations, props, wardrobe, equipment, vehicles, post and your own lines; costs linked to
     breakdown and schedule quantities, totals, contingency, your currency and CSV export.
+  - **Multi-tab protection (Phase 1.5, done):** the same project in two tabs or windows can't save over itself; the
+    other version is always kept. Details: [`docs/specs/data-integrity.md`](docs/specs/data-integrity.md).
   - **Before this ships:** data-safety groundwork so newer project data can never be lost by an older copy of
     DraftLine (unknown-field preservation, a schema update, compatibility tests). Details:
     [`docs/specs/data-integrity.md`](docs/specs/data-integrity.md).

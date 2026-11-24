@@ -29,12 +29,29 @@
 
 import { BACKUP_EXT, createBackup, parseBackup, serializeBackup, backupFileName } from './backup.js';
 import { revisionRecord } from './revisions.js';
-import { isNewerProject } from './projectStorage.js';
+import { isNewerProject, revisionOf } from './projectStorage.js';
 
 /** Settings keys (in the library's IndexedDB settings store). */
 export const HANDLE_KEY = 'draftline_synced_directory_handle';
 export const DESTINATION_KEY = 'draftline_storage_destination'; // 'browser' | 'folder'
 export const FILES_KEY = 'draftline_synced_files'; // { [projectId]: fileName } — files DraftLine wrote
+/**
+ * { [projectId]: ["updatedAt:writeId"…] } — the exact versions any tab of this browser wrote to the folder
+ * (the last few per script). Kept in the library's settings, so every tab sees them: a file another tab
+ * wrote is ours, not "changed somewhere else". The whole version, not just writeId: an older DraftLine
+ * elsewhere carries writeId over unchanged when it saves, but always changes updatedAt.
+ */
+export const WRITTEN_KEY = 'draftline_folder_written';
+const WRITTEN_KEEP = 20;
+
+/**
+ * Run `fn` holding the browser-wide lock for one script's folder file (Web Locks: every tab and window
+ * of this origin), so two tabs never interleave a check and a write. Without Web Locks (folder sync
+ * needs Chrome or Edge, which have them) it just runs.
+ */
+export function withFileLock(id, fn, locks = globalThis.navigator?.locks) {
+  return locks?.request ? locks.request(`draftline-folder:${id}`, fn) : fn();
+}
 /** Snapshot files live in this subfolder (visible in Explorer / Finder / Drive, unlike a dot-folder). */
 export const SNAPSHOT_DIR = 'Snapshots';
 export const TRASH_DIR = 'Trash'; // deleted scripts' files go here, not away (only top-level files are scripts)
@@ -283,7 +300,10 @@ async function listFiles(dir) {
  *   needsPermission — folder chosen and linked, but the browser wants a click to allow writing
  *   syncing, lastSyncedAt, error
  */
-export function createFolderSync({ settings, win = globalThis, now = () => Date.now() } = {}) {
+export function createFolderSync({ settings, win = globalThis, now = () => Date.now(), locks = globalThis.navigator?.locks } = {}) {
+  // Is `record` still the browser's current version of its project? (App: the library's revision.)
+  // A write whose version is no longer current is skipped: the newer one is (or will be) written.
+  let isCurrent = null;
   let handle = null;
   const listeners = new Set();
   const index = new Map(); // top-level file name → project id
@@ -411,6 +431,11 @@ export function createFolderSync({ settings, win = globalThis, now = () => Date.
     }
     if (!there || there.id !== record.id) return null;
     if (isNewerProject(there)) return 'newer';
+    // Written by a tab of this browser (another tab's save of the same script): ours to replace.
+    if (there.writeId) {
+      const ours = await Promise.resolve(settings.get(WRITTEN_KEY)).catch(() => null);
+      if (ours?.[record.id]?.includes(revisionOf(there))) return null;
+    }
     const theirs = there.updatedAt || 0;
     if (theirs === record.updatedAt) return null; // the same save
     // Compared with the copy this browser last wrote or took in: any other value means it was
@@ -420,7 +445,23 @@ export function createFolderSync({ settings, win = globalThis, now = () => Date.
     return baseUpdatedAt != null && theirs > baseUpdatedAt ? 'conflict' : null;
   }
 
-  async function writeProjectNow(record, options) {
+  /** Note that this browser wrote `record`'s version to the folder (shared by every tab). */
+  async function noteWritten(record) {
+    if (!record.writeId) return;
+    const v = revisionOf(record);
+    const all = (await Promise.resolve(settings.get(WRITTEN_KEY)).catch(() => null)) || {};
+    const list = [...(all[record.id] || []).filter((w) => w !== v), v].slice(-WRITTEN_KEEP);
+    await Promise.resolve(settings.set(WRITTEN_KEY, { ...all, [record.id]: list })).catch(() => {});
+  }
+
+  // One script's check-and-write holds its file lock, and only writes the current version: an older
+  // save from any tab that finishes late is skipped instead of replacing a newer file.
+  const writeProjectNow = (record, options) => withFileLock(record.id, async () => {
+    if (isCurrent && !(await isCurrent(record).catch(() => true))) return 'skipped';
+    return writeProjectLocked(record, options);
+  }, locks);
+
+  async function writeProjectLocked(record, options) {
     if (!isActive()) return 'skipped';
     emit({ syncing: true });
     const ownerOf = (n) => (index.has(n) ? index.get(n) ?? FOREIGN : null);
@@ -445,6 +486,7 @@ export function createFolderSync({ settings, win = globalThis, now = () => Date.
     }
     await writeText(handle, name, serializeBackup(record, options));
     known.set(record.id, record.updatedAt);
+    await noteWritten(record);
     try {
       const f = await (await handle.getFileHandle(name)).getFile();
       wrote.set(name, { lastModified: f.lastModified, size: f.size });
@@ -600,6 +642,11 @@ export function createFolderSync({ settings, win = globalThis, now = () => Date.
      */
     adopt(id, updatedAt) {
       if (id && Number.isFinite(updatedAt)) known.set(id, updatedAt);
+    },
+
+    /** How to tell a record is still the browser's current version (see writeProjectNow). */
+    setCurrentCheck(fn) {
+      isCurrent = typeof fn === 'function' ? fn : null;
     },
 
     /**

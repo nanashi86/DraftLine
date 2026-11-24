@@ -24,7 +24,7 @@
 import { ELEMENT_META, buildItems, makeBlock, paginate } from './screenplay.js';
 import { migrateBlock } from './formatting.js';
 import { normalizeBeats, validBeats } from './beats.js';
-import { normalizeRevisions, revisionRecord } from './revisions.js';
+import { createRevision, normalizeRevisions, revisionRecord } from './revisions.js';
 import { migrateStoryBible, normalizeCharacters, normalizeStoryNotes, validCharacters } from './bible.js';
 import { normalizeStoryDna } from './storyDna.js';
 import { PRODUCTION_VERSION, normalizeProduction } from './productionData.js';
@@ -41,8 +41,10 @@ const SETTINGS = 'settings';
 export const LEGACY_KEYS = ['draftline:script:v2', 'draftline:script:v2:backup', 'draftline:script:v1'];
 /** Settings key for the writer's own Story Glossary wording (all projects). */
 export const DICTIONARY_KEY = 'structureDictionary';
-/** Crash journal: the unsaved state written synchronously when the tab closes mid-save. */
+/** Crash journal (before Phase 1.5: one for every tab, read once and cleared). */
 export const JOURNAL_KEY = 'draftline:journal:v1';
+/** Crash journals now: one per tab, `${JOURNAL_PREFIX}${tabId}`, each naming the version it started from. */
+export const JOURNAL_PREFIX = 'draftline:journal:v2:';
 
 /** Title page fields stored on the record (flat, beside the script). */
 export const META_FIELDS = [
@@ -64,7 +66,40 @@ export const PROJECT_SCHEMA_VERSION = 1;
 export const RECORD_FIELDS = new Set([
   'id', ...META_FIELDS, 'script', 'beats', 'characters', 'storyNotes', 'storyDna', 'production', 'revisions',
   'isLocked', 'viewOnly', 'pages', 'scenes', 'createdAt', 'updatedAt', 'schemaVersion',
+  'writeId', // which save wrote this version (see revisionOf)
+  'recoveredJournal', // a crash journal restored into this version (so restoring it again is a no-op)
 ]);
+
+// ---- Versions: two tabs (or windows) on one project ---------------------------------------
+//
+// Every write gives the record a new `writeId`. A version is "updatedAt:writeId": a save from an older
+// DraftLine (which doesn't know writeId and carries it over unchanged) still changes updatedAt, so it
+// still counts as a new version. Each tab's store remembers the version of every project it last read
+// into the editor or wrote itself (track / its own writes); a save of a tracked project is refused
+// with a ConflictError unless the stored version is still that one. The check and the write happen in
+// one IndexedDB transaction, and IndexedDB runs readwrite transactions one at a time across tabs, so
+// two near-simultaneous saves can't both win. docs/specs/data-integrity.md has the whole design.
+
+/** The stored version of a record: "updatedAt:writeId" (null for none). */
+export const revisionOf = (rec) => (rec ? `${Number.isFinite(rec.updatedAt) ? rec.updatedAt : 0}:${rec.writeId || ''}` : null);
+
+export const newWriteId = () => `w${Date.now().toString(36)}${Math.random().toString(36).slice(2, 10)}`;
+
+/**
+ * The project changed since this tab last had it: saved in another tab or window ('changed', with the
+ * stored record as `stored`), or deleted there ('deleted'). Nothing was written.
+ */
+export class ConflictError extends Error {
+  constructor(kind, stored = null) {
+    super(kind === 'deleted' ? 'This script was deleted in another tab or window' : 'This script was changed in another tab or window');
+    this.name = 'ConflictError';
+    this.kind = kind;
+    this.stored = stored;
+  }
+}
+
+/** Two snapshot lists as one: every snapshot once (by id), in the order first seen. */
+const unionRevisions = (...lists) => normalizeRevisions(lists.flatMap((l) => (Array.isArray(l) ? l : [])));
 
 /** The record's project format (1 for records from before `schemaVersion` existed). */
 export const projectSchemaOf = (rec) => (Number.isInteger(rec?.schemaVersion) && rec.schemaVersion > 0 ? rec.schemaVersion : 1);
@@ -227,8 +262,35 @@ async function idbBackend(idb) {
     t.onabort = () => reject(t.error || new Error('Transaction aborted'));
   });
 
+  /**
+   * Read one project and write it back in ONE readwrite transaction: `fn(prev)` (synchronous) returns
+   * { put } to store, { remove: true } to delete, or nothing to leave it; throwing aborts and
+   * rejects with that error. Resolves with fn's return value once committed.
+   */
+  const update = (id, fn) => new Promise((resolve, reject) => {
+    const t = db.transaction(STORE, 'readwrite');
+    const s = t.objectStore(STORE);
+    let out;
+    let failure = null;
+    const r = s.get(id);
+    r.onsuccess = () => {
+      try {
+        out = fn(r.result);
+        if (out?.put) s.put(out.put);
+        else if (out?.remove) s.delete(id);
+      } catch (e) {
+        failure = e;
+        try { t.abort(); } catch { /* already finished */ }
+      }
+    };
+    t.oncomplete = () => resolve(out);
+    t.onerror = () => reject(failure || t.error);
+    t.onabort = () => reject(failure || t.error || new Error('Transaction aborted'));
+  });
+
   return {
     kind: 'indexeddb',
+    update,
     getAll: () => run(STORE, 'readonly', (s) => s.getAll()),
     get: (id) => run(STORE, 'readonly', (s) => s.get(id)),
     put: (rec) => run(STORE, 'readwrite', (s) => s.put(rec)),
@@ -248,6 +310,12 @@ function memoryBackend() {
     get: async (id) => (rows.has(id) ? clone(rows.get(id)) : undefined),
     put: async (rec) => { rows.set(rec.id, clone(rec)); },
     del: async (id) => { rows.delete(id); },
+    update: async (id, fn) => {
+      const out = fn(rows.has(id) ? clone(rows.get(id)) : undefined);
+      if (out?.put) rows.set(id, clone(out.put));
+      else if (out?.remove) rows.delete(id);
+      return out;
+    },
     getSetting: async (key) => settings.get(key) ?? null,
     setSetting: async (key, value) => { settings.set(key, value); },
   };
@@ -280,6 +348,53 @@ export function createProjectStore({ indexedDB = globalThis.indexedDB, now = Dat
     lastStamp = Math.max(now(), lastStamp + 1);
     return lastStamp;
   };
+  // This tab's version of each project it has in hand (see revisionOf): set by track() when the editor
+  // takes a record in, and by every write this store makes. Saves of a tracked project check it.
+  const bases = new Map();
+  // Every write this store makes, for whoever listens (App tells the other tabs: lib/tabSync.js).
+  const listeners = new Set();
+  const told = (m) => {
+    for (const fn of listeners) {
+      try { fn(m); } catch { /* a listener's problem isn't the save's */ }
+    }
+  };
+  const wrote = (rec) => {
+    if (rec?.id) {
+      bases.set(rec.id, revisionOf(rec));
+      told({ type: 'saved', id: rec.id, revision: revisionOf(rec) });
+    }
+    return rec;
+  };
+  /** The checks a guarded save makes against the stored record (in the write's transaction). */
+  const guardAgainst = (id, prev, expect) => {
+    if (expect === undefined) return;
+    if (!prev) throw new ConflictError('deleted');
+    if (revisionOf(prev) !== expect) throw new ConflictError('changed', prev);
+  };
+  /** The saved record for the editor's document `projectData`, merged with what's stored (prev). */
+  const merged = (projectData, prev, t) => {
+    const rec = toRecord(projectData, t);
+    rec.writeId = newWriteId();
+    if (prev) {
+      // Never write over a project a newer DraftLine saved in a format this build doesn't know.
+      if (isNewerProject(prev)) throw new NewerProjectError(prev.title);
+      // Fields this build doesn't know (a newer DraftLine's) survive the save, even when the caller
+      // didn't carry them (the crash journal, older call sites). The document's own copy wins.
+      addUnknownFields(rec, unknownFields(prev, RECORD_FIELDS), RECORD_FIELDS);
+      if (prev.createdAt) rec.createdAt = prev.createdAt;
+      // A save that doesn't carry snapshots (crash-recovery journal, older callers) keeps them.
+      if (projectData.revisions === undefined && prev.revisions) rec.revisions = prev.revisions;
+      // …and the Project Lock, which only setProjectLock changes.
+      if (projectData.isLocked === undefined) rec.isLocked = prev.isLocked === true;
+      if (projectData.viewOnly === undefined) rec.viewOnly = prev.viewOnly === true;
+    } else {
+      if (rec.isLocked === undefined) rec.isLocked = false;
+      if (rec.viewOnly === undefined) rec.viewOnly = false;
+    }
+    return rec;
+  };
+  /** A snapshot of a whole stored record (script, Board, Bible, characters, Plan, unknown fields). */
+  const snapshotOf = (rec, label) => createRevision(toDoc(rec), { label, pages: rec.pages });
 
   const store = {
     /** True once we know saves reach IndexedDB (false: memory only — warn the writer). */
@@ -297,34 +412,109 @@ export function createProjectStore({ indexedDB = globalThis.indexedDB, now = Dat
       return (await (await backend()).get(id)) || null;
     },
 
+    /** Hear about every write this store makes: fn({ type: 'saved' | 'deleted', id, revision }). → unsubscribe */
+    subscribe(fn) {
+      listeners.add(fn);
+      return () => listeners.delete(fn);
+    },
+
+    /** This tab now has `rec` in the editor: later saves of it check that it's still the stored version. */
+    track(rec) {
+      if (rec?.id) bases.set(rec.id, revisionOf(rec)); // a read: nothing to tell other tabs
+    },
+    /** The version of project `id` this tab has in hand (null: not tracked). */
+    baseOf(id) {
+      return bases.get(id) ?? null;
+    },
+    /** Stop checking project `id` (it was deleted or closed here). */
+    forget(id) {
+      bases.delete(id);
+    },
+
     /**
      * Insert or update a project. Accepts the editor's { id?, meta, blocks, beats, pages?, scenes? }.
      * Keeps createdAt on updates; returns the stored record.
+     *
+     * A project this tab tracks is only written if the stored version is still the one this tab has
+     * (options.expect overrides it; null means "don't check"): otherwise a ConflictError, and nothing is
+     * written. options.snapshotPrevious (a label): the stored version is kept as a snapshot in the new
+     * one — the "Keep this version" of a conflict, decided against exactly what's being replaced.
      */
-    saveActiveProject(projectData) {
+    saveActiveProject(projectData, { expect, snapshotPrevious = null, recoveredJournal = null } = {}) {
       return serial(async () => {
         const b = await backend();
         const t = stamp();
-        const rec = toRecord(projectData, t);
-        if (projectData.id) {
-          const prev = await b.get(projectData.id);
-          // Never write over a project a newer DraftLine saved in a format this build doesn't know.
-          if (isNewerProject(prev)) throw new NewerProjectError(prev.title);
-          // Fields this build doesn't know (a newer DraftLine's) survive the save, even when the caller
-          // didn't carry them (the crash journal, older call sites). The document's own copy wins.
-          addUnknownFields(rec, unknownFields(prev, RECORD_FIELDS), RECORD_FIELDS);
-          if (prev?.createdAt) rec.createdAt = prev.createdAt;
-          // A save that doesn't carry snapshots (crash-recovery journal, older callers) keeps them.
-          if (projectData.revisions === undefined && prev?.revisions) rec.revisions = prev.revisions;
-          // …and the Project Lock, which only setProjectLock changes.
-          if (projectData.isLocked === undefined) rec.isLocked = prev?.isLocked === true;
-          if (projectData.viewOnly === undefined) rec.viewOnly = prev?.viewOnly === true;
-        } else {
-          if (rec.isLocked === undefined) rec.isLocked = false;
-          if (rec.viewOnly === undefined) rec.viewOnly = false;
+        const id = projectData.id;
+        if (!id) {
+          const rec = merged(projectData, null, t);
+          await b.put(rec);
+          return wrote(rec);
         }
-        await b.put(rec);
-        return rec;
+        const check = expect !== undefined ? (expect ?? undefined) : bases.get(id);
+        const out = await b.update(id, (prev) => {
+          guardAgainst(id, prev, check);
+          const rec = merged(projectData, prev, t);
+          if (recoveredJournal) rec.recoveredJournal = recoveredJournal;
+          if (snapshotPrevious && prev) rec.revisions = unionRevisions(prev.revisions, rec.revisions, [snapshotOf(prev, snapshotPrevious)]);
+          return { put: rec };
+        });
+        return wrote(out.put);
+      });
+    },
+
+    /**
+     * "Use the other version" of a conflict: the stored record stays as it is, with this tab's
+     * document added as a snapshot (and this tab's snapshots kept) — only if the stored version is
+     * still `expect` (else a ConflictError: ask again). Returns the stored record, now tracked.
+     */
+    keepStoredWithSnapshot(id, doc, { expect, label }) {
+      return serial(async () => {
+        const b = await backend();
+        const t = stamp();
+        const out = await b.update(id, (prev) => {
+          guardAgainst(id, prev, expect);
+          if (isNewerProject(prev)) throw new NewerProjectError(prev.title);
+          const mine = createRevision(doc, { label, pages: doc.pages });
+          const rec = { ...prev, revisions: unionRevisions(prev.revisions, doc.revisions, [mine]), updatedAt: t, writeId: newWriteId() };
+          return { put: rec };
+        });
+        return wrote(out.put);
+      });
+    },
+
+    /**
+     * Add `revision` to project `id`'s snapshots (crash recovery), whatever its version, unless it's
+     * already there (same id: recovering twice adds it once). Returns the record, or null if the
+     * project is gone. Doesn't track it: this tab hasn't taken that version into its editor.
+     */
+    addSnapshot(id, revision) {
+      return serial(async () => {
+        const b = await backend();
+        const t = stamp();
+        const out = await b.update(id, (prev) => {
+          if (!prev) return { gone: true };
+          if (isNewerProject(prev)) throw new NewerProjectError(prev.title);
+          if ((prev.revisions || []).some((r) => r?.id === revision.id)) return { same: prev };
+          return { put: { ...prev, revisions: unionRevisions(prev.revisions, [revision]), updatedAt: t, writeId: newWriteId() } };
+        });
+        if (out.put) told({ type: 'saved', id, revision: revisionOf(out.put) });
+        return out.gone ? null : out.put || out.same;
+      });
+    },
+
+    /**
+     * A project deleted in another tab, brought back from this tab's document (the writer chose
+     * Restore). Only while it's still gone: if it came back meanwhile, a ConflictError('changed').
+     */
+    restoreDeleted(projectData) {
+      return serial(async () => {
+        const b = await backend();
+        const t = stamp();
+        const out = await b.update(projectData.id, (prev) => {
+          if (prev) throw new ConflictError('changed', prev);
+          return { put: merged(projectData, null, t) };
+        });
+        return wrote(out.put);
       });
     },
 
@@ -344,9 +534,10 @@ export function createProjectStore({ indexedDB = globalThis.indexedDB, now = Dat
         const t = stamp();
         rec.createdAt = Number.isFinite(rec.createdAt) ? rec.createdAt : t;
         rec.updatedAt = t; // newest in the Projects list
+        rec.writeId = newWriteId();
         if (rec.pages == null || rec.scenes == null) Object.assign(rec, projectStats(rec.script));
         await b.put(rec);
-        return { record: rec, newId };
+        return { record: wrote(rec), newId };
       });
     },
 
@@ -362,8 +553,9 @@ export function createProjectStore({ indexedDB = globalThis.indexedDB, now = Dat
         if (rec.pages == null || rec.scenes == null) Object.assign(rec, projectStats(rec.script));
         rec.updatedAt = Number.isFinite(rec.updatedAt) ? rec.updatedAt : stamp();
         lastStamp = Math.max(lastStamp, rec.updatedAt);
+        rec.writeId = newWriteId(); // a version of its own in this browser (other tabs see the change)
         await b.put(rec);
-        return rec;
+        return wrote(rec);
       });
     },
 
@@ -377,12 +569,12 @@ export function createProjectStore({ indexedDB = globalThis.indexedDB, now = Dat
     renameProject(id, title) {
       return serial(async () => {
         const b = await backend();
-        const rec = await b.get(id);
-        if (!rec) throw new Error('That project no longer exists');
-        rec.title = title;
-        rec.updatedAt = stamp();
-        await b.put(rec);
-        return rec;
+        const t = stamp();
+        const out = await b.update(id, (rec) => {
+          if (!rec) throw new Error('That project no longer exists');
+          return { put: { ...rec, title, updatedAt: t, writeId: newWriteId() } };
+        });
+        return wrote(out.put);
       });
     },
 
@@ -393,12 +585,12 @@ export function createProjectStore({ indexedDB = globalThis.indexedDB, now = Dat
     setProjectLock(id, locked) {
       return serial(async () => {
         const b = await backend();
-        const rec = await b.get(id);
-        if (!rec) throw new Error('That project no longer exists');
-        rec.isLocked = locked === true;
-        rec.updatedAt = stamp();
-        await b.put(rec);
-        return rec;
+        const t = stamp();
+        const out = await b.update(id, (rec) => {
+          if (!rec) throw new Error('That project no longer exists');
+          return { put: { ...rec, isLocked: locked === true, updatedAt: t, writeId: newWriteId() } };
+        });
+        return wrote(out.put);
       });
     },
 
@@ -412,8 +604,11 @@ export function createProjectStore({ indexedDB = globalThis.indexedDB, now = Dat
         // A copy is a fresh working draft: it starts unlocked and editable.
         const copy = {
           ...clone(src), id: newProjectId(), title: `${src.title?.trim() || 'Untitled'} (Copy)`, createdAt: t, updatedAt: t, isLocked: false, viewOnly: false,
+          writeId: newWriteId(),
         };
+        delete copy.recoveredJournal;
         await b.put(copy);
+        told({ type: 'saved', id: copy.id, revision: revisionOf(copy) });
         return copy;
       });
     },
@@ -428,6 +623,8 @@ export function createProjectStore({ indexedDB = globalThis.indexedDB, now = Dat
         if (target.isLocked === true) throw new Error(`“${target.title?.trim() || 'Untitled'}” is locked — unlock it in Projects to delete it`);
         if (all.length <= 1) throw new Error('You can’t delete your only script');
         await b.del(id);
+        bases.delete(id);
+        told({ type: 'deleted', id, revision: null });
         if ((await b.getSetting('activeProjectId')) === id) {
           const next = all.filter((p) => p.id !== id).sort((x, y) => (y.updatedAt || 0) - (x.updatedAt || 0))[0];
           await b.setSetting('activeProjectId', next.id);
@@ -483,61 +680,143 @@ export function readLegacyDoc(storage) {
 }
 
 /** Write the crash journal (synchronous — safe to call from pagehide). */
-export function writeJournal(storage, doc) {
+/**
+ * Journal the editor's unsaved state synchronously (the tab is being hidden or closed mid-save).
+ * With `tabId`, the tab's own journal: { jid, id, base (the version it started from), journaledAt, … };
+ * without, the shared one older builds wrote (JOURNAL_KEY).
+ */
+export function writeJournal(storage, doc, { tabId = null, base = null } = {}) {
   try {
-    storage?.setItem(JOURNAL_KEY, JSON.stringify({ ...doc, journaledAt: Date.now() }));
+    const at = Date.now();
+    const entry = tabId ? { ...doc, jid: `${tabId}-${at.toString(36)}`, base, journaledAt: at } : { ...doc, journaledAt: at };
+    storage?.setItem(tabId ? `${JOURNAL_PREFIX}${tabId}` : JOURNAL_KEY, JSON.stringify(entry));
     return true;
   } catch {
     return false; // too big or blocked: the regular save is still in flight
   }
 }
 
-export function clearJournal(storage) {
+/** Remove this tab's journal (its save went through), or the shared one with no tabId. */
+export function clearJournal(storage, tabId = null) {
   try {
-    storage?.removeItem(JOURNAL_KEY);
+    storage?.removeItem(tabId ? `${JOURNAL_PREFIX}${tabId}` : JOURNAL_KEY);
   } catch {
     /* ignore */
   }
 }
 
+/** Every journal key in `storage`: the shared one, then each tab's. */
+function journalKeys(storage) {
+  const keys = [];
+  try {
+    for (let i = 0; i < (storage?.length || 0); i += 1) {
+      const k = storage.key(i);
+      if (k === JOURNAL_KEY || k?.startsWith(JOURNAL_PREFIX)) keys.push(k);
+    }
+  } catch { /* storage blocked: nothing to recover */ }
+  return keys;
+}
+
+const tabOfKey = (key) => (key.startsWith(JOURNAL_PREFIX) ? key.slice(JOURNAL_PREFIX.length) : null);
+
+/**
+ * Crash journals left by tabs that are gone, reconciled with the library. Never over newer work:
+ *   - nothing saved since the tab's version (`base`): its state is saved into the project (restored);
+ *   - saved since (another tab): its state becomes a snapshot of the project, which is left as it is;
+ *   - the project is gone (deleted elsewhere): the journal is kept and returned in `orphans`, for the
+ *     writer to restore or discard on purpose;
+ *   - the shared journal of an older build: its old rule (restored when newer than the project).
+ * A journal is removed only once its state is in the library. Doing this twice changes nothing more
+ * (recoveredJournal / the snapshot's id). `liveTabs`: tabs still open, whose journals are left alone.
+ */
+export async function reconcileJournals({ store, storage, liveTabs = new Set() }) {
+  const out = { recovered: null, preserved: 0, orphans: [] };
+  const entries = [];
+  for (const key of journalKeys(storage)) {
+    const tab = tabOfKey(key);
+    if (tab && liveTabs.has(tab)) continue;
+    const j = readJSON(storage, key);
+    if (!j?.id || !validBlocks(j.blocks)) {
+      try { storage.removeItem(key); } catch { /* ignore */ }
+      continue;
+    }
+    entries.push({ key, j, legacy: !tab });
+  }
+  entries.sort((a, b) => (a.j.journaledAt || 0) - (b.j.journaledAt || 0));
+  for (const { key, j, legacy } of entries) {
+    const drop = () => {
+      try { storage.removeItem(key); } catch { /* ignore */ }
+    };
+    try {
+      const target = await store.getProject(j.id);
+      if (!target) {
+        if (!legacy) out.orphans.push({ key, journal: j });
+        else drop(); // an older build's journal for a project that's gone: as before
+        continue;
+      }
+      if (isNewerProject(target)) continue; // never into a newer format; kept for a later DraftLine
+      if (legacy) {
+        if ((j.journaledAt || 0) > (target.updatedAt || 0)) {
+          out.recovered = await store.saveActiveProject(j, { expect: null });
+        }
+        drop();
+        continue;
+      }
+      const snapId = `journal-${j.jid}`;
+      if (target.recoveredJournal === j.jid || (target.revisions || []).some((r) => r?.id === snapId)) {
+        drop(); // already in the library
+        continue;
+      }
+      if (j.base && revisionOf(target) === j.base) {
+        try {
+          out.recovered = await store.saveActiveProject(j, { expect: j.base, recoveredJournal: j.jid });
+          drop();
+          continue;
+        } catch (e) {
+          if (e?.name !== 'ConflictError') throw e; // changed this instant: keep it as a snapshot instead
+        }
+      }
+      const label = `Unsaved changes from a closed tab · ${new Date(j.journaledAt || Date.now()).toLocaleString()}`;
+      const rev = createRevision(j, { label, id: snapId, now: j.journaledAt || Date.now() });
+      if (await store.addSnapshot(j.id, rev)) {
+        out.preserved += 1;
+        drop();
+      }
+    } catch {
+      /* storage failed: the journal stays, and is tried again next time */
+    }
+  }
+  return out;
+}
+
 /**
  * Open the library and pick the project to show:
  *   1. empty library → migrate the localStorage script (or create the sample) as project one;
- *   2. a crash journal newer than its stored project → saved into it first;
+ *   2. crash journals from closed tabs → reconciled (reconcileJournals);
  *   3. the last active project (or the most recent one).
- * Returns { project (record), migrated, recovered, dictionary (your Story Glossary wording), persistent }.
+ * Returns { project (record), migrated, recovered, preserved, orphans, dictionary, persistent }.
  */
-export async function bootLibrary({ store, storage, makeFirstDoc }) {
+export async function bootLibrary({ store, storage, makeFirstDoc, liveTabs }) {
   let migrated = false;
   let fresh = false; // nothing here and nothing to migrate: a brand-new writer (lib/hints.js onboardHints)
-  let all = await store.getAllProjects();
-  if (!all.length) {
+  if (!(await store.getAllProjects()).length) {
     const legacy = readLegacyDoc(storage);
     const doc = legacy || makeFirstDoc();
     const rec = await store.saveActiveProject(doc);
     await store.setActiveProjectId(rec.id);
     migrated = !!legacy;
     fresh = !legacy;
-    all = [rec];
   }
 
-  let recovered = false;
-  const journal = readJSON(storage, JOURNAL_KEY);
-  if (journal?.id && validBlocks(journal.blocks)) {
-    const target = all.find((p) => p.id === journal.id);
-    // Not over a project a newer DraftLine saved since (it would refuse anyway): the journal is dropped.
-    if (target && !isNewerProject(target) && (journal.journaledAt || 0) > (target.updatedAt || 0)) {
-      await store.saveActiveProject(journal);
-      recovered = true;
-    }
-  }
-  clearJournal(storage);
-
+  const journals = await reconcileJournals({ store, storage, liveTabs });
   const activeId = await store.getActiveProjectId();
   const project = (activeId && (await store.getProject(activeId))) || (await store.getAllProjects())[0];
   if (project.id !== activeId) await store.setActiveProjectId(project.id);
   const dictionary = (await store.getSetting(DICTIONARY_KEY)) || {};
-  return { project, migrated, fresh, recovered, dictionary, persistent: await store.isPersistent() };
+  return {
+    project, migrated, fresh, recovered: !!journals.recovered, preserved: journals.preserved, orphans: journals.orphans,
+    dictionary, persistent: await store.isPersistent(),
+  };
 }
 
 /** "Last edited" wording for the library cards. */

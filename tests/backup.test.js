@@ -52,7 +52,7 @@ function richDoc() {
   };
 }
 
-const withoutStamp = ({ updatedAt: _u, ...rest }) => rest; // eslint-disable-line no-unused-vars
+const withoutStamp = ({ updatedAt: _u, writeId: _w, ...rest }) => rest; // eslint-disable-line no-unused-vars -- updatedAt and writeId: the version stamp each write makes
 
 describe('.draftline backup: file format', () => {
   it('names files after the title, with the .draftline extension', () => {

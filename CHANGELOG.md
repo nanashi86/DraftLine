@@ -6,6 +6,15 @@ All notable changes to DraftLine are recorded here. The format follows [Keep a C
 
 ### Added
 
+- **The same script in two tabs or windows never loses work.** Every save checks, in the same IndexedDB transaction
+  as the write, that the stored version is still the one the tab has, so a tab never saves over another tab's newer
+  version, even when both save at the same instant. A tab with nothing unsaved quietly takes the newer version (view,
+  scroll and caret kept); one with unsaved changes asks **Keep this version** or **Use the other tab's version**, and
+  the other is kept as a snapshot (the choice itself is checked, so a third tab saving meanwhile is never overwritten).
+  A script deleted in another tab is only restored on purpose. Crash journals are now one per tab and never write over
+  newer work: a closed tab's unsaved changes come back as the script, or as a snapshot if it was saved since. Linked
+  folder writes are ordered across tabs, so an older save finishing late never replaces a newer file. Different
+  scripts in different tabs are unaffected; nothing is shown in normal use.
 - **Shooting schedule (DraftLine Core, free).** Plan → Stripboard → **+ Shooting Day**. Scenes go into shooting days
   in an order of their own (the script is never changed): drag a strip's handle, use its **Move to Day…** menu, or
   `Alt+↑` / `Alt+↓`. **Script | Schedule** switches between script order (with a quiet D3 on scheduled scenes) and
@@ -121,6 +130,8 @@ All notable changes to DraftLine are recorded here. The format follows [Keep a C
 
 ### Changed
 
+- **Export Breakdown left Plan's toolbar.** **File ▾ → Export Planning & Production → Scene Breakdown (.csv)** makes
+  the same file, in Write and Plan. Workspace toolbars keep working actions; exports live in File.
 - **Reports moved into ⋮, in Plan as well as Write.** It opens the same Reports, still shown as **Plan · Reports**; Plan's tabs are now Breakdowns | Stripboard | Schedule | Budget.
 - **The same three names everywhere:** **Core Philosophy**, **Explore Features** and **Compare DraftLine**, in About DraftLine (which said See All Features and How It Compares), the logo's menu and the Welcome page.
 - **Features, Compare and Philosophy follow the app's theme.** They read the same Settings choice before they draw, so a writer on Editorial Light sees light pages and System Default follows the device there too. They used to follow only the device's setting.

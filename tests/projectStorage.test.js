@@ -182,7 +182,7 @@ describe('project library: first run', () => {
   });
   it('the app’s first doc is a blank page, not the sample', () => {
     const app = readFileSync(new URL('../src/App.jsx', import.meta.url), 'utf8');
-    assert.match(app, /bootLibrary\(\{ store: projects, storage: LOCAL, makeFirstDoc: \(\) => blankDoc\(\) \}\)/);
+    assert.match(app, /bootLibrary\(\{ store: projects, storage: LOCAL, makeFirstDoc: \(\) => blankDoc\(\), liveTabs: live \|\| new Set\(\) \}\)/);
     assert.match(app, /function blankDoc\(title = 'Untitled'\) \{\s*return \{ meta: \{ \.\.\.EMPTY_META, \.\.\.newProjectMeta\(\{ title, draftVersion: NEW_DRAFT_VERSION \}\) \}, blocks: \[makeBlock\('scene'\)\], beats: \[\] \};/);
     assert.match(app, /const NEW_DRAFT_VERSION = 'First Draft';/);
     assert.match(app, /await openAsNewProject\(blankDoc\(title\), `New script/, 'File → New makes the same blank page');

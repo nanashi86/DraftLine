@@ -72,7 +72,8 @@ before you decide. Corrections are welcome in [Issues](https://github.com/nanash
   yellow…) with revision marks. DraftLine doesn't do this; Final Draft, Fade In and WriterDuet do.
 - **Writing together live.** DraftLine has no shared cloud document. Two writers in one script at the same time is
   what WriterDuet, Final Draft and Celtx are built for. A linked folder lets you move between your own computers, but
-  the most recent save wins; edits aren't merged.
+  the most recent save wins; edits aren't merged. (Two tabs or windows on one computer are protected: neither saves
+  over the other, and you choose which version to keep.)
 - **Mac and iPhone only, also open source.** If you only write on a Mac or iPhone, Beat is excellent.
 
 ```bash

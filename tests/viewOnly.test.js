@@ -149,7 +149,7 @@ describe('Viewing mode: saved with the script', () => {
     assert.match(app, /viewOnly: isLocked,\s*newerProject,\s*extra: extraRef\.current,[^\n]*\n\s*createdAt/);
     assert.match(app, /production: s\.production, revisions: s\.revisions, viewOnly: s\.viewOnly,/);
     assert.match(app, /revisions, isLocked, saveNow\]\);/, 'the debounced auto-save runs on a toggle');
-    assert.match(app, /production: s\.production, viewOnly: s\.viewOnly,\s*\}\);/, 'the crash journal carries it');
+    assert.match(app, /production: s\.production, viewOnly: s\.viewOnly, extra: s\.extra,[^\n]*\n\s*\}, \{ tabId: TAB_ID, base: projects\.baseOf\(s\.projectId\) \}\);/, 'the crash journal carries it');
   });
 
   it('.draftline backups and the synced folder’s file keep it', async () => {
