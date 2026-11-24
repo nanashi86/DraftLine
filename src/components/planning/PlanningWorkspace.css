@@ -94,6 +94,8 @@
 .plan-cast { display: inline-flex; align-items: center; gap: 6px; height: 24px; padding: 0 10px 0 4px; border-radius: 9999px; font: 600 11.5px/1 var(--ui-font); }
 .plan-cast b { display: grid; place-items: center; min-width: 18px; height: 18px; padding: 0 4px; border-radius: 9999px; background: var(--card); color: var(--muted); font-size: 10.5px; }
 .plan-buckets { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 12px 16px; }
+/* Eight categories: four columns on a wide card (two rows), then as many as fit, as before. */
+@media (min-width: 1100px) { .plan-buckets { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
 .plan-tags { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
 .plan-tag {
   display: inline-flex;
@@ -108,6 +110,39 @@
 }
 .plan-tag button { display: grid; place-items: center; width: 18px; height: 18px; border: 0; border-radius: 9999px; background: transparent; color: var(--muted); cursor: pointer; }
 .plan-tag button:hover { background: var(--hover-bg); color: var(--text); }
+/* The item's name opens its details: looks like the chip's text, not a button. */
+.plan-tag .plan-tag-name { display: inline; width: auto; height: auto; padding: 0; border-radius: 0; background: none; color: inherit; font: inherit; cursor: pointer; }
+.plan-tag .plan-tag-name:hover { background: none; color: var(--text); text-decoration: underline; text-decoration-color: var(--line-soft); text-underline-offset: 3px; }
+.plan-tag .plan-tag-name:focus-visible { outline: 2px solid var(--accent-amber); outline-offset: 2px; border-radius: 4px; }
+.plan-tag-qty { color: var(--muted); font-variant-numeric: tabular-nums; }
+/* + Add's suggestions: elements already in the project, under the field. */
+.plan-add-wrap { position: relative; display: inline-flex; }
+.plan-suggest {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  z-index: 20;
+  min-width: 100%;
+  max-width: 300px;
+  margin: 0;
+  padding: 4px;
+  border: 1px solid var(--line-soft);
+  border-radius: 8px;
+  background: var(--card);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+  list-style: none;
+}
+.plan-suggest li { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 28px; padding: 6px 8px; border-radius: 6px; font: 12.5px/1.3 var(--ui-font); cursor: pointer; }
+.plan-suggest li:hover,
+.plan-suggest li.is-active { background: var(--hover-bg); }
+.plan-suggest-name { flex: 1; min-width: 0; }
+.plan-suggest-hint { flex: none; color: var(--muted); font-size: 11px; }
+/* An unused element's trash can: quiet until its row is pointed at or highlighted. */
+.plan-suggest-del { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; margin: -3px -4px -3px -6px; padding: 0; border: 0; border-radius: 5px; background: none; color: var(--muted); opacity: 0.55; cursor: pointer; }
+.plan-suggest li:hover .plan-suggest-del,
+.plan-suggest li.is-active .plan-suggest-del { opacity: 1; }
+.plan-suggest-del:hover { background: var(--danger); color: var(--on-accent); }
+@media (hover: none) { .plan-suggest-del { opacity: 1; width: 32px; height: 32px; } }
 .plan-add {
   display: inline-flex;
   align-items: center;
@@ -503,3 +538,71 @@
   .strip-slot .strip-mod { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 }
 @media print { .strip-handle, .strip-view { display: none !important; } }
+
+/* An item's details (ElementPopover): the shooting-day card's look. The element (every scene), this
+   scene's quantity and note, where it's used, then its actions. */
+.el-pop { width: min(360px, calc(100vw - 16px)); max-height: min(78vh, 600px); overflow-y: auto; gap: 10px; padding: 12px 14px; }
+.el-pop-part { display: flex; flex-direction: column; gap: 3px; }
+.el-pop-part + .el-pop-part { padding-top: 8px; border-top: 1px solid var(--line-soft); }
+.el-pop-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.el-pop input[type='text'],
+.el-pop .el-pop-name,
+.el-pop .el-pop-note {
+  min-width: 0;
+  height: 30px;
+  padding: 0 8px;
+  border: 1px solid var(--line-soft);
+  border-radius: 6px;
+  background: var(--field);
+  color: var(--text);
+  font: 13px var(--ui-font);
+}
+.el-pop input:focus { border-color: var(--accent); outline: none; }
+.el-pop .el-pop-name { flex: 1 1 150px; font-weight: 600; }
+/* The category and Merge into… dropdowns: Select.jsx, drawn like the fields beside them. */
+.el-pop .dl-select {
+  height: 30px;
+  padding: 0 8px;
+  border: 1px solid var(--line-soft);
+  border-radius: 6px;
+  background: var(--field);
+  color: var(--text);
+  font: 13px var(--ui-font);
+}
+.el-pop .dl-select:hover { border-color: var(--border-hover); }
+.el-pop .dl-select:focus-visible { border-color: var(--accent); outline: none; }
+.el-pop .dl-select[aria-expanded='true'] { border-color: var(--accent); }
+.el-pop .el-pop-cat { flex: 0 1 auto; min-width: 150px; }
+.el-pop-foot .dl-select { height: 26px; font-size: 12px; }
+.el-pop-qty { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); font-size: 12px; }
+.el-pop-qty input { width: 56px; text-align: right; font-variant-numeric: tabular-nums; }
+.el-pop .el-pop-note { flex: 1 1 140px; }
+.el-pop-uses { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; font-size: 12px; }
+.el-pop-scene { padding: 2px 8px; border: 1px solid var(--line-soft); border-radius: 9999px; background: transparent; color: var(--text); font: 500 11.5px/1.4 var(--ui-font); cursor: pointer; }
+.el-pop-scene:hover { background: var(--hover-bg); }
+.el-pop-scene.is-here { border-color: var(--accent); cursor: default; }
+.el-pop-days { color: var(--muted); }
+.el-pop-hint { margin: 2px 0 0; color: var(--muted); font-size: 12px; }
+.el-pop-warn { margin: 2px 0 0; color: var(--warn-ink, var(--text)); font-size: 12px; }
+.el-pop-confirm { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.el-pop-confirm p { flex-basis: 100%; margin: 0; color: var(--muted); font-size: 12px; }
+.el-pop-pick { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; flex-basis: 100%; font-size: 12px; }
+.el-pop-pick > span { min-width: 44px; font-weight: 600; }
+.el-pop-pick label { display: inline-flex; align-items: center; gap: 4px; }
+.el-pop-foot { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; padding-top: 8px; border-top: 1px solid var(--line-soft); font-size: 12px; }
+/* The footer, quietest to strongest: Separate here and Merge into… (neutral) · Remove from scene
+   (secondary) · Delete everywhere… (destructive). */
+.el-pop-act { height: 26px; padding: 0 9px; border: 1px solid var(--line-soft); border-radius: 6px; background: transparent; color: var(--text); font: 12px var(--ui-font); cursor: pointer; }
+.el-pop-act:hover { background: var(--hover-bg); border-color: var(--border-hover); }
+.el-pop-act:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.el-pop-act.is-quiet { border-color: transparent; color: var(--muted); }
+.el-pop-act.is-quiet:hover { color: var(--text); }
+.el-pop-act.is-danger { border-color: color-mix(in srgb, var(--danger-ink) 45%, transparent); background: color-mix(in srgb, var(--danger) 8%, transparent); color: var(--danger-ink); font-weight: 500; }
+.el-pop-act.is-danger:hover { border-color: var(--danger); background: var(--danger); color: var(--on-accent); }
+.el-pop-pending { color: var(--muted); }
+/* A shooting day's needs: one per line (each element once, with each scene's quantity and note). */
+.day-pop-needs { margin: 0; padding: 0; list-style: none; }
+@media (max-width: 559.98px) {
+  .plan-suggest { max-width: calc(100vw - 48px); }
+  .plan-suggest li { min-height: 36px; } /* touch */
+}

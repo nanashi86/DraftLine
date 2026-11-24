@@ -324,6 +324,15 @@ export function deleteElement(production, id) {
 export const scenesNeeding = (production, id) => Object.entries(normalizeProduction(production).scenes)
   .filter(([, s]) => placedIn(s, id)).map(([sid]) => sid);
 
+/** Every element some scene links to (attached or not): an element outside this set is unused. */
+export function linkedIds(production) {
+  const out = new Set();
+  for (const s of Object.values(normalizeProduction(production).scenes)) {
+    for (const c of CATEGORY_IDS) for (const l of s.links?.[c] || []) if (l?.id) out.add(l.id);
+  }
+  return out;
+}
+
 // ---- Undo: exactly the parts a step changed --------------------------------------------------------
 
 /**

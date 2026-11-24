@@ -411,8 +411,12 @@ computer; phones use App Storage). Click the title's **▾**, choose **File ▾ 
 
 **Write | Plan** in the top bar switches to a production view of the same script, worked out from it each time:
 **Breakdowns** (a card per scene: slugline, INT/EXT and DAY/NIGHT, length in eighths, speaking cast with call-sheet
-numbers, and lists you fill in for extras, props, wardrobe / SFX and vehicles / stunts, plus production notes) and
-**Stripboard** (one colour-coded strip per scene, in script order). **File ▾ → Scene Breakdown** downloads it all as `.csv`.
+numbers, and eight categories you fill in: Background / Extras, Props & Set Dressing, Wardrobe, Hair & Makeup,
+Vehicles, Stunts, Special Effects and Visual Effects, plus production notes) and **Stripboard** (one colour-coded strip
+per scene, in script order). Each item is entered once and shared by every scene that needs it: typing suggests what's
+already in the project, and clicking an item opens its card (rename everywhere, category, this scene's quantity and
+note, the scenes and shooting days that use it, separate, merge, remove, delete). **File ▾ → Scene Breakdown**
+downloads it all as `.csv`, one column per category with quantities and notes.
 
 **Shooting schedule.** On the Stripboard, **+ Shooting Day** adds a day; until then the Stripboard is exactly as above.
 Then **Script | Schedule** (right of the summary line) switches between script order, with a quiet **D3** on each
@@ -420,7 +424,8 @@ scheduled scene, and shooting order: the same strips under day headers (**DAY 3 
 **Unscheduled**. Move a scene with its handle: drag it (not while the scene filter is on), click it for **Move to
 Day…**, or `Alt+↑` / `Alt+↓`. A day's header opens its details: the date (and **Date the days after**), a page target for
 every day, quiet notes (over the target, day and night together, three or more places), the cast with Day-Out-of-Days
-codes (tap or point at a code for its meaning), places, and what its breakdowns need. The first shooting day fixes the
+codes (tap or point at a code for its meaning), places, and what its breakdowns need (each item once, with every
+scene's quantity beside it). The first shooting day fixes the
 cast numbers; **⋮ → Renumber Cast…** (on the Stripboard) renumbers them on purpose, after asking. Every change is an
 undo step, and the script itself is never changed: the schedule is an order of scenes saved with the project. Budget is
 planned, not built.

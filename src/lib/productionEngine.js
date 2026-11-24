@@ -6,8 +6,8 @@
 import { ELEMENT_META, PAGE_LINES, linesToEighths, wrapOffsets } from './screenplay.js';
 import { headingParts, timeOfDayPeriod } from './sluglines.js';
 import { csvField } from './exportCsvOutline.js';
-import { PRODUCTION_BUCKETS, castNumbers, sceneAssets } from './productionData.js';
-import { sceneNeeds } from './elements.js';
+import { castNumbers, sceneAssets } from './productionData.js';
+import { CATEGORIES, needText, sceneNeeds } from './elements.js';
 
 export * from './productionData.js';
 
@@ -178,11 +178,12 @@ export function breakdownTotals(rows) {
 /** File ▾ → Export Planning & Production → Scene Breakdown (.csv): one row per scene, everything on its breakdown. */
 export function breakdownCsv(rows) {
   const head = ['Scene', 'Slugline', 'INT/EXT', 'Day/Night', 'Pages (8ths)', 'Page', 'Speaking Cast',
-    ...PRODUCTION_BUCKETS.map((b) => b.label), 'Production Notes'];
+    ...CATEGORIES.map((c) => c.label), 'Production Notes'];
   const body = rows.map((r) => [
     r.number, r.heading, r.setting || '', r.timeOfDay || '', r.length, r.page ?? '',
     r.cast.map((c) => (c.number ? `${c.number}. ${c.name}` : c.name)).join('; '),
-    ...PRODUCTION_BUCKETS.map((b) => r[b.id].join('; ')), r.notes.trim(),
+    // Eight category columns: each item with this scene's own quantity and note ("Ferry passengers ×20 (wet)").
+    ...CATEGORIES.map((c) => (r.needs?.[c.id] || []).map(needText).join('; ')), r.notes.trim(),
   ]);
   return `\uFEFF${[head, ...body].map((row) => row.map(csvField).join(',')).join('\r\n')}\r\n`;
 }

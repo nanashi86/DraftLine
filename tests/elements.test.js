@@ -14,12 +14,12 @@ import {
   addAsset, addNeed, applySlice, attachScene, changedParts, deleteElement, mergeElements, normalizeProduction, reclassifyElement,
   removeAsset, removeNeed, renameClashes, renameElement, scenesNeeding, separateNeed, setNeed, setSceneEntry, setSceneNotes, sliceOf, undoAttach,
 } from '../src/lib/productionData.js';
-import { CATEGORIES, CATEGORY_IDS, LEGACY_IDS, legacyOf, sceneNeeds } from '../src/lib/elements.js';
+import { CATEGORIES, CATEGORY_IDS, LEGACY_IDS, legacyOf, needLabel, needText, sceneNeeds } from '../src/lib/elements.js';
 import { createProjectStore, revisionToDoc, toDoc } from '../src/lib/projectStorage.js';
 import { createRevision } from '../src/lib/revisions.js';
 import { parseBackup, serializeBackup } from '../src/lib/backup.js';
 import { addDay, elementUsage, moveScene, scheduleModel } from '../src/lib/schedule.js';
-import { buildBreakdown } from '../src/lib/productionEngine.js';
+import { breakdownCsv, buildBreakdown } from '../src/lib/productionEngine.js';
 import { parseFountain } from '../src/lib/fountain.js';
 import { analyzeScript, makeBlock } from '../src/lib/screenplay.js';
 
@@ -393,5 +393,24 @@ describe('scheduling: needs by identity, quantities never added up', () => {
     const rows = buildBreakdown({ blocks, analysis, production: p });
     assert.equal(elementUsage(rows, null).has(radio), false);
     assert.ok(p.elements[radio]);
+  });
+  it('a day lists each element once with each scene’s own quantity and note, and the CSV has the eight categories', () => {
+    let p = N({ version: 1, scenes: { [A]: { extras: ['Passengers'] }, [B]: { extras: ['Passengers'] } } });
+    const pax = idOf(p, A, 'extras', 'Passengers');
+    p = setNeed(setNeed(p, A, pax, { qty: 20, note: 'wet' }), B, pax, { qty: 12 });
+    p = addNeed(p, A, 'vfx', { name: 'Storm sky' }).production;
+    const rows = buildBreakdown({ blocks, analysis, production: p });
+    assert.equal(needText({ name: 'Passengers', qty: 20, note: 'wet' }), 'Passengers ×20 (wet)');
+    assert.equal(needText({ name: 'Storm sky' }), 'Storm sky');
+    const one = addDay(null);
+    const sched = moveScene(moveScene(one.schedule, A, one.dayId), B, one.dayId);
+    const req = scheduleModel(rows, sched).days[0].requirements;
+    assert.equal(needLabel(req.extras[0]), 'Passengers · sc 1 ×20 (wet), sc 2 ×12');
+    assert.equal(needLabel(req.vfx[0]), 'Storm sky', 'nothing said, just the name');
+    const lines = breakdownCsv(rows).trim().split('\r\n');
+    assert.ok(lines[0].includes(`Speaking Cast,${CATEGORIES.map((c) => c.label).join(',')}`), lines[0]);
+    assert.match(lines[1], /Passengers ×20 \(wet\)/);
+    assert.match(lines[1], /Storm sky/);
+    assert.match(lines[2], /Passengers ×12/);
   });
 });

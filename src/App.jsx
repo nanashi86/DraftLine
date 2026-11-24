@@ -26,7 +26,8 @@ import DeleteProjectModal from './components/DeleteProjectModal.jsx';
 import DialogueStepper from './components/DialogueStepper.jsx';
 import { Calculator, ChartColumn, Clapperboard, Columns2, FileCheck2, FileText, Flame, LayoutList, Moon, PenLine, Plus, Rows3, Scissors, SquareKanban } from 'lucide-react';
 import {
-  PRODUCTION_BUCKETS, addAsset, applySlice, attachScene, changedParts, extendCastNumbers, freezeCastNumbers, removeAsset, renameCastNumber,
+  addNeed, applySlice, attachScene, changedParts, deleteElement, extendCastNumbers, freezeCastNumbers, mergeElements, reclassifyElement,
+  removeNeed, renameCastNumber, renameClashes, renameElement, scenesNeeding, separateNeed, setNeed,
   setSceneEntry, setSceneNotes, sliceOf, undoAttach, unattachedScenes,
 } from './lib/productionData.js';
 import {
@@ -76,6 +77,7 @@ import {
   DICTIONARY_KEY, EMPTY_META, bootLibrary, clearJournal, isNewerProject, projects, revisionOf, revisionToDoc, toDoc, toRecord, writeJournal,
 } from './lib/projectStorage.js';
 import { createTabSync, holdTabLock, newTabId, openTabs } from './lib/tabSync.js';
+import { CATEGORIES } from './lib/elements.js';
 import {
   BACKUP_MIME, backupFileName, isBackupFile, mergeBackupDictionary, parseBackup, serializeBackup,
 } from './lib/backup.js';
@@ -191,7 +193,7 @@ const WORKSPACES = [
   { id: 'plan', label: 'Plan', title: 'Production planning: breakdowns and stripboard, from the script', Icon: Clapperboard },
 ];
 const PLAN_VIEWS = [
-  { id: 'breakdowns', label: 'Breakdowns', title: 'Every scene’s cast, setting, length and the props, wardrobe, vehicles and extras you add', Icon: LayoutList },
+  { id: 'breakdowns', label: 'Breakdowns', title: 'Every scene’s cast, setting, length and the props, wardrobe, vehicles, effects and extras it needs', Icon: LayoutList },
   { id: 'stripboard', label: 'Stripboard', title: 'One colour-coded strip per scene, in script order, and your shooting schedule', Icon: Rows3 },
   { id: 'reports', label: 'Reports', title: 'Scenes, characters, locations and the script in numbers — each as a .csv too', Icon: ChartColumn },
 ];
@@ -1293,14 +1295,20 @@ function Workspace({ boot }) {
   const [tabBusy, setTabBusy] = useState(false);
   tabConflictRef.current = tabConflict;
   const composingRef = useRef(false); // an IME / phone keyboard is composing a word
+  const userActs = useRef(0); // keys and presses so far (adoptFromOtherTab's caret never overrides a newer one)
   useEffect(() => {
     const on = () => { composingRef.current = true; };
     const off = () => { composingRef.current = false; };
+    const act = () => { userActs.current += 1; };
     document.addEventListener('compositionstart', on, true);
     document.addEventListener('compositionend', off, true);
+    document.addEventListener('keydown', act, true);
+    document.addEventListener('pointerdown', act, true);
     return () => {
       document.removeEventListener('compositionstart', on, true);
       document.removeEventListener('compositionend', off, true);
+      document.removeEventListener('keydown', act, true);
+      document.removeEventListener('pointerdown', act, true);
     };
   }, []);
   /** Nothing in this tab that a newer version could replace: no unsaved change, save, word or field in progress. */
@@ -1333,24 +1341,30 @@ function Workspace({ boot }) {
     const doc = toDoc(rec);
     const m = { ...EMPTY_META, ...doc.meta };
     const bl = doc.blocks.length ? doc.blocks : [makeBlock('scene')];
-    setMeta(m);
-    reset(bl); // the other tab's version replaces the history here too: no undo back into the older one
-    setBeats(relinkSceneCards(doc.beats, bl));
-    setCharacters(doc.characters);
-    setStoryNotes(doc.storyNotes);
-    setStoryDna(doc.storyDna);
-    setProduction(doc.production);
-    setRevisions(doc.revisions);
-    setProjectLocked(doc.isLocked === true);
-    extraRef.current = doc.extra || {};
-    setIsLocked(doc.viewOnly === true);
-    setSaved({
-      meta: m, blocks: bl, beats: doc.beats, characters: doc.characters, storyNotes: doc.storyNotes, storyDna: doc.storyDna,
-      production: doc.production, revisions: doc.revisions, viewOnly: doc.viewOnly === true, at: rec.updatedAt, ok: true,
+    const acts = userActs.current;
+    // Applied now, in the same task as the check that found this tab clean: a key pressed a moment
+    // later lands on this version, never on the older one about to be replaced (which would lose it).
+    flushSync(() => {
+      setMeta(m);
+      reset(bl); // the other tab's version replaces the history here too: no undo back into the older one
+      setBeats(relinkSceneCards(doc.beats, bl));
+      setCharacters(doc.characters);
+      setStoryNotes(doc.storyNotes);
+      setStoryDna(doc.storyDna);
+      setProduction(doc.production);
+      setRevisions(doc.revisions);
+      setProjectLocked(doc.isLocked === true);
+      extraRef.current = doc.extra || {};
+      setIsLocked(doc.viewOnly === true);
+      setSaved({
+        meta: m, blocks: bl, beats: doc.beats, characters: doc.characters, storyNotes: doc.storyNotes, storyDna: doc.storyDna,
+        production: doc.production, revisions: doc.revisions, viewOnly: doc.viewOnly === true, at: rec.updatedAt, ok: true,
+      });
     });
     clearJournal(LOCAL, TAB_ID);
     if (caret) {
       requestAnimationFrame(() => requestAnimationFrame(() => {
+        if (userActs.current !== acts) return; // the writer has moved the caret or typed since: theirs stands
         const el = document.querySelector(`.sheet textarea[data-id="${CSS.escape(caret.id)}"]${caret.part != null ? `[data-part="${CSS.escape(caret.part)}"]` : ''}`);
         if (!el) return;
         el.focus({ preventScroll: true });
@@ -2426,7 +2440,7 @@ function Workspace({ boot }) {
     });
     setProduction((p) => forward(p));
   };
-  const bucketLabel = (bucket) => PRODUCTION_BUCKETS.find((b) => b.id === bucket)?.label || bucket;
+  const categoryLabel = (id) => CATEGORIES.find((c) => c.id === id)?.label || id;
   const sceneLabel = (id) => (analysis.sceneNumbers?.[id] ? `scene ${analysis.sceneNumbers[id]}` : 'a scene');
   /**
    * A Plan change to scenes' needs (lib/elements.js) as one undo step that puts back exactly the scenes
@@ -2440,11 +2454,68 @@ function Workspace({ boot }) {
     const after = sliceOf(next, sceneIds, elementIds);
     planStep((p) => applySlice(p, after), (p) => applySlice(p, before), what);
   };
-  const editTag = (id, bucket, text, add) => {
-    const cur = latest.current.production;
-    const next = add ? addAsset(cur, id, bucket, text) : removeAsset(cur, id, bucket, text);
-    const what = `“${String(text).replace(/\s+/g, ' ').trim()}” ${add ? 'added to' : 'removed from'} ${bucketLabel(bucket)}, ${sceneLabel(id)}`;
-    productionStep(next, what);
+  // Breakdowns' shared elements (lib/elements.js; PlanningWorkspace, ElementPopover). Each is one undo
+  // step through productionStep. rename and merge say what stopped them instead of guessing.
+  const elName = (id) => `“${latest.current.production.elements?.[id]?.name || 'it'}”`;
+  const elementOps = {
+    // what: { id } | { name, reuse? }, or a list of them (commas: "Hat, Cane" is one step)
+    add: (sceneId, category, what) => {
+      let next = latest.current.production;
+      const names = [];
+      for (const w of [].concat(what)) {
+        const r = addNeed(next, sceneId, category, w);
+        if (!r.id) continue;
+        next = r.production;
+        names.push(`“${next.elements?.[r.id]?.name}”`);
+      }
+      if (!names.length) return;
+      productionStep(next, `${names.join(', ')} added to ${categoryLabel(category)}, ${sceneLabel(sceneId)}`);
+    },
+    remove: (sceneId, id, name) => productionStep(removeNeed(latest.current.production, sceneId, id), `“${name}” removed from ${sceneLabel(sceneId)}`),
+    setNeed: (sceneId, id, v) => productionStep(setNeed(latest.current.production, sceneId, id, v),
+      `${elName(id)}’s ${'qty' in v ? 'quantity' : 'note'} in ${sceneLabel(sceneId)}`),
+    rename: (id, name) => {
+      const cur = latest.current.production;
+      const clashes = renameClashes(cur, id, name);
+      if (clashes.length) return { clashes };
+      productionStep(renameElement(cur, id, name), `${elName(id)} renamed “${name}” everywhere`);
+      return {};
+    },
+    reclassify: (id, category) => productionStep(reclassifyElement(latest.current.production, id, category), `${elName(id)} in ${categoryLabel(category)}`),
+    separate: (sceneId, id) => {
+      const r = separateNeed(latest.current.production, sceneId, id);
+      if (!r.id) return;
+      productionStep(r.production, `${elName(id)} separated in ${sceneLabel(sceneId)}`);
+      notify(`${sceneLabel(sceneId).replace(/^s/, 'S')} has its own ${elName(id)} now · Ctrl+Z undoes`);
+    },
+    merge: (fromId, intoId, resolve) => {
+      const cur = latest.current.production;
+      const label = `${elName(fromId)} merged into ${elName(intoId)}`;
+      const r = mergeElements(cur, fromId, intoId, resolve);
+      if (r.conflicts?.length) return { conflicts: r.conflicts };
+      if (r.error) {
+        notify(r.error === 'category' ? 'Only elements in the same category can be merged' : 'That element is gone');
+        return {};
+      }
+      productionStep(r.production, label);
+      notify(`${label[0].toUpperCase()}${label.slice(1)} · Ctrl+Z undoes`);
+      return { done: true };
+    },
+    // Autocomplete's trash can: an element no scene uses (anything else is refused, never deleted here)
+    purge: (id) => {
+      const cur = latest.current.production;
+      if (!cur.elements?.[id] || scenesNeeding(cur, id).length) return;
+      const label = `${elName(id)} deleted from the project`;
+      productionStep(deleteElement(cur, id), label);
+      notify(`${label[0].toUpperCase()}${label.slice(1)} · Ctrl+Z undoes`);
+    },
+    undo: () => undo(),
+    notice: (text) => notify(text, 4000),
+    del: (id) => {
+      const label = `${elName(id)} deleted everywhere`;
+      productionStep(deleteElement(latest.current.production, id), label);
+      notify(`${label[0].toUpperCase()}${label.slice(1)} · Ctrl+Z undoes`);
+    },
   };
   // Unattached breakdowns (a heading left the script): attach to a scene, or remove — on purpose, undoable.
   const attachUnattached = (fromId, toId) => {
@@ -3433,8 +3504,7 @@ function Workspace({ boot }) {
                 analysis={analysis}
                 scenes={scenes}
                 production={production}
-                onAdd={(id, bucket, text) => editTag(id, bucket, text, true)}
-                onRemove={(id, bucket, text) => editTag(id, bucket, text, false)}
+                elementOps={elementOps}
                 stripView={production.schedule ? stripViewOf(projectId) : 'script'}
                 onStripView={chooseStripView}
                 scheduleOps={scheduleIsReadable(production.schedule) ? scheduleOps : null}

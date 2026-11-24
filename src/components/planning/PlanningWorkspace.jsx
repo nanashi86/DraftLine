@@ -1,12 +1,15 @@
-import { useEffect, useMemo, useState } from 'react';
-import { ChevronDown, CornerUpLeft, Plus, X } from 'lucide-react';
-import { PRODUCTION_BUCKETS, breakdownTotals, buildBreakdown } from '../../lib/productionEngine.js';
+import { useEffect, useId, useMemo, useState } from 'react';
+import { ChevronDown, CornerUpLeft, Plus, Trash2, X } from 'lucide-react';
+import { breakdownTotals, buildBreakdown } from '../../lib/productionEngine.js';
+import { CATEGORIES, nameKey, needText } from '../../lib/elements.js';
+import ElementPopover from './ElementPopover.jsx';
 import Reports from './Reports.jsx';
 import PlanFilter from './PlanFilter.jsx';
 import UnattachedModal from './UnattachedModal.jsx';
 import ScheduleBoard from './ScheduleBoard.jsx';
 import { StripHead, StripLegend, StripRow } from './strips.jsx';
-import { scheduleModel } from '../../lib/schedule.js';
+import { elementUsage, scheduleModel } from '../../lib/schedule.js';
+import { linkedIds } from '../../lib/productionData.js';
 import { EMPTY_PLAN_FILTER, filterPlanRows, planFilterActive } from '../../lib/planFilter.js';
 import './PlanningWorkspace.css';
 
@@ -21,7 +24,7 @@ import './PlanningWorkspace.css';
  *   onToggleCard(sceneId): fold or open one card
  *   blocks, analysis, scenes, production: the script, analyzeScript(), the measured scenes and the
  *     stored asset lists — turned into rows here (buildBreakdown), so all of it loads with Plan
- *   onAdd(sceneId, bucket, text) · onRemove(sceneId, bucket, text) · onNotes(sceneId, text)
+ *   elementOps: App's shared-element operations (lib/elements.js; each one undo step) · onNotes(sceneId, text)
  *   onOpenScene(sceneId): back to Write, at that scene
  *   layout: the script's pagination (Reports: characters' pages, the page count)
  *   onOpenCharacter(name): back to Write with that character's Dialogue spotlight (Reports)
@@ -39,7 +42,7 @@ import './PlanningWorkspace.css';
  *     windows the same filter shows at the top of the workspace instead of in the header.
  */
 export default function PlanningWorkspace({
-  view, fold, onToggleCard, blocks, analysis, scenes, production, onAdd, onRemove, onNotes, onOpenScene,
+  view, fold, onToggleCard, blocks, analysis, scenes, production, elementOps, onNotes, onOpenScene,
   layout = null, onOpenCharacter, onReportCsv, filter = EMPTY_PLAN_FILTER, onFilter, onCount,
   unattached = [], onAttach, onRemoveUnattached, stripView = 'script', onStripView, scheduleOps = null,
 }) {
@@ -51,6 +54,9 @@ export default function PlanningWorkspace({
   const filtering = view !== 'reports' && planFilterActive(filter);
   const schedule = scheduleOps ? production?.schedule : null;
   const model = useMemo(() => (schedule ? scheduleModel(rows, schedule) : null), [rows, schedule]);
+  // Where each shared element is used (scenes, shooting days): for an item's details.
+  const usage = useMemo(() => (view === 'breakdowns' ? elementUsage(rows, schedule) : null), [view, rows, schedule]);
+  const linked = useMemo(() => (view === 'breakdowns' ? linkedIds(production) : null), [view, production]);
   const scheduling = view === 'stripboard' && !!model?.days.length;
   const inSchedule = scheduling && stripView === 'schedule';
   const visibleIds = useMemo(() => (filtering ? new Set(shown.rows.map((r) => r.id)) : null), [filtering, shown]);
@@ -108,13 +114,14 @@ export default function PlanningWorkspace({
               ? <ScheduleBoard model={model} totals={shownTotals} visible={visibleIds} onOpenScene={onOpenScene} ops={scheduleOps} pagesTarget={schedule?.pagesTarget || null} />
               : view === 'stripboard'
               ? <Stripboard rows={shown.rows} totals={shownTotals} onOpenScene={onOpenScene} dayOf={scheduling ? model.dayOf : null} />
-              : <Breakdowns rows={shown.rows} fold={fold} onToggle={onToggleCard} onAdd={onAdd} onRemove={onRemove} onNotes={onNotes} onOpenScene={onOpenScene} />}
+              : <Breakdowns rows={shown.rows} fold={fold} onToggle={onToggleCard} elements={production?.elements || {}} usage={usage} linked={linked} ops={elementOps} onNotes={onNotes} onOpenScene={onOpenScene} onJump={onToggleCard} />}
           </>
         )}
       </div>
       {reviewing && (
         <UnattachedModal
           items={unattached}
+          elements={production?.elements || {}}
           scenes={rows.map((r) => ({ id: r.id, number: r.number, heading: r.heading }))}
           onAttach={onAttach}
           onRemove={onRemoveUnattached}
@@ -154,13 +161,21 @@ function CastPills({ cast }) {
 
 // ---- Breakdowns ---------------------------------------------------------------------------------
 
-function Breakdowns({ rows, fold, onToggle, onAdd, onRemove, onNotes, onOpenScene }) {
+function Breakdowns({ rows, fold, onToggle, elements, usage, linked, ops, onNotes, onOpenScene }) {
+  const [open, setOpen] = useState(null); // an item's details: { need, sceneId, sceneNumber, anchor }
+  const isOpenCard = (id) => fold.closed === fold.except.has(id);
+  /** "Used in → Sc 17": open that scene's card and bring it into view. */
+  const jump = (id) => {
+    setOpen(null);
+    if (!isOpenCard(id)) onToggle(id);
+    requestAnimationFrame(() => document.querySelector(`.plan-card[data-scene="${CSS.escape(id)}"]`)?.scrollIntoView({ block: 'center', behavior: 'smooth' }));
+  };
   return (
     <div className="plan-breakdowns" role="region" aria-label="Breakdowns">
       {rows.map((r) => {
-        const isOpen = fold.closed === fold.except.has(r.id);
+        const isOpen = isOpenCard(r.id);
         return (
-          <article key={r.id} className={`plan-card strip-${r.color}${isOpen ? ' is-open' : ''}`} aria-label={`Scene ${r.number}`}>
+          <article key={r.id} data-scene={r.id} className={`plan-card strip-${r.color}${isOpen ? ' is-open' : ''}`} aria-label={`Scene ${r.number}`}>
             <header className="plan-card-head">
               <button type="button" className="plan-toggle" onClick={() => onToggle(r.id)} aria-expanded={isOpen} aria-label={isOpen ? 'Collapse' : 'Expand'}>
                 <ChevronDown size={14} strokeWidth={1.75} aria-hidden />
@@ -180,8 +195,20 @@ function Breakdowns({ rows, fold, onToggle, onAdd, onRemove, onNotes, onOpenScen
                   <span className="plan-cast-list"><CastPills cast={r.cast} /></span>
                 </div>
                 <div className="plan-buckets">
-                  {PRODUCTION_BUCKETS.map((b) => (
-                    <Bucket key={b.id} bucket={b} items={r[b.id]} onAdd={(t) => onAdd(r.id, b.id, t)} onRemove={(t) => onRemove(r.id, b.id, t)} />
+                  {CATEGORIES.map((c) => (
+                    <Bucket
+                      key={c.id}
+                      category={c}
+                      items={r.needs?.[c.id] || []}
+                      elements={elements}
+                      usage={usage}
+                      linked={linked}
+                      onAdd={(what) => ops?.add(r.id, c.id, what)}
+                      onPurge={(e) => ops?.purge(e.id)}
+                      onUndo={() => ops?.undo()}
+                      onRemove={(n) => ops?.remove(r.id, n.id, n.name)}
+                      onOpen={(need, anchor) => setOpen({ need, sceneId: r.id, sceneNumber: r.number, anchor })}
+                    />
                   ))}
                 </div>
                 <label className="plan-notes">
@@ -198,53 +225,180 @@ function Breakdowns({ rows, fold, onToggle, onAdd, onRemove, onNotes, onOpenScen
           </article>
         );
       })}
+      {open && ops && (() => {
+        // Always the item as it is now (after a change in its card, or undo): gone → the card closes.
+        const row = rows.find((x) => x.id === open.sceneId);
+        const need = row && CATEGORIES.flatMap((c) => row.needs?.[c.id] || []).find((n) => n.id === open.need.id);
+        if (!need) return null;
+        return (
+          <ElementPopover
+            key={`${open.sceneId}:${need.id}:${need.category}:${need.name}`}
+            need={need}
+            sceneId={open.sceneId}
+            sceneNumber={open.sceneNumber}
+            anchor={open.anchor}
+            elements={elements}
+            usage={usage?.get(need.id)}
+            ops={ops}
+            onJump={jump}
+            onClose={() => setOpen(null)}
+          />
+        );
+      })()}
     </div>
   );
 }
 
-/** One tag list: its items (× removes), then + to add — Enter adds; commas add several at once. */
-function Bucket({ bucket, items, onAdd, onRemove }) {
+/**
+ * One category's items: each opens its details (the name), × removes it from this scene; then + Add.
+ * Typing suggests elements already in the project in this category (other scenes', or unused ones
+ * kept for reuse): ↑ ↓ and Enter (or a tap) reuse one. Enter on typed text reuses the one element of
+ * that name, or makes a new one; "+ New … (separate)" makes a new one even when the name exists.
+ * Commas add several at once, as before. Only Enter or a pick adds: Esc, or clicking away, leaves
+ * what was typed unadded. An unused element (no scene links to it) has a trash can in its row that
+ * deletes it from the project (Shift+Delete on the highlighted row); Ctrl+Z, still in the field,
+ * brings it back.
+ */
+function Bucket({ category, items, elements, usage, linked, onAdd, onRemove, onOpen, onPurge, onUndo }) {
   const [adding, setAdding] = useState(false);
   const [text, setText] = useState('');
-  const commit = () => {
-    for (const part of text.split(',')) if (part.trim()) onAdd(part);
+  const [active, setActive] = useState(-1);
+  const [purged, setPurged] = useState(false); // a delete from this field, so Ctrl+Z here undoes it
+  const listId = `sg-${category.id}-${useId().replace(/:/g, '')}`;
+  const q = nameKey(text);
+  const here = new Set(items.map((i) => i.id));
+  const options = [];
+  if (q && !text.includes(',')) {
+    const pool = Object.values(elements || {}).filter((e) => e.category === category.id && !here.has(e.id));
+    const found = pool.filter((e) => nameKey(e.name).includes(q))
+      .sort((a, b) => Number(!nameKey(a.name).startsWith(q)) - Number(!nameKey(b.name).startsWith(q)) || a.name.localeCompare(b.name))
+      .slice(0, 6);
+    for (const e of found) {
+      const sc = usage?.get(e.id)?.scenes || [];
+      const unused = !!linked && !linked.has(e.id);
+      options.push({ key: e.id, pick: { id: e.id }, label: e.name, hint: sc.length ? `sc ${sc.map((x) => x.number).join(', ')}` : 'not in a scene', unused, element: e });
+    }
+    const exists = Object.values(elements || {}).some((e) => e.category === category.id && nameKey(e.name) === q);
+    const inHere = items.some((i) => nameKey(i.name) === q);
+    if (!inHere) {
+      options.push({ key: '+new', pick: { name: text, reuse: false }, label: `+ New “${text.trim()}”`, hint: exists ? 'separate' : '' });
+    }
+  }
+  const pick = (o) => {
+    onAdd(o.pick);
     setText('');
+    setActive(-1);
+    setPurged(false);
+  };
+  const purge = (o) => {
+    onPurge(o.element);
+    setActive(-1);
+    setPurged(true);
+  };
+  const commit = () => {
+    const parts = text.split(',').filter((part) => part.trim()).map((name) => ({ name }));
+    if (parts.length) onAdd(parts); // one step for them all
+    setText('');
+    setActive(-1);
+  };
+  const close = () => {
+    setText('');
+    setActive(-1);
+    setAdding(false);
+    setPurged(false);
   };
   return (
     <div className="plan-bucket">
-      <span className="plan-label">{bucket.label}</span>
+      <span className="plan-label">{category.label}</span>
       <div className="plan-tags">
-        {items.map((t) => (
-          <span key={t} className="plan-tag">
-            {t}
-            <button type="button" onClick={() => onRemove(t)} aria-label={`Remove ${t}`} title="Remove"><X size={11} strokeWidth={2} aria-hidden /></button>
+        {items.map((n) => (
+          <span key={n.id} className="plan-tag">
+            <button type="button" className="plan-tag-name" onClick={(e) => onOpen(n, e.currentTarget)} title={`${needText(n)} — details`} aria-haspopup="dialog">
+              {n.name}{n.qty !== undefined && <span className="plan-tag-qty"> ×{n.qty}</span>}
+            </button>
+            <button type="button" onClick={() => onRemove(n)} aria-label={`Remove ${n.name}`} title="Remove from this scene"><X size={11} strokeWidth={2} aria-hidden /></button>
           </span>
         ))}
         {adding ? (
-          <input
-            className="plan-add-input"
-            autoFocus
-            value={text}
-            placeholder={bucket.placeholder}
-            aria-label={`Add to ${bucket.label}`}
-            onChange={(e) => setText(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                e.preventDefault();
-                commit();
-              } else if (e.key === 'Escape') {
-                e.stopPropagation();
-                setText('');
-                setAdding(false);
-              }
-            }}
-            onBlur={() => {
-              commit();
-              setAdding(false);
-            }}
-          />
+          <span className="plan-add-wrap">
+            <input
+              className="plan-add-input"
+              autoFocus
+              value={text}
+              placeholder={category.placeholder}
+              aria-label={`Add to ${category.label}`}
+              role="combobox"
+              aria-expanded={options.length > 0}
+              aria-controls={listId}
+              aria-autocomplete="list"
+              aria-activedescendant={active >= 0 && options[active] ? `${listId}-${active}` : undefined}
+              onChange={(e) => {
+                setText(e.target.value);
+                setActive(-1);
+                setPurged(false);
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'ArrowDown' && options.length) {
+                  e.preventDefault();
+                  setActive((i) => (i + 1) % options.length);
+                } else if (e.key === 'ArrowUp' && options.length) {
+                  e.preventDefault();
+                  setActive((i) => (i <= 0 ? options.length - 1 : i - 1));
+                } else if (e.key === 'Enter') {
+                  e.preventDefault();
+                  if (active >= 0 && options[active]) pick(options[active]);
+                  else commit();
+                } else if (e.key === 'Escape') {
+                  e.stopPropagation();
+                  close();
+                } else if (e.key === 'Delete' && e.shiftKey && options[active]?.unused) {
+                  e.preventDefault();
+                  purge(options[active]);
+                } else if (purged && (e.ctrlKey || e.metaKey) && !e.shiftKey && e.key.toLowerCase() === 'z') {
+                  e.preventDefault(); // the delete just made from this list, not the field's text
+                  onUndo();
+                  setPurged(false);
+                }
+              }}
+              onBlur={close} // clicking away never adds what was typed: Enter or a pick does
+            />
+            {options.length > 0 && (
+              <ul className="plan-suggest" role="listbox" id={listId} aria-label={`${category.label} already in the project`}>
+                {options.map((o, i) => (
+                  <li
+                    key={o.key}
+                    id={`${listId}-${i}`}
+                    role="option"
+                    aria-selected={i === active}
+                    className={i === active ? 'is-active' : undefined}
+                    onMouseDown={(e) => e.preventDefault()} // keep the field's focus (its blur would close the list)
+                    onClick={() => pick(o)}
+                  >
+                    <span className="plan-suggest-name">{o.label}</span>
+                    {o.hint && <span className="plan-suggest-hint">{o.hint}</span>}
+                    {o.unused && (
+                      <button
+                        type="button"
+                        className="plan-suggest-del"
+                        tabIndex={-1}
+                        aria-label={`Delete “${o.label}” from the project`}
+                        title={`Delete “${o.label}” from the project (no scene uses it) · Shift+Delete`}
+                        onMouseDown={(e) => e.preventDefault()}
+                        onClick={(e) => {
+                          e.stopPropagation(); // never picks the row
+                          purge(o);
+                        }}
+                      >
+                        <Trash2 size={12} strokeWidth={2} aria-hidden />
+                      </button>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </span>
         ) : (
-          <button type="button" className="plan-add" onClick={() => setAdding(true)} aria-label={`Add to ${bucket.label}`}>
+          <button type="button" className="plan-add" onClick={() => setAdding(true)} aria-label={`Add to ${category.label}`}>
             <Plus size={12} strokeWidth={2} aria-hidden /> Add
           </button>
         )}

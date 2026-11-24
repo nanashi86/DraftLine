@@ -60,9 +60,13 @@ describe('Plan edits as undo steps: each takes back only its own change', () => 
     assert.match(app, /const planStep = \(forward, back, label\) => \{\s*set\(\(b\) => b\.slice\(\), null, \{/);
     // Since Phase 2: the scenes and elements the step changed, put back exactly (applySlice)
     assert.match(app, /planStep\(\(p\) => applySlice\(p, after\), \(p\) => applySlice\(p, before\), what\)/);
-    assert.match(app, /productionStep\(next, what\);/);
-    assert.match(app, /onAdd=\{\(id, bucket, text\) => editTag\(id, bucket, text, true\)\}/);
-    assert.match(app, /onRemove=\{\(id, bucket, text\) => editTag\(id, bucket, text, false\)\}/);
+    // Since Phase 2B: Breakdowns' element operations (add, remove, quantity and note, rename, category,
+    // separate, merge, delete, and autocomplete's delete of an unused one), each one step through productionStep.
+    const ops = app.slice(app.indexOf('const elementOps = {'), app.indexOf('// Unattached breakdowns'));
+    for (const op of ['add', 'remove', 'setNeed', 'rename', 'reclassify', 'separate', 'merge', 'del', 'purge']) assert.match(ops, new RegExp(`\\b${op}: `), op);
+    assert.equal((ops.match(/productionStep\(/g) || []).length, 9, 'every change is one undo step');
+    assert.match(ops, /purge: \(id\) => \{\n\s+const cur = latest\.current\.production;\n\s+if \(!cur\.elements\?\.\[id\] \|\| scenesNeeding\(cur, id\)\.length\) return;/, 'only an unused element');
+    assert.match(app, /elementOps=\{elementOps\}/);
     assert.match(app, /notify\(`Undone: \$\{label\}`\)/);
   });
   it('Production Notes keep the browser’s own text undo (Ctrl+Z there never undoes the script)', () => {

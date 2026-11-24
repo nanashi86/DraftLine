@@ -1,10 +1,11 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { GripVertical } from 'lucide-react';
 import { StripHead, StripLegend, StripRow } from './strips.jsx';
-import { PRODUCTION_BUCKETS, eighthsLabel } from '../../lib/productionEngine.js';
+import { eighthsLabel } from '../../lib/productionEngine.js';
 import { DOOD_CODES, dayDateLabel } from '../../lib/schedule.js';
-import { categoriesOf } from '../../lib/elements.js';
+import { CATEGORIES, needLabel } from '../../lib/elements.js';
+import { HIDDEN, useDismiss, useFloating, useFocusWhenPlaced } from './floating.js';
 
 /**
  * Stripboard → Schedule: the same strips, in shooting order, under day breaks.
@@ -219,80 +220,6 @@ export default function ScheduleBoard({ model, totals, visible, onOpenScene, ops
 }
 
 // Before it's measured, a floating card waits out of sight at the window's corner.
-const HIDDEN = { visibility: 'hidden', top: 0, left: 0 };
-
-/**
- * Keep a floating card next to its anchor and inside the window, following it as the board scrolls
- * (strips moving change the board's height, which scrolls it a little); `gone` once the anchor has
- * scrolled out of sight or left the page, which closes the card.
- */
-function useFloating(anchor, ref, onGone) {
-  const gone = useRef(onGone);
-  useLayoutEffect(() => {
-    gone.current = onGone;
-  });
-  const [pos, setPos] = useState(null);
-  useLayoutEffect(() => {
-    const place = () => {
-      const el = ref.current;
-      if (!el) return;
-      const a = anchor?.isConnected ? anchor.getBoundingClientRect() : null;
-      if (!a || a.bottom < 0 || a.top > window.innerHeight) {
-        gone.current?.();
-        return;
-      }
-      const w = el.offsetWidth;
-      const h = el.offsetHeight;
-      const left = Math.max(8, Math.min(a.left, window.innerWidth - w - 8));
-      const below = a.bottom + 6;
-      const top = below + h > window.innerHeight - 8 ? Math.max(8, a.top - h - 6) : below;
-      setPos({ left, top });
-    };
-    place();
-    const onScroll = (e) => {
-      if (!ref.current?.contains(e.target)) place();
-    };
-    window.addEventListener('resize', place);
-    document.addEventListener('scroll', onScroll, true);
-    return () => {
-      window.removeEventListener('resize', place);
-      document.removeEventListener('scroll', onScroll, true);
-    };
-  }, [anchor, ref]);
-  return pos;
-}
-
-/**
- * Close a floating card on a click outside; when it closes, focus goes back to its anchor (without
- * scrolling). Set up once per card, whatever re-renders in between.
- */
-function useDismiss(ref, anchor, onClose) {
-  const close = useRef(onClose);
-  useLayoutEffect(() => {
-    close.current = onClose;
-  });
-  useEffect(() => {
-    const down = (e) => {
-      if (!ref.current?.contains(e.target) && !anchor?.contains(e.target) && !e.target.closest?.('.select-list')) close.current();
-    };
-    document.addEventListener('mousedown', down);
-    return () => {
-      document.removeEventListener('mousedown', down);
-      if (anchor?.isConnected) anchor.focus({ preventScroll: true });
-    };
-  }, [ref, anchor]);
-}
-
-/** Focus `selector` inside the card once it's in place (a hidden element can't take focus). */
-function useFocusWhenPlaced(ref, pos, selector) {
-  const done = useRef(false);
-  useEffect(() => {
-    if (!pos || done.current) return;
-    done.current = true;
-    ref.current?.querySelector(selector)?.focus({ preventScroll: true });
-  }, [ref, pos, selector]);
-}
-
 function StripMenu({ menu, model, where, onMove, onStep, onClose }) {
   const ref = useRef(null);
   const pos = useFloating(menu.anchor, ref, onClose);
@@ -353,9 +280,9 @@ function DayPopover({ day, count, anchor, ops, pagesTarget, onClose }) {
     const eighths = target.trim() === '' || !(pages > 0) ? null : Math.round(pages * 8);
     if (eighths !== (pagesTarget || null)) ops.setTarget(eighths);
   };
-  // Phase 2A: still shown under the four list labels (the eight categories show in 2B), each name once.
-  const needs = PRODUCTION_BUCKETS.map((b) => [b.label, [...new Map(categoriesOf(b.id)
-    .flatMap((c) => day.requirements[c] || []).map((x) => [x.name.toLowerCase(), x.name])).values()]]).filter(([, list]) => list.length);
+  // What the day needs, in the eight categories: each element once (however many of its scenes are
+  // shot that day), with each scene's own quantity and note where there is one. Never added up.
+  const needs = CATEGORIES.map((c) => [c.label, day.requirements[c.id] || []]).filter(([, list]) => list.length);
   return createPortal(
     <div
       ref={ref}
@@ -442,7 +369,9 @@ function DayPopover({ day, count, anchor, ops, pagesTarget, onClose }) {
       {needs.map(([label, list]) => (
         <div key={label} className="day-pop-section">
           <span className="plan-label">{label}</span>
-          <span>{list.join(' · ')}</span>
+          <ul className="day-pop-needs">
+            {list.map((r) => <li key={r.id}>{needLabel(r)}</li>)}
+          </ul>
         </div>
       ))}
 

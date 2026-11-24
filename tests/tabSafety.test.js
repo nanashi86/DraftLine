@@ -339,6 +339,12 @@ describe('the app wiring', () => {
     assert.match(app, /if \(tabIsClean\(\)\) adoptFromOtherTab\(stored\);/);
     assert.match(app, /reset\(bl\); \/\/ the other tab's version replaces the history here too/);
   });
+  it('taking it in place is atomic with the check, and never moves a caret the writer has moved since', () => {
+    // Applied in the same task as tabIsClean(): no keystroke can fall between them and be lost.
+    assert.match(app, /const acts = userActs\.current;[\s\S]{0,400}flushSync\(\(\) => \{\s*setMeta\(m\);\s*reset\(bl\);/);
+    assert.match(app, /if \(userActs\.current !== acts\) return; \/\/ the writer has moved the caret or typed since/);
+    assert.match(app, /document\.addEventListener\('keydown', act, true\);\s*document\.addEventListener\('pointerdown', act, true\);/);
+  });
   it('choices are written against the version shown', () => {
     assert.match(app, /projects\.saveActiveProject\(doc, \{ expect: c\.seen, snapshotPrevious: label \}\)/);
     assert.match(app, /projects\.keepStoredWithSnapshot\(c\.id, doc, \{ expect: c\.seen, label \}\)/);

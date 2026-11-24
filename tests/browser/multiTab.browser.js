@@ -50,18 +50,23 @@ async function tab(ctx, errors, name) {
 }
 const line = (page) => page.locator('.sheet textarea', { hasText: /We go now/ }).first();
 const dialogue = (page) => page.evaluate(() => [...document.querySelectorAll('.sheet textarea')].find((t) => t.value.startsWith('We go now'))?.value);
-/** Type at the end of the dialogue line (unsaved until the 0.5 s pause, or Ctrl+S). */
+/**
+ * Type at the end of the dialogue line (unsaved until the 0.5 s pause, or Ctrl+S). One input event,
+ * not a key at a time: these tests need two tabs' typing to fall inside one 0.5 s save pause, and on a
+ * busy machine key-by-key typing can outlast it (the other tab then saves first, and its question opens
+ * in the middle of a word). What's tested is what each tab saves and asks, not keystrokes.
+ */
 async function type(page, text) {
   await line(page).click();
   await page.keyboard.press('Control+End'); // the end of the text, even when the line wraps
-  await page.keyboard.type(text);
+  await page.keyboard.insertText(text);
 }
 const saveNow = (page) => page.keyboard.press('Control+s');
 /** A has unsaved typing when B saves: both type at once, then B saves at once (before A's pause ends). */
 async function bothTypeBSaves(a, aText, b, bText) {
   await Promise.all([line(a).click(), line(b).click()]);
   await Promise.all([a.keyboard.press('Control+End'), b.keyboard.press('Control+End')]);
-  await Promise.all([a.keyboard.type(aText), b.keyboard.type(bText)]);
+  await Promise.all([a.keyboard.insertText(aText), b.keyboard.insertText(bText)]); // one event each (see type)
   await saveNow(b);
 }
 const dialog = (page) => page.locator('dialog.sc-modal');

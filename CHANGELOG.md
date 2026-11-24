@@ -6,6 +6,18 @@ All notable changes to DraftLine are recorded here. The format follows [Keep a C
 
 ### Added
 
+- **Breakdowns in eight categories, with shared elements (Phase 2B).** Each scene card has Background / Extras,
+  Props & Set Dressing, Wardrobe, Hair & Makeup, Vehicles, Stunts, Special Effects and Visual Effects (four across,
+  two rows, on a wide screen). Typing in **+ Add** suggests what's already in the project in that category, with its
+  scenes, by keyboard or touch; **+ New “…”** keeps a separate item with the same name. Clicking an item opens its
+  card: rename everywhere, change category (asks first when other scenes use it), this scene's quantity and note,
+  the scenes and shooting days that use it, **Separate here**, **Merge into…** (you choose where quantities differ;
+  nothing is lost), **Remove from scene** and **Delete everywhere…**. Items from the old mixed lists say where they
+  came from until you confirm or change their category. A shooting day lists each item once with every scene's
+  quantity and note, never added up. The Scene Breakdown `.csv` has a column per category, with quantities and
+  notes. Every change is one undo step. Only `Enter` or a pick adds an item (clicking away or `Esc` adds nothing);
+  an item no scene uses can be deleted from its suggestion row (trash can, undoable). Renaming shows **Press Enter
+  to rename** until confirmed; `Esc` closes an item's card without keeping unconfirmed edits.
 - **Shared production elements (groundwork, Phase 2A).** Every breakdown item is now an element with a stable
   identity that scenes link to, with that scene's own quantity and note, in eight categories (Background / Extras,
   Props & Set Dressing, Wardrobe, Hair & Makeup, Vehicles, Stunts, Special Effects, Visual Effects). Existing projects
@@ -194,6 +206,9 @@ All notable changes to DraftLine are recorded here. The format follows [Keep a C
 
 ### Fixed
 
+- **Two tabs: typing at the moment another tab's save arrives.** A tab with nothing unsaved now takes the other
+  tab's version in the same instant it checks, so a key pressed just then lands on the new version instead of being
+  replaced, and the caret is put back only if you haven't moved it or typed since.
 - **Cast numbers are fixed from the script at the first shooting day.** They were briefly stored empty and then refilled
   from the line counts, which matched in practice but meant Renumber Cast… always reported a change.
 - **`npm run dev` shows the public pages.** `/features/`, `/compare/`, `/welcome/` and `/philosophy/` opened the editor

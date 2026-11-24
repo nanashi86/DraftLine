@@ -276,3 +276,17 @@ export function sceneNeeds(scene, elements) {
   }
   return out;
 }
+
+/** One scene's need as text (the Scene Breakdown CSV, a chip's title): "Ferry passengers ×20 (in the rain)". */
+export const needText = (n) => `${n.name}${n.qty !== undefined ? ` ×${n.qty}` : ''}${n.note ? ` (${n.note})` : ''}`;
+
+/**
+ * A day's requirement (scheduleModel: { name, uses: [{ number, qty?, note? }] }) as text: the name, then
+ * each scene's own quantity and note where there is one — "Ferry passengers · sc 2 ×12, sc 13 ×20 (wet)".
+ * Never a total: whether those are the same people is the production's call.
+ */
+export function needLabel(req) {
+  const said = (req.uses || []).filter((u) => u.qty !== undefined || u.note);
+  if (!said.length) return req.name;
+  return `${req.name} · ${said.map((u) => `sc ${u.number}${u.qty !== undefined ? ` ×${u.qty}` : ''}${u.note ? ` (${u.note})` : ''}`).join(', ')}`;
+}

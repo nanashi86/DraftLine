@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import Select from '../Select.jsx';
-import { PRODUCTION_BUCKETS } from '../../lib/productionData.js';
+import { CATEGORIES, needText, sceneNeeds } from '../../lib/elements.js';
 import '../SceneRangeModal.css';
 
 /**
@@ -12,7 +12,7 @@ import '../SceneRangeModal.css';
  *   items:   unattachedScenes() → [{ id, entry }]
  *   scenes:  the script's scenes, [{ id, number, heading }], for "Attach to"
  */
-export default function UnattachedModal({ items, scenes, onAttach, onRemove, onClose, returnFocus = null }) {
+export default function UnattachedModal({ items, scenes, elements = {}, onAttach, onRemove, onClose, returnFocus = null }) {
   const dialogRef = useRef(null);
   const [target, setTarget] = useState({});
   useEffect(() => {
@@ -51,14 +51,15 @@ export default function UnattachedModal({ items, scenes, onAttach, onRemove, onC
       </header>
       <ul className="un-list">
         {items.map(({ id, entry }) => {
-          const lists = PRODUCTION_BUCKETS.filter((b) => entry[b.id]?.length);
+          const needs = sceneNeeds(entry, elements);
+          const lists = CATEGORIES.filter((c) => needs[c.id].length);
           return (
             <li key={id} className="un-item">
               <dl className="un-what">
-                {lists.map((b) => (
-                  <div key={b.id}>
-                    <dt>{b.label}</dt>
-                    <dd>{entry[b.id].join(' · ')}</dd>
+                {lists.map((c) => (
+                  <div key={c.id}>
+                    <dt>{c.label}</dt>
+                    <dd>{needs[c.id].map(needText).join(' · ')}</dd>
                   </div>
                 ))}
                 {entry.notes?.trim() && (

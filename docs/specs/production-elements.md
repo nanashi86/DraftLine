@@ -1,8 +1,9 @@
 # Shared production elements (Stage 2, Phase 2)
 
-> **Status:** Phase 2A built (data model, migration, reconciliation, operations, scheduling by identity; the
-> Breakdowns interface unchanged). Phase 2B (eight-category layout, suggestions, the element popover, CSV) next.
-> Code: `src/lib/elements.js`, `src/lib/productionData.js`, `src/lib/schedule.js` (`elementUsage`). Tests:
+> **Status:** built. Phase 2A: data model, migration, reconciliation, operations, scheduling by identity. Phase 2B:
+> the eight-category Breakdowns, suggestions, the element card, shooting-day needs with quantities, the CSV.
+> Code: `src/lib/elements.js`, `src/lib/productionData.js`, `src/lib/schedule.js` (`elementUsage`),
+> `src/components/planning/ElementPopover.jsx`, `PlanningWorkspace.jsx` (Breakdowns). Tests:
 > `tests/elements.test.js`, `tests/browser/elements.browser.js`.
 
 **Enter once, use everywhere.** A thing a production needs (the Black SUV, the ferry passengers, a squib) is one
@@ -77,6 +78,32 @@ the conflicts and changes nothing until the writer chooses; notes are kept side 
 A shooting day's requirements are grouped by element id: each element once, with every scene's quantity and note
 beside it. `elementUsage(rows, schedule)` gives each element's scenes and shooting days; both are derived every
 time, so moving a scene moves its needs.
+
+## Interface (Phase 2B)
+
+- **Breakdowns**: Cast, then the eight categories (four columns by two rows from 1100 px wide; fewer columns below,
+  one on a phone), then Production Notes. An item is a chip: its name (opens the element card), `×qty` when set, and
+  × (remove from this scene).
+- **+ Add** is a combobox: up to six elements of that category not already in the scene, names starting with the
+  typed text first, each with the scenes using it (or "not in a scene"); then **+ New “text”** (`reuse: false`, hinted
+  "separate" when the name exists). `Enter` with no suggestion chosen adds the typed text (comma-separated, one
+  undo step) with reuse. Only `Enter` or a pick adds: `Escape` and blur discard the text. Arrow keys, `Enter`,
+  `Escape`; options keep the field's focus, and rows are 36 px tall on touch screens. An **unused** element (no
+  scene entry links to it, `linkedIds`) has a trash button in its row (`Shift+Delete` on the active row): App's
+  `purge` deletes it only if `scenesNeeding` is empty, as one undo step; `Ctrl+Z` in the field undoes it right
+  after. Unused elements are otherwise kept indefinitely.
+- **Element card** (`ElementPopover`): *Element* (name: rename everywhere on `Enter` only, "Press Enter to rename"
+  while it differs, refused with the clashing scenes named; category: a shared element asks **Move everywhere**; a `from` hint with **That's right**) · *In scene
+  N* (quantity, a whole number above 0 or empty; note) · *Used in* (scene buttons, shooting days) · **Separate here**
+  (only when shared) · **Merge into…** (same category; a quantity choice per conflicting scene, Merge disabled until
+  each is chosen) · **Remove from scene** · **Delete everywhere…** (inline confirmation). Each action is one undo step.
+  Footer emphasis: Separate / Merge neutral, Remove quiet, Delete destructive. `Escape` closes and discards anything
+  unconfirmed (an open Select takes the first one); an outside click commits quantity and note (as blur would) and
+  toasts if a rename was left unconfirmed.
+- **Shooting day**: the day card lists each category's elements once: `Name · sc 4 ×20 (wet), sc 9 ×12` when a scene
+  gave a quantity or note, otherwise just the name. The Stripboard strips are unchanged.
+- **CSV** (File ▾ → Scene Breakdown): one column per category, in the order above; each cell is `Name ×qty (note)`
+  items joined with `; `.
 
 ## Compatibility
 

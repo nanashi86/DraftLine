@@ -317,7 +317,7 @@ describe('App wiring: [ Write | Plan ]', () => {
     assert.doesNotMatch(pw, /className="plan-bar"|plan-toolbar|setCollapsed|onExport/);
     assert.match(pw, /className="plan-summary" role="status"[\s\S]*cast, sluglines and lengths come from the script/);
     assert.match(app, /view=\{planView\}\s*fold=\{planFold\}\s*onToggleCard=\{togglePlanCard\}/);
-    assert.match(pw, /const isOpen = fold\.closed === fold\.except\.has\(r\.id\);/);
+    assert.match(pw, /const isOpenCard = \(id\) => fold\.closed === fold\.except\.has\(id\);/);
   });
   it('Collapse All folds every card; a card toggled by hand is the exception either way', () => {
     // the same arithmetic as App (planFold) and PlanningWorkspace (isOpen)

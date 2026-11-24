@@ -59,6 +59,9 @@ before work starts, and ships when it's ready.
     breakdown and schedule quantities, totals, contingency, your currency and CSV export.
   - **Multi-tab protection (Phase 1.5, done):** the same project in two tabs or windows can't save over itself; the
     other version is always kept. Details: [`docs/specs/data-integrity.md`](docs/specs/data-integrity.md).
+  - **Shared production elements (Phase 2, done):** breakdowns in eight categories; each item entered once and linked
+    by every scene that needs it, with that scene's quantity and note; suggestions, rename, merge and separate; a
+    shooting day's needs by item. Details: [`docs/specs/production-elements.md`](docs/specs/production-elements.md).
   - **Before this ships:** data-safety groundwork so newer project data can never be lost by an older copy of
     DraftLine (unknown-field preservation, a schema update, compatibility tests). Details:
     [`docs/specs/data-integrity.md`](docs/specs/data-integrity.md).
