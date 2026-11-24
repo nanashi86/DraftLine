@@ -194,6 +194,13 @@ describe('PWA', () => {
     assert.equal(registerServiceWorker({ prod: true, nav: {}, win }), false, 'no service worker support → nothing');
   });
   it('the build is wired to the plugin', () => {
-    assert.match(read('vite.config.js'), /plugins: \[react\(\), draftlinePwa\(\)\]/);
+    assert.match(read('vite.config.js'), /plugins: \[react\(\), draftlinePwa\(\), publicPages\(\)\]/);
+  });
+  it('npm run dev serves the public pages (features/, compare/, welcome/, philosophy/) as the live site does; builds are untouched', () => {
+    const cfg = read('vite.config.js');
+    const plugin = cfg.slice(cfg.indexOf('function publicPages()'), cfg.indexOf('export default'));
+    assert.match(plugin, /apply: 'serve',/, 'dev server only');
+    assert.match(plugin, /join\(dir, decodeURIComponent\(path\), 'index\.html'\)/);
+    assert.match(plugin, /res\.statusCode = 301;/, '/features → /features/');
   });
 });
