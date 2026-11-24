@@ -1,9 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
 import { ChevronDown, CornerUpLeft, Plus, X } from 'lucide-react';
-import { PRODUCTION_BUCKETS, STRIP_COLORS, breakdownTotals, buildBreakdown } from '../../lib/productionEngine.js';
+import { PRODUCTION_BUCKETS, breakdownTotals, buildBreakdown } from '../../lib/productionEngine.js';
 import Reports from './Reports.jsx';
 import PlanFilter from './PlanFilter.jsx';
 import UnattachedModal from './UnattachedModal.jsx';
+import ScheduleBoard from './ScheduleBoard.jsx';
+import { StripHead, StripLegend, StripRow } from './strips.jsx';
+import { scheduleModel } from '../../lib/schedule.js';
 import { EMPTY_PLAN_FILTER, filterPlanRows, planFilterActive } from '../../lib/planFilter.js';
 import './PlanningWorkspace.css';
 
@@ -26,6 +29,11 @@ import './PlanningWorkspace.css';
  *   unattached: breakdowns whose heading left the script (productionData.js unattachedScenes); when there
  *     are any, the summary line ends "· 1 scene’s breakdown is no longer attached · Review", which opens
  *     UnattachedModal: onAttach(fromId, toId) · onRemoveUnattached(id), both undo steps in App
+ *   stripView: 'script' | 'schedule', onStripView(v) — the Stripboard's two views once a shooting day
+ *     exists (production.schedule, lib/schedule.js). Before that it's Script only, exactly as always,
+ *     and the selector isn't shown. Script: script order, read-only, a quiet D3 on scheduled scenes.
+ *     Schedule: the same strips in shooting order (ScheduleBoard), moved with scheduleOps (App: undo steps)
+ *   scheduleOps: see ScheduleBoard; also forgetMissing() for scheduled scenes no longer in the script
  *   filter, onFilter(next), onCount({ shown, total }): the header's scene filter (lib/planFilter.js),
  *     applied to Breakdowns and Stripboard (Reports always cover the whole script). On narrower
  *     windows the same filter shows at the top of the workspace instead of in the header.
@@ -33,7 +41,7 @@ import './PlanningWorkspace.css';
 export default function PlanningWorkspace({
   view, fold, onToggleCard, blocks, analysis, scenes, production, onAdd, onRemove, onNotes, onOpenScene,
   layout = null, onOpenCharacter, onReportCsv, filter = EMPTY_PLAN_FILTER, onFilter, onCount,
-  unattached = [], onAttach, onRemoveUnattached,
+  unattached = [], onAttach, onRemoveUnattached, stripView = 'script', onStripView, scheduleOps = null,
 }) {
   const [reviewing, setReviewing] = useState(null); // the Review link, while its dialog is open
   const rows = useMemo(() => buildBreakdown({ blocks, analysis, scenes, production }), [blocks, analysis, scenes, production]);
@@ -41,6 +49,11 @@ export default function PlanningWorkspace({
   const shown = useMemo(() => filterPlanRows(rows, filter), [rows, filter]);
   const shownTotals = useMemo(() => breakdownTotals(shown.rows), [shown]);
   const filtering = view !== 'reports' && planFilterActive(filter);
+  const schedule = scheduleOps ? production?.schedule : null;
+  const model = useMemo(() => (schedule ? scheduleModel(rows, schedule) : null), [rows, schedule]);
+  const scheduling = view === 'stripboard' && !!model?.days.length;
+  const inSchedule = scheduling && stripView === 'schedule';
+  const visibleIds = useMemo(() => (filtering ? new Set(shown.rows.map((r) => r.id)) : null), [filtering, shown]);
   useEffect(() => {
     onCount?.({ shown: shown.shown, total: shown.total });
   }, [onCount, shown.shown, shown.total]);
@@ -54,6 +67,22 @@ export default function PlanningWorkspace({
             {view !== 'reports' && onFilter && (
               <PlanFilter filter={filter} onChange={onFilter} place="workspace" />
             )}
+            {scheduling ? (
+              <div className="plan-summary-row">
+                <PlanSummary
+                  filtering={filtering} shown={shown} totals={totals} shownTotals={shownTotals}
+                  unattached={unattached} onAttach={onAttach} onReview={setReviewing}
+                  model={model} inSchedule={inSchedule} onForgetMissing={scheduleOps?.forgetMissing}
+                />
+                <div className="seg strip-view" role="radiogroup" aria-label="Stripboard order">
+                  {[['script', 'Script', 'Scenes in script order'], ['schedule', 'Schedule', 'Scenes in shooting order, by day']].map(([id, label, title]) => (
+                    <button key={id} type="button" role="radio" aria-checked={stripView === id} className={`seg-btn${stripView === id ? ' is-on' : ''}`} title={title} onClick={() => onStripView?.(id)}>
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ) : (
             <p className="plan-summary" role="status">
               {filtering
                 ? <>{shown.shown} of {plural(totals.scenes, 'scene')} · {shownTotals.length} of {totals.length} {totals.eighths > 8 ? 'pages' : 'page'} · filtered</>
@@ -67,15 +96,18 @@ export default function PlanningWorkspace({
                 </>
               )}
             </p>
+            )}
             {view === 'reports' ? (
               <Reports rows={rows} blocks={blocks} analysis={analysis} layout={layout} onOpenScene={onOpenScene} onOpenCharacter={onOpenCharacter} onCsv={onReportCsv} />
-            ) : filtering && !shown.shown ? (
+            ) : filtering && !shown.shown && !inSchedule ? (
               <p className="plan-empty">
                 No scenes match.{' '}
                 <button type="button" className="plan-clear" onClick={() => onFilter?.(EMPTY_PLAN_FILTER)}>Clear the filter</button>
               </p>
-            ) : view === 'stripboard'
-              ? <Stripboard rows={shown.rows} totals={shownTotals} onOpenScene={onOpenScene} />
+            ) : inSchedule
+              ? <ScheduleBoard model={model} totals={shownTotals} visible={visibleIds} onOpenScene={onOpenScene} ops={scheduleOps} pagesTarget={schedule?.pagesTarget || null} />
+              : view === 'stripboard'
+              ? <Stripboard rows={shown.rows} totals={shownTotals} onOpenScene={onOpenScene} dayOf={scheduling ? model.dayOf : null} />
               : <Breakdowns rows={shown.rows} fold={fold} onToggle={onToggleCard} onAdd={onAdd} onRemove={onRemove} onNotes={onNotes} onOpenScene={onOpenScene} />}
           </>
         )}
@@ -223,48 +255,44 @@ function Bucket({ bucket, items, onAdd, onRemove }) {
 
 // ---- Stripboard ---------------------------------------------------------------------------------
 
-function Stripboard({ rows, totals, onOpenScene }) {
+function Stripboard({ rows, totals, onOpenScene, dayOf = null }) {
   return (
     <div className="plan-stripboard" role="region" aria-label="Stripboard">
-      <div className="strip-legend">
-        {Object.entries(STRIP_COLORS).filter(([k]) => k !== 'unknown' || totals.colors.unknown).map(([k, c]) => (
-          <span key={k} className="strip-key"><span className={`strip-swatch strip-${k}`} aria-hidden="true" />{c.label} · {totals.colors[k]}</span>
-        ))}
-      </div>
+      <StripLegend totals={totals} />
       <div className="strips" role="table" aria-label="Stripboard, in script order">
-        <div className="strip strip-head" role="row">
-          <span role="columnheader">Sc.</span>
-          <span role="columnheader">I/E</span>
-          <span role="columnheader">Slugline</span>
-          <span role="columnheader">D/N</span>
-          <span role="columnheader">Pages</span>
-          <span role="columnheader">Cast</span>
-        </div>
+        <StripHead />
         {rows.map((r) => (
-          <button
-            key={r.id}
-            type="button"
-            role="row"
-            className={`strip strip-${r.color}`}
-            onClick={() => onOpenScene(r.id)}
-            title={`${STRIP_COLORS[r.color].label} — open scene ${r.number} in Write`}
-          >
-            <span role="cell" className="strip-num">{r.number}</span>
-            <span role="cell" className="strip-ie">{r.setting || '–'}</span>
-            <span role="cell" className="strip-slug">
-              <span className="strip-loc">{r.location || r.heading}</span>
-              {r.modifier && <span className="strip-mod">{r.modifier}</span>}
-            </span>
-            <span role="cell" title={r.time && r.time !== r.timeOfDay ? `${r.time}${r.timeOfDay ? ` → ${r.timeOfDay}` : ''}` : undefined}>
-              {r.timeOfDay || '–'}
-            </span>
-            <span role="cell" className="strip-len">{r.length}</span>
-            <span role="cell" className="strip-cast" title={r.cast.map((c) => `${c.number}. ${c.name}`).join(', ')}>
-              {r.cast.map((c) => c.number).join(', ') || '–'}
-            </span>
-          </button>
+          <StripRow key={r.id} r={r} onOpenScene={onOpenScene} day={dayOf ? dayOf.get(r.id) ?? null : null} />
         ))}
       </div>
     </div>
+  );
+}
+
+/** The summary line once there's a schedule: the usual totals, then days, unscheduled and notes. */
+function PlanSummary({ filtering, shown, totals, shownTotals, unattached, onAttach, onReview, model, inSchedule, onForgetMissing }) {
+  const pages = totals.eighths > 8 ? 'pages' : 'page';
+  return (
+    <p className="plan-summary" role="status">
+      {filtering
+        ? <>{shown.shown} of {plural(totals.scenes, 'scene')} · {shownTotals.length} of {totals.length} {pages} · filtered{inSchedule && ' · drag is off, use a strip’s handle to move it'}</>
+        : <>{plural(totals.scenes, 'scene')} · {totals.length} {pages}</>}
+      {' · '}{plural(model.days.length, 'shooting day')} · {model.unscheduled.length} unscheduled
+      {model.noteCount > 0 && <> · <span className="plan-summary-note">{plural(model.noteCount, 'day')} with notes</span></>}
+      {model.missing.length > 0 && onForgetMissing && (
+        <>
+          {' · '}{model.missing.length === 1 ? '1 scheduled scene is' : `${model.missing.length} scheduled scenes are`} no longer in the script{' · '}
+          <button type="button" className="plan-clear" onClick={onForgetMissing}>Remove from the schedule</button>
+        </>
+      )}
+      {unattached.length > 0 && onAttach && (
+        <>
+          {' · '}
+          {unattached.length === 1 ? '1 scene’s breakdown is' : `${unattached.length} scenes’ breakdowns are`} no longer attached
+          {' · '}
+          <button type="button" className="plan-clear" onClick={(e) => onReview(e.currentTarget)}>Review</button>
+        </>
+      )}
+    </p>
   );
 }

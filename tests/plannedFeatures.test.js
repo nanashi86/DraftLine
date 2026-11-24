@@ -1,5 +1,5 @@
-// Planned features in the interface (ROADMAP.md): Shoot after Board, Schedule and Budget after
-// Stripboard, Co-Write… in Write's ⋮. Each opens a short preview and nothing else: no view change,
+// Planned features in the interface (ROADMAP.md): Shoot after Board, Budget after Stripboard
+// (Schedule is built: the Stripboard's Schedule view), Co-Write… in Write's ⋮. Each opens a short preview and nothing else: no view change,
 // no project data, no purchase, no network. Table Read… (also in Write's ⋮) is built: it opens the
 // floating player instead (tests/tableRead.test.js).
 import { describe, it } from 'node:test';
@@ -22,8 +22,7 @@ describe('Planned-feature previews', () => {
       body: 'Lock pages and scene numbers, manage revision rounds, and prepare revised pages for production.',
       note: 'A future optional upgrade. DraftLine Core remains free.',
     });
-    assert.equal(PLANNED_FEATURES.schedule.status, 'Planned for DraftLine Core · Free');
-    assert.equal(PLANNED_FEATURES.schedule.headline, 'Plan your shooting days.');
+    assert.equal(PLANNED_FEATURES.schedule, undefined, 'Scheduling is built: no preview');
     assert.equal(PLANNED_FEATURES.budget.status, 'Planned for DraftLine Core · Free');
     assert.equal(PLANNED_FEATURES.budget.headline, 'Know what your story could cost.');
     assert.equal(PLANNED_FEATURES.tableRead, undefined, 'Table Read is built: no preview');
@@ -64,10 +63,11 @@ describe('Write: Page | Split | Board | Shoot', () => {
   });
 });
 
-describe('Plan: Breakdowns | Stripboard | Schedule | Budget', () => {
-  it('Schedule (calendar-check) and Budget (calculator) follow Stripboard; Reports is no longer a tab', () => {
-    assert.deepEqual(PLAN_PLANNED_TABS.map((t) => t.label), ['Schedule', 'Budget']);
-    assert.match(app, /const PLAN_PLANNED_ICONS = \{ schedule: CalendarCheck, budget: Calculator \};/);
+describe('Plan: Breakdowns | Stripboard | Budget', () => {
+  it('Budget (calculator) follows Stripboard; Schedule is the Stripboard’s own view, not a tab; Reports is no longer a tab', () => {
+    assert.deepEqual(PLAN_PLANNED_TABS.map((t) => t.label), ['Budget']);
+    assert.match(app, /const PLAN_PLANNED_ICONS = \{ budget: Calculator \};/);
+    assert.doesNotMatch(app, /CalendarCheck|openPlanned\('schedule'/);
     const seg = app.slice(app.indexOf('className="seg plan-seg"'), app.indexOf('className="seg view-seg"'));
     assert.ok(seg.indexOf('PLAN_TABS.map') < seg.indexOf('PLAN_PLANNED_TABS.map'));
     assert.doesNotMatch(seg, /PLAN_VIEWS\.map/);

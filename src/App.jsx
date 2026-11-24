@@ -24,11 +24,15 @@ import { takeFeedbackLink } from './lib/feedback.js';
 import ExportFdxModal from './components/ExportFdxModal.jsx';
 import DeleteProjectModal from './components/DeleteProjectModal.jsx';
 import DialogueStepper from './components/DialogueStepper.jsx';
-import { Calculator, CalendarCheck, ChartColumn, Clapperboard, Columns2, FileCheck2, FileText, Flame, LayoutList, Moon, PenLine, Rows3, Scissors, SquareKanban } from 'lucide-react';
+import { Calculator, ChartColumn, Clapperboard, Columns2, FileCheck2, FileText, Flame, LayoutList, Moon, PenLine, Plus, Rows3, Scissors, SquareKanban } from 'lucide-react';
 import {
-  PRODUCTION_BUCKETS, addAsset, attachScene, extendCastNumbers, removeAsset, renameCastNumber, sceneAssets, setSceneBucket,
-  setSceneEntry, setSceneNotes, undoAttach, unattachedScenes,
+  PRODUCTION_BUCKETS, addAsset, attachScene, extendCastNumbers, freezeCastNumbers, removeAsset, renameCastNumber, sceneAssets,
+  setSceneBucket, setSceneEntry, setSceneNotes, undoAttach, unattachedScenes,
 } from './lib/productionData.js';
+import {
+  addDay, fillDates, forgetMissing, loadStripView, moveDay, moveScene, removeDay, saveStripView, scheduleIsReadable, setDayDate,
+  setDayNote, setPagesTarget,
+} from './lib/schedule.js';
 import { csvOutlineFileName, outlineCsv } from './lib/exportCsvOutline.js';
 import FormatStepper from './components/FormatStepper.jsx';
 import { applyFixes, auditScript, canFix, canFixAll } from './lib/formatDoctor.js';
@@ -178,13 +182,14 @@ const WORKSPACES = [
 ];
 const PLAN_VIEWS = [
   { id: 'breakdowns', label: 'Breakdowns', title: 'Every scene’s cast, setting, length and the props, wardrobe, vehicles and extras you add', Icon: LayoutList },
-  { id: 'stripboard', label: 'Stripboard', title: 'One colour-coded strip per scene, in script order', Icon: Rows3 },
+  { id: 'stripboard', label: 'Stripboard', title: 'One colour-coded strip per scene, in script order, and your shooting schedule', Icon: Rows3 },
   { id: 'reports', label: 'Reports', title: 'Scenes, characters, locations and the script in numbers — each as a .csv too', Icon: ChartColumn },
 ];
 /** Plan's own tabs: Breakdowns | Stripboard (Reports opens from ⋮ → Reports, in Write and Plan alike). */
 const PLAN_TABS = PLAN_VIEWS.filter((v) => v.id !== 'reports');
-/** After them, planned tabs that open a preview (lib/plannedFeatures.js): Schedule | Budget. */
-const PLAN_PLANNED_ICONS = { schedule: CalendarCheck, budget: Calculator };
+/** After them, planned tabs that open a preview (lib/plannedFeatures.js): Budget. (Scheduling lives in
+ *  the Stripboard: + Shooting Day, then Script | Schedule.) */
+const PLAN_PLANNED_ICONS = { budget: Calculator };
 const VIEWS = [
   { id: 'page', label: 'Page', title: 'Script only', Icon: FileText },
   { id: 'split', label: 'Split', title: 'Script + Scene Board side by side', Icon: Columns2 },
@@ -569,6 +574,8 @@ function Workspace({ boot }) {
   // Table Read (Write → ⋮ → Table Read…; components/TableRead.jsx): the floating read-aloud player.
   // `from` is where focus goes back when it closes: the script element the caret was in, else ⋮.
   const [tableRead, setTableRead] = useState(null);
+  // Stripboard: Script | Schedule, remembered per project on this device (lib/schedule.js loadStripView).
+  const [stripPrefs, setStripPrefs] = useState({});
   const [readingId, setReadingId] = useState(null);
   // Where Table Read starts next: the element the caret moves to, the scene picked in the Scenes sidebar,
   // or null for the Title Page (read as the first scene). `n` counts choices, so re-picking a scene counts.
@@ -2182,6 +2189,62 @@ function Workspace({ boot }) {
     planStep((p) => setSceneEntry(p, id, null), (p) => (p.scenes[id] ? p : setSceneEntry(p, id, entry)), 'unattached breakdown removed');
   };
 
+  // ---- The shooting schedule (Stripboard → Schedule; lib/schedule.js) ----
+  // Every schedule change is an undo step like any Plan edit. All of them go through here, so a step
+  // can safely restore the schedule as it was. The first shooting day also fixes the cast numbers
+  // (productionData.js castNumbers) in the same step, so undoing it unfixes them too.
+  const scheduleStep = (change, label, { fixCast = false } = {}) => {
+    const cur = latest.current.production;
+    const before = cur.schedule ?? null;
+    const after = change(before);
+    const fixing = fixCast && !cur.castNumbers;
+    const cast = fixing ? freezeCastNumbers(latest.current.analysis) : null;
+    if (JSON.stringify(after) === JSON.stringify(before) && !fixing) return;
+    const put = (schedule, castNumbers) => (p) => {
+      const next = { ...p };
+      if (schedule) next.schedule = schedule;
+      else delete next.schedule;
+      if (castNumbers !== undefined) {
+        if (castNumbers) next.castNumbers = castNumbers;
+        else delete next.castNumbers;
+      }
+      return next;
+    };
+    planStep(put(after, fixing ? cast : undefined), put(before, fixing ? null : undefined), label);
+  };
+  const dayName = (dayId) => {
+    const i = (latest.current.production.schedule?.days || []).findIndex((d) => d.id === dayId);
+    return i >= 0 ? `Day ${i + 1}` : 'a day';
+  };
+  const stripViewOf = (id) => stripPrefs[id] ?? loadStripView(id) ?? 'schedule';
+  const chooseStripView = (v) => {
+    setStripPrefs((m) => ({ ...m, [projectId]: v }));
+    saveStripView(projectId, v);
+  };
+  const addShootingDay = () => {
+    const first = !latest.current.production.schedule;
+    scheduleStep((s) => addDay(s).schedule, first ? 'first shooting day added' : 'shooting day added', { fixCast: true });
+    if (first) chooseStripView('schedule'); // the next step (moving scenes onto it) is right there
+  };
+  const scheduleOps = {
+    moveScene: (id, dayId, index = null) => scheduleStep((s) => moveScene(s, id, dayId, index),
+      `${sceneLabel(id)} moved to ${dayId ? dayName(dayId) : 'Unscheduled'}`),
+    addDay: (afterId) => scheduleStep((s) => addDay(s, { afterId }).schedule, 'shooting day added'),
+    removeDay: (id) => scheduleStep((s) => removeDay(s, id), `${dayName(id)} removed`),
+    moveDay: (id, index) => scheduleStep((s) => moveDay(s, id, index), `${dayName(id)} moved`),
+    setDate: (id, date) => scheduleStep((s) => setDayDate(s, id, date), `${dayName(id)}’s date`),
+    setNote: (id, note) => scheduleStep((s) => setDayNote(s, id, note), `${dayName(id)}’s note`),
+    fillDates: (id, start, skipWeekends) => scheduleStep((s) => fillDates(s, id, start, { skipWeekends }), 'dates filled in'),
+    setTarget: (eighths) => scheduleStep((s) => setPagesTarget(s, eighths), 'page target'),
+    forgetMissing: () => scheduleStep((s) => forgetMissing(s, scenes.map((sc) => sc.id)), 'scenes no longer in the script removed from the schedule'),
+    renumberCast: () => {
+      const cur = latest.current.production.castNumbers ?? null;
+      const next = freezeCastNumbers(latest.current.analysis);
+      const put = (v) => (p) => ({ ...p, castNumbers: v });
+      if (JSON.stringify(cur) !== JSON.stringify(next)) planStep(put(next), (p) => (cur ? put(cur)(p) : { ...p, castNumbers: undefined }), 'cast renumbered');
+    },
+  };
+
   const openSceneInWrite = (id) => {
     writeScroll.current = 0; // going somewhere specific: don't restore the old position over it
     boardScroll.current = [];
@@ -2842,6 +2905,17 @@ function Workspace({ boot }) {
                 {planAllFolded ? 'Expand All' : 'Collapse All'}
               </button>
             )}
+            {inPlan && planView === 'stripboard' && scheduleIsReadable(production.schedule) && (
+              <button
+                type="button"
+                className="btn btn-plan-day"
+                onClick={addShootingDay}
+                disabled={!scenes.length}
+                title={production.schedule ? 'Add another shooting day at the end' : 'Start a shooting schedule: arrange scenes into shooting days (your script is never changed)'}
+              >
+                <Plus size={14} strokeWidth={2} aria-hidden="true" /> Shooting Day
+              </button>
+            )}
             {inPlan && (
               <button
                 ref={planExportBtnRef}
@@ -3094,6 +3168,9 @@ function Workspace({ boot }) {
                 production={production}
                 onAdd={(id, bucket, text) => editTag(id, bucket, text, true)}
                 onRemove={(id, bucket, text) => editTag(id, bucket, text, false)}
+                stripView={production.schedule ? stripViewOf(projectId) : 'script'}
+                onStripView={chooseStripView}
+                scheduleOps={scheduleIsReadable(production.schedule) ? scheduleOps : null}
                 unattached={unattached}
                 onAttach={attachUnattached}
                 onRemoveUnattached={removeUnattached}

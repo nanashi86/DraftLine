@@ -9,7 +9,7 @@
 //                             length in page eighths, speaking cast (with cast numbers)
 //   Stored (project.production, saved in the .draftline file):
 //     { version: 1, scenes: { [sceneHeadingId]: { extras: [], props: [], wardrobe: [], vehicles: [], notes: '' } },
-//       castNumbers?: { [CUE NAME]: n } }
+//       castNumbers?: { [CUE NAME]: n }, schedule?: { days: [...], pagesTarget } }   (schedule: lib/schedule.js)
 //
 // castNumbers (optional): production cast numbers, fixed once production scheduling begins. Until then
 // there is none, and cast numbers follow the script (most lines = 1). Once fixed, a number never
@@ -27,14 +27,15 @@
 // planning existed simply have no `production` and load with empty breakdowns.
 
 
-import { addUnknownFields } from './passThrough.js';
+import { isEmptySchedule, normalizeSchedule } from './schedule.js';
+import { addUnknownFields, jsonCopy } from './passThrough.js';
 
 export const PRODUCTION_VERSION = 1;
 
 // Forward compatibility (lib/passThrough.js, docs/specs/data-integrity.md): a newer DraftLine may store
 // more in `production` (a schedule, a budget) or in a scene's entry. Those keys are carried through
 // unchanged, and a higher `version` is never lowered, so an older copy saving the project loses nothing.
-const PRODUCTION_KEYS = new Set(['version', 'scenes', 'castNumbers']);
+const PRODUCTION_KEYS = new Set(['version', 'scenes', 'castNumbers', 'schedule']);
 
 /** The tag lists on every scene's breakdown (Production Notes is free text beside them). */
 export const PRODUCTION_BUCKETS = [
@@ -82,6 +83,14 @@ export function normalizeProduction(raw) {
   }
   const cast = normalizeCastNumbers(obj?.castNumbers);
   if (cast) out.castNumbers = cast;
+  // lib/schedule.js: null when there are no days. A schedule in a shape this version doesn't know (a
+  // newer DraftLine's) is kept exactly as it is, never dropped: scheduleIsReadable says so, and the
+  // Stripboard then leaves scheduling off rather than overwrite it.
+  if (obj?.schedule !== undefined) {
+    const schedule = normalizeSchedule(obj.schedule);
+    if (schedule) out.schedule = schedule;
+    else if (!isEmptySchedule(obj.schedule)) out.schedule = jsonCopy(obj.schedule);
+  }
   if (obj) addUnknownFields(out, obj, PRODUCTION_KEYS);
   return out;
 }

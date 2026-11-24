@@ -275,9 +275,10 @@ describe('.draftline files keep planning data (and older files still open)', () 
 describe('Stripboard and Breakdowns show the parsed heading', () => {
   const pw = read('src/components/planning/PlanningWorkspace.jsx');
   it('stripboard: I/E as written, the location with a modifier pill, D/N resolved', () => {
-    assert.match(pw, /<span role="cell" className="strip-ie">\{r\.setting \|\| '–'\}<\/span>/);
-    assert.match(pw, /<span className="strip-loc">\{r\.location \|\| r\.heading\}<\/span>\s*\{r\.modifier && <span className="strip-mod">\{r\.modifier\}<\/span>\}/);
-    assert.match(pw, /\{r\.timeOfDay \|\| '–'\}/);
+    const strips = read('src/components/planning/strips.jsx'); // the strip markup, shared by Script and Schedule views
+    assert.match(strips, /<span role="cell" className="strip-ie">\{r\.setting \|\| '–'\}<\/span>/);
+    assert.match(strips, /<span className="strip-loc">\{r\.location \|\| r\.heading\}<\/span>\s*\{r\.modifier && <span className="strip-mod">\{r\.modifier\}<\/span>\}/);
+    assert.match(strips, /\{r\.timeOfDay \|\| '–'\}/);
   });
   it('breakdown cards: the modifier beside the INT / EXT and time pills', () => {
     assert.match(pw, /\{row\.modifier && <span className="plan-badge plan-modifier"[^>]*>\{row\.modifier\}<\/span>\}/);

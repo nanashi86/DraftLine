@@ -65,8 +65,10 @@ describe('Stripboard baseline (data): every strip as it is before Scheduling', (
   });
 
   it('the Stripboard markup: same columns, cells, classes and click in the source', () => {
+    // The strips' markup lives in strips.jsx (shared by Script and Schedule views since Scheduling);
+    // the Script view's table is still PlanningWorkspace's Stripboard.
     const src = read('src/components/planning/PlanningWorkspace.jsx');
-    const board = src.slice(src.indexOf('function Stripboard('));
+    const board = src.slice(src.indexOf('function Stripboard(')) + read('src/components/planning/strips.jsx');
     for (const col of ['Sc.', 'I/E', 'Slugline', 'D/N', 'Pages', 'Cast']) assert.ok(board.includes(`<span role="columnheader">${col}</span>`), col);
     for (const cls of ['strip-num', 'strip-ie', 'strip-slug', 'strip-loc', 'strip-mod', 'strip-len', 'strip-cast', 'strip-legend', 'strip-key', 'strip-swatch']) {
       assert.ok(board.includes(cls), cls);

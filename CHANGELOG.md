@@ -6,6 +6,13 @@ All notable changes to DraftLine are recorded here. The format follows [Keep a C
 
 ### Added
 
+- **Shooting schedule (DraftLine Core, free).** Plan → Stripboard → **+ Shooting Day**. Scenes go into shooting days
+  in an order of their own (the script is never changed): drag a strip's handle, use its **Move to Day…** menu, or
+  `Alt+↑` / `Alt+↓`. **Script | Schedule** switches between script order (with a quiet D3 on scheduled scenes) and
+  shooting order (day headers with dates, pages, Day-Out-of-Days cast codes, places, needs, notes, a page target).
+  Quiet advisory notes, never errors. Every change is a step in the one undo history. Cast numbers are fixed from the
+  first shooting day (new characters get the next number; Rename keeps it; **Renumber cast…** only on purpose).
+  Without a shooting day the Stripboard is exactly as before. Plan's tabs are now **Breakdowns | Stripboard | Budget**.
 - **Table Read (DraftLine Core, free).** ⋮ → Table Read… reads the script aloud: a narrator for scene headings and
   action and a voice for each speaking character, busiest characters first (voices are shared at slightly different
   pitches when there are more characters than voices). Read the current **Scene**, **Act** (as the Scene Board places

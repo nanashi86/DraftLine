@@ -10,7 +10,7 @@ Press {{key:F1}} at any time to open this guide. {{key:Ctrl+/}} shows every keyb
 
 The top bar holds your script's title, the **Write | Plan** switch, the **File ▾** menu, the Element picker and the B / I / U / S formatting buttons (only while you're on the page: **Page**, **Split** or Focus), the view switch (**Page**, **Split**, **Board**) and **Snapshot**. Story Bible and Characters open as panels on the right.
 
-On a smaller screen the top bar makes room the same way in Write and Plan. A workspace's own tools move to a row at the top of the workspace instead of disappearing: Write's Element picker and B / I / U / S sit just above the script (under 1200px wide), as Plan's scene filter sits above the scenes. **Page | Split | Board | Shoot** and **Breakdowns | Stripboard | Schedule | Budget** both turn to icons at the same width (point at one for its name), and on a phone-sized screen, where the switch leaves the bar, **⋮** lists the views.
+On a smaller screen the top bar makes room the same way in Write and Plan. A workspace's own tools move to a row at the top of the workspace instead of disappearing: Write's Element picker and B / I / U / S sit just above the script (under 1200px wide), as Plan's scene filter sits above the scenes. **Page | Split | Board | Shoot** and **Breakdowns | Stripboard | Budget** both turn to icons at the same width (point at one for its name), and on a phone-sized screen, where the switch leaves the bar, **⋮** lists the views.
 
 The status bar at the bottom shows the current element, where your work is saved, scene and word counts, page count, page colour, undo / redo and zoom.
 
@@ -371,14 +371,14 @@ The Scene Board's **Export Outline** downloads the board as a **Fountain Outline
 
 ### Write and Plan
 
-- **Write** is the screenplay editor, with **Page**, **Split** and **Board** (and **Shoot**, a preview of a planned feature), **Focus**, **Story Bible** and **Characters** on the right of the top bar. In **Plan** those same places hold **Breakdowns | Stripboard** (and **Schedule** and **Budget**, previews of planned features), **Collapse All / Expand All** and **Export Breakdown**; the title, **Write | Plan**, **File ▾**, **Snapshot** and **⋮** stay put. On a smaller screen Plan's tools shorten (Export Breakdown becomes **Export**, the view switch turns to icons) and then move into **⋮**, the same way Write's do; the scene filter moves above the scenes, as Write's Element picker and B / I / U / S move above the script.
+- **Write** is the screenplay editor, with **Page**, **Split** and **Board** (and **Shoot**, a preview of a planned feature), **Focus**, **Story Bible** and **Characters** on the right of the top bar. In **Plan** those same places hold **Breakdowns | Stripboard** (and **Budget**, a preview of a planned feature), **Collapse All / Expand All** and **Export Breakdown** (on the Stripboard, **+ Shooting Day**); the title, **Write | Plan**, **File ▾**, **Snapshot** and **⋮** stay put. On a smaller screen Plan's tools shorten (Export Breakdown becomes **Export**, the view switch turns to icons) and then move into **⋮**, the same way Write's do; the scene filter moves above the scenes, as Write's Element picker and B / I / U / S move above the script.
 - The title, the Projects library, **File ▾**, **Snapshot** and the ⋮ menu (About, User Guide) stay in both.
 - Switching never loses anything. Your script stays exactly as it was, unsaved typing included, and it keeps saving. Coming back to Write puts the script and the Scene Board where you'd scrolled them.
 - **Write** on a breakdown card, or a click on a strip, takes you back to Write at that scene.
 
 ### Planned features
 
-A few places in the app show what's planned next. **Shoot** (after Board), **Schedule** and **Budget** (in Plan) and **⋮ → Co-Write…** (in Write) each open a short note about the planned feature and a **Close** button. Nothing is built behind them yet: opening one doesn't change your view, your script or your project. Schedule and Budget are planned for free DraftLine Core; Shoot for DraftLine Pro, a future optional upgrade; Co-Write as a future optional hosted service. Everything DraftLine does today stays free. (**Table Read**, once a preview here, is now part of DraftLine Core: see Table Read.)
+A few places in the app show what's planned next. **Shoot** (after Board), **Budget** (in Plan) and **⋮ → Co-Write…** (in Write) each open a short note about the planned feature and a **Close** button. Nothing is built behind them yet: opening one doesn't change your view, your script or your project. Budget is planned for free DraftLine Core; Shoot for DraftLine Pro, a future optional upgrade; Co-Write as a future optional hosted service. Everything DraftLine does today stays free. (**Table Read** and the **shooting schedule**, once previews here, are now part of DraftLine Core: see Table Read and Shooting schedule.)
 
 ### Finding scenes
 
@@ -396,7 +396,7 @@ On **Breakdowns** and **Stripboard**, the top bar holds a scene filter: **Find s
 - **Day or night**: from the part after the location that holds a day or night word, so `NEXT DAY`, `FOLLOWING NIGHT`, `LATER THAT DAY` and `DAY - CONTINUOUS` all read. DAY, MORNING, AFTERNOON, DAWN and SUNRISE are day; NIGHT, EVENING, DUSK and SUNSET are night. CONTINUOUS, LATER and MOMENTS LATER take the light of the scene before. The stripboard's D/N column shows the result as DAY or NIGHT; a heading without one is marked **DAY/NIGHT?**.
 - **Modifiers**: anything in parentheses — `(FLASHBACK)`, `(DREAM)`, `(MOVING)` — is shown as a tag beside the location and never hides the time of day (see Scene headings: formatting tips).
 - **Page eighths**: each scene's length in eighths of a page, the way a call sheet counts it: **6/8**, **1 2/8**. It's measured from the lines the scene takes on the page (a page is {{plan.pageLines}} lines), and every scene counts as at least 1/8.
-- **Cast (Speaking)**: everyone with a line in the scene, from the character cues (extensions like (V.O.) and (CONT'D) are left off). Each character gets a **cast number**, as on a call sheet: 1 is the character with the most lines in the script, then 2, 3 …
+- **Cast (Speaking)**: everyone with a line in the scene, from the character cues (extensions like (V.O.) and (CONT'D) are left off). Each character gets a **cast number**, as on a call sheet: 1 is the character with the most lines in the script, then 2, 3 … Once you add a shooting day the numbers are fixed, as a production needs them to be: see Shooting schedule.
 
 ### Breakdowns
 
@@ -407,6 +407,22 @@ A script with more than 10 scenes opens Breakdowns with every card folded, so yo
 ### Stripboard
 
 Every scene as one strip, in script order, coloured the standard way: **INT. DAY** white, **EXT. DAY** yellow, **INT. NIGHT** blue, **EXT. NIGHT** green (grey when the heading has no day or night). Each strip shows the scene number, INT/EXT, location, time of day, length in eighths and the cast numbers of who speaks. The legend at the top counts scenes, pages and strips of each colour.
+
+### Shooting schedule
+
+The Stripboard is also where you plan the shoot. Until you add a shooting day it stays exactly as above.
+
+- **+ Shooting Day** (in the top bar, on the Stripboard) adds a day. The first one switches the Stripboard to **Schedule**, and **Script | Schedule** appears at the right of the summary line, so you can go back and forth. DraftLine remembers your choice for each project on this device.
+- **Schedule** shows the same strips grouped by day: **DAY 3 · Tue 12 May · 4 2/8 pgs**, then that day's scenes in shooting order, then **Unscheduled** (every scene not on a day yet, in script order; a scene you write later starts here).
+- **Moving a scene.** Each strip has a handle (⋮⋮) on its left. Drag it onto a day, or click it for **Move to Day…**, **Unscheduled**, **Move Up** and **Move Down**. With the handle or the strip focused, {{key:Alt+Up}} / {{key:Alt+Down}} move the scene one place, across into the next or previous day at the edges. While the scene filter is on, dragging is off (you'd be dropping between hidden scenes); the handle's menu still works.
+- **Clicking a strip** opens the scene in Write, in both views, as it always has.
+- **A day's details.** Click a day's header for its date (and **Date the days after**, one a day from there, skipping weekends if you like), its cast with Day-Out-of-Days codes (**SW** start, **W** work, **WF** finish, **SWF** one day only, **H** on hold between their first and last day), the places it uses, what its breakdowns need (extras, props, wardrobe, vehicles), a day note, a **page target** for every day, and **Earlier**, **Later** and **Remove Day**. Removing a day sends its scenes back to Unscheduled; removing the last one takes the Stripboard back to how it was before.
+- **Notes, never errors.** A dot on a day's header marks something worth a look: more pages than the target (only when you've set one), day and night scenes on the same day, or three or more different places (possibly more than one location: one property can hold several sets). They're hints; nothing stops you.
+- **Script view** keeps the script's order and adds a quiet **D3** in the slugline cell of each scheduled scene.
+- **Cast numbers stay put.** The first shooting day fixes everyone's cast number. A character who appears later gets the next free number, and **Rename** keeps a character's number. Nothing is renumbered unless you ask: **Renumber cast…** in a day's details, with a warning, numbers everyone again by lines.
+- **Undo.** Every schedule change is a step in the same undo history as your writing: {{key:Ctrl+Z}} takes back one move at a time. The schedule never changes your script: it's an order of scenes kept beside it, saved with the project.
+- If a scene on a day leaves the script (its heading deleted or turned into action), it stays on its day, hidden, in case you undo. The summary line says so, with **Remove from the schedule** to clear it on purpose.
+- One project open in two tabs: the tab that saves last wins. Schedule in one tab at a time.
 
 ### Reports
 

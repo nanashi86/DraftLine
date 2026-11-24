@@ -29,7 +29,7 @@ Pro and Co-Write don't exist yet. **Pricing and availability will be announced w
   recover everything you've written.
 - **Licences unlock capabilities, not platforms.** The browser, the installed app and the planned Windows and
   Android/ChromeOS apps are all free; Pro and Co-Write work on all of them. No accounts.
-- **What you'll see.** Shoot sits after Page, Split and Board; Schedule and Budget sit in Plan; Co-Write is in ⋮.
+- **What you'll see.** Shoot sits after Page, Split and Board; Budget sits in Plan; Co-Write is in ⋮.
   Each opens a short note about what's planned. No pop-ups, badges or reminders you didn't click for.
 
 ## Shipped
@@ -50,8 +50,8 @@ The order below is the plan of priority and expected effort, **not release dates
 before work starts, and ships when it's ready.
 
 - [ ] **Stage 2 · DraftLine Core: Schedule & Budget** (*free*)
-  Plan becomes **Breakdowns · Stripboard · Schedule · Budget**; Reports is in ⋮ and works as it does now.
-  - **Schedule**: scenes into shooting days, in an order separate from the script, with page-eighths, pages per day,
+  Plan becomes **Breakdowns · Stripboard · Budget**; Reports is in ⋮ and works as it does now.
+  - **Schedule** (the Stripboard's Schedule view; V1 built): scenes into shooting days, in an order separate from the script, with page-eighths, pages per day,
     grouping by location, cast, INT/EXT and time of day, practical conflict warnings and CSV export.
   - **Budget**: cast, crew, locations, props, wardrobe, equipment, vehicles, post and your own lines; costs linked to
     breakdown and schedule quantities, totals, contingency, your currency and CSV export.

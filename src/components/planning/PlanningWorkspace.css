@@ -324,3 +324,166 @@
 .un-select { flex: 1 1 240px; min-width: 0; }
 .un-actions .btn-primary { background: var(--accent); color: var(--on-accent); padding: 6px 16px; }
 .un-actions .btn-primary:disabled { opacity: 0.4; }
+
+/* ---- Scheduling (Stripboard: Script | Schedule) ---------------------------------------------------
+   Nothing below applies until a project has a shooting day: the Stripboard before that is untouched. */
+
+/* The summary line once there's a schedule, with Script | Schedule at its right end. */
+.plan-summary-row { display: flex; align-items: center; gap: 12px; max-width: var(--plan-w); margin: 0 auto 12px; }
+.plan-summary-row .plan-summary { flex: 1; min-width: 0; margin: 0; }
+.plan-summary-note { color: var(--warn-ink, var(--muted)); }
+.strip-view { flex: none; }
+.strip-view .seg-btn { padding: 3px 10px; font-size: 12px; }
+
+/* Script view: a scheduled scene's day, quietly at the end of the slugline cell (never over the
+   location or its modifier: those keep their room and ellipsis as before). */
+.strip-day { flex: none; margin-left: auto; padding-left: 4px; font: 600 10.5px/1 var(--ui-font); letter-spacing: 0.04em; opacity: 0.7; }
+
+/* Schedule view: each strip gets a narrow handle to its left (drag · Move to Day… · Alt+↑/↓). */
+.is-schedule .strips { gap: 3px; }
+.strip-slot { display: grid; grid-template-columns: 26px minmax(0, 1fr); align-items: center; gap: 2px; }
+.strip-slot.is-head .strip-gutter { display: block; }
+.strip-slot.is-dragging { opacity: 0.45; }
+.strip-slot.is-drop-before { box-shadow: 0 -2px 0 0 var(--accent-amber); }
+.strip-slot.is-drop-after { box-shadow: 0 2px 0 0 var(--accent-amber); }
+.strip-handle {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 34px;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: var(--muted);
+  cursor: grab;
+}
+.strip-handle:hover,
+.strip-handle[aria-expanded='true'] { background: var(--hover-bg); color: var(--text); }
+.strip-handle:focus-visible { outline: 2px solid var(--accent-amber); outline-offset: 1px; }
+.strip-slot:not([draggable='true']) .strip-handle { cursor: pointer; }
+
+/* Day breaks: one quiet line per day, a button for the day's details. */
+.strip-day-group { display: flex; flex-direction: column; gap: 3px; }
+.strip-day-group + .strip-day-group { margin-top: 10px; }
+.strip-break { display: grid; grid-template-columns: 26px minmax(0, 1fr); gap: 2px; border-radius: 6px; }
+.strip-break-btn {
+  grid-column: 2;
+  display: flex;
+  align-items: center;
+  gap: 0;
+  min-height: 28px;
+  padding: 0 14px;
+  border: 1px dashed var(--line-soft);
+  border-radius: 6px;
+  background: none;
+  color: var(--text);
+  font: 600 11.5px/1.2 var(--ui-font);
+  letter-spacing: 0.04em;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  cursor: pointer;
+}
+.strip-break-btn:hover,
+.strip-break-btn[aria-expanded='true'] { background: var(--hover-bg); }
+.strip-break-btn:focus-visible { outline: 2px solid var(--accent-amber); outline-offset: 1px; }
+.strip-break-btn.is-static { cursor: default; color: var(--muted); }
+.strip-break-btn.is-static:hover { background: none; }
+.strip-break-day { text-transform: uppercase; letter-spacing: 0.08em; }
+.strip-break-muted { color: var(--muted); font-weight: 500; }
+.strip-break-note { margin-left: 8px; color: var(--accent-amber); font-size: 10px; }
+.strip-break.is-drop .strip-break-btn,
+.strip-empty.is-drop { border-color: var(--accent-amber); border-style: solid; }
+.strip-empty {
+  margin-left: 28px;
+  padding: 8px 14px;
+  border: 1px dashed var(--line-soft);
+  border-radius: 6px;
+  color: var(--muted);
+  font-size: 12px;
+}
+.strip-empty svg { vertical-align: -2px; }
+
+/* Floating cards: a strip's Move menu, a day's details (the Voices… card's look). */
+.plan-pop {
+  position: fixed;
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 6px;
+  border: 1px solid var(--line-soft);
+  border-radius: 9px;
+  background: var(--card);
+  color: var(--text);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+  font-size: 12.5px;
+}
+.plan-pop-label { margin: 2px 8px 4px; color: var(--muted); font: 600 10.5px/1.2 var(--ui-font); letter-spacing: 0.08em; text-transform: uppercase; }
+.plan-pop-sep { height: 1px; margin: 4px 2px; background: var(--line-soft); }
+.strip-menu { min-width: 200px; max-height: min(60vh, 420px); overflow-y: auto; }
+.strip-menu [role='menuitem'] {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 30px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.strip-menu [role='menuitem']:hover:not(:disabled),
+.strip-menu [role='menuitem']:focus-visible { background: var(--hover-bg); outline: none; }
+.strip-menu [role='menuitem']:disabled { opacity: 0.4; cursor: default; }
+.strip-menu kbd { color: var(--muted); font: 11px var(--ui-font); }
+
+.day-pop { width: min(380px, calc(100vw - 16px)); max-height: min(78vh, 640px); overflow-y: auto; gap: 10px; padding: 12px 14px; }
+.day-pop-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.day-pop-head strong { font-size: 14px; }
+.day-pop-head span { color: var(--muted); font-size: 12px; }
+.day-pop-row { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 8px 14px; }
+.day-pop input[type='date'],
+.day-pop input[type='text'],
+.day-pop textarea {
+  padding: 5px 8px;
+  border: 1px solid var(--line-soft);
+  border-radius: 6px;
+  background: var(--field);
+  color: var(--text);
+  font: 12.5px/1.4 var(--ui-font);
+  color-scheme: light dark;
+}
+.day-pop textarea { width: 100%; resize: vertical; }
+.day-pop input[type='text'] { width: 64px; }
+.day-pop input:focus,
+.day-pop textarea:focus { border-color: var(--accent); outline: none; }
+.day-pop-fill { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; padding-bottom: 5px; }
+.day-pop-check { display: inline-flex; align-items: center; gap: 5px; color: var(--muted); font-size: 12px; }
+.day-pop-section { display: flex; flex-direction: column; gap: 3px; line-height: 1.45; }
+.day-pop-notes { margin: 0; padding: 6px 10px 6px 24px; border-radius: 7px; background: color-mix(in srgb, var(--warn, #d97706) 12%, transparent); color: var(--warn-ink, var(--text)); font-size: 12px; }
+.day-pop-cast { display: flex; flex-wrap: wrap; gap: 4px 12px; margin: 0; padding: 0; list-style: none; }
+.day-pop-cast b { font-variant-numeric: tabular-nums; }
+.day-pop-cast abbr { margin-left: 2px; color: var(--muted); font-size: 10.5px; letter-spacing: 0.04em; text-decoration: none; }
+.day-pop-cast .is-hold { color: var(--muted); }
+.day-pop-renumber { align-self: flex-start; font-size: 12px; }
+.day-pop-confirm { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.day-pop-confirm p { flex-basis: 100%; margin: 0; color: var(--muted); font-size: 12px; }
+.day-pop-target > span:last-child { display: inline-flex; align-items: center; gap: 6px; }
+.day-pop-foot { display: flex; align-items: center; gap: 6px; padding-top: 8px; border-top: 1px solid var(--line-soft); }
+
+@media (max-width: 900px) {
+  .strip-slot,
+  .strip-break { grid-template-columns: 30px minmax(0, 1fr); }
+  .strip-handle { width: 30px; height: 40px; } /* a comfortable touch target */
+  .strip-empty { margin-left: 32px; }
+  /* The handle's gutter narrows the slugline: here a modifier may shorten rather than spill into D/N. */
+  .strip-slot .strip-slug { overflow: hidden; }
+  .strip-slot .strip-mod { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+}
+@media print { .strip-handle, .strip-view { display: none !important; } }

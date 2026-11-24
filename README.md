@@ -554,14 +554,15 @@ Want to see where DraftLine is heading? Check out the [Public Roadmap](ROADMAP.m
 moved behind one. The planned order of what's next ([ROADMAP.md](ROADMAP.md)), with no dates promised:
 
 1. **Table Read** (Core, free): ✅ shipped. See [Table Read](#table-read).
-2. **Schedule & Budget** (Core, free): shooting days and production estimates in Plan. Next.
+2. **Schedule & Budget** (Core, free): shooting days (on the Stripboard: **+ Shooting Day**) and production estimates
+   in Plan. Schedule first, then Budget.
 3. **DraftLine Pro** (planned as a one-time purchase, not a subscription): a **Shoot** workspace for locked pages,
    scene numbers and revision rounds. Deferred.
 4. **DraftLine Co-Write** (planned as an optional subscription for hosting live co-writing sessions, with Core or Pro;
    invited writers join free). Last and long-term.
 
-In the app today, **Shoot** (after Board), **Schedule** and **Budget** (in Plan) and **⋮ → Co-Write…** each open a
-short note about what's planned; none of them is built yet.
+In the app today, **Shoot** (after Board), **Budget** (in Plan) and **⋮ → Co-Write…** each open a short note about
+what's planned; none of them is built yet.
 
 Design notes for shipped, planned and possible features live in `docs/specs/`: Table Read, Schedule & Budget, data integrity
 (forward compatibility), Shoot & production revisions, Co-Write, licences and access, payments, and the Windows and
