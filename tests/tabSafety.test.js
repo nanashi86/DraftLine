@@ -316,11 +316,13 @@ describe('cross-tab messages and open tabs', () => {
     Ch.last.onmessage({ data: { type: 'deleted', id: 'p2', from: 'x' } });
     assert.deepEqual(got, [{ type: 'deleted', id: 'p2', from: 'x' }]);
   });
+  // null, not undefined: undefined would take the defaults (globalThis.BroadcastChannel / navigator.locks),
+  // which Node has too (navigator.locks since recent versions), so the test would depend on the Node version.
   it('without BroadcastChannel or Web Locks nothing breaks (the write check still protects)', async () => {
-    const t = createTabSync({ tabId: 'me', onMessage() {}, Channel: undefined });
+    const t = createTabSync({ tabId: 'me', onMessage() {}, Channel: null });
     t.announce('saved', 'p', 'r');
     t.close();
-    assert.equal(await openTabs(undefined), null);
+    assert.equal(await openTabs(null), null);
     assert.deepEqual([...(await openTabs({ query: async () => ({ held: [{ name: 'draftline-tab:a' }, { name: 'other' }] }) }))], ['a']);
   });
 });

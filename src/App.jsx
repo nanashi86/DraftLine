@@ -26,8 +26,8 @@ import DeleteProjectModal from './components/DeleteProjectModal.jsx';
 import DialogueStepper from './components/DialogueStepper.jsx';
 import { Calculator, ChartColumn, Clapperboard, Columns2, FileCheck2, FileText, Flame, LayoutList, Moon, PenLine, Plus, Rows3, Scissors, SquareKanban } from 'lucide-react';
 import {
-  PRODUCTION_BUCKETS, addAsset, attachScene, extendCastNumbers, freezeCastNumbers, removeAsset, renameCastNumber, sceneAssets,
-  setSceneBucket, setSceneEntry, setSceneNotes, undoAttach, unattachedScenes,
+  PRODUCTION_BUCKETS, addAsset, applySlice, attachScene, changedParts, extendCastNumbers, freezeCastNumbers, removeAsset, renameCastNumber,
+  setSceneEntry, setSceneNotes, sliceOf, undoAttach, unattachedScenes,
 } from './lib/productionData.js';
 import {
   addDay, fillDates, forgetMissing, loadStripView, moveDay, moveScene, removeDay, saveStripView, scheduleIsReadable, setDayDate,
@@ -2428,13 +2428,23 @@ function Workspace({ boot }) {
   };
   const bucketLabel = (bucket) => PRODUCTION_BUCKETS.find((b) => b.id === bucket)?.label || bucket;
   const sceneLabel = (id) => (analysis.sceneNumbers?.[id] ? `scene ${analysis.sceneNumbers[id]}` : 'a scene');
+  /**
+   * A Plan change to scenes' needs (lib/elements.js) as one undo step that puts back exactly the scenes
+   * and elements it changed: undoing an add takes back the element it created; redo brings the same one.
+   */
+  const productionStep = (next, what) => {
+    const cur = latest.current.production;
+    const { sceneIds, elementIds } = changedParts(cur, next);
+    if (!sceneIds.length && !elementIds.length) return;
+    const before = sliceOf(cur, sceneIds, elementIds);
+    const after = sliceOf(next, sceneIds, elementIds);
+    planStep((p) => applySlice(p, after), (p) => applySlice(p, before), what);
+  };
   const editTag = (id, bucket, text, add) => {
     const cur = latest.current.production;
-    const before = sceneAssets(cur, id)[bucket];
-    const after = sceneAssets(add ? addAsset(cur, id, bucket, text) : removeAsset(cur, id, bucket, text), id)[bucket];
-    if (before.length === after.length && before.every((x, i) => x === after[i])) return;
+    const next = add ? addAsset(cur, id, bucket, text) : removeAsset(cur, id, bucket, text);
     const what = `“${String(text).replace(/\s+/g, ' ').trim()}” ${add ? 'added to' : 'removed from'} ${bucketLabel(bucket)}, ${sceneLabel(id)}`;
-    planStep((p) => setSceneBucket(p, id, bucket, after), (p) => setSceneBucket(p, id, bucket, before), what);
+    productionStep(next, what);
   };
   // Unattached breakdowns (a heading left the script): attach to a scene, or remove — on purpose, undoable.
   const attachUnattached = (fromId, toId) => {

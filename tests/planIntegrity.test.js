@@ -58,7 +58,9 @@ describe('Plan edits as undo steps: each takes back only its own change', () => 
   it('the app records Plan edits on the one undo history, by their own change, and labels them', () => {
     const app = read('src/App.jsx');
     assert.match(app, /const planStep = \(forward, back, label\) => \{\s*set\(\(b\) => b\.slice\(\), null, \{/);
-    assert.match(app, /planStep\(\(p\) => setSceneBucket\(p, id, bucket, after\), \(p\) => setSceneBucket\(p, id, bucket, before\), what\)/);
+    // Since Phase 2: the scenes and elements the step changed, put back exactly (applySlice)
+    assert.match(app, /planStep\(\(p\) => applySlice\(p, after\), \(p\) => applySlice\(p, before\), what\)/);
+    assert.match(app, /productionStep\(next, what\);/);
     assert.match(app, /onAdd=\{\(id, bucket, text\) => editTag\(id, bucket, text, true\)\}/);
     assert.match(app, /onRemove=\{\(id, bucket, text\) => editTag\(id, bucket, text, false\)\}/);
     assert.match(app, /notify\(`Undone: \$\{label\}`\)/);
@@ -90,10 +92,10 @@ describe('Unattached breakdowns: kept, listed, attached or removed on purpose', 
   });
   it('attach: items join the scene’s (no duplicates, the scene’s first), notes follow after a blank line', () => {
     let p = withProps();
-    p = addAsset(p, 's1', 'props', 'rope'); // already there, other case
+    p = addAsset(p, 's1', 'props', 'rope'); // s2's Rope, other case: the same element (Phase 2), shown by its name
     p = setSceneNotes(p, 's1', 'Ferry booked');
     const out = attachScene(p, 's2', 's1');
-    assert.deepEqual(out.scenes.s1.props, ['Suitcase', 'rope']);
+    assert.deepEqual(out.scenes.s1.props, ['Suitcase', 'Rope']);
     assert.deepEqual(out.scenes.s1.extras, ['Dock workers (4)']);
     assert.equal(out.scenes.s1.notes, 'Ferry booked\n\nPermit for the pier');
     assert.equal(out.scenes.s2, undefined);
@@ -253,9 +255,9 @@ describe('Schedule data: stored safely, and older copies can’t leave it incons
     assert.deepEqual(saved.production.schedule.days.flatMap((d) => d.sceneIds).filter((id) => !headings.has(id)), ['s2'],
       'the one stale reference Scheduling will show as “no longer in the script”');
   });
-  it('a project with no schedule and no fixed numbers is stored exactly as before', () => {
+  it('a project with no schedule and no fixed numbers stores only its breakdowns (and, since Phase 2, their elements)', () => {
     const p = withProps();
-    assert.deepEqual(Object.keys(normalizeProduction(p)).sort(), ['scenes', 'version']);
+    assert.deepEqual(Object.keys(normalizeProduction(p)).sort(), ['elements', 'scenes', 'version']);
     assert.deepEqual(toRecord({ id: 'x', meta: {}, blocks: script(), production: p }, 1).production, normalizeProduction(p));
   });
 });

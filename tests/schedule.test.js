@@ -203,13 +203,14 @@ describe('what the Schedule view shows (scheduleModel)', () => {
     const { s } = build([2, 6, 13]);
     assert.deepEqual(scheduleModel(rows, s).days[0].places, ['FERRY']);
   });
-  it('the day’s requirements gather each scene’s breakdown, once each', () => {
-    const production = { version: 1, scenes: { [id(2)]: { props: ['Thermos', 'Radio'] }, [id(3)]: { props: ['radio'], vehicles: ['Ferry'] } } };
+  it('the day’s requirements gather each scene’s breakdown, once per shared element, with every scene that needs it', () => {
+    const production = normalizeProduction({ version: 1, scenes: { [id(2)]: { props: ['Thermos', 'Radio'] }, [id(3)]: { props: ['radio'], vehicles: ['Ferry'] } } });
     const r = buildBreakdown({ blocks, analysis, production });
     const { s } = build([2, 3]);
     const req = scheduleModel(r, s).days[0].requirements;
-    assert.deepEqual(req.props, ['Thermos', 'Radio']);
-    assert.deepEqual(req.vehicles, ['Ferry']);
+    assert.deepEqual(req.props.map((x) => [x.name, x.uses.map((u) => u.number)]), [['Thermos', [2]], ['Radio', [2, 3]]]);
+    assert.deepEqual(req.vehicles.map((x) => x.name), ['Ferry']);
+    assert.deepEqual(Object.keys(req), ['extras', 'props', 'wardrobe', 'makeup', 'vehicles', 'stunts', 'sfx', 'vfx']);
   });
   it('every Day-Out-of-Days code has a name and a meaning', () => {
     for (const code of ['SW', 'W', 'WF', 'SWF', 'H']) assert.equal(DOOD_CODES[code].length, 2, code);

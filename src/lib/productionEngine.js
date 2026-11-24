@@ -7,6 +7,7 @@ import { ELEMENT_META, PAGE_LINES, linesToEighths, wrapOffsets } from './screenp
 import { headingParts, timeOfDayPeriod } from './sluglines.js';
 import { csvField } from './exportCsvOutline.js';
 import { PRODUCTION_BUCKETS, castNumbers, sceneAssets } from './productionData.js';
+import { sceneNeeds } from './elements.js';
 
 export * from './productionData.js';
 
@@ -156,6 +157,8 @@ export function buildBreakdown({ blocks = [], analysis, scenes = null, productio
       page: m?.page ?? null,
       cast,
       ...sceneAssets(production, b.id),
+      // What it needs, by shared element (lib/elements.js): { [category]: [{ id, name, qty?, note? }] }
+      needs: sceneNeeds(production?.scenes?.[b.id], production?.elements),
     });
   }
   return out;

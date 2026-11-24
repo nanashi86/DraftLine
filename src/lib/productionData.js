@@ -29,15 +29,22 @@
 
 import { isEmptySchedule, normalizeSchedule } from './schedule.js';
 import { addUnknownFields, jsonCopy } from './passThrough.js';
+import {
+  CATEGORY_IDS, categoriesOf, cleanName, legacyOf, nameKey, newElementId, normalizeElements, projectNames, reconcile,
+} from './elements.js';
 
 export const PRODUCTION_VERSION = 1;
 
 // Forward compatibility (lib/passThrough.js, docs/specs/data-integrity.md): a newer DraftLine may store
 // more in `production` (a schedule, a budget) or in a scene's entry. Those keys are carried through
 // unchanged, and a higher `version` is never lowered, so an older copy saving the project loses nothing.
-const PRODUCTION_KEYS = new Set(['version', 'scenes', 'castNumbers', 'schedule']);
+const PRODUCTION_KEYS = new Set(['version', 'scenes', 'castNumbers', 'schedule', 'elements']);
 
-/** The tag lists on every scene's breakdown (Production Notes is free text beside them). */
+/**
+ * The four name lists on every scene's breakdown, as every DraftLine since Plan stores them (Production
+ * Notes is free text beside them). Since Phase 2 they're the projection of the scene's links to shared
+ * elements in eight categories (lib/elements.js), which are the source of truth.
+ */
 export const PRODUCTION_BUCKETS = [
   { id: 'extras', label: 'Background / Extras', placeholder: 'e.g. Ferry passengers (12)' },
   { id: 'props', label: 'Props & Set Dressing', placeholder: 'e.g. Marie’s suitcase' },
@@ -45,7 +52,7 @@ export const PRODUCTION_BUCKETS = [
   { id: 'vehicles', label: 'Vehicles & Stunts', placeholder: 'e.g. The ferry SAINTE-ROSE' },
 ];
 const BUCKET_IDS = PRODUCTION_BUCKETS.map((b) => b.id);
-const SCENE_KEYS = new Set([...BUCKET_IDS, 'notes']);
+const SCENE_KEYS = new Set([...BUCKET_IDS, 'notes', 'links', 'unlinked']);
 
 export const emptyProduction = () => ({ version: PRODUCTION_VERSION, scenes: {} });
 const emptyScene = () => ({ extras: [], props: [], wardrobe: [], vehicles: [], notes: '' });
@@ -64,7 +71,7 @@ function cleanList(list) {
   }
   return out;
 }
-const sceneIsEmpty = (s) => BUCKET_IDS.every((k) => !s[k].length) && !s.notes.trim()
+const sceneIsEmpty = (s) => BUCKET_IDS.every((k) => !s[k].length) && !s.notes.trim() && !s.links && !s.unlinked
   && !Object.keys(s).some((k) => !SCENE_KEYS.has(k)); // a newer build's data keeps the entry
 
 /** Anything stored (or nothing) → a clean production object. Unreadable parts are dropped, never thrown on. */
@@ -78,9 +85,16 @@ export function normalizeProduction(raw) {
     const scene = emptyScene();
     for (const k of BUCKET_IDS) scene[k] = cleanList(s[k]);
     scene.notes = typeof s.notes === 'string' ? s.notes : '';
+    if (s.links && typeof s.links === 'object' && !Array.isArray(s.links)) scene.links = jsonCopy(s.links);
+    if (Array.isArray(s.unlinked)) scene.unlinked = jsonCopy(s.unlinked);
     addUnknownFields(scene, s, SCENE_KEYS);
-    if (!sceneIsEmpty(scene)) out.scenes[id] = scene;
+    out.scenes[id] = scene;
   }
+  // Shared elements: the registry, and every scene's links brought together with its lists (elements.js).
+  out.elements = normalizeElements(obj?.elements);
+  reconcile(out);
+  for (const [id, scene] of Object.entries(out.scenes)) if (sceneIsEmpty(scene)) delete out.scenes[id];
+  if (!Object.keys(out.elements).length) delete out.elements;
   const cast = normalizeCastNumbers(obj?.castNumbers);
   if (cast) out.castNumbers = cast;
   // lib/schedule.js: null when there are no days. A schedule in a shape this version doesn't know (a
@@ -109,44 +123,304 @@ export function normalizeCastNumbers(raw) {
   return Object.keys(out).length ? out : null;
 }
 
+// ---- Changing what scenes need (always through links: lib/elements.js) ---------------------------
+//
+// Every change below edits links and elements, then writes each scene's four lists from its links
+// (project) before normalizing, so the lists never look like an older build's edit (reconcile).
+
+/** A working copy, `fn(draft)` changes its links / elements, then lists projected and normalized. */
+function change(production, fn) {
+  const draft = jsonCopy(normalizeProduction(production));
+  draft.elements ||= {};
+  const out = fn(draft);
+  for (const scene of Object.values(draft.scenes)) {
+    scene.links ||= {};
+    for (const legacy of BUCKET_IDS) scene[legacy] = projectNames(scene.links, draft.elements, legacy);
+  }
+  const p = normalizeProduction(draft);
+  return out === undefined ? p : { ...out, production: p };
+}
+const sceneOf = (draft, sceneId) => (draft.scenes[sceneId] ||= { ...emptyScene(), links: {} });
+const linksIn = (scene, category) => ((scene.links ||= {})[category] ||= []);
+/** Elements in `categories` named `name` (any capitals or spacing). */
+const named = (draft, categories, name) => Object.values(draft.elements || {})
+  .filter((e) => categories.includes(e.category) && nameKey(e.name) === nameKey(name)).map((e) => e.id);
+const placedIn = (scene, id) => CATEGORY_IDS.some((c) => (scene.links?.[c] || []).some((l) => l.id === id));
+
+/**
+ * Scene `sceneId` needs an element in `category`: an existing one ({ id }), or by name ({ name }):
+ * the one element of that name in the category if there's exactly one (reuse: false makes a new one
+ * anyway, kept separate), else a new one. Already there: nothing changes. → { production, id }
+ */
+export function addNeed(production, sceneId, category, { id = null, name = '', reuse = true, from } = {}) {
+  if (!CATEGORY_IDS.includes(category)) return { production: normalizeProduction(production), id: null };
+  let picked = null;
+  const r = change(production, (d) => {
+    const scene = sceneOf(d, sceneId);
+    if (id) {
+      if (!d.elements[id]) return {};
+      picked = id;
+    } else {
+      const clean = cleanName(name);
+      if (!clean) return {};
+      const same = reuse ? named(d, [category], clean) : [];
+      if (same.length === 1) picked = same[0];
+      else {
+        picked = newElementId();
+        d.elements[picked] = { id: picked, category, name: clean, ...(from ? { from } : {}) };
+      }
+    }
+    const el = d.elements[picked];
+    if (!placedIn(scene, picked)) linksIn(scene, el.category).push({ id: picked });
+    return {};
+  });
+  return { production: r.production, id: picked };
+}
+
+/** Scene `sceneId` no longer needs element `id` (other scenes keep it; the element stays registered). */
+export function removeNeed(production, sceneId, id) {
+  return change(production, (d) => {
+    const scene = d.scenes[sceneId];
+    if (!scene?.links) return;
+    for (const c of Object.keys(scene.links)) if (Array.isArray(scene.links[c])) scene.links[c] = scene.links[c].filter((l) => l?.id !== id);
+  });
+}
+
+/**
+ * This scene's quantity and note for element `id`: { qty } a positive whole number, or null to say
+ * none (never 0); { note } text, or '' for none. Fields not given are left as they are.
+ */
+export function setNeed(production, sceneId, id, { qty, note } = {}) {
+  return change(production, (d) => {
+    const scene = d.scenes[sceneId];
+    for (const c of CATEGORY_IDS) {
+      for (const l of scene?.links?.[c] || []) {
+        if (l.id !== id) continue;
+        if (qty !== undefined) {
+          if (Number.isInteger(qty) && qty > 0) l.qty = qty;
+          else delete l.qty;
+        }
+        if (note !== undefined) {
+          if (typeof note === 'string' && note.trim()) l.note = note.trim();
+          else delete l.note;
+        }
+      }
+    }
+  });
+}
+
+/** Rename element `id` everywhere (its identity stays; every scene shows the new name). */
+export function renameElement(production, id, name) {
+  const clean = cleanName(name);
+  return change(production, (d) => {
+    if (d.elements[id] && clean) d.elements[id].name = clean;
+  });
+}
+
+/** Scenes where renaming element `id` to `name` would meet another element of that name in the same list. */
+export function renameClashes(production, id, name) {
+  const p = normalizeProduction(production);
+  const el = p.elements?.[id];
+  if (!el) return [];
+  const legacy = legacyOf(el.category);
+  const others = named(p, categoriesOf(legacy), name).filter((x) => x !== id);
+  return Object.entries(p.scenes).filter(([, s]) => placedIn(s, id) && others.some((o) => placedIn(s, o))).map(([sid]) => sid);
+}
+
+/** Move element `id` (and every scene's link to it) to `category`; it's sorted now (`from` goes). */
+export function reclassifyElement(production, id, category) {
+  if (!CATEGORY_IDS.includes(category)) return normalizeProduction(production);
+  return change(production, (d) => {
+    const el = d.elements[id];
+    if (!el) return;
+    for (const scene of Object.values(d.scenes)) {
+      for (const c of CATEGORY_IDS) {
+        const list = scene.links?.[c];
+        if (!list || c === category) continue;
+        const moving = list.filter((l) => l.id === id);
+        if (!moving.length) continue;
+        scene.links[c] = list.filter((l) => l.id !== id);
+        linksIn(scene, category).push(...moving);
+      }
+    }
+    el.category = category;
+    delete el.from;
+  });
+}
+
+/** This scene gets its own copy of element `id` (same name and category), keeping its quantity and note. → { production, id } */
+export function separateNeed(production, sceneId, id) {
+  const copy = newElementId();
+  const r = change(production, (d) => {
+    const el = d.elements[id];
+    const scene = d.scenes[sceneId];
+    if (!el || !scene || !placedIn(scene, id)) return {};
+    d.elements[copy] = { ...jsonCopy(el), id: copy };
+    for (const c of CATEGORY_IDS) for (const l of scene.links?.[c] || []) if (l.id === id) l.id = copy;
+    return {};
+  });
+  return { production: r.production, id: r.production.elements?.[copy] ? copy : null };
+}
+
+/**
+ * Merge element `fromId` into `intoId` (same category): every scene that needed `fromId` needs
+ * `intoId`, and `fromId` leaves the registry. Where a scene needed both, its two requirements meet:
+ * notes are kept side by side ("a · b"); quantities that differ are NOT chosen for the writer — they come
+ * back in `conflicts` ([{ sceneId, into, from }]) and nothing changes, until `resolve[sceneId]` says
+ * which quantity (a number, or null for none). → { production, conflicts, error? }
+ */
+export function mergeElements(production, fromId, intoId, resolve = {}) {
+  const p = normalizeProduction(production);
+  const a = p.elements?.[fromId];
+  const b = p.elements?.[intoId];
+  if (!a || !b || fromId === intoId) return { production: p, conflicts: [], error: 'missing' };
+  if (a.category !== b.category) return { production: p, conflicts: [], error: 'category' };
+  const conflicts = [];
+  for (const [sid, s] of Object.entries(p.scenes)) {
+    const la = (s.links?.[a.category] || []).find((l) => l.id === fromId);
+    const lb = (s.links?.[a.category] || []).find((l) => l.id === intoId);
+    if (la && lb && la.qty !== undefined && lb.qty !== undefined && la.qty !== lb.qty && !(sid in resolve)) {
+      conflicts.push({ sceneId: sid, into: lb.qty, from: la.qty });
+    }
+  }
+  if (conflicts.length) return { production: p, conflicts };
+  const next = change(p, (d) => {
+    for (const [sid, s] of Object.entries(d.scenes)) {
+      const list = s.links?.[a.category];
+      if (!list) continue;
+      const la = list.find((l) => l.id === fromId);
+      if (!la) continue;
+      const lb = list.find((l) => l.id === intoId);
+      if (!lb) {
+        la.id = intoId;
+        continue;
+      }
+      if (sid in resolve) {
+        if (Number.isInteger(resolve[sid]) && resolve[sid] > 0) lb.qty = resolve[sid];
+        else delete lb.qty;
+      } else if (lb.qty === undefined && la.qty !== undefined) lb.qty = la.qty;
+      const notes = [lb.note, la.note].filter(Boolean);
+      if (notes.length) lb.note = [...new Set(notes)].join(' · ');
+      s.links[a.category] = list.filter((l) => l !== la);
+    }
+    delete d.elements[fromId];
+  });
+  return { production: next, conflicts: [] };
+}
+
+/** Delete element `id` everywhere: out of every scene and the registry (an explicit, undoable choice). */
+export function deleteElement(production, id) {
+  return change(production, (d) => {
+    for (const scene of Object.values(d.scenes)) {
+      for (const c of Object.keys(scene.links || {})) if (Array.isArray(scene.links[c])) scene.links[c] = scene.links[c].filter((l) => l?.id !== id);
+      // …and its set-aside links: deleted on purpose, it never comes back through an older build's list.
+      if (Array.isArray(scene.unlinked)) scene.unlinked = scene.unlinked.filter((u) => u?.id !== id);
+    }
+    delete d.elements[id];
+  });
+}
+
+/** Scenes that need element `id`: [sceneId…] (attached or not). */
+export const scenesNeeding = (production, id) => Object.entries(normalizeProduction(production).scenes)
+  .filter(([, s]) => placedIn(s, id)).map(([sid]) => sid);
+
+// ---- Undo: exactly the parts a step changed --------------------------------------------------------
+
+/**
+ * What an element step can change in a scene: its links and set-aside links (its four lists are their
+ * projection). Never its Production Notes or anything else, so undoing a step never takes back notes
+ * typed since (each step undoes only its own change).
+ */
+const needsOf = (scene) => ({ links: jsonCopy(scene?.links || {}), unlinked: jsonCopy(scene?.unlinked || []) });
+
+/** Those parts of some scenes, and some elements (null where there's none), for applySlice. */
+export function sliceOf(production, sceneIds = [], elementIds = []) {
+  const p = normalizeProduction(production);
+  return {
+    scenes: Object.fromEntries(sceneIds.map((id) => [id, needsOf(p.scenes[id])])),
+    elements: Object.fromEntries(elementIds.map((id) => [id, p.elements?.[id] ? jsonCopy(p.elements[id]) : null])),
+  };
+}
+/** Put those scenes' links and those elements back as they were in a slice (everything else as it is now). */
+export function applySlice(production, slice) {
+  return change(production, (d) => {
+    for (const [id, el] of Object.entries(slice.elements || {})) {
+      if (el) d.elements[id] = jsonCopy(el);
+      else delete d.elements[id];
+    }
+    for (const [id, part] of Object.entries(slice.scenes || {})) {
+      const scene = sceneOf(d, id);
+      scene.links = jsonCopy(part?.links || {});
+      if (part?.unlinked?.length) scene.unlinked = jsonCopy(part.unlinked);
+      else delete scene.unlinked;
+    }
+  });
+}
+/** Every scene (by its links) and element that differs between two productions (what a step changed). */
+export function changedParts(before, after) {
+  const a = normalizeProduction(before);
+  const b = normalizeProduction(after);
+  const differs = (x, y) => JSON.stringify(x ?? null) !== JSON.stringify(y ?? null);
+  const sceneIds = [...new Set([...Object.keys(a.scenes), ...Object.keys(b.scenes)])].filter((id) => differs(needsOf(a.scenes[id]), needsOf(b.scenes[id])));
+  const elementIds = [...new Set([...Object.keys(a.elements || {}), ...Object.keys(b.elements || {})])].filter((id) => differs(a.elements?.[id], b.elements?.[id]));
+  return { sceneIds, elementIds };
+}
+
+// ---- The four lists (Breakdowns' tags until the eight categories show, and older callers) -----------
+
 /** The breakdown stored for one scene (empty lists when there's none). */
 export const sceneAssets = (production, sceneId) => ({ ...emptyScene(), ...(production?.scenes?.[sceneId] || {}) });
 
-function withScene(production, sceneId, change) {
-  const p = normalizeProduction(production);
-  const next = change(sceneAssets(p, sceneId));
-  const scenes = { ...p.scenes };
-  if (sceneIsEmpty(next)) delete scenes[sceneId];
-  else scenes[sceneId] = next;
-  return { ...p, scenes };
-}
-
-/** Add an item to a scene's list (ignored if blank or already there, any case). */
+/**
+ * Add an item to one of the four lists by name: the one element of that name among the list's
+ * categories if there's exactly one (and the scene doesn't have it), else a new one — in Wardrobe or
+ * Vehicles for the two mixed lists, remembering where it was typed (`from`). Blank or there: nothing.
+ */
 export function addAsset(production, sceneId, bucket, text) {
   if (!BUCKET_IDS.includes(bucket) || !cleanItem(text)) return normalizeProduction(production);
-  return withScene(production, sceneId, (s) => ({ ...s, [bucket]: cleanList([...s[bucket], text]) }));
+  const p = normalizeProduction(production);
+  if (sceneAssets(p, sceneId)[bucket].some((x) => nameKey(x) === nameKey(text))) return p;
+  const same = named(p, categoriesOf(bucket), text);
+  if (same.length === 1) return addNeed(p, sceneId, p.elements[same[0]].category, { id: same[0] }).production;
+  const mixed = bucket === 'wardrobe' || bucket === 'vehicles';
+  return addNeed(p, sceneId, bucket, { name: text, reuse: false, ...(mixed ? { from: bucket } : {}) }).production;
 }
+/** Remove the item named `text` from one of the four lists (every element it stands for, in this scene only). */
 export function removeAsset(production, sceneId, bucket, text) {
   if (!BUCKET_IDS.includes(bucket)) return normalizeProduction(production);
-  return withScene(production, sceneId, (s) => ({ ...s, [bucket]: s[bucket].filter((x) => x !== text) }));
+  return change(production, (d) => {
+    const scene = d.scenes[sceneId];
+    if (!scene?.links) return;
+    for (const c of categoriesOf(bucket)) {
+      if (scene.links[c]) scene.links[c] = scene.links[c].filter((l) => nameKey(d.elements[l.id]?.name) !== nameKey(text));
+    }
+  });
 }
 export function setSceneNotes(production, sceneId, notes) {
-  return withScene(production, sceneId, (s) => ({ ...s, notes: typeof notes === 'string' ? notes : '' }));
+  return change(production, (d) => {
+    sceneOf(d, sceneId).notes = typeof notes === 'string' ? notes : '';
+  });
 }
 
-/** Replace one list on one scene (Plan's undo / redo of a tag added or removed: only that list). */
+/**
+ * Replace one of the four lists by names (older callers). Names already there keep their elements
+ * (and quantities, notes); new ones link as addAsset does; ones left out are removed from this scene.
+ */
 export function setSceneBucket(production, sceneId, bucket, list) {
   if (!BUCKET_IDS.includes(bucket)) return normalizeProduction(production);
-  return withScene(production, sceneId, (s) => ({ ...s, [bucket]: cleanList(list) }));
+  const want = cleanList(list);
+  let p = normalizeProduction(production);
+  for (const name of sceneAssets(p, sceneId)[bucket]) if (!want.some((x) => nameKey(x) === nameKey(name))) p = removeAsset(p, sceneId, bucket, name);
+  for (const name of want) p = addAsset(p, sceneId, bucket, name);
+  return p;
 }
 
 /** Replace a scene's whole stored entry, or remove it with null (attach / remove and their undo). */
 export function setSceneEntry(production, sceneId, entry) {
-  const p = normalizeProduction(production);
-  const scenes = { ...p.scenes };
-  if (entry) scenes[sceneId] = entry;
-  else delete scenes[sceneId];
-  return normalizeProduction({ ...p, scenes });
+  return change(production, (d) => {
+    if (entry) d.scenes[sceneId] = jsonCopy(entry);
+    else delete d.scenes[sceneId];
+  });
 }
 
 /**
@@ -170,11 +444,31 @@ export function attachScene(production, fromId, toId) {
   const p = normalizeProduction(production);
   const from = p.scenes[fromId];
   if (!from || fromId === toId) return p;
-  const to = sceneAssets(p, toId);
-  const merged = { ...from, ...to };
-  for (const k of BUCKET_IDS) merged[k] = cleanList([...to[k], ...from[k]]);
-  merged.notes = [to.notes, from.notes].map((n) => n.trim()).filter(Boolean).join('\n\n');
-  return setSceneEntry(setSceneEntry(p, toId, merged), fromId, null);
+  return change(p, (d) => {
+    const f = d.scenes[fromId];
+    const to = sceneOf(d, toId);
+    const merged = { ...f, ...to, links: jsonCopy(to.links || {}) };
+    const aside = [...(to.unlinked || []), ...(f.unlinked || [])];
+    // Its elements join the scene's (by identity); one the scene already has keeps the scene's own
+    // quantity and note, and the other's are set aside (recoverable), never dropped.
+    for (const [cat, list] of Object.entries(f.links || {})) {
+      if (!CATEGORY_IDS.includes(cat)) {
+        if (!(cat in merged.links)) merged.links[cat] = list;
+        continue;
+      }
+      for (const l of list) {
+        const there = CATEGORY_IDS.flatMap((c) => merged.links[c] || []).find((x) => x.id === l.id);
+        if (!there) linksIn(merged, cat).push(l);
+        else if ((l.qty !== undefined && l.qty !== there.qty) || (l.note !== undefined && l.note !== there.note)) {
+          aside.push({ ...l, category: cat, name: d.elements[l.id]?.name || '' });
+        }
+      }
+    }
+    if (aside.length) merged.unlinked = aside;
+    merged.notes = [to.notes, f.notes].map((n) => (n || '').trim()).filter(Boolean).join('\n\n');
+    d.scenes[toId] = merged;
+    delete d.scenes[fromId];
+  });
 }
 
 // ---- Cast numbers ---------------------------------------------------------------------------------
@@ -233,16 +527,19 @@ export function renameCastNumber(fixed, oldName, newName) {
 export function undoAttach(production, { fromId, fromEntry, toId, toBefore, toAfter }) {
   let p = normalizeProduction(production);
   if (!p.scenes[fromId]) p = setSceneEntry(p, fromId, fromEntry);
-  const now = p.scenes[toId];
-  if (!now) return p;
-  const before = { ...emptyScene(), ...(toBefore || {}) };
-  const after = { ...emptyScene(), ...(toAfter || {}) };
-  const next = { ...now };
-  for (const k of BUCKET_IDS) {
-    const added = new Set(after[k].filter((x) => !before[k].includes(x)).map((x) => x.toLowerCase()));
-    next[k] = now[k].filter((x) => !added.has(x.toLowerCase()));
-  }
-  if (now.notes === after.notes) next.notes = before.notes;
-  const empty = BUCKET_IDS.every((k) => !next[k].length) && !next.notes.trim() && !toBefore;
-  return setSceneEntry(p, toId, empty ? null : next);
+  if (!p.scenes[toId]) return p;
+  const ids = (entry) => new Set(CATEGORY_IDS.flatMap((c) => (entry?.links?.[c] || []).map((l) => l.id)));
+  const before = ids(toBefore);
+  const added = [...ids(toAfter)].filter((id) => !before.has(id));
+  return change(p, (d) => {
+    const now = d.scenes[toId];
+    for (const c of CATEGORY_IDS) if (now.links?.[c]) now.links[c] = now.links[c].filter((l) => !added.includes(l.id));
+    if (now.notes === (toAfter?.notes ?? '')) now.notes = toBefore?.notes ?? '';
+    if (JSON.stringify(now.unlinked || []) === JSON.stringify(toAfter?.unlinked || [])) {
+      if (toBefore?.unlinked) now.unlinked = jsonCopy(toBefore.unlinked);
+      else delete now.unlinked;
+    }
+    const empty = !toBefore && !CATEGORY_IDS.some((c) => now.links?.[c]?.length) && !now.notes.trim() && !now.unlinked;
+    if (empty) delete d.scenes[toId];
+  });
 }

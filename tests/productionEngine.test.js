@@ -206,7 +206,9 @@ describe('Manual asset buckets', () => {
       assert.deepEqual(normalizeProduction(bad), emptyProduction());
     }
     const n = normalizeProduction({ scenes: { s1: { props: ['Gun', 7, 'gun', ''], notes: 5 } } });
-    assert.deepEqual(n.scenes.s1, { extras: [], props: ['Gun'], wardrobe: [], vehicles: [], notes: '' });
+    const { links, ...lists } = n.scenes.s1; // links: Phase 2's shared elements (tests/elements.test.js)
+    assert.deepEqual(lists, { extras: [], props: ['Gun'], wardrobe: [], vehicles: [], notes: '' });
+    assert.deepEqual(Object.keys(links), ['props']);
   });
   it('joins stored assets onto the breakdown by scene heading id', () => {
     const p = addAsset(emptyProduction(), 's3', 'vehicles', 'Tap-tap');

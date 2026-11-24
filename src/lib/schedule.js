@@ -17,6 +17,7 @@
 // it always was. Removing the last day removes the schedule. Fields a newer DraftLine stores are kept.
 
 import { addUnknownFields, jsonCopy } from './passThrough.js';
+import { CATEGORY_IDS } from './elements.js';
 
 const SCHEDULE_KEYS = new Set(['days', 'pagesTarget']);
 const DAY_KEYS = new Set(['id', 'sceneIds', 'date', 'note']);
@@ -238,11 +239,19 @@ export function scheduleModel(rows, schedule) {
     const castMap = new Map();
     for (const r of dayRows) for (const c of r.cast) castMap.set(c.name, c.number);
     const places = [...new Set(dayRows.map((r) => basePlace(r.location || r.heading)).filter(Boolean))];
+    // What the day needs, by shared element: each element once, however many of its scenes are shot
+    // that day, with every scene's own quantity and note beside it (never added up: 20 extras in one
+    // scene and 12 in another may be the same people).
     const requirements = {};
-    for (const k of ['props', 'wardrobe', 'extras', 'vehicles']) {
-      const seen = new Map();
-      for (const r of dayRows) for (const item of r[k] || []) if (!seen.has(item.toLowerCase())) seen.set(item.toLowerCase(), item);
-      requirements[k] = [...seen.values()];
+    for (const cat of CATEGORY_IDS) {
+      const byId = new Map();
+      for (const r of dayRows) {
+        for (const n of r.needs?.[cat] || []) {
+          if (!byId.has(n.id)) byId.set(n.id, { id: n.id, name: n.name, category: cat, uses: [] });
+          byId.get(n.id).uses.push({ sceneId: r.id, number: r.number, ...(n.qty !== undefined ? { qty: n.qty } : {}), ...(n.note !== undefined ? { note: n.note } : {}) });
+        }
+      }
+      requirements[cat] = [...byId.values()];
     }
     const periods = new Set(dayRows.map((r) => r.period).filter(Boolean));
     const notes = [];
@@ -288,6 +297,31 @@ export const DOOD_CODES = {
   SWF: ['Start · Work · Finish', 'their only shooting day'],
   H: ['Hold', 'not working this day, but between their first and last, so still booked'],
 };
+
+/**
+ * Where every shared element is needed (lib/elements.js) → Map elementId → { id, name, category,
+ * scenes: [{ sceneId, number, qty?, note? }] (script order), days: [day numbers] (ascending, once each) }.
+ * Derived from the scenes' links and the schedule every time, so moving a scene to another day moves its
+ * needs with it. Elements no scene needs aren't in it (they stay in the registry, for reuse). Quantities
+ * stay per scene: how many people, vehicles or rental days that means is a production decision.
+ */
+export function elementUsage(rows, schedule) {
+  const dayOf = scheduleModel(rows, schedule).dayOf;
+  const out = new Map();
+  for (const r of rows) {
+    for (const cat of CATEGORY_IDS) {
+      for (const n of r.needs?.[cat] || []) {
+        if (!out.has(n.id)) out.set(n.id, { id: n.id, name: n.name, category: cat, scenes: [], days: [] });
+        const u = out.get(n.id);
+        u.scenes.push({ sceneId: r.id, number: r.number, ...(n.qty !== undefined ? { qty: n.qty } : {}), ...(n.note !== undefined ? { note: n.note } : {}) });
+        const day = dayOf.get(r.id);
+        if (day && !u.days.includes(day)) u.days.push(day);
+      }
+    }
+  }
+  for (const u of out.values()) u.days.sort((a, b) => a - b);
+  return out;
+}
 
 // ---- The Script | Schedule choice: a preference on this device, per project ----------------------
 

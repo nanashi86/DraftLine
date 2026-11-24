@@ -6,6 +6,15 @@ All notable changes to DraftLine are recorded here. The format follows [Keep a C
 
 ### Added
 
+- **Shared production elements (groundwork, Phase 2A).** Every breakdown item is now an element with a stable
+  identity that scenes link to, with that scene's own quantity and note, in eight categories (Background / Extras,
+  Props & Set Dressing, Wardrobe, Hair & Makeup, Vehicles, Stunts, Special Effects, Visual Effects). Existing projects
+  convert by themselves when opened, losslessly and without writing anything until the next edit: the same item in
+  several scenes (capitals and spacing aside) becomes one element, nothing is split, merged by guesswork or
+  reclassified by its text. Breakdowns looks as before; an item that appears in several scenes with different
+  capitals now shows one spelling everywhere. A shooting day's needs list each element once. Older DraftLine
+  versions still open and edit these projects, and nothing they'd drop is lost. Design:
+  `docs/specs/production-elements.md`.
 - **The same script in two tabs or windows never loses work.** Every save checks, in the same IndexedDB transaction
   as the write, that the stored version is still the one the tab has, so a tab never saves over another tab's newer
   version, even when both save at the same instant. A tab with nothing unsaved quietly takes the newer version (view,

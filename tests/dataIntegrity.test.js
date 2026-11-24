@@ -156,7 +156,9 @@ describe('Unknown fields survive every path', () => {
     const n = normalizeProduction({ version: 3, scenes: { s1: { props: ['Gun', 'gun', 7], budgetLine: 'b1' } }, budget: { total: 5 } });
     assert.equal(n.version, 3);
     assert.deepEqual(n.budget, { total: 5 });
-    assert.deepEqual(n.scenes.s1, { extras: [], props: ['Gun'], wardrobe: [], vehicles: [], notes: '', budgetLine: 'b1' });
+    const { links, ...lists } = n.scenes.s1; // links: Phase 2's shared elements (tests/elements.test.js)
+    assert.deepEqual(lists, { extras: [], props: ['Gun'], wardrobe: [], vehicles: [], notes: '', budgetLine: 'b1' });
+    assert.equal(n.elements[links.props[0].id].name, 'Gun');
     assert.deepEqual(normalizeProduction({ scenes: { s1: { onlyFuture: 1 } } }).scenes.s1.onlyFuture, 1, 'a scene with only newer data is kept');
     assert.deepEqual(Object.keys(normalizeProduction(JSON.parse('{"scenes":{"__proto__":{"props":["x"]}}}')).scenes), []);
   });

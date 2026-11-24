@@ -4,6 +4,7 @@ import { GripVertical } from 'lucide-react';
 import { StripHead, StripLegend, StripRow } from './strips.jsx';
 import { PRODUCTION_BUCKETS, eighthsLabel } from '../../lib/productionEngine.js';
 import { DOOD_CODES, dayDateLabel } from '../../lib/schedule.js';
+import { categoriesOf } from '../../lib/elements.js';
 
 /**
  * Stripboard → Schedule: the same strips, in shooting order, under day breaks.
@@ -352,7 +353,9 @@ function DayPopover({ day, count, anchor, ops, pagesTarget, onClose }) {
     const eighths = target.trim() === '' || !(pages > 0) ? null : Math.round(pages * 8);
     if (eighths !== (pagesTarget || null)) ops.setTarget(eighths);
   };
-  const needs = PRODUCTION_BUCKETS.map((b) => [b.label, day.requirements[b.id] || []]).filter(([, list]) => list.length);
+  // Phase 2A: still shown under the four list labels (the eight categories show in 2B), each name once.
+  const needs = PRODUCTION_BUCKETS.map((b) => [b.label, [...new Map(categoriesOf(b.id)
+    .flatMap((c) => day.requirements[c] || []).map((x) => [x.name.toLowerCase(), x.name])).values()]]).filter(([, list]) => list.length);
   return createPortal(
     <div
       ref={ref}
