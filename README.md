@@ -41,7 +41,7 @@ locked into one app.
   are worked out at full page width in the background, so they match the desktop, the PDF and every export exactly, and a
   speech split across a page stays editable with (MORE) / (CONT'D). See [Writing on a phone](#writing-on-a-phone).
 - **Built for rewriting.** Format Doctor, dialogue spotlight, snapshots, a Story Bible with character bios, and Plan
-  (breakdowns, stripboard and reports) for when the script is ready to shoot.
+  (breakdowns, a stripboard you can schedule into shooting days, and reports) for when the script is ready to shoot.
 - **Table Read.** Hear the script read aloud (⋮ → Table Read…): a narrator for scene headings and action and a voice
   for each character, reading the current scene, the current act (as the Scene Board places it) or the whole script.
   See [Table Read](#table-read).
@@ -50,7 +50,7 @@ locked into one app.
 
 DraftLine is designed for independent writers: free, open source, offline, no account and no generative AI, with story
 development and production planning in the same free app. If you need simultaneous co-writing, colored revision pages,
-or scheduling and budgeting, one of the tools below will serve you better. The full comparison, with sources, is at
+or budgets and call sheets, one of the tools below will serve you better. The full comparison, with sources, is at
 [draftlineapp.com/compare](https://draftlineapp.com/compare/).
 
 | | DraftLine | Final Draft | Fade In | WriterDuet | Celtx | Beat |
@@ -58,7 +58,7 @@ or scheduling and budgeting, one of the tools below will serve you better. The f
 | Cost | Free | One-time purchase or subscription | One-time purchase | Free plan + subscription | Free plan + subscription | Free on Mac; iOS app paid |
 | Open source | Yes (MIT) | No | No | No | No | Yes (GPL v3) |
 | Runs on | Any modern browser, on a computer or a phone; installs as an app | Mac, Windows; a separate iOS app (Final Draft Go) | Mac, Windows, Linux, plus a mobile app | Browser, desktop app, mobile apps | Browser | Mac, iOS |
-| Production planning | Breakdowns, stripboard and reports from the script | Tagging and reports | Breakdowns and production reports | Tagging; reports on Pro | Breakdowns, scheduling, budgeting, call sheets (paid plans) | Not listed |
+| Production planning | Breakdowns, a stripboard scheduled into shooting days, and reports, from the script | Tagging and reports; scheduling in separate software (Movie Magic Scheduling) | Breakdowns and production reports | Tagging; reports on Pro | Breakdowns, scheduling, budgeting, call sheets (paid plans) | Not listed |
 | Production revisions | No (snapshots you can compare) | Yes | Yes | Pro plan | Revision history; colored pages not confirmed | Yes |
 | Real-time co-writing | No | Yes | Through the optional Fade In Access service | Yes (paid plans) | Yes | No |
 
@@ -406,12 +406,23 @@ computer; phones use App Storage). Click the title's **▾**, choose **File ▾ 
 - On first run the script DraftLine kept in localStorage moves into the library as your first project; the old copy
   is left in place untouched.
 
-## Plan: Breakdowns and Stripboard
+## Plan: Breakdowns, Stripboard and shooting schedule
 
 **Write | Plan** in the top bar switches to a production view of the same script, worked out from it each time:
 **Breakdowns** (a card per scene: slugline, INT/EXT and DAY/NIGHT, length in eighths, speaking cast with call-sheet
 numbers, and lists you fill in for extras, props, wardrobe / SFX and vehicles / stunts, plus production notes) and
 **Stripboard** (one colour-coded strip per scene, in script order). **Export Breakdown** downloads it all as `.csv`.
+
+**Shooting schedule.** On the Stripboard, **+ Shooting Day** adds a day; until then the Stripboard is exactly as above.
+Then **Script | Schedule** (right of the summary line) switches between script order, with a quiet **D3** on each
+scheduled scene, and shooting order: the same strips under day headers (**DAY 3 · Tue 12 May · 4 2/8 pgs**), then
+**Unscheduled**. Move a scene with its handle: drag it (not while the scene filter is on), click it for **Move to
+Day…**, or `Alt+↑` / `Alt+↓`. A day's header opens its details: the date (and **Date the days after**), a page target for
+every day, quiet notes (over the target, day and night together, three or more places), the cast with Day-Out-of-Days
+codes (tap or point at a code for its meaning), places, and what its breakdowns need. The first shooting day fixes the
+cast numbers; **⋮ → Renumber Cast…** (on the Stripboard) renumbers them on purpose, after asking. Every change is an
+undo step, and the script itself is never changed: the schedule is an order of scenes saved with the project. Budget is
+planned, not built.
 
 **Finding scenes.** On Breakdowns and Stripboard the top bar holds **Find scenes…** (a heading or location, a speaking
 character, or an exact scene number; capitals and accents don't matter), **INT | EXT** and **DAY | NIGHT** (an

@@ -51,8 +51,10 @@ before work starts, and ships when it's ready.
 
 - [ ] **Stage 2 · DraftLine Core: Schedule & Budget** (*free*)
   Plan becomes **Breakdowns · Stripboard · Budget**; Reports is in ⋮ and works as it does now.
-  - **Schedule** (the Stripboard's Schedule view; V1 built): scenes into shooting days, in an order separate from the script, with page-eighths, pages per day,
-    grouping by location, cast, INT/EXT and time of day, practical conflict warnings and CSV export.
+  - **Schedule** (the Stripboard's Schedule view). **Built (V1):** scenes into shooting days, in an order separate from
+    the script; dates and a page target; pages, cast (Day-Out-of-Days), places and breakdown needs per day; advisory
+    notes; cast numbers fixed from the first day. **Still planned:** schedule CSV export and grouping helpers (by
+    location, cast, INT/EXT, time of day).
   - **Budget**: cast, crew, locations, props, wardrobe, equipment, vehicles, post and your own lines; costs linked to
     breakdown and schedule quantities, totals, contingency, your currency and CSV export.
   - **Before this ships:** data-safety groundwork so newer project data can never be lost by an older copy of

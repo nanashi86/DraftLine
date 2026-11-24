@@ -13,6 +13,8 @@ All notable changes to DraftLine are recorded here. The format follows [Keep a C
   Quiet advisory notes, never errors. Every change is a step in the one undo history. Cast numbers are fixed from the
   first shooting day (new characters get the next number; Rename keeps it; **Renumber cast…** only on purpose).
   Without a shooting day the Stripboard is exactly as before. Plan's tabs are now **Breakdowns | Stripboard | Budget**.
+  A day's details open with its date and the page target; each cast code explains itself on hover, tap or click;
+  **Renumber Cast…** lives in Plan's ⋮ on the Stripboard (the whole project's numbers), asks first, and is undoable.
 - **Table Read (DraftLine Core, free).** ⋮ → Table Read… reads the script aloud: a narrator for scene headings and
   action and a voice for each speaking character, busiest characters first (voices are shared at slightly different
   pitches when there are more characters than voices). Read the current **Scene**, **Act** (as the Scene Board places
@@ -172,6 +174,10 @@ All notable changes to DraftLine are recorded here. The format follows [Keep a C
 
 ### Fixed
 
+- **Cast numbers are fixed from the script at the first shooting day.** They were briefly stored empty and then refilled
+  from the line counts, which matched in practice but meant Renumber Cast… always reported a change.
+- **`npm run dev` shows the public pages.** `/features/`, `/compare/`, `/welcome/` and `/philosophy/` opened the editor
+  in development (Vite sends unknown addresses to the app); they now open their own pages, as on the live site.
 - **A blank screen after a new version went live.** A tab left open across an update could go black when it next opened a panel (Feedback, Settings, Plan…), and starting the app within ten minutes of an update could load an out-of-date page. An open tab now reloads once onto the new version, and the offline cache always checks for the newest page.
 - ⓘ definition cards (Story DNA questions, Plot Devices, the Bios role pickers) and the **character cue bio card** in the script no longer open behind an open dropdown list (the Element ▾ list drops over the script on narrower windows). The browser draws a `<select>`'s list above the whole page, so a card opened under it was hidden. Cards now wait for a 350 ms hover instead of opening on contact, so the pointer passing over an ⓘ on its way to a dropdown doesn't flash one. They stay closed while any dropdown list is open (`src/lib/pickerGuard.js` follows native pickers through mouse, keyboard, change and focus events) and close on any click, as well as on scroll, resize and Escape. Keyboard focus still shows the card at once; clicking the ⓘ still opens the Glossary, without flashing the card first.
 - Characters → Dialogue: the clickable **monologues** count no longer overlaps **Rename…** when the stats wrap onto two lines. It had a negative vertical margin that pulled it outside its row; it now sits inside it, and the rows are 8px apart.

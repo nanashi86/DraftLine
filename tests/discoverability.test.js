@@ -134,7 +134,8 @@ describe('the comparison page stays complete and fair', () => {
     for (const name of ['Final Draft', 'Fade In', 'WriterDuet', 'Celtx', 'Beat']) assert.match(html.slice(html.indexOf('id="sources"')), new RegExp(`<li>${name}:`));
   });
   it('states DraftLine\'s limits plainly', () => {
-    assert.match(text, /doesn't schedule shoot days, build budgets or make call sheets/);
+    assert.match(text, /doesn't build budgets, make call sheets, or schedule several units or episodes/);
+    assert.match(text, /schedules scenes into shooting days on its stripboard/);
     assert.match(text, /Chrome or Edge on a computer/);
   });
 });

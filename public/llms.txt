@@ -10,13 +10,13 @@
 - Phones: a 16px Courier Prime writing view, an element bar above the keyboard (Scene, Action, Character, Dialogue, Parenthetical, Transition), and page breaks identical to the desktop's, worked out at full page width
 - Storage: in the browser on every device; linking a folder (including Google Drive, Dropbox or OneDrive folders) works in Chrome or Edge on a computer, not on phones
 - Writing: human-authored. DraftLine has no generative AI; its checks (Format Doctor, Dialogue Tuner statistics, Scene Board pacing and value-shift suggestions) are rule-based readings of the writer's own pages
-- Story and production tools, all free: Scene Board linked to the script with live act pacing, Story Bible, Characters, Format Doctor, Dialogue Tuner, Table Read (the script read aloud with a voice per character, using the browser's voices; online voices only after the writer agrees), snapshots, and a Plan workspace with breakdowns, a stripboard and reports
-- Designed for independent writers: no real-time co-writing, no colored production revisions, and no shoot scheduling or budgeting
+- Story and production tools, all free: Scene Board linked to the script with live act pacing, Story Bible, Characters, Format Doctor, Dialogue Tuner, Table Read (the script read aloud with a voice per character, using the browser's voices; online voices only after the writer agrees), snapshots, and a Plan workspace with breakdowns, a stripboard that schedules scenes into shooting days, and reports
+- Designed for independent writers: no real-time co-writing, no colored production revisions, no budgeting, and no call sheets
 
 ## Pages
 
 - [Welcome](https://draftlineapp.com/welcome/): a short introduction to DraftLine, with a screenshot of the real editor
-- [Features](https://draftlineapp.com/features/): every tool, including writing on a phone, the Scene Board, Format Doctor, Dialogue Tuner, Table Read, Story Bible, snapshots, breakdowns, stripboard and reports
+- [Features](https://draftlineapp.com/features/): every tool, including writing on a phone, the Scene Board, Format Doctor, Dialogue Tuner, Table Read, Story Bible, snapshots, breakdowns, stripboard scheduling and reports
 - [How DraftLine compares](https://draftlineapp.com/compare/): DraftLine beside Final Draft, Fade In, WriterDuet, Celtx and Beat, including where each of those is the better choice
 - [Philosophy](https://draftlineapp.com/philosophy/): why DraftLine exists, its mission, and the five principles behind it
 - [README](https://github.com/nanashi86/DraftLine/blob/main/README.md): full documentation of every tool, keyboard shortcuts and file formats
