@@ -6,7 +6,7 @@
 import { ELEMENT_META, PAGE_LINES, linesToEighths, wrapOffsets } from './screenplay.js';
 import { headingParts, timeOfDayPeriod } from './sluglines.js';
 import { csvField } from './exportCsvOutline.js';
-import { PRODUCTION_BUCKETS, sceneAssets } from './productionData.js';
+import { PRODUCTION_BUCKETS, castNumbers, sceneAssets } from './productionData.js';
 
 export * from './productionData.js';
 
@@ -109,11 +109,6 @@ export { PAGE_LINES };
 
 // ---- The breakdown ------------------------------------------------------------------------------
 
-/** Cast numbers, as on a call sheet: 1 is the character with the most lines (analysis order). */
-export function castNumbers(analysis) {
-  return new Map((analysis?.characterList || []).map((c, i) => [c.name, i + 1]));
-}
-
 /**
  * Every scene's breakdown, in script order:
  *   [{ id, number, heading, setting, location, time, period, color, eighths, length, page,
@@ -125,7 +120,7 @@ export function castNumbers(analysis) {
 export function buildBreakdown({ blocks = [], analysis, scenes = null, production } = {}) {
   const measured = new Map((scenes || []).map((s) => [s.id, s]));
   const lines = scenes ? null : sceneLineCounts(blocks);
-  const numbers = castNumbers(analysis);
+  const numbers = castNumbers(analysis, production?.castNumbers || null);
   const castByScene = new Map();
   for (const c of analysis?.characterList || []) {
     for (const en of c.entries) {

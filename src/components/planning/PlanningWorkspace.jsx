@@ -3,6 +3,7 @@ import { ChevronDown, CornerUpLeft, Plus, X } from 'lucide-react';
 import { PRODUCTION_BUCKETS, STRIP_COLORS, breakdownTotals, buildBreakdown } from '../../lib/productionEngine.js';
 import Reports from './Reports.jsx';
 import PlanFilter from './PlanFilter.jsx';
+import UnattachedModal from './UnattachedModal.jsx';
 import { EMPTY_PLAN_FILTER, filterPlanRows, planFilterActive } from '../../lib/planFilter.js';
 import './PlanningWorkspace.css';
 
@@ -22,6 +23,9 @@ import './PlanningWorkspace.css';
  *   layout: the script's pagination (Reports: characters' pages, the page count)
  *   onOpenCharacter(name): back to Write with that character's Dialogue spotlight (Reports)
  *   onReportCsv(kind, reports): download one report as .csv
+ *   unattached: breakdowns whose heading left the script (productionData.js unattachedScenes); when there
+ *     are any, the summary line ends "· 1 scene’s breakdown is no longer attached · Review", which opens
+ *     UnattachedModal: onAttach(fromId, toId) · onRemoveUnattached(id), both undo steps in App
  *   filter, onFilter(next), onCount({ shown, total }): the header's scene filter (lib/planFilter.js),
  *     applied to Breakdowns and Stripboard (Reports always cover the whole script). On narrower
  *     windows the same filter shows at the top of the workspace instead of in the header.
@@ -29,7 +33,9 @@ import './PlanningWorkspace.css';
 export default function PlanningWorkspace({
   view, fold, onToggleCard, blocks, analysis, scenes, production, onAdd, onRemove, onNotes, onOpenScene,
   layout = null, onOpenCharacter, onReportCsv, filter = EMPTY_PLAN_FILTER, onFilter, onCount,
+  unattached = [], onAttach, onRemoveUnattached,
 }) {
+  const [reviewing, setReviewing] = useState(null); // the Review link, while its dialog is open
   const rows = useMemo(() => buildBreakdown({ blocks, analysis, scenes, production }), [blocks, analysis, scenes, production]);
   const totals = useMemo(() => breakdownTotals(rows), [rows]);
   const shown = useMemo(() => filterPlanRows(rows, filter), [rows, filter]);
@@ -52,6 +58,14 @@ export default function PlanningWorkspace({
               {filtering
                 ? <>{shown.shown} of {plural(totals.scenes, 'scene')} · {shownTotals.length} of {totals.length} {totals.eighths > 8 ? 'pages' : 'page'} · filtered</>
                 : <>{plural(totals.scenes, 'scene')} · {totals.length} {totals.eighths > 8 ? 'pages' : 'page'} · cast, sluglines and lengths come from the script</>}
+              {unattached.length > 0 && onAttach && (
+                <>
+                  {' · '}
+                  {unattached.length === 1 ? '1 scene’s breakdown is' : `${unattached.length} scenes’ breakdowns are`} no longer attached
+                  {' · '}
+                  <button type="button" className="plan-clear" onClick={(e) => setReviewing(e.currentTarget)}>Review</button>
+                </>
+              )}
             </p>
             {view === 'reports' ? (
               <Reports rows={rows} blocks={blocks} analysis={analysis} layout={layout} onOpenScene={onOpenScene} onOpenCharacter={onOpenCharacter} onCsv={onReportCsv} />
@@ -66,6 +80,16 @@ export default function PlanningWorkspace({
           </>
         )}
       </div>
+      {reviewing && (
+        <UnattachedModal
+          items={unattached}
+          scenes={rows.map((r) => ({ id: r.id, number: r.number, heading: r.heading }))}
+          onAttach={onAttach}
+          onRemove={onRemoveUnattached}
+          onClose={() => setReviewing(null)}
+          returnFocus={reviewing}
+        />
+      )}
     </section>
   );
 }

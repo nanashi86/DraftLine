@@ -311,3 +311,16 @@
 
 /* "No scenes match. Clear the filter" */
 .plan-clear { padding: 0; border: 0; background: none; color: var(--accent); font: inherit; text-decoration: underline; cursor: pointer; }
+
+/* Breakdowns no longer attached (UnattachedModal): what each held, then Attach to · Remove */
+.un-modal { width: min(620px, calc(100vw - 32px)); }
+.un-list { display: grid; gap: 10px; max-height: min(60vh, 520px); overflow-y: auto; margin: 6px 0 0; padding: 0 22px; list-style: none; }
+.un-item { display: grid; gap: 10px; padding: 12px 14px; border: 1px solid var(--line-soft); border-radius: 8px; background: var(--field); }
+.un-what { display: grid; gap: 6px; margin: 0; font-size: 12.5px; line-height: 1.45; }
+.un-what dt { color: var(--muted); font-size: 11px; letter-spacing: 0.04em; text-transform: uppercase; }
+.un-what dd { margin: 0; color: var(--text); }
+.un-notes { white-space: pre-wrap; }
+.un-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.un-select { flex: 1 1 240px; min-width: 0; }
+.un-actions .btn-primary { background: var(--accent); color: var(--on-accent); padding: 6px 16px; }
+.un-actions .btn-primary:disabled { opacity: 0.4; }

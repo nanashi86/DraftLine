@@ -25,7 +25,10 @@ import ExportFdxModal from './components/ExportFdxModal.jsx';
 import DeleteProjectModal from './components/DeleteProjectModal.jsx';
 import DialogueStepper from './components/DialogueStepper.jsx';
 import { Calculator, CalendarCheck, ChartColumn, Clapperboard, Columns2, FileCheck2, FileText, Flame, LayoutList, Moon, PenLine, Rows3, Scissors, SquareKanban } from 'lucide-react';
-import { addAsset, removeAsset, setSceneNotes } from './lib/productionData.js';
+import {
+  PRODUCTION_BUCKETS, addAsset, attachScene, extendCastNumbers, removeAsset, renameCastNumber, sceneAssets, setSceneBucket,
+  setSceneEntry, setSceneNotes, undoAttach, unattachedScenes,
+} from './lib/productionData.js';
 import { csvOutlineFileName, outlineCsv } from './lib/exportCsvOutline.js';
 import FormatStepper from './components/FormatStepper.jsx';
 import { applyFixes, auditScript, canFix, canFixAll } from './lib/formatDoctor.js';
@@ -652,7 +655,17 @@ function Workspace({ boot }) {
       };
     });
   }, [items, layout, analysis]);
+  // Fixed production cast numbers (lib/productionData.js castNumbers): once a project has them, a new
+  // speaking character gets the next free number, stored straight away so it never shifts. Nobody else
+  // is ever renumbered. Projects without fixed numbers (no shooting schedule yet) are untouched.
+  useEffect(() => {
+    if (!production.castNumbers) return;
+    const next = extendCastNumbers(production.castNumbers, analysis);
+    if (next !== production.castNumbers) setProduction((p) => ({ ...p, castNumbers: extendCastNumbers(p.castNumbers, analysis) }));
+  }, [analysis, production.castNumbers]);
+
   // The Scene Board's acts for each scene (lib/sceneActs.js): the Scenes sidebar's act labels and Table Read's Act range.
+  const unattached = useMemo(() => unattachedScenes(production, blocks), [production, blocks]);
   const acts = useMemo(() => sceneActs(scenes.map((sc) => sc.id), beats, actMode), [scenes, beats, actMode]);
   // Plan opened for this script for the first time: long scripts start with every breakdown folded.
   // A layout effect, so a long script never paints open for a frame before folding.
@@ -1302,9 +1315,19 @@ function Workspace({ boot }) {
       setStoryDna(next.storyDna);
     };
     // The script step carries the board / Bible changes, so one Ctrl+Z undoes everything.
+    const castNumbersOf = (dir) => {
+      const cur = latest.current.production.castNumbers;
+      return dir === 'undo' ? renameCastNumber(cur, newName, oldName) : renameCastNumber(cur, oldName, newName);
+    };
     set(after.blocks === before.blocks ? before.blocks.slice() : after.blocks, null, {
-      undo: () => applyAux('undo'),
-      redo: () => applyAux('redo'),
+      undo: () => {
+        applyAux('undo');
+        if (latest.current.production.castNumbers) setProduction((p) => ({ ...p, castNumbers: castNumbersOf('undo') }));
+      },
+      redo: () => {
+        applyAux('redo');
+        if (latest.current.production.castNumbers) setProduction((p) => ({ ...p, castNumbers: castNumbersOf('redo') }));
+      },
     });
     setBeats(after.beats);
     setCharacters(after.characters);
@@ -1312,6 +1335,10 @@ function Workspace({ boot }) {
     setStoryDna(after.storyDna);
     const oldCue = oldName.trim().toUpperCase();
     renameVoice(latest.current.projectId, oldCue, newName); // Table Read's voice choice follows the name (this device)
+    // A fixed cast number goes with the character (part of this rename's undo step: set before it below).
+    const castBefore = s.production.castNumbers;
+    const castAfter = renameCastNumber(castBefore, oldName, newName);
+    if (castAfter !== castBefore) setProduction((p) => ({ ...p, castNumbers: castAfter }));
     setSelectedChar((c) => (c && c.toUpperCase() === oldCue ? newName.trim().toUpperCase() : c));
     setRenameFrom(null);
     notify(`Renamed ${oldName.trim()} → ${newName.trim()} · ${total} ${total === 1 ? 'change' : 'changes'} · Ctrl+Z to undo`);
@@ -1976,9 +2003,10 @@ function Workspace({ boot }) {
         setFocusMode(false);
       } else if (mod && !e.defaultPrevented && !titleOpen && !importSeed && !doctorOpen && !renameFrom
         && (e.key.toLowerCase() === 'z' || e.key.toLowerCase() === 'y')
-        // Script undo covers the editor, the Dialogue panel and Scene Board moves (focus on a card's grip
-        // or the board itself) — but a card's own title / synopsis text keeps the browser's text undo.
-        && !['INPUT', 'SELECT'].includes(t.tagName) && !(t.tagName === 'TEXTAREA' && t.closest?.('.board'))) {
+        // Script undo covers the editor, the Dialogue panel, Scene Board moves (focus on a card's grip
+        // or the board itself) and Plan edits — but a card's own title / synopsis text, and Plan's
+        // Production Notes, keep the browser's own text undo.
+        && !['INPUT', 'SELECT'].includes(t.tagName) && !(t.tagName === 'TEXTAREA' && t.closest?.('.board, .plan'))) {
         e.preventDefault();
         if (isLocked) notifyLocked();
         else if (e.key.toLowerCase() === 'y' || e.shiftKey) redo(); else undo();
@@ -2107,6 +2135,53 @@ function Workspace({ boot }) {
       for (const type of ['wheel', 'pointerdown', 'keydown', 'touchstart']) window.removeEventListener(type, stop, opts);
     };
   }, [workspace]);
+  // ---- Plan edits on the undo stack ----
+  // A Plan change is a step of its own in the one undo history (the script unchanged: a copy of the
+  // blocks, as Rename does), so Ctrl+Z / Ctrl+Shift+Z go back and forth through script and Plan edits in
+  // the order they were made. Each step undoes only its own change (one tag list, one breakdown), so
+  // it never takes back anything else: Production Notes typed since, or another scene's tags.
+  const planStep = (forward, back, label) => {
+    set((b) => b.slice(), null, {
+      undo: () => {
+        setProduction((p) => back(p));
+        notify(`Undone: ${label}`);
+      },
+      redo: () => {
+        setProduction((p) => forward(p));
+        notify(`Redone: ${label}`);
+      },
+    });
+    setProduction((p) => forward(p));
+  };
+  const bucketLabel = (bucket) => PRODUCTION_BUCKETS.find((b) => b.id === bucket)?.label || bucket;
+  const sceneLabel = (id) => (analysis.sceneNumbers?.[id] ? `scene ${analysis.sceneNumbers[id]}` : 'a scene');
+  const editTag = (id, bucket, text, add) => {
+    const cur = latest.current.production;
+    const before = sceneAssets(cur, id)[bucket];
+    const after = sceneAssets(add ? addAsset(cur, id, bucket, text) : removeAsset(cur, id, bucket, text), id)[bucket];
+    if (before.length === after.length && before.every((x, i) => x === after[i])) return;
+    const what = `“${String(text).replace(/\s+/g, ' ').trim()}” ${add ? 'added to' : 'removed from'} ${bucketLabel(bucket)}, ${sceneLabel(id)}`;
+    planStep((p) => setSceneBucket(p, id, bucket, after), (p) => setSceneBucket(p, id, bucket, before), what);
+  };
+  // Unattached breakdowns (a heading left the script): attach to a scene, or remove — on purpose, undoable.
+  const attachUnattached = (fromId, toId) => {
+    const cur = latest.current.production;
+    const fromEntry = cur.scenes[fromId];
+    if (!fromEntry || fromId === toId) return;
+    const toBefore = cur.scenes[toId] || null;
+    const toAfter = attachScene(cur, fromId, toId).scenes[toId];
+    planStep(
+      (p) => attachScene(p, fromId, toId),
+      (p) => undoAttach(p, { fromId, fromEntry, toId, toBefore, toAfter }),
+      `breakdown attached to ${sceneLabel(toId)}`,
+    );
+  };
+  const removeUnattached = (id) => {
+    const entry = latest.current.production.scenes[id];
+    if (!entry) return;
+    planStep((p) => setSceneEntry(p, id, null), (p) => (p.scenes[id] ? p : setSceneEntry(p, id, entry)), 'unattached breakdown removed');
+  };
+
   const openSceneInWrite = (id) => {
     writeScroll.current = 0; // going somewhere specific: don't restore the old position over it
     boardScroll.current = [];
@@ -3017,8 +3092,11 @@ function Workspace({ boot }) {
                 analysis={analysis}
                 scenes={scenes}
                 production={production}
-                onAdd={(id, bucket, text) => setProduction((p) => addAsset(p, id, bucket, text))}
-                onRemove={(id, bucket, text) => setProduction((p) => removeAsset(p, id, bucket, text))}
+                onAdd={(id, bucket, text) => editTag(id, bucket, text, true)}
+                onRemove={(id, bucket, text) => editTag(id, bucket, text, false)}
+                unattached={unattached}
+                onAttach={attachUnattached}
+                onRemoveUnattached={removeUnattached}
                 onNotes={(id, text) => setProduction((p) => setSceneNotes(p, id, text))}
                 onOpenScene={openSceneInWrite}
                 layout={layout}

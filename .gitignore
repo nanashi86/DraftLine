@@ -39,3 +39,4 @@ draftline_dump.txt
 DRAFTLINE_STATE_AUDIT.md
 screen_grabs/
 desktop.ini
+tests/browser/.debug/
