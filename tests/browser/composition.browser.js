@@ -11,8 +11,8 @@
 import { after, before, describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { fileURLToPath } from 'node:url';
+import { startTestServer } from './server.js';
 
-const root = fileURLToPath(new URL('../..', import.meta.url));
 const SCRIPT = fileURLToPath(new URL('./harbor-light.fountain', import.meta.url));
 const SPLIT = 'When your father'; // the speech that crosses from page 2 to page 3
 const PLAIN = 'Nadia sets the thermos';
@@ -28,10 +28,7 @@ before(async () => {
     skip = `Chromium not available (${e.message.split('\n')[0]}) — run "npx playwright install chromium"`;
     return;
   }
-  const { createServer } = await import('vite');
-  server = await createServer({ root, logLevel: 'silent', server: { port: 0, strictPort: false } });
-  await server.listen();
-  url = server.resolvedUrls.local[0];
+  ({ server, url } = await startTestServer(import.meta.url)); // tests/browser/server.js
 });
 after(async () => { await browser?.close(); await server?.close(); });
 

@@ -22,8 +22,9 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { Buffer } from 'node:buffer';
+import { startTestServer } from './server.js';
+import { diffPixels, judgePixels } from './pixels.js';
 
-const root = fileURLToPath(new URL('../..', import.meta.url));
 const SCRIPT = fileURLToPath(new URL('./stripboard-fixture.fountain', import.meta.url));
 const BASE = fileURLToPath(new URL('./baselines/stripboard/', import.meta.url));
 const PIXELS = join(BASE, globalThis.process.platform);
@@ -40,10 +41,7 @@ before(async () => {
     skip = `Chromium not available (${e.message.split('\n')[0]}) — run "npx playwright install chromium"`;
     return;
   }
-  const { createServer } = await import('vite');
-  server = await createServer({ root, logLevel: 'silent', server: { port: 0, strictPort: false } });
-  await server.listen();
-  url = server.resolvedUrls.local[0];
+  ({ server, url } = await startTestServer(import.meta.url)); // tests/browser/server.js
 });
 after(async () => { await browser?.close(); await server?.close(); });
 
@@ -83,6 +81,24 @@ async function filter(page) {
   await box.locator('input[type=search]').fill('FERRY');
   await box.locator('.pf-btn', { hasText: /^night$/i }).click();
   await page.waitForTimeout(300);
+}
+
+/**
+ * Before a screenshot: nothing left mid-change. The pointer leaves the page and focus leaves the
+ * control last clicked, every CSS transition (the filter buttons' 120ms background, for one) has
+ * finished, and two frames have been painted since. Without this, the NIGHT button just clicked was
+ * still under the pointer, so Chromium could repaint it during the capture, and on Windows its
+ * neighbour's rounded corners were then anti-aliased one or two colour steps differently from run to
+ * run (5 pixels, x604–605 at the top and bottom of DAY | NIGHT). How the board looks is unchanged:
+ * the button's hover look is covered by its selected look.
+ */
+async function settle(page) {
+  await page.mouse.move(0, 0);
+  await page.evaluate(async () => {
+    document.activeElement?.blur?.();
+    await Promise.all(document.getAnimations().map((a) => a.finished.catch(() => {})));
+    await new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done)));
+  });
 }
 
 /** Everything the Stripboard shows, as plain data. */
@@ -150,16 +166,42 @@ function compareJson(name, actual) {
   return 'matched';
 }
 
-function comparePixels(name, png) {
+async function comparePixels(page, name, png) {
   const file = join(PIXELS, `${name}.png`);
   if (UPDATE || !existsSync(file)) {
     mkdirSync(dirname(file), { recursive: true });
     writeFileSync(file, png);
     return 'recorded';
   }
-  assert.ok(Buffer.compare(png, readFileSync(file)) === 0, `${name}: the Stripboard's pixels changed (see ${file})`);
-  return 'matched';
+  const expected = readFileSync(file);
+  if (Buffer.compare(png, expected) === 0) return 'matched';
+  // Not byte-identical: within the anti-aliasing limits (tests/browser/pixels.js), or a real change.
+  const facts = await diffPixels(page, png, expected);
+  const verdict = judgePixels(facts);
+  if (verdict.ok) return `matched within tolerance: ${verdict.why}`;
+  const saved = saveDiff(name, png, expected, facts);
+  assert.fail(`${name}: the Stripboard's pixels changed (see ${file}): ${verdict.why}\n${saved}`);
 }
+
+/**
+ * A failure's evidence, for diagnosis: tests/browser/.debug/<name>-actual.png, -expected.png,
+ * -diff.png (changed pixels in magenta over a faded copy of the actual) and -diff.json (sizes, how many
+ * pixels changed, where and by how much).
+ */
+function saveDiff(name, actual, expected, facts) {
+  const dir = fileURLToPath(new URL('./.debug/', import.meta.url));
+  mkdirSync(dir, { recursive: true });
+  writeFileSync(join(dir, `${name}-actual.png`), actual);
+  writeFileSync(join(dir, `${name}-expected.png`), expected);
+  writeFileSync(join(dir, `${name}-diff.png`), Buffer.from(facts.diff, 'base64'));
+  const info = { ...facts };
+  delete info.diff;
+  writeFileSync(join(dir, `${name}-diff.json`), `${JSON.stringify(info, null, 2)}\n`);
+  return `Saved in tests/browser/.debug/: ${name}-actual.png, -expected.png, -diff.png. ${JSON.stringify(info)}`;
+}
+
+// Toasts ("Opened … as a new project") float over the board for a few seconds: not part of it.
+const shoot = (board) => board.screenshot({ animations: 'disabled', caret: 'hide', style: '.toast, [role="status"].toast { visibility: hidden !important; }' });
 
 const CASES = [];
 for (const theme of ['light', 'dark']) {
@@ -179,10 +221,10 @@ describe('Stripboard baseline (before Scheduling): nothing about it may change',
         const data = await capture(page, c.device === 'desktop');
         assert.ok(data.strips.length > 1, 'strips are showing');
         const json = compareJson(caseName(c), data);
+        await settle(page);
         const board = page.locator('.plan');
-        // Toasts ("Opened … as a new project") float over the board for a few seconds: not part of it.
-        const png = await board.screenshot({ animations: 'disabled', caret: 'hide', style: '.toast, [role="status"].toast { visibility: hidden !important; }' });
-        const pixels = comparePixels(caseName(c), png);
+        const png = await shoot(board);
+        const pixels = await comparePixels(page, caseName(c), png);
         assert.deepEqual(errors, [], 'no page errors');
         t.diagnostic(`json ${json} · pixels ${pixels}`);
       } finally { await ctx.close(); }
@@ -222,5 +264,40 @@ describe('Stripboard baseline (before Scheduling): nothing about it may change',
       });
       assert.ok(seen.found && seen.inView, 'the scene heading is on screen');
     } finally { await ctx.close(); }
+  });
+  // The tolerance (tests/browser/pixels.js) lets through anti-aliasing noise only. Real changes, made
+  // on purpose here to the light desktop board, must still fail against its baseline: a strip colour
+  // 3/255 off, a border colour on one small control, a one-pixel shift, a word of text, and a faint
+  // change over a wide area. Nothing is saved; the baselines are only read.
+  it('the pixel tolerance still catches real changes', async (t) => {
+    if (skip) return t.skip(skip);
+    const file = join(PIXELS, 'light-desktop-all.png');
+    if (!existsSync(file)) return t.skip('no light-desktop-all baseline on this computer yet');
+    const expected = readFileSync(file);
+    const CHANGES = [
+      ['a strip colour 3/255 off', (p) => p.evaluate(() => {
+        const el = document.querySelector('.plan-stripboard .strip-ext-day');
+        const [r, g, b] = getComputedStyle(el).backgroundColor.match(/\d+/g).map(Number);
+        const style = document.createElement('style');
+        style.textContent = `.plan-stripboard .strip-ext-day { background-color: rgb(${r > 3 ? r - 3 : r + 3}, ${g}, ${b}) !important; }`;
+        document.head.append(style);
+      })],
+      ['one control’s border colour', (p) => p.addStyleTag({ content: '.pf-seg { border-color: #c4c4c4 !important; }' })],
+      ['scene numbers one pixel to the right', (p) => p.addStyleTag({ content: '.strip-num { position: relative; left: 1px; }' })],
+      ['one word of a slugline', (p) => p.evaluate(() => { document.querySelector('.strip-loc').textContent = 'HARBOUR'; })],
+      ['a faint change over the whole board', (p) => p.addStyleTag({ content: '.plan-stripboard { opacity: 0.99; }' })],
+    ];
+    for (const [what, change] of CHANGES) {
+      const { ctx, page } = await openStripboard('light', 'desktop');
+      try {
+        await change(page);
+        await settle(page);
+        const png = await shoot(page.locator('.plan'));
+        const facts = await diffPixels(page, png, expected);
+        const verdict = judgePixels(facts);
+        assert.equal(verdict.ok, false, `${what} must fail, but passed: ${verdict.why}`);
+        t.diagnostic(`${what}: fails (${verdict.why})`);
+      } finally { await ctx.close(); }
+    }
   });
 });

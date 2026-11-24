@@ -17,8 +17,8 @@ import assert from 'node:assert/strict';
 import { fileURLToPath } from 'node:url';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { startTestServer } from './server.js';
 
-const root = fileURLToPath(new URL('../..', import.meta.url));
 const SCRIPT = fileURLToPath(new URL('./stripboard-fixture.fountain', import.meta.url));
 
 let server; let browser; let url; let skip = false;
@@ -32,10 +32,7 @@ before(async () => {
     skip = `Chromium not available (${e.message.split('\n')[0]}) — run "npx playwright install chromium"`;
     return;
   }
-  const { createServer } = await import('vite');
-  server = await createServer({ root, logLevel: 'silent', server: { port: 0, strictPort: false } });
-  await server.listen();
-  url = server.resolvedUrls.local[0];
+  ({ server, url } = await startTestServer(import.meta.url)); // tests/browser/server.js
 });
 after(async () => { await browser?.close(); await server?.close(); });
 
