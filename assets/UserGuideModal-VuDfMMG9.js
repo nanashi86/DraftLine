@@ -1,4 +1,4 @@
-import{i as e,t}from"./react-DgawKyfb.js";import{$t as n,Bt as r,Cn as i,En as a,F as o,Gt as s,Ht as c,I as l,Kt as u,Rt as d,Sn as f,Ut as p,Wt as m,Yt as h,b as g,bn as _,cn as v,en as y,f as b,ht as x,in as S,lt as ee,m as te,mt as ne,n as re,nn as ie,p as ae,pt as oe,r as se,rn as C,tn as w,ut as T,v as E,xn as D,zt as O}from"./index-BPE10I9k.js";import{r as k,t as A}from"./printTitle-C1qWomuv.js";/* empty css                  */var j=e(),M=`# DraftLine User Guide
+import{i as e,t}from"./react-DgawKyfb.js";import{$t as n,Bt as r,Cn as i,En as a,F as o,Gt as s,Ht as c,I as l,Kt as u,Rt as d,Sn as f,Ut as p,Wt as m,Yt as h,b as g,bn as _,cn as v,en as y,f as b,ht as x,in as S,lt as ee,m as te,mt as ne,n as re,nn as ie,p as ae,pt as oe,r as se,rn as C,tn as w,ut as T,v as E,xn as D,zt as O}from"./index-Yeeb10X6.js";import{r as k,t as A}from"./printTitle-C1qWomuv.js";/* empty css                  */var j=e(),M=`# DraftLine User Guide
 
 DraftLine is a distraction-free screenwriting app that runs in your browser. It writes in Courier Prime at 12 pt with standard screenplay margins, saves as you type, and works offline. This guide covers everything from your first scene heading to the final PDF.
 
@@ -75,6 +75,7 @@ From then on, every save goes to the browser first (instant and offline-safe) an
 - **Change Folder…** links a different folder. **Disconnect** stops syncing and leaves the files where they are. Choosing **App Storage (Zero Setup)** pauses syncing but remembers the folder.
 - **Deleting a script** in DraftLine also takes its file out of the linked folder, so it doesn't come back. The file isn't erased: it's moved into a **Trash** folder inside the linked folder, renamed with the date it was deleted, so you can recover it there. If it can't be moved, DraftLine leaves it where it is and asks whether to delete it permanently.
 - **Two computers, one script:** the most recent save wins. DraftLine doesn't merge edits made on two computers at the same time.
+- **Two tabs or windows, one script** (on one computer) never save over each other. A tab with nothing unsaved quietly shows the other tab's newer version (**Updated with changes from another tab**). If both have unsaved changes, the one that didn't save first asks: **Keep this version** or **Use the other tab's version**, and the other is kept as a snapshot. A script deleted in another tab isn't brought back unless you choose **Restore it**. Changes from a tab that closed before saving come back the next time DraftLine opens, as the script or, if it was saved since, as a snapshot. Different scripts in different tabs don't affect each other at all.
 
 Safari, Firefox and phone browsers can't link folders. There, DraftLine uses browser storage only, so keep a backup file now and then (**File → Backup Project**, reopened with **File → Open**):
 
@@ -371,7 +372,7 @@ The Scene Board's **Export Outline** downloads the board as a **Fountain Outline
 
 ### Write and Plan
 
-- **Write** is the screenplay editor, with **Page**, **Split** and **Board** (and **Shoot**, a preview of a planned feature), **Focus**, **Story Bible** and **Characters** on the right of the top bar. In **Plan** those same places hold **Breakdowns | Stripboard** (and **Budget**, a preview of a planned feature), **Collapse All / Expand All** and **Export Breakdown** (on the Stripboard, **+ Shooting Day**); the title, **Write | Plan**, **File ▾**, **Snapshot** and **⋮** stay put. On a smaller screen Plan's tools shorten (Export Breakdown becomes **Export**, the view switch turns to icons) and then move into **⋮**, the same way Write's do; the scene filter moves above the scenes, as Write's Element picker and B / I / U / S move above the script.
+- **Write** is the screenplay editor, with **Page**, **Split** and **Board** (and **Shoot**, a preview of a planned feature), **Focus**, **Story Bible** and **Characters** on the right of the top bar. In **Plan** those same places hold **Breakdowns | Stripboard** (and **Budget**, a preview of a planned feature), **Collapse All / Expand All** (on the Stripboard, **+ Shooting Day**); the title, **Write | Plan**, **File ▾**, **Snapshot** and **⋮** stay put. On a smaller screen Plan's view switch turns to icons and its tools then move into **⋮**, the same way Write's do; the scene filter moves above the scenes, as Write's Element picker and B / I / U / S move above the script.
 - The title, the Projects library, **File ▾**, **Snapshot** and the ⋮ menu (About, User Guide) stay in both.
 - Switching never loses anything. Your script stays exactly as it was, unsaved typing included, and it keeps saving. Coming back to Write puts the script and the Scene Board where you'd scrolled them.
 - **Write** on a breakdown card, or a click on a strip, takes you back to Write at that scene.
@@ -387,7 +388,7 @@ On **Breakdowns** and **Stripboard**, the top bar holds a scene filter: **Find s
 - **Find scenes…** matches a heading or location (\`Bouchard\`), a speaking character (\`Tati\`), or a scene number on its own (\`32\` finds scene 32 only). Capitals and accents don't matter.
 - **INT | EXT** and **DAY | NIGHT** narrow it further. An INT./EXT. scene counts as both, and CONTINUOUS takes the light of the scene before.
 - While anything is set, the top bar shows **5 of 53 scenes** with ✕ to clear it, and the line above the scenes counts what's showing (**5 of 53 scenes · 7 7/8 of 98 5/8 pages**). On a smaller screen, where the filter sits right above that line, it shows only the ✕, so the count isn't said twice.
-- The filter only hides scenes from view: nothing is changed or reordered, and **Export Breakdown** and **Reports** still cover the whole script. It stays on as you switch between Breakdowns and Stripboard, and clears when you open another script.
+- The filter only hides scenes from view: nothing is changed or reordered, and **File ▾ → Scene Breakdown** and **Reports** still cover the whole script. It stays on as you switch between Breakdowns and Stripboard, and clears when you open another script.
 
 ### What comes from the script
 
@@ -422,7 +423,7 @@ The Stripboard is also where you plan the shoot. Until you add a shooting day it
 - **Cast numbers stay put.** The first shooting day fixes everyone's cast number. A character who appears later gets the next free number, and **Rename** keeps a character's number. Nothing is renumbered unless you ask: on the Stripboard, **⋮ → Renumber Cast…** asks first, then numbers everyone again by lines (it's for the whole project, not one day). {{key:Ctrl+Z}} undoes it.
 - **Undo.** Every schedule change is a step in the same undo history as your writing: {{key:Ctrl+Z}} takes back one move at a time. The schedule never changes your script: it's an order of scenes kept beside it, saved with the project.
 - If a scene on a day leaves the script (its heading deleted or turned into action), it stays on its day, hidden, in case you undo. The summary line says so, with **Remove from the schedule** to clear it on purpose.
-- One project open in two tabs: the tab that saves last wins. Schedule in one tab at a time.
+- The same project open in two tabs or windows is safe: see Storage, sync & offline.
 
 ### Reports
 
@@ -447,7 +448,7 @@ Your lists and notes are saved with the script, inside the project, and kept by 
 - **.fountain**: plain-text screenplay format, readable by Highland, Slugline, WriteSolo, Fade In and many others.
 - **.fdx**: Final Draft's format, for sending to Final Draft users and productions (see Final Draft (.fdx), below).
 - **Scene outline**: a Fountain Outline, Markdown, or a Spreadsheet (.csv), from the Scene Board.
-- **Breakdown**: **Export Breakdown** in Plan, or **File ▾ → Scene Breakdown** from anywhere, a spreadsheet (.csv) of every scene's breakdown (see Production & Planning).
+- **Breakdown**: **File ▾ → Export Planning & Production → Scene Breakdown**, in Write or Plan, a spreadsheet (.csv) of every scene's breakdown (see Production & Planning).
 - **Story Bible (PDF)**: **File → Story Bible** turns Story DNA, Story Notes and Character Bios (any or all of them) into a formatted dossier headed with the title, author and "Story Bible & Project Dossier", each section starting on a new page. Choose **Save as PDF** in the print dialog; the file is named "<Title> - Story Bible". Story Notes go in this order: Logline, Tone, Pitch, Timeline, Synopsis, then the Treatment by act. Of your own note cards, only those with "Note" in the title are included ("Note: Haiti 1986", "Note Revisions"); research questions and brainstorms stay in DraftLine, and the Scratchpad never goes. Only characters with something in their bio are included.
 
 Each script export (.fountain, .fdx, .draftline, and the print dialog) is confirmed in a small note in the bottom-right corner that closes itself after 8 seconds; point at it to keep it open. At most once every two weeks it adds a line about supporting DraftLine on Ko-fi or Patreon. **Don't show again**, or closing the note while that line is showing, turns it off for good in this browser.
