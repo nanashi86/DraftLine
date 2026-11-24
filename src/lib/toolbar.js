@@ -21,7 +21,7 @@ export function isOnBar(el, bar) {
  */
 export function moreMenuItems({
   bibleOnBar, charactersOnBar, onBible, onCharacters, onSnapshots, snapshotCount = 0, onNotes, noteCount = 0,
-  onShortcuts, onAbout, onSettings, focusOnBar = true, onFocus, onGuide, onFormatDoctor, issueCount = 0, planTools = null, onReports = null, onTableRead = null, onCoWrite = null,
+  onShortcuts, onAbout, onSettings, focusOnBar = true, onFocus, onGuide, onFormatDoctor, issueCount = 0, planTools = null, onReports = null, onRenumberCast = null, onTableRead = null, onCoWrite = null,
   onFeedback = null, onCookies = null, writeViews = null, scenesOnBar = true, onScenes = null, touch = false,
 }) {
   const panels = [
@@ -44,6 +44,8 @@ export function moreMenuItems({
     ...(onFormatDoctor ? [{ label: 'Format Doctor', hint: issueCount ? String(issueCount) : 'Clean', onSelect: onFormatDoctor }] : []),
     // Reports (shown in Plan as "Plan · Reports"): the same item in Write and in Plan.
     ...(onReports ? [{ label: 'Reports', hint: 'Plan', onSelect: onReports }] : []),
+    // Plan → Stripboard, once a shooting day has fixed the cast numbers: a project-wide change, asked first.
+    ...(onRenumberCast ? [{ label: 'Renumber Cast…', onSelect: onRenumberCast }] : []),
     { divider: true },
     // Planned features (lib/plannedFeatures.js): each opens a short preview; Write only for now.
     ...(onTableRead || onCoWrite ? [

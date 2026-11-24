@@ -82,6 +82,9 @@ describe('Scheduling on the Stripboard', () => {
       await toStripboard(page);
       assert.equal(await page.locator('.strip-view').count(), 0, 'no day yet: no Script | Schedule');
       assert.equal(await page.locator('.strip-handle').count(), 0, 'no day yet: no handles');
+      await page.locator('.btn-kebab').click();
+      assert.equal(await page.getByRole('menuitem', { name: 'Renumber Cast…' }).count(), 0, 'no fixed numbers yet: no Renumber Cast…');
+      await page.keyboard.press('Escape');
       const add = page.locator('.btn-plan-day');
       assert.ok(await add.isVisible(), '+ Shooting Day in the header');
 
@@ -115,6 +118,20 @@ describe('Scheduling on the Stripboard', () => {
       assert.deepEqual((await layout(page)).slice(0, 2), [[2], [3, 4]]);
       await key(page, 'Control+Shift+z');
       assert.deepEqual((await layout(page)).slice(0, 2), [[2, 3], [4]]);
+
+      // a day's details: a cast code explains itself when tapped
+      await page.locator('.strip-break-btn').first().click();
+      const pop = page.locator('.day-pop');
+      await pop.waitFor();
+      await pop.locator('.day-pop-code').first().click();
+      assert.match(await pop.locator('.day-pop-explain').textContent(), /^\S+ · (SW|W|WF|SWF): /);
+      await page.keyboard.press('Escape');
+
+      // Renumber Cast…: in ⋮ once numbers are fixed; asks first; nothing to change on an unchanged script
+      await page.locator('.btn-kebab').click();
+      await page.getByRole('menuitem', { name: 'Renumber Cast…' }).click();
+      await page.locator('dialog.rc-modal').getByRole('button', { name: 'Renumber' }).click();
+      assert.match(await page.locator('.toast').textContent(), /nothing to change/, 'numbers were fixed from the script as it was');
 
       // the strip itself still opens Write
       await page.locator('.is-schedule .strip-slot .strip', { hasText: 'HARBOR' }).click();

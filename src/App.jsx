@@ -93,6 +93,7 @@ import {
 import { DUAL_SHORTCUT, ELEMENT_MENU } from './lib/shortcuts.js';
 import { fileMenuItems, isOnBar, moreMenuItems } from './lib/toolbar.js';
 import PlannedFeatureModal from './components/PlannedFeatureModal.jsx';
+import RenumberCastModal from './components/planning/RenumberCastModal.jsx';
 import SyncConflictModal from './components/SyncConflictModal.jsx';
 import { PLAN_PLANNED_TABS, SHOOT_TAB } from './lib/plannedFeatures.js';
 import { newProjectMeta, rememberAuthorDefaults } from './lib/authorDefaults.js';
@@ -576,6 +577,7 @@ function Workspace({ boot }) {
   const [tableRead, setTableRead] = useState(null);
   // Stripboard: Script | Schedule, remembered per project on this device (lib/schedule.js loadStripView).
   const [stripPrefs, setStripPrefs] = useState({});
+  const [renumberOpen, setRenumberOpen] = useState(false); // Plan → Stripboard → ⋮ → Renumber Cast…
   const [readingId, setReadingId] = useState(null);
   // Where Table Read starts next: the element the caret moves to, the scene picked in the Scenes sidebar,
   // or null for the Title Page (read as the first scene). `n` counts choices, so re-picking a scene counts.
@@ -2198,7 +2200,7 @@ function Workspace({ boot }) {
     const before = cur.schedule ?? null;
     const after = change(before);
     const fixing = fixCast && !cur.castNumbers;
-    const cast = fixing ? freezeCastNumbers(latest.current.analysis) : null;
+    const cast = fixing ? freezeCastNumbers(analysis) : null;
     if (JSON.stringify(after) === JSON.stringify(before) && !fixing) return;
     const put = (schedule, castNumbers) => (p) => {
       const next = { ...p };
@@ -2239,9 +2241,14 @@ function Workspace({ boot }) {
     forgetMissing: () => scheduleStep((s) => forgetMissing(s, scenes.map((sc) => sc.id)), 'scenes no longer in the script removed from the schedule'),
     renumberCast: () => {
       const cur = latest.current.production.castNumbers ?? null;
-      const next = freezeCastNumbers(latest.current.analysis);
+      const next = freezeCastNumbers(analysis);
       const put = (v) => (p) => ({ ...p, castNumbers: v });
-      if (JSON.stringify(cur) !== JSON.stringify(next)) planStep(put(next), (p) => (cur ? put(cur)(p) : { ...p, castNumbers: undefined }), 'cast renumbered');
+      if (JSON.stringify(cur) === JSON.stringify(next)) {
+        notify('Cast numbers already follow the line counts: nothing to change');
+        return;
+      }
+      planStep(put(next), (p) => (cur ? put(cur)(p) : { ...p, castNumbers: undefined }), 'cast renumbered');
+      notify('Cast renumbered · Ctrl+Z undoes');
     },
   };
 
@@ -2987,6 +2994,7 @@ function Workspace({ boot }) {
                 onShortcuts: () => setHelpKind('shortcuts'),
                 onFormatDoctor: openDoctor,
                 onReports: openReports,
+                onRenumberCast: inPlan && planView === 'stripboard' && production.castNumbers && scheduleIsReadable(production.schedule) ? () => setRenumberOpen(true) : null,
                 // Table Read (the player) and Co-Write (a preview): Write only
                 onTableRead: inPlan ? null : openTableRead,
                 onCoWrite: inPlan ? null : () => openPlanned('coWrite'),
@@ -3383,7 +3391,15 @@ function Workspace({ boot }) {
             onLater={() => setSyncConflict(null)}
           />
         )}
-        {planned && <PlannedFeatureModal id={planned.id} returnFocus={planned.from} onClose={() => setPlanned(null)} />}
+        {renumberOpen && (
+        <RenumberCastModal
+          count={Object.keys(production.castNumbers || {}).length}
+          onConfirm={scheduleOps.renumberCast}
+          onClose={() => setRenumberOpen(false)}
+          returnFocus={barRef.current?.querySelector('.btn-kebab') || null}
+        />
+      )}
+      {planned && <PlannedFeatureModal id={planned.id} returnFocus={planned.from} onClose={() => setPlanned(null)} />}
         {feedbackOpen && (
           <Suspense fallback={null}>
             <FeedbackModal

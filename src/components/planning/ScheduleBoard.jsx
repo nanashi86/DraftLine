@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { GripVertical } from 'lucide-react';
 import { StripHead, StripLegend, StripRow } from './strips.jsx';
 import { PRODUCTION_BUCKETS, eighthsLabel } from '../../lib/productionEngine.js';
-import { dayDateLabel } from '../../lib/schedule.js';
+import { DOOD_CODES, dayDateLabel } from '../../lib/schedule.js';
 
 /**
  * Stripboard → Schedule: the same strips, in shooting order, under day breaks.
@@ -21,7 +21,7 @@ import { dayDateLabel } from '../../lib/schedule.js';
  *   visible: Set of scene ids the filter shows, or null
  *   ops: { moveScene(id, dayId|null, index), addDay(afterId), removeDay(id), moveDay(id, index),
  *          setDate(id, date), setNote(id, note), fillDates(id, start, skipWeekends), setTarget(eighths),
- *          renumberCast() }
+ *          … }
  */
 export default function ScheduleBoard({ model, totals, visible, onOpenScene, ops, pagesTarget }) {
   const [menu, setMenu] = useState(null); // { sceneId, anchor }
@@ -333,7 +333,7 @@ function StripMenu({ menu, model, where, onMove, onStep, onClose }) {
   );
 }
 
-const CODE_LABELS = { SW: 'starts', W: 'works', WF: 'finishes', SWF: 'one day only', H: 'on hold' };
+const doodText = (code) => `${code}: ${DOOD_CODES[code][0]}, ${DOOD_CODES[code][1]}`;
 
 function DayPopover({ day, count, anchor, ops, pagesTarget, onClose }) {
   const ref = useRef(null);
@@ -343,7 +343,7 @@ function DayPopover({ day, count, anchor, ops, pagesTarget, onClose }) {
   const [note, setNote] = useState(day.note);
   const [target, setTarget] = useState(pagesTarget ? String(pagesTarget / 8) : '');
   const [skipWeekends, setSkipWeekends] = useState(true);
-  const [renumber, setRenumber] = useState(false);
+  const [explain, setExplain] = useState(null); // { name, code }: the cast code explained under the list
   const commitNote = () => {
     if (note !== day.note) ops.setNote(day.id, note);
   };
@@ -374,18 +374,25 @@ function DayPopover({ day, count, anchor, ops, pagesTarget, onClose }) {
         <span>{eighthsLabel(day.eighths)} {day.eighths > 8 ? 'pages' : 'page'} · {day.rows.length} {day.rows.length === 1 ? 'scene' : 'scenes'}</span>
       </header>
 
-      <div className="day-pop-row">
-        <label>
+      <div className="day-pop-row day-pop-plan">
+        <label className="day-pop-field">
           <span className="plan-label">Date</span>
           <input type="date" value={day.date || ''} onChange={(e) => ops.setDate(day.id, e.target.value || null)} />
         </label>
-        {day.date && day.number < count && (
-          <span className="day-pop-fill">
-            <button type="button" className="plan-clear" onClick={() => ops.fillDates(day.id, day.date, skipWeekends)}>Date the days after</button>
-            <label className="day-pop-check"><input type="checkbox" checked={skipWeekends} onChange={(e) => setSkipWeekends(e.target.checked)} /> skip weekends</label>
+        <label className="day-pop-field day-pop-target">
+          <span className="plan-label">Page target, every day</span>
+          <span>
+            <input type="text" inputMode="decimal" value={target} onChange={(e) => setTarget(e.target.value)} onBlur={commitTarget}
+              onKeyDown={(e) => { if (e.key === 'Enter') commitTarget(); }} placeholder="none" aria-label="Page target per day, in pages" /> pages
           </span>
-        )}
+        </label>
       </div>
+      {day.date && day.number < count && (
+        <span className="day-pop-fill">
+          <button type="button" className="plan-clear" onClick={() => ops.fillDates(day.id, day.date, skipWeekends)}>Date the days after</button>
+          <label className="day-pop-check"><input type="checkbox" checked={skipWeekends} onChange={(e) => setSkipWeekends(e.target.checked)} /> skip weekends</label>
+        </span>
+      )}
 
       {day.notes.length > 0 && (
         <ul className="day-pop-notes" aria-label="Notes">
@@ -397,19 +404,30 @@ function DayPopover({ day, count, anchor, ops, pagesTarget, onClose }) {
         <span className="plan-label">Cast</span>
         {day.cast.length || day.hold.length ? (
           <ul className="day-pop-cast">
-            {day.cast.map((c) => <li key={c.name}><b>{c.number}</b> {c.name} <abbr title={CODE_LABELS[c.code]}>{c.code}</abbr></li>)}
-            {day.hold.map((c) => <li key={c.name} className="is-hold"><b>{c.number}</b> {c.name} <abbr title={CODE_LABELS.H}>H</abbr></li>)}
+            {[...day.cast, ...day.hold].map((c) => {
+              const open = explain?.name === c.name;
+              return (
+                <li key={c.name} className={c.code === 'H' ? 'is-hold' : undefined}>
+                  <b>{c.number}</b> {c.name}{' '}
+                  <button
+                    type="button"
+                    className="day-pop-code"
+                    title={doodText(c.code)}
+                    aria-label={`${c.code}: ${DOOD_CODES[c.code][0]}`}
+                    aria-expanded={open}
+                    aria-controls={`dood-${day.id}`}
+                    onClick={() => setExplain(open ? null : { name: c.name, code: c.code })}
+                  >
+                    {c.code}
+                  </button>
+                </li>
+              );
+            })}
           </ul>
         ) : <span className="plan-none">No speaking cast</span>}
-        {!renumber ? (
-          <button type="button" className="plan-clear day-pop-renumber" onClick={() => setRenumber(true)}>Renumber cast…</button>
-        ) : (
-          <div className="day-pop-confirm" role="group" aria-label="Renumber cast">
-            <p>Give every character a new number by how many lines they have now (1 = most). Numbers on schedules you’ve already shared won’t match.</p>
-            <button type="button" className="btn" onClick={() => { ops.renumberCast(); setRenumber(false); }}>Renumber</button>
-            <button type="button" className="btn" onClick={() => setRenumber(false)}>Cancel</button>
-          </div>
-        )}
+        <p id={`dood-${day.id}`} className="day-pop-explain" aria-live="polite">
+          {explain && DOOD_CODES[explain.code] ? `${explain.name} · ${doodText(explain.code)}.` : ''}
+        </p>
       </div>
 
       {day.places.length > 0 && (
@@ -428,14 +446,6 @@ function DayPopover({ day, count, anchor, ops, pagesTarget, onClose }) {
       <label className="day-pop-section">
         <span className="plan-label">Day note</span>
         <textarea rows={2} value={note} onChange={(e) => setNote(e.target.value)} onBlur={commitNote} placeholder="Call time, parking, anything for this day" />
-      </label>
-
-      <label className="day-pop-section day-pop-target">
-        <span className="plan-label">Page target, every day</span>
-        <span>
-          <input type="text" inputMode="decimal" value={target} onChange={(e) => setTarget(e.target.value)} onBlur={commitTarget}
-            onKeyDown={(e) => { if (e.key === 'Enter') commitTarget(); }} placeholder="none" aria-label="Page target per day, in pages" /> pages
-        </span>
       </label>
 
       <footer className="day-pop-foot">

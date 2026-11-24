@@ -16,7 +16,7 @@ import { analyzeScript, makeBlock } from '../src/lib/screenplay.js';
 import { buildBreakdown } from '../src/lib/productionEngine.js';
 import { normalizeProduction } from '../src/lib/productionData.js';
 import {
-  LOCATION_NOTE_AT, STRIP_VIEW_KEY, addDay, basePlace, dayDateLabel, fillDates, forgetMissing, isEmptySchedule, loadStripView,
+  DOOD_CODES, LOCATION_NOTE_AT, STRIP_VIEW_KEY, addDay, basePlace, dayDateLabel, fillDates, forgetMissing, isEmptySchedule, loadStripView,
   moveDay, moveScene, normalizeSchedule, removeDay, saveStripView, scheduleIsReadable, scheduleModel, setDayDate, setDayNote,
   setPagesTarget,
 } from '../src/lib/schedule.js';
@@ -211,6 +211,9 @@ describe('what the Schedule view shows (scheduleModel)', () => {
     assert.deepEqual(req.props, ['Thermos', 'Radio']);
     assert.deepEqual(req.vehicles, ['Ferry']);
   });
+  it('every Day-Out-of-Days code has a name and a meaning', () => {
+    for (const code of ['SW', 'W', 'WF', 'SWF', 'H']) assert.equal(DOOD_CODES[code].length, 2, code);
+  });
   it('a date reads as a calendar day, in any time zone', () => {
     assert.equal(dayDateLabel('2027-05-11', 'en-GB'), 'Tue 11 May');
     assert.equal(dayDateLabel('nope', 'en-GB'), '');
@@ -265,6 +268,27 @@ describe('Scheduling in the app', () => {
     assert.match(add, /\{ fixCast: true \}/);
     assert.match(add, /if \(first\) chooseStripView\('schedule'\)/);
     assert.match(app, /const fixing = fixCast && !cur\.castNumbers;/);
+  });
+  it('fixed cast numbers come from the script as it is (the first day and Renumber Cast…)', () => {
+    assert.equal((app.match(/freezeCastNumbers\(analysis\)/g) || []).length, 2);
+    assert.doesNotMatch(app, /latest\.current\.analysis/, 'latest.current has no analysis');
+  });
+  it('Renumber Cast… is in Plan’s ⋮ on the Stripboard once numbers are fixed, asks first, and is one undo step', () => {
+    assert.match(app, /onRenumberCast: inPlan && planView === 'stripboard' && production\.castNumbers && scheduleIsReadable\(production\.schedule\) \? \(\) => setRenumberOpen\(true\) : null,/);
+    assert.match(app, /<RenumberCastModal[\s\S]*onConfirm=\{scheduleOps\.renumberCast\}/);
+    const ops = app.slice(app.indexOf('renumberCast: () => {'), app.indexOf('const openSceneInWrite'));
+    assert.match(ops, /planStep\(put\(next\)/);
+    assert.doesNotMatch(board, /renumberCast|Renumber/, 'not in a day’s details any more');
+    const modal = read('src/components/planning/RenumberCastModal.jsx');
+    assert.match(modal, /<dialog[\s\S]*aria-labelledby="rc-title"/);
+    assert.match(modal, />Cancel<\/button>[\s\S]*>Renumber<\/button>/);
+  });
+  it('a day’s details: date and page target first; each cast code explains itself on hover and on a tap', () => {
+    const pop = board.slice(board.indexOf('function DayPopover('));
+    assert.ok(pop.indexOf('Page target, every day') < pop.indexOf('day-pop-notes'), 'target before the notes');
+    assert.ok(pop.indexOf('type="date"') < pop.indexOf('day-pop-notes'), 'date before the notes');
+    assert.match(pop, /className="day-pop-code"[\s\S]*title=\{doodText\(c\.code\)\}[\s\S]*aria-expanded=\{open\}/);
+    assert.match(pop, /className="day-pop-explain" aria-live="polite"/);
   });
   it('+ Shooting Day only on the Stripboard, only when this version can edit the schedule', () => {
     assert.match(app, /inPlan && planView === 'stripboard' && scheduleIsReadable\(production\.schedule\)/);

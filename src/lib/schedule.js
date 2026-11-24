@@ -280,6 +280,15 @@ export function scheduleModel(rows, schedule) {
   return out;
 }
 
+/** Day-Out-of-Days codes (scheduleModel's `code`): the long name, and what it means for a character that day. */
+export const DOOD_CODES = {
+  SW: ['Start · Work', 'their first shooting day'],
+  W: ['Work', 'works this day, between their first and last'],
+  WF: ['Work · Finish', 'their last shooting day'],
+  SWF: ['Start · Work · Finish', 'their only shooting day'],
+  H: ['Hold', 'not working this day, but between their first and last, so still booked'],
+};
+
 // ---- The Script | Schedule choice: a preference on this device, per project ----------------------
 
 export const STRIP_VIEW_KEY = 'draftline:stripView:v1';
