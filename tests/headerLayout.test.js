@@ -141,24 +141,21 @@ describe('Top bar: narrow windows collapse in steps', () => {
     assert.match(media('559.98'), /\.zone-left > \.btn-icon \{ display: none; \}/);
     assert.ok(!/\.ws-switch\s*\{[^}]*display: none/.test(css), 'Write | Plan never hides');
   });
-  it('Plan: Collapse All → ⋮ (1200), Export Breakdown shortens to "Export" (1000), view switch icons (900), Export → ⋮ (640), views → ⋮ (440)', () => {
+  it('Plan: Collapse All → ⋮ (1200), view switch icons (900), views → ⋮ (440); no export button (exports are in File ▾)', () => {
     assert.match(media('1199.98'), /\.bar-right > \.btn-plan-fold \{ display: none; \}/);
-    assert.match(media('999.98'), /\.btn-plan-export \.plan-lbl-long \{ display: none; \}/);
-    assert.match(media('999.98'), /\.btn-plan-export \.plan-lbl-short \{ display: inline; \}/);
     assert.match(media('899.98'), /\.plan-seg \.seg-label,\s*\.view-seg \.seg-label \{ display: none; \}/);
     assert.ok(!/(^|[^-])\.lbl-(long|short)/m.test(css), 'no generic label classes for other rules to catch');
-    assert.match(media('639.98'), /\.bar-right > \.btn-plan-export \{ display: none; \}/);
     assert.match(media('439.98'), /\.zone-right \.plan-seg \{ display: none; \}/);
-    assert.match(header, /<span className="plan-lbl-long">Export Breakdown<\/span>\s*<span className="plan-lbl-short">Export<\/span>/);
+    assert.doesNotMatch(header + css, /btn-plan-export|Export Breakdown/, 'Export Breakdown left the toolbar');
     const tucked = moreMenuItems({
       bibleOnBar: true, charactersOnBar: true,
       planTools: {
         viewsOnBar: false, views: [{ label: 'Breakdowns', on: true, onSelect() {} }, { label: 'Stripboard', on: false, onSelect() {} }],
-        hasScenes: true, foldOnBar: false, foldLabel: 'Collapse All', onFold() {}, exportOnBar: false, onExport() {},
+        hasScenes: true, foldOnBar: false, foldLabel: 'Collapse All', onFold() {},
       },
     });
-    assert.deepEqual(tucked.slice(0, 5).map((i) => (i.divider ? '---' : `${i.label}${i.hint ? ` [${i.hint}]` : ''}`)),
-      ['Breakdowns [Showing]', 'Stripboard', 'Collapse All', 'Export Breakdown [.csv]', '---']);
+    assert.deepEqual(tucked.slice(0, 4).map((i) => (i.divider ? '---' : `${i.label}${i.hint ? ` [${i.hint}]` : ''}`)),
+      ['Breakdowns [Showing]', 'Stripboard', 'Collapse All', '---']);
   });
   it('Page | Split | Board carry line icons (page, two columns, kanban) — labels from 900px, icons only below, like Plan', () => {
     assert.match(app, /\{ id: 'page', label: 'Page', title: 'Script only', Icon: FileText \}/);

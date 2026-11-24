@@ -34,7 +34,6 @@ export function moreMenuItems({
     // Plan: its header tools, when a narrow bar has tucked them away
     ...(planTools && !planTools.viewsOnBar ? planTools.views.map((v) => ({ label: v.label, hint: v.on ? 'Showing' : '', onSelect: v.onSelect })) : []),
     planTools?.hasScenes && !planTools.foldOnBar && { label: planTools.foldLabel, onSelect: planTools.onFold },
-    planTools?.hasScenes && !planTools.exportOnBar && { label: 'Export Breakdown', hint: '.csv', onSelect: planTools.onExport },
   ].filter(Boolean);
   return [
     ...(panels.length ? [...panels, { divider: true }] : []),
@@ -68,7 +67,7 @@ export function moreMenuItems({
 /**
  * The header's one "File ▾" menu: Script · Export Script · Export Planning & Production · Backup. Labels
  * name what each export writes and `ext` its file type (.fountain, .pdf…); hints are shortcuts. (The Scene Board's Export Outline offers the
- * same three outlines; Scene Breakdown is the same .csv as Plan's Export Breakdown.)
+ * same three outlines. Exports live here only: workspace toolbars keep working actions.)
  */
 export function fileMenuItems({
   onNew, onOpen, onImport, onSample, onTitlePage, onPrint, onCompiledPdf, onBible, onFountain, onFdx, onBreakdownCsv, onOutlineCsv, onOutlineMd,
@@ -97,7 +96,7 @@ export function fileMenuItems({
     { label: 'Story Bible', ext: '.pdf', onSelect: onBible, title: 'Story DNA, Notes and Character Bios as a dossier' },
     ...(onBreakdownCsv ? [{
       label: 'Scene Breakdown', ext: '.csv', onSelect: onBreakdownCsv, disabled: !hasScenes,
-      title: hasScenes ? 'Every scene’s breakdown as a spreadsheet: the same file as Plan’s Export Breakdown' : 'No scenes yet: scene headings (INT. / EXT. …) make the breakdown',
+      title: hasScenes ? 'Every scene’s breakdown as a spreadsheet (.csv), one row per scene' : 'No scenes yet: scene headings (INT. / EXT. …) make the breakdown',
     }] : []),
     { label: 'Spreadsheet Outline', ext: '.csv', onSelect: onOutlineCsv, title: 'One row per Scene Board card' },
     { label: 'Markdown Outline', ext: '.md', onSelect: onOutlineMd, title: 'The Scene Board as a Markdown outline' },

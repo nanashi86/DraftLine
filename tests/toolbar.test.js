@@ -77,7 +77,8 @@ describe('toolbar & About wiring', () => {
   });
   it('the right-hand order: workspace tools (Focus · Story Bible · Characters, or Plan’s), then Snapshot · ⋮', () => {
     const right = bar.slice(bar.indexOf('bar-group bar-right'));
-    const pos = ['btn-plan-fold', 'btn-plan-export', '>Focus<', 'Story Bible\n', 'Characters\n', 'btn-snapshot', 'btn-kebab'].map((k) => right.indexOf(k));
+    assert.ok(!right.includes('btn-plan-export'), 'no Export Breakdown on the toolbar (File ▾ has it)');
+    const pos = ['btn-plan-fold', 'btn-plan-day', '>Focus<', 'Story Bible\n', 'Characters\n', 'btn-snapshot', 'btn-kebab'].map((k) => right.indexOf(k));
     assert.ok(pos.every((p) => p > 0), JSON.stringify(pos));
     assert.deepEqual([...pos].sort((a, b) => a - b), pos);
     assert.ok(!/>\s*Dialogue\s*</.test(right), 'no separate Dialogue toolbar button');

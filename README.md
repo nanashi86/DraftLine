@@ -411,7 +411,7 @@ computer; phones use App Storage). Click the title's **▾**, choose **File ▾ 
 **Write | Plan** in the top bar switches to a production view of the same script, worked out from it each time:
 **Breakdowns** (a card per scene: slugline, INT/EXT and DAY/NIGHT, length in eighths, speaking cast with call-sheet
 numbers, and lists you fill in for extras, props, wardrobe / SFX and vehicles / stunts, plus production notes) and
-**Stripboard** (one colour-coded strip per scene, in script order). **Export Breakdown** downloads it all as `.csv`.
+**Stripboard** (one colour-coded strip per scene, in script order). **File ▾ → Scene Breakdown** downloads it all as `.csv`.
 
 **Shooting schedule.** On the Stripboard, **+ Shooting Day** adds a day; until then the Stripboard is exactly as above.
 Then **Script | Schedule** (right of the summary line) switches between script order, with a quiet **D3** on each
@@ -529,8 +529,8 @@ end with a similar line at most every 30 days. Both are throttled and muted per 
 - **File ▾** has four sections: **Script** (**New…**, **Open…**, **Import…**, **Sample…**, **Edit Title…**),
   **Export Script** (**PDF** `.pdf`, compiled in DraftLine; **Final Draft** `.fdx`; **Fountain** `.fountain`; and
   **Print Script…**, also **Ctrl+P** — through the print dialog, with the title page as page 0; page 1 is unnumbered,
-  pages 2 onward carry a right-aligned "2.", "3." …), **Export Planning & Production** (**Story Bible** `.pdf`, **Scene Breakdown** `.csv` — the same file as Plan's
-  **Export Breakdown** — and the **Spreadsheet**, **Markdown** and **Fountain Outline**) and **Backup** (**Backup Project** `.draftline`, **View Snapshots**).
+  pages 2 onward carry a right-aligned "2.", "3." …), **Export Planning & Production** (**Story Bible** `.pdf`, **Scene Breakdown** `.csv` —
+  every scene's breakdown — and the **Spreadsheet**, **Markdown** and **Fountain Outline**) and **Backup** (**Backup Project** `.draftline`, **View Snapshots**).
 - The toolbar keeps **Story Bible** and **Characters** visible down to 1380px wide (about a laptop screen); below that,
   Story Bible moves into **⋮** (and stays on Alt+I). Below 1300px the toolbar scrolls sideways.
 - **The DraftLine logo** (top left) opens a small menu: **Welcome to DraftLine**, **Core Philosophy**, **Explore

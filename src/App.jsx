@@ -609,7 +609,6 @@ function Workspace({ boot }) {
   }), []);
   const planFoldBtnRef = useRef(null);
   const viewSegRef = useRef(null); // Page | Split | Board: when it's off the bar, ⋮ lists the views
-  const planExportBtnRef = useRef(null);
   const planSegRef = useRef(null);
   const inPlan = workspace === 'plan' && !focusMode;
   const showEditor = (view !== 'board' || focusMode) && !inPlan;
@@ -2415,7 +2414,7 @@ function Workspace({ boot }) {
     onBible: () => setBibleExportOpen(true),
     onFountain: exportFountain,
     onFdx: () => setFdxOpen(true),
-    onBreakdownCsv: exportBreakdown, // the same .csv as Plan's Export Breakdown
+    onBreakdownCsv: exportBreakdown, // File ▾ → Export Planning & Production → Scene Breakdown (.csv)
     hasScenes: scenes.length > 0,
     onOutlineCsv: () => exportOutline('csv'),
     onOutlineMd: () => exportOutline('md'),
@@ -2842,8 +2841,8 @@ function Workspace({ boot }) {
 
           {/* 3 · Right zone, the same slots in both workspaces:
                  Write: [ Page | Split | Board | Shoot ]  Focus · Story Bible · Characters   · Snapshot · ⋮
-                 Plan:  [ Breakdowns | Stripboard | Schedule | Budget ]  Collapse All · Export Breakdown · Snapshot · ⋮
-                 (Shoot, Schedule and Budget open a planned-feature preview; Reports is in ⋮.) */}
+                 Plan:  [ Breakdowns | Stripboard | Budget ]  Collapse All (Breakdowns) / + Shooting Day (Stripboard) · Snapshot · ⋮
+                 (Shoot and Budget open a planned-feature preview; Reports is in ⋮; exports are all in File ▾.) */}
           <div className="bar-zone zone-right">
           <span className="bar-sep" aria-hidden="true" />
           {inPlan ? (
@@ -2921,19 +2920,6 @@ function Workspace({ boot }) {
                 title={production.schedule ? 'Add another shooting day at the end' : 'Start a shooting schedule: arrange scenes into shooting days (your script is never changed)'}
               >
                 <Plus size={14} strokeWidth={2} aria-hidden="true" /> Shooting Day
-              </button>
-            )}
-            {inPlan && (
-              <button
-                ref={planExportBtnRef}
-                type="button"
-                className="btn btn-plan-export"
-                onClick={exportBreakdown}
-                disabled={!scenes.length}
-                title="Every scene’s breakdown as a spreadsheet (.csv)"
-              >
-                <span className="plan-lbl-long">Export Breakdown</span>
-                <span className="plan-lbl-short">Export</span>
               </button>
             )}
             <button ref={focusBtnRef} className="btn btn-focus" hidden={inPlan} onClick={() => setFocusMode(true)} title="Hide everything but the page (Esc to exit)">Focus</button>
@@ -3027,8 +3013,6 @@ function Workspace({ boot }) {
                   foldOnBar: planView !== 'breakdowns' || isOnBar(planFoldBtnRef.current, barRef.current),
                   foldLabel: planAllFolded ? 'Expand All' : 'Collapse All',
                   onFold: foldAllPlan,
-                  exportOnBar: isOnBar(planExportBtnRef.current, barRef.current),
-                  onExport: exportBreakdown,
                 } : null,
               })}
             />

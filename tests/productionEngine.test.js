@@ -307,7 +307,7 @@ describe('App wiring: [ Write | Plan ]', () => {
     assert.match(right, /<div className="seg view-seg" role="radiogroup" aria-label="Workspace view/);
     assert.match(right, /\{inPlan && planView === 'breakdowns' && \(\s*<button\s*ref=\{planFoldBtnRef\}/);
     assert.match(right, /\{planAllFolded \? 'Expand All' : 'Collapse All'\}/);
-    assert.match(right, /onClick=\{exportBreakdown\}/);
+    assert.doesNotMatch(right, /exportBreakdown|Export Breakdown/, 'exports are in File ▾, not the toolbar');
     for (const b of ['btn-focus', 'btn-bible', 'btn btn-accent']) assert.match(right, new RegExp(`${b}[^>]*\\n?[^>]*hidden=\\{inPlan\\}|hidden=\\{inPlan\\}[\\s\\S]{0,80}${b}`), b);
   });
   it('Plan has no toolbar row of its own: the summary line, then the cards or strips', () => {

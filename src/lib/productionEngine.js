@@ -172,7 +172,7 @@ export function breakdownTotals(rows) {
   return { scenes: rows.length, eighths, length: eighthsLabel(eighths), colors };
 }
 
-/** Plan → Export Breakdown (.csv): one row per scene, everything on its breakdown. */
+/** File ▾ → Export Planning & Production → Scene Breakdown (.csv): one row per scene, everything on its breakdown. */
 export function breakdownCsv(rows) {
   const head = ['Scene', 'Slugline', 'INT/EXT', 'Day/Night', 'Pages (8ths)', 'Page', 'Speaking Cast',
     ...PRODUCTION_BUCKETS.map((b) => b.label), 'Production Notes'];

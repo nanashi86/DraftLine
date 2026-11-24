@@ -92,8 +92,8 @@ describe('toolbar: File ▾ holds Print; panels stay visible on laptops', () => 
     assert.match(app, /onPrint: printScript,/);
     assert.match(app, /onProjects: \(\) => setDrawerOpen\(true\),/, 'Projects… opens the same panel as the ▾');
     assert.equal(fileMenuItems({})[0].heading, 'Script', 'no Projects… without a handler');
-    assert.match(app, /onBreakdownCsv: exportBreakdown, \/\/ the same \.csv as Plan's Export Breakdown\s*hasScenes: scenes\.length > 0,/);
-    assert.match(app, /onClick=\{exportBreakdown\}/, 'the Plan button runs the same export');
+    assert.match(app, /onBreakdownCsv: exportBreakdown, \/\/ File ▾ → Export Planning & Production → Scene Breakdown \(\.csv\)\s*hasScenes: scenes\.length > 0,/);
+    assert.doesNotMatch(app, /onClick=\{exportBreakdown\}/, 'the one way in is File ▾ (no toolbar button)');
     const none = fileMenuItems({ onBreakdownCsv() {}, hasScenes: false }).find((i) => i.label === 'Scene Breakdown');
     assert.equal(none.disabled, true, 'greyed out until the script has a scene');
     assert.ok(!/Print Script \/ PDF|Fountain outline'/.test(app), 'no legacy slash label or lower-case outline');

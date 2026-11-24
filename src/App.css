@@ -43,13 +43,10 @@
 }
 .zone-right { flex: 0 0 auto; margin-left: auto; }
 .file-menu { display: inline-flex; flex: none; }
-/* Plan's header tools: Export's label shortens on small screens (see the 767.98px step). */
-.btn-plan-export .plan-lbl-short { display: none; }
 /* Icon + label view switches: Page | Split | Board (Write), Breakdowns | Stripboard (Plan). */
 .view-seg .seg-btn,
 .plan-seg .seg-btn { display: inline-flex; align-items: center; gap: 6px; }
-.btn-plan-fold:disabled,
-.btn-plan-export:disabled { opacity: 0.45; cursor: default; }
+.btn-plan-fold:disabled { opacity: 0.45; cursor: default; }
 .file-menu .menu-pop { min-width: 300px; } /* one line per item: "Spreadsheet Outline  .csv" */
 .bar-sep {
   flex: none;
@@ -869,10 +866,6 @@
   .bar { --bar-gap: 10px; }
   .bar { padding: 0 10px; }
 }
-@media (max-width: 999.98px) {
-  .btn-plan-export .plan-lbl-long { display: none; } /* Plan: "Export Breakdown (.csv)" → "Export (.csv)" */
-  .btn-plan-export .plan-lbl-short { display: inline; }
-}
 @media (max-width: 899.98px) {
   .ws-label { display: none; }                     /* Write | Plan: icons only (names on hover) — never hidden */
   .plan-seg .seg-label,
@@ -887,7 +880,6 @@
   .bar-right > .btn-snapshot { display: none; }    /* ⋮ → View Snapshots */
 }
 @media (max-width: 639.98px) {
-  .bar-right > .btn-plan-export { display: none; } /* ⋮ → Export Breakdown */
   .doc-title-wrap { min-width: 6ch; max-width: 110px; }
 }
 @media (max-width: 559.98px) {

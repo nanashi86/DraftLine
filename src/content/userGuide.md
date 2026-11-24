@@ -371,7 +371,7 @@ The Scene Board's **Export Outline** downloads the board as a **Fountain Outline
 
 ### Write and Plan
 
-- **Write** is the screenplay editor, with **Page**, **Split** and **Board** (and **Shoot**, a preview of a planned feature), **Focus**, **Story Bible** and **Characters** on the right of the top bar. In **Plan** those same places hold **Breakdowns | Stripboard** (and **Budget**, a preview of a planned feature), **Collapse All / Expand All** and **Export Breakdown** (on the Stripboard, **+ Shooting Day**); the title, **Write | Plan**, **File ▾**, **Snapshot** and **⋮** stay put. On a smaller screen Plan's tools shorten (Export Breakdown becomes **Export**, the view switch turns to icons) and then move into **⋮**, the same way Write's do; the scene filter moves above the scenes, as Write's Element picker and B / I / U / S move above the script.
+- **Write** is the screenplay editor, with **Page**, **Split** and **Board** (and **Shoot**, a preview of a planned feature), **Focus**, **Story Bible** and **Characters** on the right of the top bar. In **Plan** those same places hold **Breakdowns | Stripboard** (and **Budget**, a preview of a planned feature), **Collapse All / Expand All** (on the Stripboard, **+ Shooting Day**); the title, **Write | Plan**, **File ▾**, **Snapshot** and **⋮** stay put. On a smaller screen Plan's view switch turns to icons and its tools then move into **⋮**, the same way Write's do; the scene filter moves above the scenes, as Write's Element picker and B / I / U / S move above the script.
 - The title, the Projects library, **File ▾**, **Snapshot** and the ⋮ menu (About, User Guide) stay in both.
 - Switching never loses anything. Your script stays exactly as it was, unsaved typing included, and it keeps saving. Coming back to Write puts the script and the Scene Board where you'd scrolled them.
 - **Write** on a breakdown card, or a click on a strip, takes you back to Write at that scene.
@@ -387,7 +387,7 @@ On **Breakdowns** and **Stripboard**, the top bar holds a scene filter: **Find s
 - **Find scenes…** matches a heading or location (`Bouchard`), a speaking character (`Tati`), or a scene number on its own (`32` finds scene 32 only). Capitals and accents don't matter.
 - **INT | EXT** and **DAY | NIGHT** narrow it further. An INT./EXT. scene counts as both, and CONTINUOUS takes the light of the scene before.
 - While anything is set, the top bar shows **5 of 53 scenes** with ✕ to clear it, and the line above the scenes counts what's showing (**5 of 53 scenes · 7 7/8 of 98 5/8 pages**). On a smaller screen, where the filter sits right above that line, it shows only the ✕, so the count isn't said twice.
-- The filter only hides scenes from view: nothing is changed or reordered, and **Export Breakdown** and **Reports** still cover the whole script. It stays on as you switch between Breakdowns and Stripboard, and clears when you open another script.
+- The filter only hides scenes from view: nothing is changed or reordered, and **File ▾ → Scene Breakdown** and **Reports** still cover the whole script. It stays on as you switch between Breakdowns and Stripboard, and clears when you open another script.
 
 ### What comes from the script
 
@@ -447,7 +447,7 @@ Your lists and notes are saved with the script, inside the project, and kept by 
 - **.fountain**: plain-text screenplay format, readable by Highland, Slugline, WriteSolo, Fade In and many others.
 - **.fdx**: Final Draft's format, for sending to Final Draft users and productions (see Final Draft (.fdx), below).
 - **Scene outline**: a Fountain Outline, Markdown, or a Spreadsheet (.csv), from the Scene Board.
-- **Breakdown**: **Export Breakdown** in Plan, or **File ▾ → Scene Breakdown** from anywhere, a spreadsheet (.csv) of every scene's breakdown (see Production & Planning).
+- **Breakdown**: **File ▾ → Export Planning & Production → Scene Breakdown**, in Write or Plan, a spreadsheet (.csv) of every scene's breakdown (see Production & Planning).
 - **Story Bible (PDF)**: **File → Story Bible** turns Story DNA, Story Notes and Character Bios (any or all of them) into a formatted dossier headed with the title, author and "Story Bible & Project Dossier", each section starting on a new page. Choose **Save as PDF** in the print dialog; the file is named "<Title> - Story Bible". Story Notes go in this order: Logline, Tone, Pitch, Timeline, Synopsis, then the Treatment by act. Of your own note cards, only those with "Note" in the title are included ("Note: Haiti 1986", "Note Revisions"); research questions and brainstorms stay in DraftLine, and the Scratchpad never goes. Only characters with something in their bio are included.
 
 Each script export (.fountain, .fdx, .draftline, and the print dialog) is confirmed in a small note in the bottom-right corner that closes itself after 8 seconds; point at it to keep it open. At most once every two weeks it adds a line about supporting DraftLine on Ko-fi or Patreon. **Don't show again**, or closing the note while that line is showing, turns it off for good in this browser.

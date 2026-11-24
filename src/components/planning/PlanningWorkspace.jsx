@@ -12,7 +12,7 @@ import './PlanningWorkspace.css';
 
 /**
  * The Plan workspace (header: [ Write | Plan ]). Its controls — [ Breakdowns | Stripboard ],
- * Collapse All, Export Breakdown — sit in the main header, in the slots Write's own use; the
+ * Collapse All, + Shooting Day — sit in the main header, in the slots Write's own use; the
  * workspace itself starts with one summary line, then the cards or strips.
  * Everything shown is derived from the script each time (lib/productionEngine.js buildBreakdown);
  * only the asset lists and notes are typed here, and they're saved with the project.
