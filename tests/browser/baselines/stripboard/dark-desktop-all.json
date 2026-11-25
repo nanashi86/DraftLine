@@ -69,7 +69,7 @@
           "html": "Pages"
         },
         {
-          "className": "",
+          "className": "strip-cast",
           "role": "columnheader",
           "text": "Cast",
           "title": null,

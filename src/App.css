@@ -30,6 +30,7 @@
    breakpoints below collapse things (File ▾, panels into ⋮) well before that happens. */
 .bar-zone { display: flex; align-items: center; gap: var(--bar-gap); min-width: 0; }
 .zone-left { flex: 0 1000 auto; gap: 8px; position: relative; z-index: 20; } /* short of room, the title gives way before the tools */
+
 .zone-middle { flex: 1 1 auto; }
 .zone-middle-tools {
   display: flex;
@@ -176,7 +177,8 @@
   height: 0;
   overflow: hidden;
   visibility: hidden;
-  white-space: pre;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere; /* sizes the field to its whole text, yet never sets its minimum (that's min-width) */
   padding: 0 8px; /* the field's 6px padding + 1px border each side, and room for the caret */
   font-weight: 600;
 }
@@ -218,6 +220,11 @@
   box-sizing: border-box;
 }
 .bar-right > .menu > .btn-kebab { padding: 0 8px; }
+/* + Shooting Day (Plan → Stripboard): the whole label on desktops and larger tablets, "+ Day" under
+   1024 px, a calendar-plus under 375 px (below). Its accessible name is always "Add shooting day". */
+.btn-plan-day { gap: 4px; } /* touch screens: 44px tall to a finger, like every bar button (below) */
+.btn-plan-day .day-short,
+.btn-plan-day .day-icon { display: none; }
 /* Write-only header tools in the Plan workspace (and the element / formatting group): hidden
    attributes win over the display rules above. */
 .bar-right > [hidden],
@@ -797,13 +804,19 @@
   .type-select { min-width: 150px; }
   .bar { --bar-gap: 18px; padding: 0 14px; }
 }
-@media (max-width: 1500px) {
+/* Where Write's bar has room for each of its controls, measured with everything at full size and the title
+   at its 120px minimum (the UI font is DraftLine's own Inter, so the same on every computer), plus 16px
+   to spare: Snapshot's label 1535px → from 1552px; Story Bible 1479px → from 1496px; Element ▾ and B I U S
+   1345px → from 1366px (below that they're in the writing row). Under its need a control would be clipped. */
+@media (max-width: 1551.98px) {
   .bar-right > .btn-snapshot .snap-label { display: none; }
   .bar-right > .btn-snapshot .snap-icon { display: block; }
   .bar-right > .btn-snapshot { padding: 0 8px; }
+}
+@media (max-width: 1500px) {
   .type-select { min-width: 0; width: 140px; }
 }
-@media (max-width: 1439.98px) {
+@media (max-width: 1495.98px) {
   .bar-right > .btn-bible { display: none; } /* still in ⋮ and on Alt+I */
 }
 @media (max-width: 1650px) {
@@ -843,8 +856,9 @@
    File ▾ holds New · Open · Import · Title Page and every export at all widths, and Element / B I U S
    only show on a writing canvas, so the bar fits a laptop at 100%. Each step below frees room
    before the next width would clip anything. */
-@media (max-width: 1199.98px) {
-  .bar-right > .btn-plan-fold { display: none; }   /* Plan: ⋮ → Collapse All / Expand All */
+@media (max-width: 1365.98px) {
+  .bar-zone.zone-left { min-width: min-content; }  /* the title's zone never below its own controls: nothing
+                                                      slides under its ▾ or Write | Plan (the title gives way first) */
   .bar .g-format { display: none; }                /* Element ▾ · B I U S: one group, moved to the writing pane */
   .write-tools:not([hidden]) {                     /* …in a row above the script, like Plan's scene filter */
     flex: none;
@@ -856,13 +870,18 @@
   .view-split .write-tools { padding-left: 24px; padding-right: 24px; }
   .write-tools .type-select { width: 170px; }
 }
+@media (max-width: 1199.98px) {
+  .bar-right > .btn-plan-fold { display: none; }   /* Plan: ⋮ → Collapse All / Expand All */
+}
 @media (max-width: 1099.98px) {
   .bar-right > .btn-focus { display: none; }       /* → the writing row, beside B I U S (phones: ⋮) */
   .write-tools > .btn-focus { display: inline-flex; }
 }
 @media (max-width: 1023.98px) {
   .bar-right > .btn-accent { display: none; }      /* Characters → ⋮ (still Alt+C) */
-  .doc-title-wrap { max-width: 448px; }
+  .doc-title-wrap { min-width: 64px; max-width: 448px; } /* short of room, the title gives way first (Plan's extra tools) */
+  .btn-plan-day .day-long { display: none; }       /* "+ Day" */
+  .btn-plan-day .day-short { display: inline; }
   .bar { --bar-gap: 10px; }
   .bar { padding: 0 10px; }
 }
@@ -892,14 +911,24 @@
   .doc-title-wrap { max-width: 90px; }
   .bar { --bar-gap: 6px; }
   .bar { padding: 0 8px; }
+  .doc-title-wrap { min-width: 4ch; }             /* phones: more of the title can give way (Plan's + Day) */
+  .zone-left { gap: 4px; }                        /* …and the title gets the room between controls (each has its own padding) */
+}
+@media (max-width: 499.98px) {
+  .zone-right .plan-seg { display: none; }         /* ⋮ → Breakdowns / Stripboard / Schedule / Budget (Plan has + Day too) */
 }
 @media (max-width: 439.98px) {
-  .zone-right .plan-seg { display: none; }         /* ⋮ → Breakdowns / Stripboard / Schedule / Budget */
   .zone-right .view-seg { display: none; }         /* ⋮ → Page / Split / Board / Shoot (Alt+B: the three views), like Plan's */
 }
 @media (max-width: 374.98px) {
   .zone-left > .btn-icon { display: none; }        /* the scene list stays on Alt+S */
-  .doc-title-wrap { max-width: 72px; }
+  .doc-title-wrap { min-width: 3ch; max-width: 72px; }
+  .bar { --bar-gap: 4px; padding: 0 6px; }
+  .ws-btn { padding: 0 6px; }
+  .btn-plan-day .day-plus,
+  .btn-plan-day .day-short { display: none; }
+  .btn-plan-day .day-icon { display: block; }
+  .bar-right > .btn-plan-day { width: 34px; padding: 0; }
 }
 
 /* ---- Writing milestones: a discreet corner toast, 3.5 s (lib/milestones.js) ---- */

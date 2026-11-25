@@ -213,6 +213,16 @@ All notable changes to DraftLine are recorded here. The format follows [Keep a C
 
 ### Fixed
 
+- **Phones and narrow windows: the header and the Stripboard.** The title's ▾ no longer runs under the Write | Plan
+  switch (in Plan, at several phone and tablet widths): short of room, the title ends in "…" and nothing slides
+  underneath. + Shooting Day reads "+ Day" under 1024px and becomes a calendar-plus under 375px. On phones the
+  Stripboard summary keeps to scenes and pages without scrolling sideways, the Cast heading hides with its
+  column instead of sitting alone on a second line, and strips keep their columns apart (a FLASHBACK or MOVING
+  pill shortens instead of running into D/N).
+- **Write's header on laptops.** Element ▾ and B I U S stay on the header only where it has room for them (from
+  1366px; below, in the row above the script), so the title's ▾ no longer runs under Write | Plan between 1200
+  and 1310px. Story Bible (from 1496px) and Snapshot's label (from 1552px) likewise appear only where they fit,
+  instead of squeezing the title against Write | Plan; below that they're in ⋮ and an icon.
 - **Two tabs: typing at the moment another tab's save arrives.** A tab with nothing unsaved now takes the other
   tab's version in the same instant it checks, so a key pressed just then lands on the new version instead of being
   replaced, and the caret is put back only if you haven't moved it or typed since.

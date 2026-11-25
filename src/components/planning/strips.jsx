@@ -24,7 +24,7 @@ export function StripHead() {
       <span role="columnheader">Slugline</span>
       <span role="columnheader">D/N</span>
       <span role="columnheader">Pages</span>
-      <span role="columnheader">Cast</span>
+      <span role="columnheader" className="strip-cast">Cast</span>
     </div>
   );
 }

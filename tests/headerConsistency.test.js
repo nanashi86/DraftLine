@@ -32,9 +32,9 @@ describe('Write: Element ▾ and B I U S move, like Plan’s scene filter', () =
     assert.match(plain, /\.write-pane \{ flex: 1 1 0; min-width: 0; min-height: 0; display: flex; flex-direction: column; \}/);
     assert.match(plain, /\.write-pane > \.scroller \{ flex: 1 1 0; min-height: 0; \}/);
   });
-  it('exactly one copy shows: the bar’s from 1200px up, the pane’s below', () => {
+  it('exactly one copy shows: the bar’s from 1366px up (where it fits), the pane’s below', () => {
     assert.match(plain, /\.write-tools \{ display: none; \}/);
-    const m = media('1199.98');
+    const m = media('1365.98');
     assert.match(m, /\.bar \.g-format \{ display: none; \}/);
     assert.match(m, /\.write-tools:not\(\[hidden\]\) \{\s*flex: none;\s*display: flex;/);
     assert.match(m, /\.view-split \.write-tools \{ padding-left: 24px; padding-right: 24px; \}/, 'lines up with the script in Split');
@@ -50,8 +50,8 @@ describe('Page | Split | Board | Shoot and Breakdowns | Stripboard | Schedule | 
     assert.match(media('899.98'), /\.plan-seg \.seg-label,\s*\.view-seg \.seg-label \{ display: none; \}/);
     assert.match(media('899.98'), /\.plan-seg \.seg-btn,\s*\.view-seg \.seg-btn \{ padding: 4px 8px; \}/);
   });
-  it('both leave the bar below 440px', () => {
-    assert.match(media('439.98'), /\.zone-right \.plan-seg \{ display: none; \}/);
+  it('both leave the bar: Write’s below 440px, Plan’s below 500px (Plan has + Day too)', () => {
+    assert.match(media('499.98'), /\.zone-right \.plan-seg \{ display: none; \}/);
     assert.match(media('439.98'), /\.zone-right \.view-seg \{ display: none; \}/);
   });
   it('…and then ⋮ lists their views, with the current one marked Showing', () => {

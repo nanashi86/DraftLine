@@ -47,8 +47,10 @@ describe('Top bar: three zones that can’t collide', () => {
   it('the title grows with its text (120px to 512px, 448px under 1024px, 320px under 768px), then ends in "…"', () => {
     const wrap = rule('.doc-title-wrap');
     assert.match(wrap, /display: inline-grid;\s*grid-template-columns: minmax\(0, 1fr\);\s*flex: 0 1 auto;\s*min-width: 120px;\s*max-width: 512px;/);
-    assert.match(rule('.doc-title-wrap::after'), /content: attr\(data-value\);[^}]*visibility: hidden;\s*white-space: pre;/);
-    assert.match(media('1023.98'), /\.doc-title-wrap \{ max-width: 448px; \}/);
+    // The hidden copy sizes the field to its whole text but never sets its minimum (min-width does):
+    // the title's zone can then refuse to shrink below its controls without keeping long titles whole.
+    assert.match(rule('.doc-title-wrap::after'), /content: attr\(data-value\);[^}]*visibility: hidden;\s*white-space: pre-wrap;\s*overflow-wrap: anywhere;/);
+    assert.match(media('1023.98'), /\.doc-title-wrap \{ min-width: 64px; max-width: 448px; \}/);
     assert.match(media('767.98'), /\.doc-title-wrap \{ max-width: 320px; \}/);
     assert.match(media('639.98'), /\.doc-title-wrap \{ min-width: 6ch; max-width: 110px; \}/);
     assert.match(header, /<span className="doc-title-wrap" data-value=\{meta\.title \|\| 'Untitled'\}>/);
@@ -130,9 +132,10 @@ describe('Top bar: narrow windows collapse in steps', () => {
     const fileMenu = header.indexOf('className="file-menu"');
     assert.ok(fileMenu > 0 && fileMenu < header.indexOf('className="zone-middle-tools"'));
   });
-  it('Write: Element · B I U S move to the writing pane (1200), Focus (1100) and Characters (1024) → ⋮, views → ⋮ (440), scene list (560)', () => {
-    assert.match(media('1199.98'), /\.bar \.g-format \{ display: none; \}/);
-    assert.match(media('1199.98'), /\.write-tools:not\(\[hidden\]\) \{[^}]*display: flex;/);
+  it('Write: Element · B I U S move to the writing pane (1366, where the bar runs out of room), Focus (1100) and Characters (1024) → ⋮, views → ⋮ (440), scene list (560)', () => {
+    assert.match(media('1365.98'), /\.bar \.g-format \{ display: none; \}/);
+    assert.match(media('1365.98'), /\.write-tools:not\(\[hidden\]\) \{[^}]*display: flex;/);
+    assert.match(media('1551.98'), /\.snap-label \{ display: none; \}/, 'Snapshot’s label only where it fits');
     assert.match(media('1099.98'), /\.bar-right > \.btn-focus \{ display: none; \}/);
     assert.match(media('1023.98'), /\.bar-right > \.btn-accent \{ display: none; \}/);
     assert.doesNotMatch(css, /^\s*\.(type-select|fmt-seg) \{ display: none; \}/m, 'never simply hidden: they move');
@@ -141,11 +144,16 @@ describe('Top bar: narrow windows collapse in steps', () => {
     assert.match(media('559.98'), /\.zone-left > \.btn-icon \{ display: none; \}/);
     assert.ok(!/\.ws-switch\s*\{[^}]*display: none/.test(css), 'Write | Plan never hides');
   });
-  it('Plan: Collapse All → ⋮ (1200), view switch icons (900), views → ⋮ (440); no export button (exports are in File ▾)', () => {
+  it('Plan: Collapse All → ⋮ (1200), view switch icons (900), views → ⋮ (500); no export button (exports are in File ▾)', () => {
     assert.match(media('1199.98'), /\.bar-right > \.btn-plan-fold \{ display: none; \}/);
     assert.match(media('899.98'), /\.plan-seg \.seg-label,\s*\.view-seg \.seg-label \{ display: none; \}/);
     assert.ok(!/(^|[^-])\.lbl-(long|short)/m.test(css), 'no generic label classes for other rules to catch');
-    assert.match(media('439.98'), /\.zone-right \.plan-seg \{ display: none; \}/);
+    assert.match(media('499.98'), /\.zone-right \.plan-seg \{ display: none; \}/);
+    // + Shooting Day: whole from 1024px, "+ Day" below, a calendar-plus below 375px; always named.
+    assert.match(header, /className="btn btn-plan-day"[\s\S]*?aria-label="Add shooting day"/);
+    assert.match(media('1023.98'), /\.btn-plan-day \.day-long \{ display: none; \}[^}]*\.btn-plan-day \.day-short \{ display: inline; \}/);
+    assert.match(media('374.98'), /\.btn-plan-day \.day-icon \{ display: block; \}/);
+    assert.match(media('1365.98'), /\.bar-zone\.zone-left \{ min-width: min-content; \}/, 'the title’s zone never under its own controls');
     assert.doesNotMatch(header + css, /btn-plan-export|Export Breakdown/, 'Export Breakdown left the toolbar');
     const tucked = moreMenuItems({
       bibleOnBar: true, charactersOnBar: true,

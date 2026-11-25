@@ -128,10 +128,10 @@ describe('toolbar: File ▾ holds Print; panels stay visible on laptops', () => 
     }
     assert.match(readFileSync(join(root, 'content/userGuide.md'), 'utf8'), /\*\*File → Print Script…\*\* \(\{\{key:Ctrl\+P\}\}\)[^\n]*\*\*File → PDF\*\* \(\.pdf/);
   });
-  it('Story Bible tucks into ⋮ below 1440px; Characters only on narrow windows (under 1024px)', () => {
+  it('Story Bible tucks into ⋮ below 1496px (where the bar has room for it); Characters only on narrow windows (under 1024px)', () => {
     const m = /@media \(max-width: ([\d.]+)px\) \{\s*\.bar-right > \.btn-bible \{ display: none; \}/.exec(css);
     assert.ok(m, 'a breakpoint hides .btn-bible');
-    assert.equal(Number(m[1]), 1439.98);
+    assert.equal(Number(m[1]), 1495.98);
     const c = /@media \(max-width: ([\d.]+)px\) \{\s*\.bar-right > \.btn-accent \{ display: none; \}/.exec(css);
     assert.equal(Number(c?.[1]), 1023.98);
   });

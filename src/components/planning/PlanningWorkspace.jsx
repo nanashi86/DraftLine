@@ -92,7 +92,7 @@ export default function PlanningWorkspace({
             <p className="plan-summary" role="status">
               {filtering
                 ? <>{shown.shown} of {plural(totals.scenes, 'scene')} · {shownTotals.length} of {totals.length} {totals.eighths > 8 ? 'pages' : 'page'} · filtered</>
-                : <>{plural(totals.scenes, 'scene')} · {totals.length} {totals.eighths > 8 ? 'pages' : 'page'} · cast, sluglines and lengths come from the script</>}
+                : <>{plural(totals.scenes, 'scene')} · {totals.length} {totals.eighths > 8 ? 'pages' : 'page'}<span className="plan-summary-more"> · cast, sluglines and lengths come from the script</span></>}
               {unattached.length > 0 && onAttach && (
                 <>
                   {' · '}

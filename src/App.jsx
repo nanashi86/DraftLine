@@ -24,7 +24,7 @@ import { takeFeedbackLink } from './lib/feedback.js';
 import ExportFdxModal from './components/ExportFdxModal.jsx';
 import DeleteProjectModal from './components/DeleteProjectModal.jsx';
 import DialogueStepper from './components/DialogueStepper.jsx';
-import { Calculator, ChartColumn, Clapperboard, Columns2, FileCheck2, FileText, Flame, LayoutList, Moon, PenLine, Plus, Rows3, Scissors, SquareKanban } from 'lucide-react';
+import { CalendarPlus, Calculator, ChartColumn, Clapperboard, Columns2, FileCheck2, FileText, Flame, LayoutList, Moon, PenLine, Plus, Rows3, Scissors, SquareKanban } from 'lucide-react';
 import {
   addNeed, applySlice, attachScene, changedParts, deleteElement, extendCastNumbers, freezeCastNumbers, mergeElements, reclassifyElement,
   partsChanged, removeNeed, renameCast, renameCastNumber, renameClashes, renameElement, scenesNeeding, separateNeed, setNeed,
@@ -2789,7 +2789,7 @@ function Workspace({ boot }) {
 
 
   // Element ▾ and B I U S, drawn in two places like Plan's scene filter: in the top bar on wide windows,
-  // and under 1200px in a row at the top of the writing pane (write-tools), so a touch screen without
+  // and under 1366px in a row at the top of the writing pane (write-tools), so a touch screen without
   // a keyboard never loses them. CSS shows exactly one copy.
   const formatTools = (
     <>
@@ -3276,8 +3276,13 @@ function Workspace({ boot }) {
                 onClick={addShootingDay}
                 disabled={!scenes.length}
                 title={production.schedule ? 'Add another shooting day at the end' : 'Start a shooting schedule: arrange scenes into shooting days (your script is never changed)'}
+                aria-label="Add shooting day"
               >
-                <Plus size={14} strokeWidth={2} aria-hidden="true" /> Shooting Day
+                {/* "+ Shooting Day" from 1024 px, "+ Day" below, a calendar-plus below 375 px (App.css) */}
+                <Plus size={14} strokeWidth={2} aria-hidden="true" className="day-plus" />
+                <span className="day-long">Shooting Day</span>
+                <span className="day-short">Day</span>
+                <CalendarPlus size={16} strokeWidth={1.75} aria-hidden="true" className="day-icon" />
               </button>
             )}
             <button ref={focusBtnRef} className="btn btn-focus" hidden={inPlan} onClick={() => setFocusMode(true)} title="Hide everything but the page (Esc to exit)">Focus</button>
@@ -3409,7 +3414,7 @@ function Workspace({ boot }) {
         )}
 
         <div className="workspace">
-          {/* The writing pane: under 1200px, Element and B I U S move here from the top bar (formatTools). */}
+          {/* The writing pane: under 1366px, Element and B I U S move here from the top bar (formatTools). */}
           <div className="write-pane" hidden={!showEditor}>
           <div className="write-tools" ref={writeToolsRef} role="toolbar" aria-label="Element and formatting" hidden={focusMode}>
             {formatTools}
