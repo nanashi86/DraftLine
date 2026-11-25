@@ -99,6 +99,7 @@ import PlannedFeatureModal from './components/PlannedFeatureModal.jsx';
 import RenumberCastModal from './components/planning/RenumberCastModal.jsx';
 import SyncConflictModal from './components/SyncConflictModal.jsx';
 import { PLAN_PLANNED_TABS, SHOOT_TAB } from './lib/plannedFeatures.js';
+import { budgetReadable } from './lib/budget.js';
 import { newProjectMeta, rememberAuthorDefaults } from './lib/authorDefaults.js';
 import { parseFountain, toFountain } from './lib/fountain.js';
 import { parseFDX, toFDX } from './lib/fdx.js';
@@ -195,13 +196,14 @@ const WORKSPACES = [
 const PLAN_VIEWS = [
   { id: 'breakdowns', label: 'Breakdowns', title: 'Every scene’s cast, setting, length and the props, wardrobe, vehicles, effects and extras it needs', Icon: LayoutList },
   { id: 'stripboard', label: 'Stripboard', title: 'One colour-coded strip per scene, in script order, and your shooting schedule', Icon: Rows3 },
+  { id: 'budget', label: 'Budget', title: 'What the production could cost: every element, the cast and filming locations, priced from your breakdowns and schedule', Icon: Calculator },
   { id: 'reports', label: 'Reports', title: 'Scenes, characters, locations and the script in numbers — each as a .csv too', Icon: ChartColumn },
 ];
-/** Plan's own tabs: Breakdowns | Stripboard (Reports opens from ⋮ → Reports, in Write and Plan alike). */
+/** Plan's own tabs: Breakdowns | Stripboard | Budget (Reports opens from ⋮ → Reports, in Write and Plan alike). */
 const PLAN_TABS = PLAN_VIEWS.filter((v) => v.id !== 'reports');
-/** After them, planned tabs that open a preview (lib/plannedFeatures.js): Budget. (Scheduling lives in
- *  the Stripboard: + Shooting Day, then Script | Schedule.) */
-const PLAN_PLANNED_ICONS = { budget: Calculator };
+/** After them, planned tabs that open a preview (lib/plannedFeatures.js): none now that the Budget is
+ *  built (Stage 2, Phase 3B). (Scheduling lives in the Stripboard: + Shooting Day, then Script | Schedule.) */
+const PLAN_PLANNED_ICONS = {};
 const VIEWS = [
   { id: 'page', label: 'Page', title: 'Script only', Icon: FileText },
   { id: 'split', label: 'Split', title: 'Script + Scene Board side by side', Icon: Columns2 },
@@ -2585,6 +2587,22 @@ function Workspace({ boot }) {
     scheduleStep((s) => addDay(s).schedule, first ? 'first shooting day added' : 'shooting day added', { fixCast: true });
     if (first) chooseStripView('schedule'); // the next step (moving scenes onto it) is right there
   };
+  // ---- The Budget (Stage 2, Phase 3B; components/planning/BudgetView.jsx) ----
+  // Every Budget change is one undo step: `change` composes lib/budget.js / productionData.js functions,
+  // production in, { production } (or { error }, or { needsConfirm }) out; only budget and locations move.
+  const budgetStep = (label, change) => {
+    const r = change(latest.current.production);
+    if (!r || r.error || r.needsConfirm || !r.production) return r || {};
+    productionStep(r.production, label);
+    return r;
+  };
+  const [addCost, setAddCost] = useState(null); // + Cost pressed: { anchor, n }
+  const [budgetFocus, setBudgetFocus] = useState(null); // the element card's Budget link: { key, n }
+  const openBudgetRow = (key) => {
+    setPlanView('budget');
+    setBudgetFocus((f) => ({ key, n: (f?.n || 0) + 1 }));
+  };
+
   const scheduleOps = {
     moveScene: (id, dayId, index = null) => scheduleStep((s) => moveScene(s, id, dayId, index),
       `${sceneLabel(id)} moved to ${dayId ? dayName(dayId) : 'Unscheduled'}`),
@@ -3192,7 +3210,7 @@ function Workspace({ boot }) {
             <span className="bar-sep fmt-sep" aria-hidden="true" />
           </div>
           {/* Plan's tools for its scenes: the same slot, on Breakdowns and Stripboard (not Reports). */}
-          {inPlan && planView !== 'reports' && <PlanFilter filter={planFilter} onChange={setPlanFilter} count={planCount} />}
+          {inPlan && planView !== 'reports' && planView !== 'budget' && <PlanFilter filter={planFilter} onChange={setPlanFilter} count={planCount} />}
 
           </div>
           </div>
@@ -3283,6 +3301,20 @@ function Workspace({ boot }) {
                 <span className="day-long">Shooting Day</span>
                 <span className="day-short">Day</span>
                 <CalendarPlus size={16} strokeWidth={1.75} aria-hidden="true" className="day-icon" />
+              </button>
+            )}
+            {inPlan && planView === 'budget' && budgetReadable(production.budget) && !newerProject && (
+              <button
+                type="button"
+                className="btn btn-plan-cost"
+                onClick={(e) => { const anchor = e.currentTarget; setAddCost((a) => ({ anchor, n: (a?.n || 0) + 1 })); }}
+                title="Add a cost of your own: crew, equipment, catering, a permit…"
+                aria-label="Add cost"
+                aria-haspopup="dialog"
+              >
+                {/* "+ Cost"; a plus alone under 375 px, like + Day (App.css) */}
+                <Plus size={14} strokeWidth={2} aria-hidden="true" />
+                <span className="cost-label">Cost</span>
               </button>
             )}
             <button ref={focusBtnRef} className="btn btn-focus" hidden={inPlan} onClick={() => setFocusMode(true)} title="Hide everything but the page (Esc to exit)">Focus</button>
@@ -3536,6 +3568,12 @@ function Workspace({ boot }) {
                 filter={planFilter}
                 onFilter={setPlanFilter}
                 onCount={setPlanCount}
+                budgetStep={budgetStep}
+                budgetReadOnly={newerProject}
+                addCost={addCost}
+                budgetFocus={budgetFocus}
+                onOpenBudget={openBudgetRow}
+                notify={notify}
               />
             </Suspense>
           )}

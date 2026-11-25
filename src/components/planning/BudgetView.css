@@ -1,0 +1,201 @@
+/* Plan → Budget (BudgetView.jsx): one editorial table, the Plan's width and type, existing tokens only. */
+.bud { max-width: var(--plan-w); margin: 0 auto; }
+.bud-summary .plan-summary { white-space: normal; }
+.bud-total-line { color: var(--text); font-weight: 500; }
+.bud-total-line b { font-size: 15px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.bud-part { white-space: nowrap; }
+.bud-gaps .plan-clear[aria-pressed='true'] { color: var(--text); text-decoration-color: currentColor; }
+.bud-warn { color: var(--warn-ink, var(--muted)); }
+.bud-muted { color: var(--muted); }
+.bud-currency { flex: none; height: 28px; padding: 0 8px; border: 1px solid var(--line-soft); border-radius: 6px; background: var(--field); color: var(--text); font: 12.5px var(--ui-font); }
+.bud-currency:hover { border-color: var(--border-hover); }
+.bud-currency-ro { color: var(--muted); font-size: 12.5px; }
+.bud-planned,
+.bud-filter { margin: -4px 0 12px; color: var(--muted); font-size: 12.5px; }
+.bud-planned label { display: inline-flex; align-items: center; gap: 6px; }
+.bud-confirm { margin: 0 0 12px; }
+
+/* The table: Item · Basis · Rate · Total. */
+.bud-table { display: flex; flex-direction: column; gap: 2px; }
+.bud-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) minmax(0, 1.7fr) 190px 112px;
+  align-items: center;
+  gap: 12px;
+  min-height: 38px;
+  padding: 2px 10px;
+  border-radius: 6px;
+  font-size: 13px;
+}
+.bud-row:not(.bud-head):hover { background: var(--hover-bg); }
+.bud-row.is-flash { box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 55%, transparent); }
+.bud-head { min-height: 26px; color: var(--muted); font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; }
+.bud-num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.bud-head .bud-rate { padding-left: 2px; }
+.bud-item { display: flex; flex-direction: column; min-width: 0; }
+.bud-name {
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--text);
+  font: 500 13px var(--ui-font);
+  text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.bud-name:hover { text-decoration: underline; text-underline-offset: 3px; text-decoration-color: color-mix(in srgb, currentColor 40%, transparent); }
+.bud-name:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 3px; }
+.bud-note { color: var(--muted); font-size: 11.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bud-basis { min-width: 0; color: var(--muted); font-size: 12px; line-height: 1.35; }
+.bud-row.is-review .bud-name { color: var(--warn-ink, var(--text)); }
+.bud-total { font-weight: 500; }
+
+/* A rate in place: the currency sign, the number, what it's per. */
+.bud-rate-field,
+.bud-qty-field { position: relative; display: inline-flex; align-items: center; gap: 3px; }
+.bud-rate-field input,
+.bud-qty-field input {
+  width: 104px;
+  height: 28px;
+  padding: 0 7px;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  background: transparent;
+  color: var(--text);
+  font: 13px var(--ui-font);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+.bud-qty-field input { width: 64px; }
+.bud-pct input { width: 52px; }
+.bud-rate-field input:hover,
+.bud-qty-field input:hover { border-color: var(--line-soft); }
+.bud-rate-field input:focus,
+.bud-qty-field input:focus { border-color: var(--accent); outline: none; background: var(--field); }
+.bud-rate-field input::placeholder,
+.bud-qty-field input::placeholder { color: var(--muted); opacity: 0.85; font-style: italic; }
+.has-error input { border-color: var(--danger-ink); }
+.bud-cur,
+.bud-per { color: var(--muted); font-size: 12px; }
+.bud-per { white-space: nowrap; }
+.bud-error { color: var(--danger-ink); font-size: 11.5px; }
+.bud-rate-field .bud-error,
+.bud-qty-field .bud-error { position: absolute; top: 100%; right: 0; z-index: 2; padding: 2px 6px; border-radius: 4px; background: var(--card); white-space: nowrap; }
+.bud-rate-ro { font-variant-numeric: tabular-nums; color: var(--muted); }
+
+/* Sections. */
+.bud-section { display: flex; flex-direction: column; gap: 2px; margin-top: 10px; }
+.bud-sec-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 4px 10px 2px; border-bottom: 1px solid var(--line-soft); }
+.bud-fold {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 30px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--text);
+  font: 600 11px var(--ui-font);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.bud-fold:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 3px; }
+.bud-chev { color: var(--muted); transition: transform 0.15s; }
+.bud-fold[aria-expanded='false'] .bud-chev { transform: rotate(-90deg); }
+.bud-sec-note { color: var(--muted); font-weight: 500; letter-spacing: 0; text-transform: none; font-size: 11.5px; }
+.bud-sec-sub { font-size: 12.5px; font-weight: 600; }
+.bud-add-row { display: flex; gap: 8px; padding: 4px 10px 2px; }
+.bud-unassigned { margin: 2px 0; padding: 0 10px; font-size: 12.5px; }
+.bud-unassigned-toggle { display: inline-flex; align-items: center; gap: 6px; min-height: 30px; padding: 0; border: 0; background: none; color: var(--muted); font: inherit; cursor: pointer; }
+.bud-unassigned-toggle:hover { color: var(--text); }
+.bud-unassigned-toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 3px; }
+.bud-unassigned-toggle[aria-expanded='false'] .bud-chev { transform: rotate(-90deg); }
+.bud-unassigned-list { list-style: none; margin: 0 0 4px; padding: 0 0 0 19px; column-width: 220px; column-gap: 24px; }
+.bud-unassigned-list li { display: flex; align-items: baseline; gap: 8px; min-height: 28px; break-inside: avoid; }
+.bud-place { padding: 0; border: 0; background: none; color: var(--text); font: inherit; text-align: left; text-decoration: underline dotted; text-underline-offset: 3px; text-decoration-color: color-mix(in srgb, currentColor 45%, transparent); cursor: pointer; }
+.bud-place:hover { text-decoration-color: currentColor; }
+.bud-place:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 3px; }
+.bud-place:disabled { cursor: default; text-decoration: none; }
+.bud-planned input { border-color: var(--line-soft); }
+.bud-new input.bud-new-name {
+  width: 100%;
+  height: 28px;
+  padding: 0 7px;
+  border: 1px solid var(--accent);
+  border-radius: 5px;
+  background: var(--field);
+  color: var(--text);
+  font: 13px var(--ui-font);
+}
+.bud-new .bud-rate-field input { border-color: var(--line-soft); }
+.bud-new-acts { display: inline-flex; justify-content: flex-end; gap: 4px; }
+
+/* Totals. */
+.bud-totals { display: flex; flex-direction: column; gap: 4px; margin: 18px 0 32px auto; max-width: 460px; padding: 10px; border-top: 1px solid var(--line-soft); font-size: 13px; }
+.bud-tline { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 28px; }
+.bud-tadd { justify-content: flex-start; gap: 8px; }
+.bud-tline .plan-clear { color: var(--text); text-decoration-style: dotted; text-underline-offset: 3px; }
+.bud-grand { padding-top: 6px; border-top: 1px solid var(--line-soft); font-weight: 600; font-size: 14px; }
+
+/* Popovers (the element card's style). */
+.bud-pop { width: 340px; }
+.bud-pop .el-pop-row { align-items: center; }
+.bud-pop .bud-method { flex: 1; }
+.bud-pop-total { margin-left: auto; font-variant-numeric: tabular-nums; font-weight: 600; }
+.bud-choice { display: flex; align-items: center; gap: 6px; min-height: 30px; font-size: 12.5px; }
+.bud-choice input[type='radio'],
+.bud-choice input[type='checkbox'] { accent-color: var(--accent); }
+.bud-usage { margin-top: 4px; }
+.bud-pop .bud-days { width: 100%; }
+.bud-pop-acts { display: flex; flex-wrap: wrap; gap: 6px; }
+.bud-pop .dl-select,
+.bud-ask .dl-select,
+.bud-fee .dl-select { height: 30px; padding: 0 8px; border: 1px solid var(--line-soft); border-radius: 6px; background: var(--field); color: var(--text); font: 12.5px var(--ui-font); }
+.bud-text { width: 100%; height: 30px; padding: 0 8px; border: 1px solid var(--line-soft); border-radius: 6px; background: var(--field); color: var(--text); font: 12.5px var(--ui-font); }
+.bud-text:focus { border-color: var(--accent); outline: none; }
+.bud-pop .bud-name-input { font-weight: 600; } /* not .el-pop-name: its flex-basis (a row's) is a column's height here */
+.bud-places { display: flex; flex-direction: column; max-height: 180px; overflow-y: auto; }
+.bud-site-del { align-self: flex-start; margin-top: 4px; }
+.bud-ask { width: 320px; display: flex; flex-direction: column; gap: 8px; padding: 12px; }
+.bud-ask-q { margin: 0; font-size: 12.5px; }
+.bud-fee { width: 320px; }
+.bud-fee .bud-qty-field input { width: 90px; }
+.bud-picker,
+.bud-assign-pop { width: 260px; padding: 10px; }
+.bud-pick { list-style: none; margin: 6px 0 0; padding: 0; max-height: 320px; overflow-y: auto; }
+.bud-pick button { width: 100%; min-height: 32px; padding: 0 8px; border: 0; border-radius: 5px; background: none; color: var(--text); font: 13px var(--ui-font); text-align: left; cursor: pointer; }
+.bud-pick button:hover,
+.bud-pick button:focus-visible { background: var(--hover-bg); outline: none; }
+.bud-assign-new { margin-top: 8px; gap: 6px; }
+.bud-assign-new input { flex: 1; min-width: 0; height: 30px; padding: 0 8px; border: 1px solid var(--line-soft); border-radius: 6px; background: var(--field); color: var(--text); font: 12.5px var(--ui-font); }
+
+/* Tablets: the basis wraps under the item. */
+@media (max-width: 899.98px) {
+  .bud-row { grid-template-columns: minmax(0, 1fr) 196px 104px; grid-template-areas: 'item rate total' 'basis rate total'; row-gap: 0; padding: 4px 8px; }
+  .bud-row > .bud-item { grid-area: item; }
+  .bud-row > .bud-basis { grid-area: basis; }
+  .bud-row > .bud-rate { grid-area: rate; }
+  .bud-row > .bud-num { grid-area: total; }
+  .bud-head > :nth-child(2) { display: none; }
+  .bud-head { grid-template-areas: 'item rate total'; }
+}
+/* Phones: two lines (item and total, then basis and rate); popovers take the width. */
+@media (max-width: 559.98px) {
+  .bud-row { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: 'item total' 'basis rate'; gap: 2px 10px; padding: 6px 6px; }
+  .bud-head { display: none; }
+  .bud-rate-field input { width: 108px; height: 32px; }
+  .bud-qty-field input { height: 32px; }
+  .bud-name { min-height: 28px; }
+  .bud-new { grid-template-areas: 'item item' 'basis rate' 'acts acts'; }
+  .bud-new > .bud-new-acts { grid-area: acts; justify-content: flex-start; }
+  .bud-totals { max-width: none; margin-left: 0; }
+  .bud-pop,
+  .bud-ask,
+  .bud-fee { width: calc(100vw - 24px); }
+  .bud-summary { flex-wrap: wrap; row-gap: 6px; }
+  .bud-unassigned-list li { min-height: 36px; align-items: center; }
+}

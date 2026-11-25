@@ -23,8 +23,7 @@ describe('Planned-feature previews', () => {
       note: 'A future optional upgrade. DraftLine Core remains free.',
     });
     assert.equal(PLANNED_FEATURES.schedule, undefined, 'Scheduling is built: no preview');
-    assert.equal(PLANNED_FEATURES.budget.status, 'Planned for DraftLine Core · Free');
-    assert.equal(PLANNED_FEATURES.budget.headline, 'Know what your story could cost.');
+    assert.equal(PLANNED_FEATURES.budget, undefined, 'the Budget is built (Stage 2, Phase 3B): no preview');
     assert.equal(PLANNED_FEATURES.tableRead, undefined, 'Table Read is built: no preview');
     assert.equal(PLANNED_FEATURES.coWrite.status, 'Planned optional collaboration');
     assert.equal(PLANNED_FEATURES.coWrite.note, 'A future optional hosted service. Solo writing stays free.');
@@ -64,9 +63,9 @@ describe('Write: Page | Split | Board | Shoot', () => {
 });
 
 describe('Plan: Breakdowns | Stripboard | Budget', () => {
-  it('Budget (calculator) follows Stripboard; Schedule is the Stripboard’s own view, not a tab; Reports is no longer a tab', () => {
-    assert.deepEqual(PLAN_PLANNED_TABS.map((t) => t.label), ['Budget']);
-    assert.match(app, /const PLAN_PLANNED_ICONS = \{ budget: Calculator \};/);
+  it('Budget (calculator) follows Stripboard, a view of its own now; Schedule is the Stripboard’s own view, not a tab; Reports is no longer a tab', () => {
+    assert.deepEqual(PLAN_PLANNED_TABS, [], 'no planned tabs left in Plan');
+    assert.match(app, /\{ id: 'stripboard', [^}]+\},\s*\{ id: 'budget', label: 'Budget', title: '[^']+', Icon: Calculator \},\s*\{ id: 'reports'/);
     assert.doesNotMatch(app, /CalendarCheck|openPlanned\('schedule'/);
     const seg = app.slice(app.indexOf('className="seg plan-seg"'), app.indexOf('className="seg view-seg"'));
     assert.ok(seg.indexOf('PLAN_TABS.map') < seg.indexOf('PLAN_PLANNED_TABS.map'));

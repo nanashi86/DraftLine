@@ -3,6 +3,7 @@ import { ChevronDown, CornerUpLeft, Plus, Trash2, X } from 'lucide-react';
 import { breakdownTotals, buildBreakdown } from '../../lib/productionEngine.js';
 import { CATEGORIES, nameKey, needText } from '../../lib/elements.js';
 import ElementPopover from './ElementPopover.jsx';
+import BudgetView from './BudgetView.jsx';
 import Reports from './Reports.jsx';
 import PlanFilter from './PlanFilter.jsx';
 import UnattachedModal from './UnattachedModal.jsx';
@@ -10,6 +11,8 @@ import ScheduleBoard from './ScheduleBoard.jsx';
 import { StripHead, StripLegend, StripRow } from './strips.jsx';
 import { elementUsage, scheduleModel } from '../../lib/schedule.js';
 import { linkedIds } from '../../lib/productionData.js';
+import { budgetRowsFor } from '../../lib/budget.js';
+import { money } from '../../lib/budgetUi.js';
 import { EMPTY_PLAN_FILTER, filterPlanRows, planFilterActive } from '../../lib/planFilter.js';
 import './PlanningWorkspace.css';
 
@@ -45,13 +48,14 @@ export default function PlanningWorkspace({
   view, fold, onToggleCard, blocks, analysis, scenes, production, elementOps, onNotes, onOpenScene,
   layout = null, onOpenCharacter, onReportCsv, filter = EMPTY_PLAN_FILTER, onFilter, onCount,
   unattached = [], onAttach, onRemoveUnattached, stripView = 'script', onStripView, scheduleOps = null,
+  budgetStep = null, budgetReadOnly = false, addCost = null, budgetFocus = null, onOpenBudget, notify,
 }) {
   const [reviewing, setReviewing] = useState(null); // the Review link, while its dialog is open
   const rows = useMemo(() => buildBreakdown({ blocks, analysis, scenes, production }), [blocks, analysis, scenes, production]);
   const totals = useMemo(() => breakdownTotals(rows), [rows]);
   const shown = useMemo(() => filterPlanRows(rows, filter), [rows, filter]);
   const shownTotals = useMemo(() => breakdownTotals(shown.rows), [shown]);
-  const filtering = view !== 'reports' && planFilterActive(filter);
+  const filtering = view !== 'reports' && view !== 'budget' && planFilterActive(filter);
   const schedule = scheduleOps ? production?.schedule : null;
   const model = useMemo(() => (schedule ? scheduleModel(rows, schedule) : null), [rows, schedule]);
   // Where each shared element is used (scenes, shooting days): for an item's details.
@@ -70,10 +74,10 @@ export default function PlanningWorkspace({
           <p className="plan-empty">No scenes yet. Scene headings you write (INT. / EXT. …) appear here as breakdowns and strips.</p>
         ) : (
           <>
-            {view !== 'reports' && onFilter && (
+            {view !== 'reports' && view !== 'budget' && onFilter && (
               <PlanFilter filter={filter} onChange={onFilter} place="workspace" />
             )}
-            {scheduling ? (
+            {view === 'budget' ? null : scheduling ? (
               <div className="plan-summary-row">
                 <PlanSummary
                   filtering={filtering} shown={shown} totals={totals} shownTotals={shownTotals}
@@ -103,7 +107,9 @@ export default function PlanningWorkspace({
               )}
             </p>
             )}
-            {view === 'reports' ? (
+            {view === 'budget' ? (
+              <BudgetView production={production} rows={rows} schedule={schedule} step={budgetStep} readOnly={budgetReadOnly || !budgetStep} addCost={addCost} focus={budgetFocus} notify={notify} />
+            ) : view === 'reports' ? (
               <Reports rows={rows} blocks={blocks} analysis={analysis} layout={layout} onOpenScene={onOpenScene} onOpenCharacter={onOpenCharacter} onCsv={onReportCsv} />
             ) : filtering && !shown.shown && !inSchedule ? (
               <p className="plan-empty">
@@ -114,7 +120,8 @@ export default function PlanningWorkspace({
               ? <ScheduleBoard model={model} totals={shownTotals} visible={visibleIds} onOpenScene={onOpenScene} ops={scheduleOps} pagesTarget={schedule?.pagesTarget || null} />
               : view === 'stripboard'
               ? <Stripboard rows={shown.rows} totals={shownTotals} onOpenScene={onOpenScene} dayOf={scheduling ? model.dayOf : null} />
-              : <Breakdowns rows={shown.rows} fold={fold} onToggle={onToggleCard} elements={production?.elements || {}} usage={usage} linked={linked} ops={elementOps} onNotes={onNotes} onOpenScene={onOpenScene} onJump={onToggleCard} />}
+              : <Breakdowns rows={shown.rows} fold={fold} onToggle={onToggleCard} elements={production?.elements || {}} usage={usage} linked={linked} ops={elementOps} onNotes={onNotes} onOpenScene={onOpenScene} onJump={onToggleCard}
+                  budgetOf={(id) => budgetLineOf(production, rows, schedule, id)} onOpenBudget={onOpenBudget} />}
           </>
         )}
       </div>
@@ -161,7 +168,23 @@ function CastPills({ cast }) {
 
 // ---- Breakdowns ---------------------------------------------------------------------------------
 
-function Breakdowns({ rows, fold, onToggle, elements, usage, linked, ops, onNotes, onOpenScene }) {
+/**
+ * The element card's one Budget line: what this element comes to (the budget's own calculation, worked
+ * out only for this element and only while its card is open), or that it has no rate yet. null: none.
+ */
+function budgetLineOf(production, allRows, schedule, id) {
+  const found = budgetRowsFor(production, allRows, schedule ? scheduleModel(allRows, schedule) : null, { kind: 'element', id });
+  if (!found.length) return null;
+  const cur = production?.budget?.currency || null;
+  const locale = globalThis.navigator?.language || 'en-US';
+  const r = found[0];
+  const text = found.some((x) => x.unresolved) ? 'waiting for review'
+    : found.length > 1 ? found.map((x) => (x.total === null ? 'no rate' : money(x.total, cur, locale))).join(' + ')
+      : r.flags.includes('missingRate') ? 'no rate yet' : r.total === null ? 'not worked out yet' : money(r.total, cur, locale);
+  return { text, key: r.key };
+}
+
+function Breakdowns({ rows, fold, onToggle, elements, usage, linked, ops, onNotes, onOpenScene, budgetOf, onOpenBudget }) {
   const [open, setOpen] = useState(null); // an item's details: { need, sceneId, sceneNumber, anchor }
   const isOpenCard = (id) => fold.closed === fold.except.has(id);
   /** "Used in → Sc 17": open that scene's card and bring it into view. */
@@ -240,6 +263,8 @@ function Breakdowns({ rows, fold, onToggle, elements, usage, linked, ops, onNote
             elements={elements}
             usage={usage?.get(need.id)}
             ops={ops}
+            budget={budgetOf ? budgetOf(need.id) : null}
+            onOpenBudget={onOpenBudget}
             onJump={jump}
             onClose={() => setOpen(null)}
           />

@@ -61,8 +61,8 @@ describe('Plan scene filter: where it shows', () => {
   const ws = read('components/planning/PlanningWorkspace.jsx');
   const ui = read('components/planning/PlanFilter.jsx');
   const css = read('components/planning/PlanFilter.css');
-  it('in the header’s middle slot on Breakdowns and Stripboard, not Reports; cleared when another script opens', () => {
-    assert.match(app, /\{inPlan && planView !== 'reports' && <PlanFilter filter=\{planFilter\} onChange=\{setPlanFilter\} count=\{planCount\} \/>\}/);
+  it('in the header’s middle slot on Breakdowns and Stripboard, not Reports or Budget (it filters scenes); cleared when another script opens', () => {
+    assert.match(app, /\{inPlan && planView !== 'reports' && planView !== 'budget' && <PlanFilter filter=\{planFilter\} onChange=\{setPlanFilter\} count=\{planCount\} \/>\}/);
     assert.match(app, /setPlanFilter\(EMPTY_PLAN_FILTER\); \/\/ a scene filter belongs to the script it was set on/);
   });
   it('the workspace applies it to Breakdowns and Stripboard (Reports cover the whole script) and reports the count', () => {

@@ -223,6 +223,7 @@
 /* + Shooting Day (Plan → Stripboard): the whole label on desktops and larger tablets, "+ Day" under
    1024 px, a calendar-plus under 375 px (below). Its accessible name is always "Add shooting day". */
 .btn-plan-day { gap: 4px; } /* touch screens: 44px tall to a finger, like every bar button (below) */
+.btn-plan-cost { gap: 4px; } /* Budget's + Cost: the same slot and steps as + Day (a plus alone under 375 px) */
 .btn-plan-day .day-short,
 .btn-plan-day .day-icon { display: none; }
 /* Write-only header tools in the Plan workspace (and the element / formatting group): hidden
@@ -929,6 +930,8 @@
   .btn-plan-day .day-short { display: none; }
   .btn-plan-day .day-icon { display: block; }
   .bar-right > .btn-plan-day { width: 34px; padding: 0; }
+  .btn-plan-cost .cost-label { display: none; }
+  .bar-right > .btn-plan-cost { width: 34px; padding: 0; }
 }
 
 /* ---- Writing milestones: a discreet corner toast, 3.5 s (lib/milestones.js) ---- */

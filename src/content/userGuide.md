@@ -372,14 +372,14 @@ The Scene Board's **Export Outline** downloads the board as a **Fountain Outline
 
 ### Write and Plan
 
-- **Write** is the screenplay editor, with **Page**, **Split** and **Board** (and **Shoot**, a preview of a planned feature), **Focus**, **Story Bible** and **Characters** on the right of the top bar. In **Plan** those same places hold **Breakdowns | Stripboard** (and **Budget**, a preview of a planned feature), **Collapse All / Expand All** (on the Stripboard, **+ Shooting Day**); the title, **Write | Plan**, **File ▾**, **Snapshot** and **⋮** stay put. On a smaller screen Plan's view switch turns to icons and its tools then move into **⋮**, the same way Write's do; the scene filter moves above the scenes, as Write's Element picker and B / I / U / S move above the script.
+- **Write** is the screenplay editor, with **Page**, **Split** and **Board** (and **Shoot**, a preview of a planned feature), **Focus**, **Story Bible** and **Characters** on the right of the top bar. In **Plan** those same places hold **Breakdowns | Stripboard | Budget**, **Collapse All / Expand All** (on the Stripboard, **+ Shooting Day**; on the Budget, **+ Cost**); the title, **Write | Plan**, **File ▾**, **Snapshot** and **⋮** stay put. On a smaller screen Plan's view switch turns to icons and its tools then move into **⋮**, the same way Write's do; the scene filter moves above the scenes, as Write's Element picker and B / I / U / S move above the script.
 - The title, the Projects library, **File ▾**, **Snapshot** and the ⋮ menu (About, User Guide) stay in both.
 - Switching never loses anything. Your script stays exactly as it was, unsaved typing included, and it keeps saving. Coming back to Write puts the script and the Scene Board where you'd scrolled them.
 - **Write** on a breakdown card, or a click on a strip, takes you back to Write at that scene.
 
 ### Planned features
 
-A few places in the app show what's planned next. **Shoot** (after Board), **Budget** (in Plan) and **⋮ → Co-Write…** (in Write) each open a short note about the planned feature and a **Close** button. Nothing is built behind them yet: opening one doesn't change your view, your script or your project. Budget is planned for free DraftLine Core; Shoot for DraftLine Pro, a future optional upgrade; Co-Write as a future optional hosted service. Everything DraftLine does today stays free. (**Table Read** and the **shooting schedule**, once previews here, are now part of DraftLine Core: see Table Read and Shooting schedule.)
+A few places in the app show what's planned next. **Shoot** (after Board) and **⋮ → Co-Write…** (in Write) each open a short note about the planned feature and a **Close** button. Nothing is built behind them yet: opening one doesn't change your view, your script or your project. Shoot is planned for DraftLine Pro, a future optional upgrade; Co-Write as a future optional hosted service. Everything DraftLine does today stays free. (**Table Read**, the **shooting schedule** and the **Budget**, once previews here, are now part of DraftLine Core: see Table Read, Shooting schedule and Budget.)
 
 ### Finding scenes
 
@@ -436,6 +436,22 @@ The Stripboard is also where you plan the shoot. Until you add a shooting day it
 - **Undo.** Every schedule change is a step in the same undo history as your writing: {{key:Ctrl+Z}} takes back one move at a time. The schedule never changes your script: it's an order of scenes kept beside it, saved with the project.
 - If a scene on a day leaves the script (its heading deleted or turned into action), it stays on its day, hidden, in case you undo. The summary line says so, with **Remove from the schedule** to clear it on purpose.
 - The same project open in two tabs or windows is safe: see Storage, sync & offline.
+
+### Budget
+
+**Budget** (in Plan, after Stripboard) works out what the production could cost from what's already in the project: the cast, your breakdowns, the filming locations and the shooting schedule. Opening it changes nothing; the budget is only saved once you enter something.
+
+- **Price by typing a rate.** Every item the script and breakdowns need is listed under its section (Cast, Background / Extras, Props & Set Dressing, Vehicles, Locations and so on), with how it's counted in **Basis**, in a few words (**2 units · reusable**, **45 person-days**, **Not scheduled**; the full account is in the item's details). Type a **Rate** and press {{key:Enter}}; the **Total** follows. An item without a rate shows **Add rate** and a dash; **0** is a real price (it's free), not a missing one.
+- **The first amount asks for a currency**, suggested from your browser's region and never set without asking. **Cancel** saves nothing. Changing the currency later asks first and converts nothing: 150.50 stays 150.50. A currency that can't hold an amount exactly (yen has no cents) is refused, naming the costs in the way.
+- **A rate that can't be read is never saved over a good one.** {{key:Enter}} shows what's wrong; leaving the field or {{key:Esc}} puts the saved amount back. Emptying the field changes nothing (**Clear rate** in the item's details takes a rate off).
+- **Click an item's name** for its details: how it's costed (**Flat fee**, **Per unit**, **Per day**, **Per unit per day**, **Per week**, **Per unit per week** or **Per person-day**), its quantity (from the breakdowns, or entered; **Reusable** counts the most in one scene, **Used up** adds every scene's), its days (the days it's used, first to last day, all shooting days, or entered), weeks (5 or 7 days, prorated or rounded up), holds for cast, and a note.
+- **+ Cost** (in the top bar, or under a section) adds a cost of your own, such as crew or equipment. Empty sections appear once they have something.
+- **Filming locations.** Under Locations, **+ Filming location** adds a place you'll shoot at (**+ Cost** there is an ordinary cost, such as permits). **N scripted places without a filming location** opens the list of those places, each with its number of scenes: click one to choose or add its location. One location can hold several places.
+- **Contingency and fees.** Below the sections: the subtotal, a **Contingency** percentage, and any **Fee or tax** (a fixed amount, or a percentage of the subtotal or of the subtotal plus contingency).
+- **Total, Estimated total or Partial total.** The summary line says which: **Partial** while rates, quantities or days are missing or scenes aren't scheduled (**N items without a rate** shows only those), **Estimated** when some days are planned rather than scheduled (without a schedule, enter **Planned shooting days**). A partial total is never shown as a full budget.
+- **Review.** When an element with a cost is merged or deleted in Breakdowns, or a priced character renamed, its cost waits for review (not included in the total) until you choose: keep both, keep it as your own cost, relink it, or remove it.
+- **From Breakdowns.** An element's details show its cost on one line, **Budget: $30.00 · Open**, which goes to its row.
+- Every change is one step of undo. The budget is saved with the project, like the rest of Plan.
 
 ### Reports
 

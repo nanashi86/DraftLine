@@ -25,7 +25,7 @@ import { HIDDEN, useDismiss, useFloating, useFocusWhenPlaced } from './floating.
  *            notice(text) shows a toast
  *   onJump(sceneId): open that scene's card
  */
-export default function ElementPopover({ need, sceneId, sceneNumber, anchor, elements, usage, ops, onJump, onClose }) {
+export default function ElementPopover({ need, sceneId, sceneNumber, anchor, elements, usage, ops, budget = null, onOpenBudget, onJump, onClose }) {
   const ref = useRef(null);
   const done = useRef(false); // closing: a field's late blur must not save anything
   const [name, setName] = useState(need.name);
@@ -195,6 +195,12 @@ export default function ElementPopover({ need, sceneId, sceneNumber, anchor, ele
           )) : <span className="plan-none">No scene yet</span>}
           {days.length > 0 && <span className="el-pop-days">Shooting day{days.length > 1 ? 's' : ''} {days.join(' · ')}</span>}
         </div>
+        {budget && (
+          <p className="el-pop-budget">
+            Budget: {budget.text}
+            {onOpenBudget && <> · <button type="button" className="plan-clear" onClick={() => { finish(); onOpenBudget(budget.key); }}>Open</button></>}
+          </p>
+        )}
       </section>
 
       {merge && (

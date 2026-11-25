@@ -589,6 +589,8 @@
 .el-pop-scene:hover { background: var(--hover-bg); }
 .el-pop-scene.is-here { border-color: var(--accent); cursor: default; }
 .el-pop-days { color: var(--muted); }
+.el-pop-budget { margin: 0; color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
+.el-pop-budget .plan-clear { font-size: inherit; }
 .el-pop-hint { margin: 2px 0 0; color: var(--muted); font-size: 12px; }
 .el-pop-warn { margin: 2px 0 0; color: var(--warn-ink, var(--text)); font-size: 12px; }
 .el-pop-confirm { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }

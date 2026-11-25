@@ -392,10 +392,11 @@ export function budgetModel(production, rows, model) {
     const k = sourceKey(cleanSource(l.source));
     if (k) bySource.set(k, [...(bySource.get(k) || []), l]);
   }
-  const candidates = [];
-  for (const [name, use] of ctx.cast) candidates.push({ src: { kind: 'cast', name }, section: 'cast', name: name, order: use.number ?? 999 });
-  for (const [id, use] of ctx.elements) candidates.push({ src: { kind: 'element', id }, section: use.category, name: use.name, order: 0 });
-  for (const id of Object.keys(ctx.sites)) candidates.push({ src: { kind: 'site', id }, section: 'locations', name: siteName(production.locations, id) || 'Untitled location', order: 0 });
+  const candidates = [
+    ...[...ctx.cast.keys()].map((name) => candidateOf(ctx, { kind: 'cast', name })),
+    ...[...ctx.elements.keys()].map((id) => candidateOf(ctx, { kind: 'element', id })),
+    ...Object.keys(ctx.sites).map((id) => candidateOf(ctx, { kind: 'site', id })),
+  ];
   const seen = new Set();
   for (const c of candidates) {
     const k = sourceKey(c.src);
@@ -456,6 +457,56 @@ export function budgetModel(production, rows, model) {
     gaps, scheduled: ctx.scheduled, shootingDays: ctx.scheduled ? ctx.days.length : null, plannedDays: isQuantity(b.plannedDays) ? b.plannedDays : null,
     unassigned: ctx.unassigned,
   };
+}
+
+/** A source as budgetModel lists it (section, name, order), or null when it isn't in the production now. */
+function candidateOf(ctx, src) {
+  if (src?.kind === 'cast') {
+    const use = ctx.cast.get(src.name);
+    return use ? { src, section: 'cast', name: src.name, order: use.number ?? 999 } : null;
+  }
+  if (src?.kind === 'element') {
+    const use = ctx.elements.get(src.id);
+    return use ? { src, section: use.category, name: use.name, order: 0 } : null;
+  }
+  if (src?.kind === 'site') {
+    return src.id in ctx.sites ? { src, section: 'locations', name: siteName(ctx.production?.locations, src.id) || 'Untitled location', order: 0 } : null;
+  }
+  return null;
+}
+
+/** The stored lines of a readable budget, each with its id. */
+const linesOf = (b) => Object.entries(plain(b.lines) ? b.lines : {}).filter(([, l]) => plain(l)).map(([id, l]) => ({ ...l, id }));
+
+/**
+ * One source's rows, exactly as budgetModel would show them (the same calculation), without working out
+ * the rest of the budget: for an element's card in Breakdowns. [] when unreadable or not costed anywhere.
+ */
+export function budgetRowsFor(production, rows, model, source) {
+  const budget = production?.budget;
+  const src = cleanSource(source);
+  if (!src || (budget != null && !budgetReadable(budget))) return [];
+  const b = normalizeBudget(budget) || { version: BUDGET_VERSION, lines: {} };
+  const ctx = context(production, rows, model, b);
+  const c = candidateOf(ctx, src);
+  const mine = linesOf(b).filter((l) => sourceKey(cleanSource(l.source)) === sourceKey(src));
+  if (!mine.length) return c ? [rowOf(ctx, null, c)] : [];
+  return mine.map((l) => rowOf(ctx, l, c));
+}
+
+/**
+ * What one row would be with some of its fields changed (a popover's choices, before choosing):
+ * `at` is { lineId } or { source } (a candidate), `variants` a list of line fields. Same calculation.
+ */
+export function rowVariants(production, rows, model, at, variants) {
+  const budget = production?.budget;
+  if (budget != null && !budgetReadable(budget)) return [];
+  const b = normalizeBudget(budget) || { version: BUDGET_VERSION, lines: {} };
+  const ctx = context(production, rows, model, b);
+  const line = at?.lineId ? linesOf(b).find((l) => l.id === at.lineId) || null : null;
+  const src = cleanSource(line?.source) || cleanSource(at?.source);
+  const c = src ? candidateOf(ctx, src) : null;
+  return variants.map((v) => rowOf(ctx, { ...(line || {}), ...v, id: line?.id || 'preview' }, c));
 }
 
 /** What the rows and schedule say about each source (built once per model). */
