@@ -29,6 +29,8 @@
 
 import { isEmptySchedule, normalizeSchedule } from './schedule.js';
 import { addUnknownFields, jsonCopy } from './passThrough.js';
+import { budgetAfterCastRename, budgetAfterDelete, budgetAfterMerge, budgetReadable, normalizeBudget } from './budget.js';
+import { locationsDraft, locationsReadable, newSiteId, normalizeLocations, siteFields } from './locations.js';
 import {
   CATEGORY_IDS, categoriesOf, cleanName, legacyOf, nameKey, newElementId, normalizeElements, projectNames, reconcile,
 } from './elements.js';
@@ -38,7 +40,7 @@ export const PRODUCTION_VERSION = 1;
 // Forward compatibility (lib/passThrough.js, docs/specs/data-integrity.md): a newer DraftLine may store
 // more in `production` (a schedule, a budget) or in a scene's entry. Those keys are carried through
 // unchanged, and a higher `version` is never lowered, so an older copy saving the project loses nothing.
-const PRODUCTION_KEYS = new Set(['version', 'scenes', 'castNumbers', 'schedule', 'elements']);
+const PRODUCTION_KEYS = new Set(['version', 'scenes', 'castNumbers', 'schedule', 'elements', 'budget', 'locations']);
 
 /**
  * The four name lists on every scene's breakdown, as every DraftLine since Plan stores them (Production
@@ -105,6 +107,11 @@ export function normalizeProduction(raw) {
     if (schedule) out.schedule = schedule;
     else if (!isEmptySchedule(obj.schedule)) out.schedule = jsonCopy(obj.schedule);
   }
+  // The Budget and filming locations (lib/budget.js, lib/locations.js): kept losslessly, absent when empty.
+  const budget = normalizeBudget(obj?.budget);
+  if (budget) out.budget = budget;
+  const locations = normalizeLocations(obj?.locations);
+  if (locations) out.locations = locations;
   if (obj) addUnknownFields(out, obj, PRODUCTION_KEYS);
   return out;
 }
@@ -304,6 +311,8 @@ export function mergeElements(production, fromId, intoId, resolve = {}) {
       s.links[a.category] = list.filter((l) => l !== la);
     }
     delete d.elements[fromId];
+    // Its budget lines now cost the element it joined (in review if that one had lines too).
+    if (d.budget) d.budget = budgetAfterMerge(d.budget, { kind: 'element', id: fromId, label: a.name }, { kind: 'element', id: intoId });
   });
   return { production: next, conflicts: [] };
 }
@@ -311,6 +320,16 @@ export function mergeElements(production, fromId, intoId, resolve = {}) {
 /** Delete element `id` everywhere: out of every scene and the registry (an explicit, undoable choice). */
 export function deleteElement(production, id) {
   return change(production, (d) => {
+    // Its budget lines stay, in review, with what they need to show their last amount.
+    const el = d.elements[id];
+    if (el && d.budget) {
+      const links = {};
+      for (const [sid, scene] of Object.entries(d.scenes)) {
+        const l = CATEGORY_IDS.flatMap((c) => scene.links?.[c] || []).find((x) => x?.id === id);
+        if (l) links[sid] = jsonCopy({ ...(l.qty !== undefined ? { qty: l.qty } : {}), ...(l.note !== undefined ? { note: l.note } : {}) });
+      }
+      d.budget = budgetAfterDelete(d.budget, { kind: 'element', id }, { element: jsonCopy(el), links }, el.name);
+    }
     for (const scene of Object.values(d.scenes)) {
       for (const c of Object.keys(scene.links || {})) if (Array.isArray(scene.links[c])) scene.links[c] = scene.links[c].filter((l) => l?.id !== id);
       // …and its set-aside links: deleted on purpose, it never comes back through an older build's list.
@@ -333,6 +352,67 @@ export function linkedIds(production) {
   return out;
 }
 
+// ---- Filming locations (lib/locations.js): only ever made, mapped or removed on purpose ---------------
+
+/** Change the locations registry (null: a newer build's, left untouched → { production, error }). */
+function withLocations(production, fn) {
+  const p = normalizeProduction(production);
+  const d = locationsDraft(p);
+  if (!d) return { production: p, error: 'newer' };
+  const { budget, ...r } = fn(d) || {};
+  if (r.error) return { production: p, ...r };
+  return { ...r, production: normalizeProduction({ ...p, locations: d, ...(budget !== undefined ? { budget } : {}) }) };
+}
+/** A new filming location: { name, address, note } → { production, id }. */
+export const addSite = (production, fields) => withLocations(production, (d) => {
+  const f = siteFields(fields);
+  if (!f || !f.name) return { error: 'name' };
+  const id = newSiteId();
+  d.sites[id] = { id, ...f };
+  return { id };
+});
+/** Change a location's name, address or note. */
+export const updateSite = (production, id, fields) => withLocations(production, (d) => {
+  if (!d.sites[id] || typeof d.sites[id] !== 'object') return { error: 'missing' };
+  const f = siteFields(fields);
+  if (!f) return { error: 'name' };
+  Object.assign(d.sites[id], f);
+});
+/** A scripted place ("HARBOR") shoots at location `id` (null: not assigned). */
+export const mapPlace = (production, place, id) => withLocations(production, (d) => {
+  const key = String(place || '').trim().toUpperCase();
+  if (!key) return { error: 'place' };
+  if (id === null) delete d.places[key];
+  else if (d.sites[id]) d.places[key] = id;
+  else return { error: 'missing' };
+});
+/** One scene shoots at location `id`, whatever its place says (null: back to its place's). */
+export const assignScene = (production, sceneId, id) => withLocations(production, (d) => {
+  if (id === null) delete d.scenes[sceneId];
+  else if (d.sites[id]) d.scenes[sceneId] = id;
+  else return { error: 'missing' };
+});
+/** Remove a location and what maps to it; its budget lines stay, in review (lib/budget.js). */
+export const deleteSite = (production, id) => withLocations(production, (d) => {
+  const site = d.sites[id];
+  if (!site) return { error: 'missing' };
+  const places = Object.keys(d.places).filter((k) => d.places[k] === id);
+  const scenes = Object.keys(d.scenes).filter((k) => d.scenes[k] === id);
+  for (const k of places) delete d.places[k];
+  for (const k of scenes) delete d.scenes[k];
+  delete d.sites[id];
+  const p = normalizeProduction(production);
+  return p.budget ? { budget: budgetAfterDelete(p.budget, { kind: 'site', id }, { site: jsonCopy(site), places, scenes }, site.name) } : {};
+});
+
+/** A character renamed (Rename Character): its fixed cast number and its budget lines follow. */
+export function renameCast(production, oldName, newName) {
+  const p = normalizeProduction(production);
+  const castNumbers = renameCastNumber(p.castNumbers, oldName, newName);
+  const budget = p.budget ? budgetAfterCastRename(p.budget, oldName, newName) : undefined;
+  return normalizeProduction({ ...p, ...(castNumbers ? { castNumbers } : {}), ...(budget ? { budget } : {}) });
+}
+
 // ---- Undo: exactly the parts a step changed --------------------------------------------------------
 
 /**
@@ -342,13 +422,29 @@ export function linkedIds(production) {
  */
 const needsOf = (scene) => ({ links: jsonCopy(scene?.links || {}), unlinked: jsonCopy(scene?.unlinked || []) });
 
-/** Those parts of some scenes, and some elements (null where there's none), for applySlice. */
-export function sliceOf(production, sceneIds = [], elementIds = []) {
+/**
+ * Those parts of a production, for applySlice: some scenes' links, some elements, and (budget,
+ * locations: changedParts' description) some budget lines and settings and some locations entries;
+ * null where there's none. `parts` is changedParts' result (or sceneIds, elementIds as before).
+ */
+export function sliceOf(production, parts = [], elementIds = []) {
   const p = normalizeProduction(production);
+  const { sceneIds = [], elementIds: elIds = [], budget = null, locations = null } = Array.isArray(parts) ? { sceneIds: parts, elementIds } : parts;
+  const pick = (obj, keys) => Object.fromEntries(keys.map((k) => [k, obj && obj[k] !== undefined ? jsonCopy(obj[k]) : null]));
   return {
     scenes: Object.fromEntries(sceneIds.map((id) => [id, needsOf(p.scenes[id])])),
-    elements: Object.fromEntries(elementIds.map((id) => [id, p.elements?.[id] ? jsonCopy(p.elements[id]) : null])),
+    elements: Object.fromEntries(elIds.map((id) => [id, p.elements?.[id] ? jsonCopy(p.elements[id]) : null])),
+    ...(budget ? { budget: budget.whole ? { whole: jsonCopy(p.budget) ?? null } : { lines: pick(p.budget?.lines, budget.lineIds), keys: pick(p.budget, budget.keys) } } : {}),
+    ...(locations ? { locations: locations.whole ? { whole: jsonCopy(p.locations) ?? null }
+      : { sites: pick(p.locations?.sites, locations.siteIds), places: pick(p.locations?.places, locations.placeKeys), scenes: pick(p.locations?.scenes, locations.sceneKeys), keys: pick(p.locations, locations.keys) } } : {}),
   };
+}
+/** Put a part of a budget / locations slice back onto `draft` (null values remove). */
+function putBack(target, part) {
+  for (const [k, v] of Object.entries(part || {})) {
+    if (v === null) delete target[k];
+    else target[k] = jsonCopy(v);
+  }
 }
 /** Put those scenes' links and those elements back as they were in a slice (everything else as it is now). */
 export function applySlice(production, slice) {
@@ -363,6 +459,32 @@ export function applySlice(production, slice) {
       if (part?.unlinked?.length) scene.unlinked = jsonCopy(part.unlinked);
       else delete scene.unlinked;
     }
+    if (slice.budget) {
+      if ('whole' in slice.budget) {
+        if (slice.budget.whole === null) delete d.budget;
+        else d.budget = jsonCopy(slice.budget.whole);
+      } else {
+        const b = d.budget && typeof d.budget === 'object' ? d.budget : { version: 1, lines: {} };
+        if (!b.lines || typeof b.lines !== 'object') b.lines = {};
+        putBack(b, slice.budget.keys);
+        putBack(b.lines, slice.budget.lines);
+        d.budget = b;
+      }
+    }
+    if (slice.locations) {
+      if ('whole' in slice.locations) {
+        if (slice.locations.whole === null) delete d.locations;
+        else d.locations = jsonCopy(slice.locations.whole);
+      } else {
+        const l = d.locations && typeof d.locations === 'object' ? d.locations : { version: 1 };
+        for (const k of ['sites', 'places', 'scenes']) if (!l[k] || typeof l[k] !== 'object') l[k] = {};
+        putBack(l, slice.locations.keys);
+        putBack(l.sites, slice.locations.sites);
+        putBack(l.places, slice.locations.places);
+        putBack(l.scenes, slice.locations.scenes);
+        d.locations = l;
+      }
+    }
   });
 }
 /** Every scene (by its links) and element that differs between two productions (what a step changed). */
@@ -372,8 +494,30 @@ export function changedParts(before, after) {
   const differs = (x, y) => JSON.stringify(x ?? null) !== JSON.stringify(y ?? null);
   const sceneIds = [...new Set([...Object.keys(a.scenes), ...Object.keys(b.scenes)])].filter((id) => differs(needsOf(a.scenes[id]), needsOf(b.scenes[id])));
   const elementIds = [...new Set([...Object.keys(a.elements || {}), ...Object.keys(b.elements || {})])].filter((id) => differs(a.elements?.[id], b.elements?.[id]));
-  return { sceneIds, elementIds };
+  const keysOf = (x, y, skip) => [...new Set([...Object.keys(x || {}), ...Object.keys(y || {})])].filter((k) => !skip.includes(k) && differs(x?.[k], y?.[k]));
+  const plainish = (v) => v && typeof v === 'object' && !Array.isArray(v);
+  // The budget and locations: by line / site / mapping where this version can read both sides,
+  // else as a whole (a newer build's, kept exactly as it was).
+  let budget = null;
+  if (differs(a.budget, b.budget)) {
+    budget = !budgetReadable(a.budget) || !budgetReadable(b.budget) || (a.budget && !plainish(a.budget.lines)) || (b.budget && !plainish(b.budget.lines))
+      ? { whole: true }
+      : { lineIds: keysOf(a.budget?.lines, b.budget?.lines, []), keys: keysOf(a.budget, b.budget, ['lines', 'version']) };
+  }
+  let locations = null;
+  if (differs(a.locations, b.locations)) {
+    const ok = (l) => !l || ['sites', 'places', 'scenes'].every((k) => plainish(l[k]));
+    locations = !locationsReadable(a.locations) || !locationsReadable(b.locations) || !ok(a.locations) || !ok(b.locations)
+      ? { whole: true }
+      : {
+        siteIds: keysOf(a.locations?.sites, b.locations?.sites, []), placeKeys: keysOf(a.locations?.places, b.locations?.places, []),
+        sceneKeys: keysOf(a.locations?.scenes, b.locations?.scenes, []), keys: keysOf(a.locations, b.locations, ['sites', 'places', 'scenes', 'version']),
+      };
+  }
+  return { sceneIds, elementIds, budget, locations };
 }
+/** Did a step change anything (changedParts' result)? */
+export const partsChanged = (parts) => !!(parts.sceneIds.length || parts.elementIds.length || parts.budget || parts.locations);
 
 // ---- The four lists (Breakdowns' tags until the eight categories show, and older callers) -----------
 

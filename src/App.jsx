@@ -27,7 +27,7 @@ import DialogueStepper from './components/DialogueStepper.jsx';
 import { Calculator, ChartColumn, Clapperboard, Columns2, FileCheck2, FileText, Flame, LayoutList, Moon, PenLine, Plus, Rows3, Scissors, SquareKanban } from 'lucide-react';
 import {
   addNeed, applySlice, attachScene, changedParts, deleteElement, extendCastNumbers, freezeCastNumbers, mergeElements, reclassifyElement,
-  removeNeed, renameCastNumber, renameClashes, renameElement, scenesNeeding, separateNeed, setNeed,
+  partsChanged, removeNeed, renameCast, renameCastNumber, renameClashes, renameElement, scenesNeeding, separateNeed, setNeed,
   setSceneEntry, setSceneNotes, sliceOf, undoAttach, unattachedScenes,
 } from './lib/productionData.js';
 import {
@@ -1606,14 +1606,24 @@ function Workspace({ boot }) {
       const cur = latest.current.production.castNumbers;
       return dir === 'undo' ? renameCastNumber(cur, newName, oldName) : renameCastNumber(cur, oldName, newName);
     };
+    const budgetRename = (() => { // the character's budget lines (lib/budget.js), as undo slices
+      const prod = s.production;
+      const next = renameCast(prod, oldName, newName);
+      const { budget } = changedParts(prod, next);
+      if (!budget) return {};
+      const only = { sceneIds: [], elementIds: [], budget, locations: null };
+      return { before: sliceOf(prod, only), after: sliceOf(next, only) };
+    })();
     set(after.blocks === before.blocks ? before.blocks.slice() : after.blocks, null, {
       undo: () => {
         applyAux('undo');
         if (latest.current.production.castNumbers) setProduction((p) => ({ ...p, castNumbers: castNumbersOf('undo') }));
+        if (budgetRename.before) setProduction((p) => applySlice(p, budgetRename.before));
       },
       redo: () => {
         applyAux('redo');
         if (latest.current.production.castNumbers) setProduction((p) => ({ ...p, castNumbers: castNumbersOf('redo') }));
+        if (budgetRename.after) setProduction((p) => applySlice(p, budgetRename.after));
       },
     });
     setBeats(after.beats);
@@ -1622,10 +1632,12 @@ function Workspace({ boot }) {
     setStoryDna(after.storyDna);
     const oldCue = oldName.trim().toUpperCase();
     renameVoice(latest.current.projectId, oldCue, newName); // Table Read's voice choice follows the name (this device)
-    // A fixed cast number goes with the character (part of this rename's undo step: set before it below).
+    // A fixed cast number, and the character's budget lines, go with it (part of this rename's undo
+    // step: set before it above). Budget lines are put back exactly, as slices (lib/productionData.js).
     const castBefore = s.production.castNumbers;
     const castAfter = renameCastNumber(castBefore, oldName, newName);
     if (castAfter !== castBefore) setProduction((p) => ({ ...p, castNumbers: castAfter }));
+    if (budgetRename.after) setProduction((p) => applySlice(p, budgetRename.after));
     setSelectedChar((c) => (c && c.toUpperCase() === oldCue ? newName.trim().toUpperCase() : c));
     setRenameFrom(null);
     notify(`Renamed ${oldName.trim()} → ${newName.trim()} · ${total} ${total === 1 ? 'change' : 'changes'} · Ctrl+Z to undo`);
@@ -2448,10 +2460,10 @@ function Workspace({ boot }) {
    */
   const productionStep = (next, what) => {
     const cur = latest.current.production;
-    const { sceneIds, elementIds } = changedParts(cur, next);
-    if (!sceneIds.length && !elementIds.length) return;
-    const before = sliceOf(cur, sceneIds, elementIds);
-    const after = sliceOf(next, sceneIds, elementIds);
+    const parts = changedParts(cur, next); // scenes' links, elements, budget lines and settings, locations
+    if (!partsChanged(parts)) return;
+    const before = sliceOf(cur, parts);
+    const after = sliceOf(next, parts);
     planStep((p) => applySlice(p, after), (p) => applySlice(p, before), what);
   };
   // Breakdowns' shared elements (lib/elements.js; PlanningWorkspace, ElementPopover). Each is one undo

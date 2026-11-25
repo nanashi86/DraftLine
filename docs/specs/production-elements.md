@@ -72,6 +72,8 @@ an add takes back the element it created.
 another element has that name) · `reclassifyElement` (every scene's link moves) · `separateNeed` (this scene gets
 its own element) · `mergeElements` (same category; where a scene had both with **different quantities** it returns
 the conflicts and changes nothing until the writer chooses; notes are kept side by side) · `deleteElement`.
+Since Phase 3A, merge and delete (and purge) also carry the element's budget lines in the same step (re-pointed,
+or kept for review): [`budget.md`](budget.md).
 
 ## Scheduling
 

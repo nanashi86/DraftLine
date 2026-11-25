@@ -6,6 +6,13 @@ All notable changes to DraftLine are recorded here. The format follows [Keep a C
 
 ### Added
 
+- **Budget groundwork (Phase 3A).** No interface yet: Plan → Budget still shows its preview. Underneath, a
+  project can now hold a budget and its filming locations: every element, speaking character and filming
+  location is a budget row, costed per unit, per day, per unit per day, per week or per person-day, from the
+  breakdowns and schedule or from quantities you enter. Money is exact, unknown rates never count as zero,
+  and a budget is never called complete while scenes are unscheduled or costs are waiting for review.
+  Merging, deleting or renaming what a cost belongs to keeps the cost, marked for review, in the same undo
+  step. See [`docs/specs/budget.md`](docs/specs/budget.md).
 - **Breakdowns in eight categories, with shared elements (Phase 2B).** Each scene card has Background / Extras,
   Props & Set Dressing, Wardrobe, Hair & Makeup, Vehicles, Stunts, Special Effects and Visual Effects (four across,
   two rows, on a wide screen). Typing in **+ Add** suggests what's already in the project in that category, with its

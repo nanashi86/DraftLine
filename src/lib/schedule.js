@@ -201,7 +201,7 @@ export const basePlace = (location) => String(location || '').split(/\s+[-–—
 /**
  * The schedule laid over the breakdown rows (buildBreakdown, script order):
  *   days:        [{ id, number, date, note, rows, eighths, cast: [{ name, number, code }], places,
- *                   requirements: { props, wardrobe, extras, vehicles }, notes: [{ kind, text }], missing }]
+ *                   requirements: { [category]: [{ id, name, category, uses }] } (by shared element), notes: [{ kind, text }], missing }]
  *                code (Day-Out-of-Days): SW start · W work · WF finish · SWF one day only · H hold
  *                (between an actor's first and last day without working); cast held that day are
  *                listed too, with code H
