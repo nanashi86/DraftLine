@@ -15,7 +15,7 @@ and everything around it. Inside it there's a complete free core, and two option
 
 | Product | Access | What it is |
 |---|---|---|
-| **DraftLine Core** | **Free forever** | Everything DraftLine does today: writing, the Scene Board, the Story Bible, Plan (Breakdowns, Stripboard, Reports), every import and export, offline use and folder sync. **Table Read is part of Core now; Schedule and Budget will be when they ship.** |
+| **DraftLine Core** | **Free forever** | Everything DraftLine does today: writing, the Scene Board, the Story Bible, Plan (Breakdowns, Stripboard, Budget, Reports), every import and export, offline use and folder sync. **Table Read, the shooting schedule and the Budget are part of Core now.** |
 | **DraftLine Pro** | **Planned one-time purchase** | Core plus **Shoot**: locked pages and scene numbers, revision rounds and revised pages for production. **A one-time purchase, not a subscription.** *(future, deferred)* |
 | **DraftLine Co-Write** | **Planned optional subscription** | Optional real-time co-writing, hosted by DraftLine. Works with **Core or Pro**. Only the writer hosting a session needs it; invited writers join free. *(long-term future)* |
 
@@ -29,7 +29,7 @@ Pro and Co-Write don't exist yet. **Pricing and availability will be announced w
   recover everything you've written.
 - **Licences unlock capabilities, not platforms.** The browser, the installed app and the planned Windows and
   Android/ChromeOS apps are all free; Pro and Co-Write work on all of them. No accounts.
-- **What you'll see.** Shoot sits after Page, Split and Board; Budget sits in Plan; Co-Write is in ⋮.
+- **What you'll see.** Shoot sits after Page, Split and Board; Co-Write is in ⋮.
   Each opens a short note about what's planned. No pop-ups, badges or reminders you didn't click for.
 
 ## Shipped
@@ -55,8 +55,9 @@ before work starts, and ships when it's ready.
     the script; dates and a page target; pages, cast (Day-Out-of-Days), places and breakdown needs per day; advisory
     notes; cast numbers fixed from the first day. **Still planned:** schedule CSV export and grouping helpers (by
     location, cast, INT/EXT, time of day).
-  - **Budget**: cast, crew, locations, props, wardrobe, equipment, vehicles, post and your own lines; costs linked to
-    breakdown and schedule quantities, totals, contingency, your currency and CSV export.
+  - **Budget** (Plan → Budget). **Built:** cast, breakdown items, filming locations and your own lines (crew,
+    equipment, post…); costs linked to breakdown and schedule quantities, seven costing methods, totals, contingency,
+    fees and taxes, your currency, and PDF (Summary / Detailed) and CSV exports.
   - **Multi-tab protection (Phase 1.5, done):** the same project in two tabs or windows can't save over itself; the
     other version is always kept. Details: [`docs/specs/data-integrity.md`](docs/specs/data-integrity.md).
   - **Shared production elements (Phase 2, done):** breakdowns in eight categories; each item entered once and linked

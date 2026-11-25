@@ -6,13 +6,23 @@ All notable changes to DraftLine are recorded here. The format follows [Keep a C
 
 ### Added
 
-- **Budget groundwork (Phase 3A).** No interface yet: Plan → Budget still shows its preview. Underneath, a
-  project can now hold a budget and its filming locations: every element, speaking character and filming
-  location is a budget row, costed per unit, per day, per unit per day, per week or per person-day, from the
-  breakdowns and schedule or from quantities you enter. Money is exact, unknown rates never count as zero,
-  and a budget is never called complete while scenes are unscheduled or costs are waiting for review.
-  Merging, deleting or renaming what a cost belongs to keeps the cost, marked for review, in the same undo
-  step. See [`docs/specs/budget.md`](docs/specs/budget.md).
+- **Budget (Plan → Budget), part of free DraftLine Core.** What the production could cost, worked out from the
+  project: every speaking character, breakdown item and filming location is a row, priced by typing a rate and
+  costed per unit, per day, per unit per day, per week, per unit per week, per person-day or as a flat fee, from the
+  breakdowns (each scene's quantity, reusable or used up) and the Stripboard's shooting days, or from quantities
+  and days you enter. Add your own costs with **+ Cost**; contingency, fixed or percentage fees and taxes; filming
+  locations, each standing in for one or more scripted places. Money is exact, in one currency chosen when the
+  first amount is entered (suggested, never set silently; changing it later converts nothing). An unknown rate is
+  never counted as zero, and **Total**, **Estimated total** and **Partial total** say how complete the budget is.
+  Merging, deleting or renaming what a cost belongs to keeps the cost, waiting for review and out of the totals,
+  in the same undo step. Every change is one undo step; opening the Budget saves nothing. See
+  [`docs/specs/budget.md`](docs/specs/budget.md).
+- **Budget exports.** **File ▾ → Export Planning & Production → Budget**: a report to print or save as PDF
+  (**Summary**, or **Detailed** with every item, its method, basis, rate and amount, and calculation notes), on A4
+  or Letter, in black and white; and a spreadsheet (`Title_Budget.csv`) whose Amount column adds up to the
+  Budget's total exactly, with review costs apart, unknown amounts blank and user text protected from running as
+  a formula. Both match the Budget on screen, work offline and change nothing. A budget without rates exports too,
+  as a costing worksheet.
 - **Breakdowns in eight categories, with shared elements (Phase 2B).** Each scene card has Background / Extras,
   Props & Set Dressing, Wardrobe, Hair & Makeup, Vehicles, Stunts, Special Effects and Visual Effects (four across,
   two rows, on a wide screen). Typing in **+ Add** suggests what's already in the project in that category, with its
@@ -63,7 +73,7 @@ All notable changes to DraftLine are recorded here. The format follows [Keep a C
   Table Read preview. Uses the browser's Web Speech API: no AI, no account, no new dependency.
 - **Act labels in the Scenes sidebar.** Quiet ACT 1 / ACT 2 (2A, 2B) / ACT 3 labels, read live from the Scene Board's
   cards and its 3 Acts / 4 Acts switch.
-- **Previews of what's planned.** **Shoot** (Lucide `file-check-2`) now follows Page | Split | Board; **Schedule** (`calendar-check`) and **Budget** (`calculator`) follow Breakdowns | Stripboard in Plan; and Write's ⋮ menu has **Table Read…** and **Co-Write…** after Reports. Each opens a short note about the planned feature and a **Close** button, and nothing else: your view, script and project stay exactly as they were, and focus goes back to what you clicked. Nothing is built behind them yet, there's nothing to buy, and no badges or prices sit on the toolbar. Plan keeps its clapperboard.
+- **Previews of what's planned.** **Shoot** (Lucide `file-check-2`) now follows Page | Split | Board; **Schedule** (`calendar-check`) and **Budget** (`calculator`) follow Breakdowns | Stripboard in Plan; and Write's ⋮ menu has **Table Read…** and **Co-Write…** after Reports. Each opens a short note about the planned feature and a **Close** button, and nothing else: your view, script and project stay exactly as they were, and focus goes back to what you clicked. Nothing is built behind them yet, there's nothing to buy, and no badges or prices sit on the toolbar. Plan keeps its clapperboard. (Schedule and Budget have since been built, above: the shooting schedule on the Stripboard, and Plan → Budget.)
 - **Roadmap: the approved plan.** DraftLine Core stays free forever and gains Table Read (next), then Schedule & Budget; **DraftLine Pro** is planned as a one-time purchase with Shoot and production revisions (deferred); **DraftLine Co-Write** is planned as an optional subscription that works with Core or Pro (last). New design note: `docs/specs/data-integrity.md` (what has to be in place before new project data ships).
 - **A Welcome page: draftlineapp.com/welcome/.** A short introduction for people discovering DraftLine: the slogan, *Just Write.*, the promise, what you get free, and links to Philosophy, Features and Compare, with **Start Writing** straight into the editor. The editor in its laptop frame is a real screenshot of DraftLine with the sample script *The Last Ferry*, in the dark or light version to match your theme. The root address still opens the editor straight away; nobody is sent to the Welcome page.
 - **The DraftLine logo opens a menu.** **Welcome to DraftLine**, **Core Philosophy**, **Explore Features** and **Compare DraftLine** (each in a new tab, so your script stays open), then **About DraftLine**. About is still in **⋮** too.

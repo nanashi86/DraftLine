@@ -1,11 +1,12 @@
 # Budget (Stage 2, Phase 3)
 
-> **Status:** Phase 3A built: data model, calculation engine, money, filming locations, budget-aware
-> production changes, undo and storage. No interface yet (Plan → Budget still shows its preview); Phase 3B
-> adds it, Phase 3C reports, exports and documentation.
-> Code: `src/lib/budget.js`, `src/lib/money.js`, `src/lib/locations.js`, `src/lib/productionData.js`.
-> Tests: `tests/budget.test.js`; `tests/browser/budgetRename.browser.js` (Rename Character with budget lines:
-> undo, redo, reload).
+> **Status:** built (Phases 3A–3C): data model, calculation engine, money, filming locations, budget-aware
+> production changes, undo and storage (3A); Plan → Budget (3B); reports, exports and documentation (3C).
+> Code: `src/lib/budget.js`, `src/lib/money.js`, `src/lib/locations.js`, `src/lib/productionData.js`,
+> `src/lib/budgetUi.js`, `src/components/planning/BudgetView.jsx`, `src/components/planning/BudgetRowPopover.jsx`,
+> `src/lib/budgetExport.js`, `src/components/ExportBudgetModal.jsx`.
+> Tests: `tests/budget.test.js`, `tests/budgetUi.test.js`, `tests/budgetExport.test.js`;
+> `tests/browser/budget.browser.js`, `tests/browser/budgetExport.browser.js`, `tests/browser/budgetRename.browser.js`.
 
 **Enter once, use everywhere.** Every element in a scene, every speaking character and every filming location is
 already a budget row. The writer adds rates (and, where needed, methods, quantities and notes) and their own
@@ -114,3 +115,33 @@ Each of these is part of the same single undo step as the change itself.
 - Changing the currency with amounts entered asks first, then keeps face value (12.50 stays 12.50, never
   converted); an amount the new currency can't hold refuses the change, naming the lines.
 - The Budget never changes the script or the schedule.
+
+## Exports (Phase 3C, `src/lib/budgetExport.js`)
+
+**File ▾ → Export Planning & Production → Budget (.pdf / .csv)**, after Scene Breakdown. Both read the same
+`budgetModel(production, buildBreakdown(…), scheduleModel(rows, readable schedule))` as Plan → Budget and write
+nothing: no save, no budget record, no undo step. No money is worked out in the exports; amounts are written from
+their integer minor units as text.
+
+- **Available** unless the budget is a newer build's (`budgetReadable`) or there's nothing to budget (no speaking cast
+  in a scene, breakdown link, filming location or line). Rows without rates, or no currency yet, still export.
+- **Report** (`budgetReportPayload` → `budgetReportHtml` → `printDocument`, like the Story Bible): **Summary** (header;
+  status in the Budget's words, Total / Estimated total / Partial total, with what's missing; categories; subtotal,
+  contingency, each fee with its basis, the total with its currency symbol; review amount, not included) or
+  **Detailed** (the same, then per category Item · Method · Basis (the short basis) · Rate (CUR) · Amount (CUR) and a
+  subtotal row; costs waiting for review in their own table, in brackets; Calculation notes for the rules used). Paper
+  size is the print dialog's (A4 or Letter). Detailed pages repeat a running header (title, currency, date) through a
+  wrapping table's `thead`; a category that breaks across pages repeats its heading as "(continued)" (the first one
+  is covered by a non-repeating heading), with no amount in it. Black, white and greys; system fonts; all user text
+  HTML-escaped.
+- **CSV** (`budgetCsv`; UTF-8 with BOM, CRLF, `csvField` quoting): one row per budget row (Row Type Item or Review),
+  then Contingency and each Fee, with their basis in Costing Method. Columns: Row Type, Category, Item, Source,
+  Costing Method, Quantity, Quantity Rule, Days, Days Rule, Person-Days, Weeks, Week Rule, Rate, Rate Per, Amount,
+  Excluded Amount, Currency, Budget Status, Status, Warnings, Basis, Note. No subtotal or total rows: `SUM(Amount)`
+  is the total; a review row's amount is only in Excluded Amount. Unknown amounts are blank; zero is `0` at the
+  currency's precision. Decimal point, no grouping. Text columns starting (after spaces) with `= + - @`, tab or CR get
+  a leading `'`; number columns are never altered.
+- **Not covered:** printing was validated in Chromium (page layout, repeated headings, A4 and Letter); Firefox and
+  Safari printing was not tested. The other CSV exports (Scene Breakdown, Reports, Outline) don't yet guard against
+  formula injection: a separate maintenance item.
+

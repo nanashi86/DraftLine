@@ -50,7 +50,7 @@ locked into one app.
 
 DraftLine is designed for independent writers: free, open source, offline, no account and no generative AI, with story
 development and production planning in the same free app. If you need simultaneous co-writing, colored revision pages,
-or budgets and call sheets, one of the tools below will serve you better. The full comparison, with sources, is at
+or call sheets and production accounting, one of the tools below will serve you better. The full comparison, with sources, is at
 [draftlineapp.com/compare](https://draftlineapp.com/compare/).
 
 | | DraftLine | Final Draft | Fade In | WriterDuet | Celtx | Beat |
@@ -58,7 +58,7 @@ or budgets and call sheets, one of the tools below will serve you better. The fu
 | Cost | Free | One-time purchase or subscription | One-time purchase | Free plan + subscription | Free plan + subscription | Free on Mac; iOS app paid |
 | Open source | Yes (MIT) | No | No | No | No | Yes (GPL v3) |
 | Runs on | Any modern browser, on a computer or a phone; installs as an app | Mac, Windows; a separate iOS app (Final Draft Go) | Mac, Windows, Linux, plus a mobile app | Browser, desktop app, mobile apps | Browser | Mac, iOS |
-| Production planning | Breakdowns, a stripboard scheduled into shooting days, and reports, from the script | Tagging and reports; scheduling in separate software (Movie Magic Scheduling) | Breakdowns and production reports | Tagging; reports on Pro | Breakdowns, scheduling, budgeting, call sheets (paid plans) | Not listed |
+| Production planning | Breakdowns, a stripboard scheduled into shooting days, a budget, and reports, from the script | Tagging and reports; scheduling in separate software (Movie Magic Scheduling) | Breakdowns and production reports | Tagging; reports on Pro | Breakdowns, scheduling, budgeting, call sheets (paid plans) | Not listed |
 | Production revisions | No (snapshots you can compare) | Yes | Yes | Pro plan | Revision history; colored pages not confirmed | Yes |
 | Real-time co-writing | No | Yes | Through the optional Fade In Access service | Yes (paid plans) | Yes | No |
 
@@ -407,7 +407,7 @@ computer; phones use App Storage). Click the title's **▾**, choose **File ▾ 
 - On first run the script DraftLine kept in localStorage moves into the library as your first project; the old copy
   is left in place untouched.
 
-## Plan: Breakdowns, Stripboard and shooting schedule
+## Plan: Breakdowns, Stripboard, shooting schedule and Budget
 
 **Write | Plan** in the top bar switches to a production view of the same script, worked out from it each time:
 **Breakdowns** (a card per scene: slugline, INT/EXT and DAY/NIGHT, length in eighths, speaking cast with call-sheet
@@ -427,8 +427,17 @@ every day, quiet notes (over the target, day and night together, three or more p
 codes (tap or point at a code for its meaning), places, and what its breakdowns need (each item once, with every
 scene's quantity beside it). The first shooting day fixes the
 cast numbers; **⋮ → Renumber Cast…** (on the Stripboard) renumbers them on purpose, after asking. Every change is an
-undo step, and the script itself is never changed: the schedule is an order of scenes saved with the project. Budget is
-planned, not built.
+undo step, and the script itself is never changed: the schedule is an order of scenes saved with the project.
+
+**Budget.** **Plan → Budget** lists every speaking character, breakdown item and filming location, priced by typing a
+rate: flat fee, per unit, per day, per unit per day, per week, per unit per week or per person-day, with quantities from
+the breakdowns and days from the shooting schedule (or entered), your own costs (**+ Cost**), contingency, and fees or
+taxes. A filming location (the real place) can stand in for several scripted places (HARBOR, PIER). Money is exact, in
+one currency you confirm (never converted); an unknown rate is never counted as zero; **Total**, **Estimated total** or
+**Partial total** says how complete it is, and costs whose item was merged or deleted wait for review, outside the
+totals. **File ▾ → Budget** exports a **Summary** or **Detailed** report (print or save as PDF, A4 or Letter) and a
+`.csv` whose Amount column adds up to the total. It's a planning estimate: no expense tracking, payroll, invoices or
+actual-versus-budget comparison, and one currency per budget.
 
 **Finding scenes.** On Breakdowns and Stripboard the top bar holds **Find scenes…** (a heading or location, a speaking
 character, or an exact scene number; capitals and accents don't matter), **INT | EXT** and **DAY | NIGHT** (an
@@ -571,15 +580,15 @@ Want to see where DraftLine is heading? Check out the [Public Roadmap](ROADMAP.m
 moved behind one. The planned order of what's next ([ROADMAP.md](ROADMAP.md)), with no dates promised:
 
 1. **Table Read** (Core, free): ✅ shipped. See [Table Read](#table-read).
-2. **Schedule & Budget** (Core, free): shooting days (on the Stripboard: **+ Shooting Day**) and production estimates
-   in Plan. Schedule first, then Budget.
+2. **Schedule & Budget** (Core, free): ✅ built. Shooting days on the Stripboard (**+ Shooting Day**) and
+   **Plan → Budget**, with PDF and CSV exports; a schedule CSV export and grouping helpers are still planned. See [Plan](#plan-breakdowns-stripboard-shooting-schedule-and-budget).
 3. **DraftLine Pro** (planned as a one-time purchase, not a subscription): a **Shoot** workspace for locked pages,
    scene numbers and revision rounds. Deferred.
 4. **DraftLine Co-Write** (planned as an optional subscription for hosting live co-writing sessions, with Core or Pro;
    invited writers join free). Last and long-term.
 
-In the app today, **Shoot** (after Board), **Budget** (in Plan) and **⋮ → Co-Write…** each open a short note about
-what's planned; none of them is built yet.
+In the app today, **Shoot** (after Board) and **⋮ → Co-Write…** each open a short note about what's planned; neither
+is built yet.
 
 Design notes for shipped, planned and possible features live in `docs/specs/`: Table Read, Schedule & Budget, data integrity
 (forward compatibility), Shoot & production revisions, Co-Write, licences and access, payments, and the Windows and

@@ -44,6 +44,7 @@ import { useHistory } from './hooks/useHistory.js';
 // The User Guide (and its text) loads the first time it's opened; the service worker caches it for offline use.
 const UserGuideModal = lazy(() => import('./components/UserGuideModal.jsx'));
 const ExportBibleModal = lazy(() => import('./components/ExportBibleModal.jsx'));
+const ExportBudgetModal = lazy(() => import('./components/ExportBudgetModal.jsx'));
 const SnapshotCompare = lazy(() => import('./components/SnapshotCompare.jsx'));
 // The Scene Board (Board / Split views) loads the first time it's shown.
 const BeatBoard = lazy(() => import('./components/BeatBoard.jsx'));
@@ -100,6 +101,7 @@ import RenumberCastModal from './components/planning/RenumberCastModal.jsx';
 import SyncConflictModal from './components/SyncConflictModal.jsx';
 import { PLAN_PLANNED_TABS, SHOOT_TAB } from './lib/plannedFeatures.js';
 import { budgetReadable } from './lib/budget.js';
+import { UNAVAILABLE as BUDGET_UNAVAILABLE, anythingToBudget, budgetCsv, budgetCsvFileName, budgetForExport } from './lib/budgetExport.js';
 import { newProjectMeta, rememberAuthorDefaults } from './lib/authorDefaults.js';
 import { parseFountain, toFountain } from './lib/fountain.js';
 import { parseFDX, toFDX } from './lib/fdx.js';
@@ -1874,6 +1876,7 @@ function Workspace({ boot }) {
   // before erasing anything (DeleteProjectModal's 'hard' stage).
   const [pendingDelete, setPendingDelete] = useState(null); // { id, title, stage, failed, busy }
   const [bibleExportOpen, setBibleExportOpen] = useState(false);
+  const [budgetPdf, setBudgetPdf] = useState(null); // Export → Budget (.pdf): { production, model, meta } as it was when chosen
   const [libraryRev, setLibraryRev] = useState(0); // bumped when a deletion finishes: Projects re-reads its list
   const deleteProject = async (id, title) => {
     const rec = (await projects.getProject(id)) || (await folderSync.readProject(id).catch(() => null));
@@ -2664,6 +2667,28 @@ function Workspace({ boot }) {
     notify(`Exported ${name}`);
   };
 
+  // File ▾ → Export Planning & Production → Budget (.pdf / .csv) (lib/budgetExport.js). The same model as
+  // Plan → Budget (breakdown rows, the readable schedule), read and never written: no save, no undo step.
+  const budgetExportFor = async () => {
+    const { buildBreakdown } = await import('./lib/productionEngine.js');
+    const rows = buildBreakdown({ blocks, analysis, scenes, production });
+    return budgetForExport({ production, rows, schedule: scheduleIsReadable(production.schedule) ? production.schedule : null });
+  };
+  const budgetUnavailable = !budgetReadable(production.budget) ? BUDGET_UNAVAILABLE.newer
+    : !anythingToBudget({ production, analysis, scenes }) ? BUDGET_UNAVAILABLE.empty : null;
+  const exportBudgetCsv = async () => {
+    const r = await budgetExportFor();
+    if (!r.available) { notify(BUDGET_UNAVAILABLE[r.reason]); return; }
+    const name = budgetCsvFileName(meta.title);
+    download(name, budgetCsv(production, r.model), 'text/csv;charset=utf-8');
+    notify(`Exported ${name}`);
+  };
+  const openBudgetPdf = async () => {
+    const r = await budgetExportFor();
+    if (!r.available) { notify(BUDGET_UNAVAILABLE[r.reason]); return; }
+    setBudgetPdf({ production, model: r.model, meta });
+  };
+
   // Format stepper (status bar, while the Format Doctor has findings): where you are in the list
   // follows the finding (by element), so fixing one keeps you near it; ✕ hides it until a new
   // finding turns up.
@@ -2792,6 +2817,9 @@ function Workspace({ boot }) {
     onFdx: () => setFdxOpen(true),
     onBreakdownCsv: exportBreakdown, // File ▾ → Export Planning & Production → Scene Breakdown (.csv)
     hasScenes: scenes.length > 0,
+    onBudgetPdf: openBudgetPdf, // … → Budget (.pdf): ExportBudgetModal
+    onBudgetCsv: exportBudgetCsv, // … → Budget (.csv)
+    budgetUnavailable,
     onOutlineCsv: () => exportOutline('csv'),
     onOutlineMd: () => exportOutline('md'),
     onOutlineFountain: () => exportOutline('fountain'),
@@ -3854,6 +3882,12 @@ function Workspace({ boot }) {
           // Export → Story Bible (PDF)…: loads (with lib/biblePdfExport.js) the first time it's opened.
           <Suspense fallback={null}>
             <ExportBibleModal project={{ meta, storyDna, storyNotes, characters, actMode }} onClose={() => setBibleExportOpen(false)} />
+          </Suspense>
+        )}
+        {budgetPdf && (
+          // Export → Budget (PDF)…: Summary or Detailed; loads with lib/budgetExport.js's report.
+          <Suspense fallback={null}>
+            <ExportBudgetModal data={budgetPdf} onClose={() => setBudgetPdf(null)} />
           </Suspense>
         )}
         {pendingDelete && (

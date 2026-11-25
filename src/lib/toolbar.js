@@ -70,7 +70,7 @@ export function moreMenuItems({
  * same three outlines. Exports live here only: workspace toolbars keep working actions.)
  */
 export function fileMenuItems({
-  onNew, onOpen, onImport, onSample, onTitlePage, onPrint, onCompiledPdf, onBible, onFountain, onFdx, onBreakdownCsv, onOutlineCsv, onOutlineMd,
+  onNew, onOpen, onImport, onSample, onTitlePage, onPrint, onCompiledPdf, onBible, onFountain, onFdx, onBreakdownCsv, onBudgetPdf, onBudgetCsv, budgetUnavailable = null, onOutlineCsv, onOutlineMd,
   onOutlineFountain, onBackup, onSnapshots, snapshotCount = 0, hasScenes = true, onProjects,
 }) {
   return [
@@ -97,6 +97,16 @@ export function fileMenuItems({
     ...(onBreakdownCsv ? [{
       label: 'Scene Breakdown', ext: '.csv', onSelect: onBreakdownCsv, disabled: !hasScenes,
       title: hasScenes ? 'Every scene’s breakdown as a spreadsheet (.csv), one row per scene' : 'No scenes yet: scene headings (INT. / EXT. …) make the breakdown',
+    }] : []),
+    // The Budget (lib/budgetExport.js): a report to print or save as PDF, and a spreadsheet. budgetUnavailable
+    // is the reason there's nothing to export (a newer DraftLine's budget, or nothing to budget yet).
+    ...(onBudgetPdf ? [{
+      label: 'Budget', ext: '.pdf', onSelect: onBudgetPdf, disabled: !!budgetUnavailable,
+      title: budgetUnavailable || 'A budget report to print or save as PDF: a summary, or every item in detail',
+    }] : []),
+    ...(onBudgetCsv ? [{
+      label: 'Budget', ext: '.csv', onSelect: onBudgetCsv, disabled: !!budgetUnavailable,
+      title: budgetUnavailable || 'Every budget item as a spreadsheet (.csv), with its method, quantities, rate and amount',
     }] : []),
     { label: 'Spreadsheet Outline', ext: '.csv', onSelect: onOutlineCsv, title: 'One row per Scene Board card' },
     { label: 'Markdown Outline', ext: '.md', onSelect: onOutlineMd, title: 'The Scene Board as a Markdown outline' },
