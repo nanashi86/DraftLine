@@ -10,8 +10,8 @@
 - Phones: a 16px Courier Prime writing view, an element bar above the keyboard (Scene, Action, Character, Dialogue, Parenthetical, Transition), and page breaks identical to the desktop's, worked out at full page width
 - Storage: in the browser on every device; linking a folder (including Google Drive, Dropbox or OneDrive folders) works in Chrome or Edge on a computer, not on phones
 - Writing: human-authored. DraftLine has no generative AI; its checks (Format Doctor, Dialogue Tuner statistics, Scene Board pacing and value-shift suggestions) are rule-based readings of the writer's own pages
-- Story and production tools, all free: Scene Board linked to the script with live act pacing, Story Bible, Characters, Format Doctor, Dialogue Tuner, Table Read (the script read aloud with a voice per character, using the browser's voices; online voices only after the writer agrees), snapshots, and a Plan workspace with breakdowns, a stripboard that schedules scenes into shooting days, and reports
-- Designed for independent writers: no real-time co-writing, no colored production revisions, no budgeting, and no call sheets
+- Story and production tools, all free: Scene Board linked to the script with live act pacing, Story Bible, Characters, Format Doctor, Dialogue Tuner, Table Read (the script read aloud with a voice per character, using the browser's voices; online voices only after the writer agrees), snapshots, and a Plan workspace with breakdowns, a stripboard that schedules scenes into shooting days, a budget priced from the breakdowns and schedule (PDF and CSV exports; a planning estimate, not accounting), and reports
+- Designed for independent writers: no real-time co-writing, no colored production revisions, no call sheets, and no production accounting
 
 ## Pages
 
