@@ -118,7 +118,7 @@ Each of these is part of the same single undo step as the change itself.
 
 ## Exports (Phase 3C, `src/lib/budgetExport.js`)
 
-**File ▾ → Export Planning & Production → Budget (.pdf / .csv)**, after Scene Breakdown. Both read the same
+**File ▾ → Export Planning & Production → Budget Report (.pdf) / Budget Spreadsheet (.csv)**, after Scene Breakdown. Both read the same
 `budgetModel(production, buildBreakdown(…), scheduleModel(rows, readable schedule))` as Plan → Budget and write
 nothing: no save, no budget record, no undo step. No money is worked out in the exports; amounts are written from
 their integer minor units as text.

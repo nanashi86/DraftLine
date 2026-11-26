@@ -101,11 +101,11 @@ export function fileMenuItems({
     // The Budget (lib/budgetExport.js): a report to print or save as PDF, and a spreadsheet. budgetUnavailable
     // is the reason there's nothing to export (a newer DraftLine's budget, or nothing to budget yet).
     ...(onBudgetPdf ? [{
-      label: 'Budget', ext: '.pdf', onSelect: onBudgetPdf, disabled: !!budgetUnavailable,
+      label: 'Budget Report', ext: '.pdf', onSelect: onBudgetPdf, disabled: !!budgetUnavailable,
       title: budgetUnavailable || 'A budget report to print or save as PDF: a summary, or every item in detail',
     }] : []),
     ...(onBudgetCsv ? [{
-      label: 'Budget', ext: '.csv', onSelect: onBudgetCsv, disabled: !!budgetUnavailable,
+      label: 'Budget Spreadsheet', ext: '.csv', onSelect: onBudgetCsv, disabled: !!budgetUnavailable,
       title: budgetUnavailable || 'Every budget item as a spreadsheet (.csv), with its method, quantities, rate and amount',
     }] : []),
     { label: 'Spreadsheet Outline', ext: '.csv', onSelect: onOutlineCsv, title: 'One row per Scene Board card' },

@@ -128,7 +128,7 @@ function parseCsv(text) {
 const cents = (t) => (t ? BigInt(t.replace('.', '')) : 0n);
 const euros = (text) => BigInt(text.replace(/[^\d]/g, '')); // "€27,758.40" → 2775840n
 async function csvExport(page) {
-  const item = await menuItem(page, /^Budget\s*\.csv/);
+  const item = await menuItem(page, /^Budget Spreadsheet\s*\.csv/);
   const [download] = await Promise.all([page.waitForEvent('download'), item.click()]);
   return { name: download.suggestedFilename(), text: await readFile(await download.path(), 'utf8') };
 }
@@ -140,7 +140,7 @@ async function csvExport(page) {
  * recorded too, then passed straight through: nothing about printing is changed.
  */
 async function pdfExport(page, kind) {
-  await (await menuItem(page, /^Budget\s*\.pdf/)).click();
+  await (await menuItem(page, /^Budget Report\s*\.pdf/)).click();
   const dlg = page.getByRole('dialog', { name: 'Export Budget (PDF)' });
   await dlg.waitFor();
   await dlg.getByRole('radio', { name: new RegExp(`^${kind}`) }).check();
@@ -214,7 +214,7 @@ describe('File ▾ → Budget (.pdf / .csv)', () => {
       assert.ok(rows.some((r) => r.Item === '\'=Gaffer "night" <b>rate</b>'), 'a formula can’t run');
 
       // PDF: the dialog shows the same total; Summary and Detailed name their files and print the same figures.
-      await (await menuItem(page, /^Budget\s*\.pdf/)).click();
+      await (await menuItem(page, /^Budget Report\s*\.pdf/)).click();
       const dlg = page.getByRole('dialog', { name: 'Export Budget (PDF)' });
       assert.match(await dlg.textContent(), new RegExp(`${total[1]} ${total[2].replace(/[.$]/g, '\\$&')}`));
       await dlg.getByRole('button', { name: 'Cancel' }).click();
@@ -260,7 +260,7 @@ describe('File ▾ → Budget (.pdf / .csv)', () => {
       // The test server has no service worker (the built app's precaches every file: tests/swPrecache.test.js),
       // so first load what a visit to Plan and the dialog loads, as an installed app has it; then cut the network.
       await budgetOnScreen(page);
-      await (await menuItem(page, /^Budget\s*\.pdf/)).click();
+      await (await menuItem(page, /^Budget Report\s*\.pdf/)).click();
       await page.getByRole('dialog', { name: 'Export Budget (PDF)' }).getByRole('button', { name: 'Cancel' }).click();
       await ctx.setOffline(true);
       assert.equal(await page.evaluate(() => navigator.onLine), false);
@@ -289,14 +289,14 @@ describe('File ▾ → Budget (.pdf / .csv)', () => {
       await putProduction(page, { ...(rec.production || {}), budget: { version: BUDGET_VERSION + 1, lines: {} } });
       await page.reload({ waitUntil: 'load' });
       await page.locator('.sheet textarea').first().waitFor();
-      let item = await menuItem(page, /^Budget\s*\.pdf/);
+      let item = await menuItem(page, /^Budget Report\s*\.pdf/);
       assert.equal(await item.getAttribute('aria-disabled') ?? String(await item.isDisabled()), 'true');
       assert.match(await item.getAttribute('title'), /newer version of DraftLine/);
       await page.keyboard.press('Escape');
       // Nothing to budget: a new, empty script.
       await page.keyboard.press('Control+Alt+n');
       await page.waitForTimeout(800);
-      item = await menuItem(page, /^Budget\s*\.csv/);
+      item = await menuItem(page, /^Budget Spreadsheet\s*\.csv/);
       assert.equal(await item.getAttribute('aria-disabled') ?? String(await item.isDisabled()), 'true');
       assert.match(await item.getAttribute('title'), /Nothing to budget yet/);
       await page.keyboard.press('Escape');
@@ -310,7 +310,7 @@ describe('File ▾ → Budget (.pdf / .csv)', () => {
       const ctx = await browser.newContext({ viewport: size, colorScheme, locale: 'en-US', ...(mobile ? { isMobile: true, hasTouch: true } : {}) });
       try {
         const { page, errors } = await open(ctx, (ids) => film(ids));
-        await (await menuItem(page, /^Budget\s*\.pdf/)).click();
+        await (await menuItem(page, /^Budget Report\s*\.pdf/)).click();
         const dlg = page.getByRole('dialog', { name: 'Export Budget (PDF)' });
         await dlg.waitFor();
         const box = await dlg.boundingBox();

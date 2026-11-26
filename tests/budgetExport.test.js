@@ -439,10 +439,10 @@ describe('what can be exported', () => {
     assert.equal(budgetForExport({ production: p, rows: rowsOf(p), schedule: null }).reason, 'newer');
     assert.match(UNAVAILABLE.newer, /newer version of DraftLine/);
   });
-  it('File ▾ → Export Planning & Production: Budget .pdf and .csv right after Scene Breakdown; greyed out with the reason', () => {
+  it('File ▾ → Export Planning & Production: Budget Report (.pdf) and Budget Spreadsheet (.csv) right after Scene Breakdown; greyed out with the reason', () => {
     const items = fileMenuItems({ onBreakdownCsv: () => {}, onBudgetPdf: () => {}, onBudgetCsv: () => {}, hasScenes: true, onOutlineCsv: () => {}, onOutlineMd: () => {}, onOutlineFountain: () => {} });
     const at = items.findIndex((i) => i.label === 'Scene Breakdown');
-    assert.deepEqual(items.slice(at + 1, at + 3).map((i) => `${i.label} ${i.ext}`), ['Budget .pdf', 'Budget .csv']);
+    assert.deepEqual(items.slice(at + 1, at + 3).map((i) => `${i.label} ${i.ext}`), ['Budget Report .pdf', 'Budget Spreadsheet .csv']);
     assert.ok(items.slice(at + 1, at + 3).every((i) => !i.disabled));
     const off = fileMenuItems({ onBreakdownCsv: () => {}, onBudgetPdf: () => {}, onBudgetCsv: () => {}, budgetUnavailable: UNAVAILABLE.empty, hasScenes: true });
     const b = off.filter((i) => i.label === 'Budget');
