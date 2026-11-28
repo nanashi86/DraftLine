@@ -15,7 +15,8 @@ DraftLine™ is a fast, distraction-free screenwriting progressive web app (PWA)
 It runs in the browser on a computer or a phone, installs like an app and keeps working offline, with no account and no
 subscription.
 Your scripts stay on your device, and open and save as Fountain (plain text) and Final Draft (.fdx), so they're never
-locked into one app.
+locked into one app. A built-in Plan workspace adds scene breakdowns, stripboard scheduling with shooting days, and
+production budgeting, all worked out from the script.
 
 **Highlights**
 

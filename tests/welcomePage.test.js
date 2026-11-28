@@ -48,13 +48,13 @@ describe('The Welcome page', () => {
     for (const line of [
       "Tab and Enter guide you through screenplay elements. Hollywood pagination handles dialogue splits with (MORE) and (CONT'D), with page counts that match your PDF.",
       'Organize your story with a Scene Board of index cards structured across three or four acts. A Story Bible and character bios, beside the script whenever you want them.',
-      'Refine your script with Format Doctor and Dialogue Tuner. Compare snapshots, organize scene breakdowns, schedule shooting days on the stripboard, and run reports.',
+      'Refine your script with Format Doctor and Dialogue Tuner. Compare snapshots, organize scene breakdowns, schedule shooting days on the stripboard, budget the production, and run reports.',
       'No account required. Write offline on your computer or phone. Import and export Final Draft (.fdx) and Fountain files, create PDFs, and keep control of your scripts.',
     ]) assert.ok(html.includes(`<p>${line}</p>`), line);
   });
   it('is about DraftLine Core: nothing unreleased or paid is advertised', () => {
-    // Scheduling has shipped (Plan → Stripboard): it may be named; Budget and the rest haven't.
-    assert.doesNotMatch(text, /Table Read|Budget|Shoot\b|Co-Write|DraftLine Pro|subscribe|sign in|log in/i);
+    // Scheduling and the Budget have shipped (Plan → Stripboard, Plan → Budget): they may be named; the rest haven't.
+    assert.doesNotMatch(text, /Table Read|Shoot\b|Co-Write|DraftLine Pro|subscribe|sign in|log in/i);
   });
   it('the hero image is the real editor: two captured screenshots, 2880×1800, shown at their own proportions', () => {
     for (const t of ['dark', 'light']) {
